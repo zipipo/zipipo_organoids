@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오가노이드 배양 기록부</title>
+    <link href="https://webfontworld.github.io/score/SCoreDream.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-light: #e1f5fe; /* 연한 하늘색 */
+            --primary: #81d4fa;
+            --primary-dark: #0288d1;
+            --text-dark: #333333;
+            --white: #ffffff;
+            --danger: #ffcdd2;
+            --warning: #fff9c4;
+            --safe: #c8e6c9;
+        }
+
+        body {
+            font-family: 'SCoreDream', sans-serif;
+            background-color: #f4f9f9;
+            color: var(--text-dark);
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1, h2, h3 { color: var(--primary-dark); }
+
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        button {
+            font-family: 'SCoreDream', sans-serif;
+            background-color: var(--primary);
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+        button:hover { background-color: var(--primary-dark); color: white; }
+        .btn-small { padding: 5px 10px; font-size: 0.9em; }
+        .btn-outline { background-color: white; border: 1px solid var(--primary-dark); color: var(--primary-dark); }
+        .btn-danger { background-color: #ef5350; color: white; }
+
+        /* 메인 테이블 스타일 */
+        .table-container {
+            background: var(--white);
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+        }
+
+        th, td { padding: 15px; border-bottom: 1px solid #eeeeee; }
+        th { background-color: var(--primary-light); font-weight: 600; color: var(--primary-dark); }
+        tr:hover { background-color: #fcfcfc; cursor: pointer; transition: 0.2s; }
+        
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        /* 모달(팝업) 스타일 */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary-light); margin-bottom: 20px; padding-bottom: 10px;}
+        
+        .input-group { margin-bottom: 15px; display: flex; align-items: center; }
+        .input-group label { width: 120px; font-weight: 500; }
+        .input-group input, .input-group select, .input-group textarea {
+            flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 5px; font-family: 'SCoreDream';
+        }
+        
+        .action-buttons { display: flex; gap: 10px; margin: 20px 0; padding: 15px; background: var(--primary-light); border-radius: 8px; justify-content: center; }
+        
+        .history-box { background: #f9f9f9; padding: 10px; border-radius: 5px; max-height: 150px; overflow-y: auto; font-size: 0.9em; }
+        .history-item { margin-bottom: 5px; border-bottom: 1px dashed #ddd; padding-bottom: 3px; }
+
+    </style>
+</head>
+<body>
+
+    <div class="header-actions">
+        <h1>🦠 오가노이드 배양 기록부</h1>
+        <div>
+            <button onclick="openAddModal()">+ 새 라인 등록</button>
+            <button class="btn-outline" onclick="exportData()">데이터 백업(다운로드)</button>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table id="mainTable">
+            <thead>
+                <tr>
+                    <th>환자 번호</th>
+                    <th>종류</th>
+                    <th>계대수 (P)</th>
+                    <th>배양일 (D)</th>
+                    <th>Well 수</th>
+                    <th>배지 상태</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                </tbody>
+        </table>
+    </div>
+
+    <div class="modal-overlay" id="detailModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">상세 정보</h2>
+                <button class="btn-outline btn-small" onclick="closeModal()">닫기</button>
+            </div>
+            
+            <input type="hidden" id="editId">
+            
+            <div class="input-group">
+                <label>환자 번호</label>
+                <input type="text" id="patientId" placeholder="예: HCC22">
+            </div>
+            <div class="input-group">
+                <label>종류</label>
+                <select id="orgType">
+                    <option value="PHH-org">PHH-org</option>
+                    <option value="Tumor-org">Tumor-org</option>
+                    <option value="Chol-org">Chol-org</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>계대 수 (P)</label>
+                <input type="number" id="passage" min="0" value="0">
+            </div>
+            <div class="input-group">
+                <label>Well 개수</label>
+                <input type="number" id="wells" min="0" value="1">
+            </div>
+            <div class="input-group">
+                <label>Stock 개수</label>
+                <input type="number" id="stocks" min="0" value="0">
+            </div>
+            <div class="input-group">
+                <label>메모 / 특이사항</label>
+                <textarea id="memo" rows="3" placeholder="특이사항을 적어주세요..."></textarea>
+            </div>
+
+            <div class="action-buttons" id="quickActions" style="display:none;">
+                <button onclick="doMediaChange()">💧 배지 교환 (시간 기록)</button>
+                <button onclick="doSplit()">✂️ Split (P+1, D0)</button>
+                <button onclick="doReseed()">🔄 Reseeding (D유지)</button>
+            </div>
+
+            <div class="input-group" style="display:block;" id="historySection">
+                <label style="display:block; margin-bottom:5px;">기록 히스토리</label>
+                <div class="history-box" id="historyLog"></div>
+            </div>
+
+            <div style="text-align: right; margin-top: 20px;">
+                <button class="btn-danger btn-small" id="deleteBtn" onclick="deleteLine()" style="float:left; display:none;">삭제</button>
+                <button onclick="saveData()">저장하기</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    let cultures = JSON.parse(localStorage.getItem('organoidData')) || [];
+    let currentEditIndex = -1;
+
+    // 날짜 계산 함수
+    function getDaysDiff(startDateStr) {
+        const start = new Date(startDateStr);
+        const today = new Date();
+        start.setHours(0,0,0,0);
+        today.setHours(0,0,0,0);
+        return Math.floor((today - start) / (1000 * 60 * 60 * 24));
+    }
+
+    function getDisplayDay(culture) {
+        const diff = getDaysDiff(culture.startDate);
+        if (culture.baseDay === 0) return `d${diff}`;
+        return `d${culture.baseDay}+${diff}`;
+    }
+
+    function getMediaStatusInfo(lastChangeDateStr) {
+        if(!lastChangeDateStr) return { text: "정보없음", color: "var(--safe)" };
+        const last = new Date(lastChangeDateStr);
+        const now = new Date();
+        const hoursDiff = (now - last) / (1000 * 60 * 60);
+        
+        if (hoursDiff < 48) return { text: "안전 (2일 이내)", color: "var(--safe)" };
+        if (hoursDiff < 72) return { text: "교환 필요 (2~3일)", color: "var(--warning)" };
+        return { text: "경고 (3일 초과!)", color: "var(--danger)" };
+    }
+
+    // 메인 테이블 렌더링
+    function renderTable() {
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
+        
+        cultures.forEach((c, index) => {
+            const status = getMediaStatusInfo(c.lastMediaChange);
+            const tr = document.createElement('tr');
+            tr.onclick = () => openEditModal(index);
+            tr.innerHTML = `
+                <td><strong>${c.patientId}</strong></td>
+                <td>${c.type}</td>
+                <td>P${c.passage}</td>
+                <td>${getDisplayDay(c)}</td>
+                <td>${c.wells}개</td>
+                <td><span class="status-badge" style="background-color: ${status.color}">${status.text}</span></td>
+            `;
+            tbody.appendChild(tr);
+        });
+        localStorage.setItem('organoidData', JSON.stringify(cultures));
+    }
+
+    // 모달 열기 (새로 추가)
+    function openAddModal() {
+        currentEditIndex = -1;
+        document.getElementById('modalTitle').innerText = "새 오가노이드 라인 등록";
+        document.getElementById('patientId').value = "";
+        document.getElementById('passage').value = 0;
+        document.getElementById('wells').value = 1;
+        document.getElementById('stocks').value = 0;
+        document.getElementById('memo').value = "";
+        document.getElementById('quickActions').style.display = "none";
+        document.getElementById('historySection').style.display = "none";
+        document.getElementById('deleteBtn').style.display = "none";
+        document.getElementById('detailModal').style.display = "flex";
+    }
+
+    // 모달 열기 (기존 항목 수정)
+    function openEditModal(index) {
+        currentEditIndex = index;
+        const c = cultures[index];
+        document.getElementById('modalTitle').innerText = `${c.patientId} (${c.type}) 상세 관리`;
+        document.getElementById('patientId').value = c.patientId;
+        document.getElementById('orgType').value = c.type;
+        document.getElementById('passage').value = c.passage;
+        document.getElementById('wells').value = c.wells;
+        document.getElementById('stocks').value = c.stocks || 0;
+        document.getElementById('memo').value = c.memo || "";
+        
+        // 히스토리 렌더링
+        const historyBox = document.getElementById('historyLog');
+        historyBox.innerHTML = c.history.map(h => `<div class="history-item">${h}</div>`).join('');
+
+        document.getElementById('quickActions').style.display = "flex";
+        document.getElementById('historySection').style.display = "block";
+        document.getElementById('deleteBtn').style.display = "block";
+        document.getElementById('detailModal').style.display = "flex";
+    }
+
+    function closeModal() {
+        document.getElementById('detailModal').style.display = "none";
+    }
+
+    // 현재 시간을 YYYY.MM.DD HH:MM 형식으로 반환
+    function getNowString() {
+        const now = new Date();
+        return `[${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}]`;
+    }
+
+    // 데이터 저장/업데이트
+    function saveData() {
+        const patientId = document.getElementById('patientId').value.trim();
+        if(!patientId) return alert("환자 번호를 입력하세요!");
+
+        const newData = {
+            patientId: patientId,
+            type: document.getElementById('orgType').value,
+            passage: parseInt(document.getElementById('passage').value),
+            wells: parseInt(document.getElementById('wells').value),
+            stocks: parseInt(document.getElementById('stocks').value),
+            memo: document.getElementById('memo').value,
+        };
+
+        if (currentEditIndex === -1) {
+            // 새 항목 추가
+            newData.startDate = new Date().toISOString();
+            newData.baseDay = 0;
+            newData.lastMediaChange = new Date().toISOString();
+            newData.history = [`${getNowString()} 라인 최초 등록 (P${newData.passage})`];
+            cultures.push(newData);
+        } else {
+            // 기존 항목 업데이트 (입력된 P, Well 등만 업데이트하고 날짜는 유지)
+            cultures[currentEditIndex] = { ...cultures[currentEditIndex], ...newData };
+        }
+
+        closeModal();
+        renderTable();
+    }
+
+    // 액션: Media Change
+    function doMediaChange() {
+        if(confirm("배지 교환(Media Change)을 기록하시겠습니까? 현재 시간이 기록됩니다.")){
+            cultures[currentEditIndex].lastMediaChange = new Date().toISOString();
+            cultures[currentEditIndex].history.unshift(`${getNowString()} 💧 Media Change 완료`);
+            saveData();
+        }
+    }
+
+    // 액션: Split
+    function doSplit() {
+        const currentP = cultures[currentEditIndex].passage;
+        if(confirm(`현재 P${currentP}에서 P${currentP + 1}로 Split 하시겠습니까?\nDay는 0일로 리셋됩니다.`)){
+            cultures[currentEditIndex].passage += 1;
+            cultures[currentEditIndex].baseDay = 0;
+            cultures[currentEditIndex].startDate = new Date().toISOString();
+            cultures[currentEditIndex].lastMediaChange = new Date().toISOString();
+            cultures[currentEditIndex].history.unshift(`${getNowString()} ✂️ Split 진행 (P${currentP} -> P${currentP+1})`);
+            saveData();
+        }
+    }
+
+    // 액션: Reseeding
+    function doReseed() {
+        const c = cultures[currentEditIndex];
+        const currentTotalDays = c.baseDay + getDaysDiff(c.startDate);
+        if(confirm(`현재까지 총 배양일(${currentTotalDays}일)을 유지한 채 Reseeding 하시겠습니까?\n내일부터 d${currentTotalDays}+1 로 표기됩니다.`)){
+            cultures[currentEditIndex].baseDay = currentTotalDays;
+            cultures[currentEditIndex].startDate = new Date().toISOString();
+            cultures[currentEditIndex].lastMediaChange = new Date().toISOString();
+            cultures[currentEditIndex].history.unshift(`${getNowString()} 🔄 Reseeding 진행 (d${currentTotalDays}+0 시작)`);
+            saveData();
+        }
+    }
+
+    // 항목 삭제
+    function deleteLine() {
+        if(confirm("정말 이 라인을 삭제하시겠습니까? 복구할 수 없습니다.")){
+            cultures.splice(currentEditIndex, 1);
+            closeModal();
+            renderTable();
+        }
+    }
+
+    // 백업 (JSON 다운로드)
+    function exportData() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(cultures));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", `organoid_backup_${new Date().toISOString().slice(0,10)}.json`);
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+    }
+
+    // 초기 렌더링
+    renderTable();
+</script>
+</body>
+</html>
