@@ -10,68 +10,75 @@
             --bg: #F8FAFC; --surface: #FFFFFF; --primary: #3B82F6; --primary-soft: #EFF6FF;
             --text-main: #1E293B; --text-sub: #64748B; --border: #E2E8F0;
         }
-        body { font-family: 'Pretendard', sans-serif; background-color: var(--bg); color: var(--text-main); margin: 0; padding: 40px 20px; line-height: 1.5; }
-        .container { max-width: 1200px; margin: 0 auto; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        h1 { font-size: 1.6rem; font-weight: 700; margin: 0; color: #0F172A; }
+        body { font-family: 'Pretendard', sans-serif; background-color: var(--bg); color: var(--text-main); margin: 0; padding: 15px; line-height: 1.4; }
+        .container { max-width: 1300px; margin: 0 auto; }
         
-        .btn { font-family: inherit; font-weight: 600; cursor: pointer; border-radius: 6px; padding: 10px 16px; border: none; transition: 0.2s; font-size: 0.9rem; }
+        /* 헤더 여백 축소 */
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        h1 { font-size: 1.4rem; font-weight: 700; margin: 0; color: #0F172A; }
+        
+        .btn { font-family: inherit; font-weight: 600; cursor: pointer; border-radius: 4px; padding: 6px 12px; border: none; transition: 0.2s; font-size: 0.85rem; }
         .btn-primary { background: var(--primary); color: white; }
         .btn-primary:hover { background: #2563EB; }
         .btn-outline { background: white; border: 1px solid var(--border); color: var(--text-sub); }
         .btn-outline:hover { background: var(--bg); }
+        .btn-delete { background: #FEE2E2; color: #DC2626; border: 1px solid #FECACA; }
+        .btn-delete:hover { background: #FECACA; }
 
-        .card { background: var(--surface); border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); overflow: hidden; margin-bottom: 24px; }
-        .card-header { padding: 16px 20px; border-bottom: 1px solid var(--border); font-weight: 700; background: #F8FAFC; font-size: 1.05rem; }
+        /* 카드 여백 축소 */
+        .card { background: var(--surface); border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 15px; }
+        .card-header { padding: 10px 15px; border-bottom: 1px solid var(--border); font-weight: 700; background: #F8FAFC; font-size: 0.95rem; }
 
-        /* 입력 폼 셋팅 */
-        .entry-form { padding: 20px; background: var(--primary-soft); display: flex; flex-direction: column; gap: 16px; border-bottom: 1px solid #BFDBFE; }
-        .form-row { display: grid; gap: 16px; align-items: end; }
+        /* 폼 여백 축소 */
+        .entry-form { padding: 12px 15px; background: var(--primary-soft); display: flex; flex-direction: column; gap: 10px; border-bottom: 1px solid #BFDBFE; }
+        .form-row { display: grid; gap: 10px; align-items: end; }
         .row-1 { grid-template-columns: 1fr 1.5fr 1.5fr; }
-        .row-2 { grid-template-columns: 1.2fr 0.8fr 0.8fr 2.5fr 100px; } /* 작업내용, 최종Well, Stock, Memo, 버튼 */
+        .row-2 { grid-template-columns: 1.2fr 0.8fr 0.8fr 2.5fr 70px; }
         
-        label { display: block; font-size: 0.85rem; color: #475569; margin-bottom: 6px; font-weight: 600; }
-        input, select { width: 100%; padding: 10px 12px; border: 1px solid #CBD5E1; border-radius: 6px; font-family: inherit; font-size: 0.95rem; box-sizing: border-box; transition: 0.2s; }
+        label { display: block; font-size: 0.8rem; color: #475569; margin-bottom: 4px; font-weight: 600; }
+        input, select { width: 100%; padding: 6px 10px; border: 1px solid #CBD5E1; border-radius: 4px; font-family: inherit; font-size: 0.85rem; box-sizing: border-box; }
         input:focus, select:focus { outline: none; border-color: var(--primary); }
-        #previewArea { padding: 15px 20px; font-size: 0.9rem; color: var(--primary); font-weight: 500; background: #FFFFFF; }
+        #previewArea { padding: 8px 15px; font-size: 0.85rem; color: var(--primary); font-weight: 600; background: #FFFFFF; }
 
-        /* 타임라인 그룹화 UI */
-        .timeline-section { margin-bottom: 30px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
-        .timeline-header { background: #E0F2FE; padding: 12px 20px; font-weight: 700; color: #0369A1; font-size: 1.1rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #BAE6FD; }
-        .timeline-header span.current-status { font-size: 0.85rem; background: white; padding: 4px 10px; border-radius: 20px; color: #0284C7; font-weight: 600; }
+        /* 타임라인 및 테이블 여백 축소 */
+        .timeline-section { margin-bottom: 20px; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+        .timeline-header { background: #E0F2FE; padding: 8px 15px; font-weight: 700; color: #0369A1; font-size: 0.95rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #BAE6FD; }
+        .timeline-header span.current-status { font-size: 0.8rem; background: white; padding: 2px 8px; border-radius: 4px; color: #0284C7; font-weight: 600; border: 1px solid #BAE6FD; }
 
         table { width: 100%; border-collapse: collapse; text-align: left; background: white; }
-        th { padding: 12px 20px; background: #F8FAFC; color: var(--text-sub); font-size: 0.8rem; text-transform: uppercase; border-bottom: 1px solid var(--border); }
-        td { padding: 14px 20px; border-bottom: 1px solid var(--border); font-size: 0.95rem; vertical-align: middle; }
+        th { padding: 8px 10px; background: #F8FAFC; color: var(--text-sub); font-size: 0.75rem; border-bottom: 1px solid var(--border); }
+        td { padding: 8px 10px; border-bottom: 1px solid var(--border); font-size: 0.85rem; vertical-align: middle; }
         tr:hover { background-color: #F8FAFC; }
         
-        .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+        .badge { padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
         .badge-blue { background: #DBEAFE; color: #1E40AF; }
         .badge-orange { background: #FFEDD5; color: #9A3412; }
         .badge-green { background: #D1FAE5; color: #065F46; }
 
-        .memo-cell { max-width: 200px; color: #334155; line-height: 1.4; word-break: break-all; font-size: 0.9rem; }
+        .memo-cell { max-width: 250px; color: #334155; line-height: 1.3; word-break: break-all; }
         .data-cell { font-weight: 600; color: #0F172A; }
-        .highlight-well { color: #059669; font-weight: 700; font-size: 1.05rem; } /* 최종 Well 강조 */
+        .highlight-well { color: #059669; font-weight: 700; font-size: 0.9rem; }
+        .stock-text { color: #0284C7; font-weight: 600; font-size: 0.8rem; }
 
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 100; }
-        .modal-content { background: white; padding: 30px; border-radius: 12px; width: 550px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
-        .line-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid var(--border); background: #F8FAFC; margin-bottom: 8px; border-radius: 6px; align-items: center; }
+        /* 모달 최적화 */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); justify-content: center; align-items: center; z-index: 100; }
+        .modal-content { background: white; padding: 20px; border-radius: 8px; width: 600px; box-shadow: 0 10px 15px rgba(0,0,0,0.1); }
+        .line-item { display: flex; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid var(--border); background: #F8FAFC; margin-bottom: 5px; border-radius: 4px; align-items: center; }
     </style>
 </head>
 <body>
 
     <div class="container">
         <div class="header">
-            <h1>🔬 Organoid Pro Logbook</h1>
-            <div style="display:flex; gap:12px;">
-                <button class="btn btn-outline" onclick="openLineModal()">⚙️ 마스터 라인 관리</button>
-                <button class="btn btn-outline" onclick="exportToCSV()">💾 CSV 데이터 백업</button>
+            <h1>Organoid Pro Logbook</h1>
+            <div style="display:flex; gap:8px;">
+                <button class="btn btn-outline" onclick="openLineModal()">마스터 라인 관리</button>
+                <button class="btn btn-outline" onclick="exportToCSV()">CSV 데이터 백업</button>
             </div>
         </div>
 
         <div class="card">
-            <div class="card-header">📝 데일리 작업 일지 기록</div>
+            <div class="card-header">데일리 작업 일지 기록</div>
             <div class="entry-form">
                 <div class="form-row row-1">
                     <div><label>작업 날짜</label><input type="date" id="logDate"></div>
@@ -90,26 +97,26 @@
                     </div>
                 </div>
                 <div class="form-row row-2">
-                    <div><label>과정 (예: 1:4 split)</label><input type="text" id="logDetails" placeholder="비율 등"></div>
+                    <div><label>과정 (예: 1:4)</label><input type="text" id="logDetails" placeholder="비율 등"></div>
                     <div><label style="color:#059669;">최종 Well 수</label><input type="number" id="logFinalWells" placeholder="현재 총 개수" min="0"></div>
-                    <div><label>Stocks 생성</label><input type="number" id="logStocks" placeholder="바이알 수" min="0"></div>
+                    <div><label>Stock 생성</label><input type="number" id="logStocks" placeholder="바이알 수" min="0"></div>
                     <div><label>디테일 메모</label><input type="text" id="logMemo" placeholder="특이사항, 시약 등 입력"></div>
-                    <button class="btn btn-primary" style="height: 42px;" onclick="addDailyLog()">+ 기록</button>
+                    <button class="btn btn-primary" style="height: 32px;" onclick="addDailyLog()">기록</button>
                 </div>
             </div>
-            <div id="previewArea">라인을 선택하면 현재 P/D 상태가 표시됩니다.</div>
+            <div id="previewArea">라인을 선택하면 현재 상태가 표시됩니다.</div>
         </div>
 
-        <h2 style="font-size: 1.2rem; color: #1E293B; margin-bottom: 15px;">📅 라인별 전체 배양 타임라인</h2>
+        <h2 style="font-size: 1.05rem; color: #1E293B; margin-bottom: 10px;">라인별 전체 배양 타임라인</h2>
         <div id="groupedTimelineContainer">
             </div>
     </div>
 
     <div id="lineModal" class="modal">
         <div class="modal-content">
-            <h2 style="margin-top:0; color:#0F172A;">마스터 라인 등록</h2>
-            <div style="background: var(--primary-soft); padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                <div style="display:grid; grid-template-columns: 1.5fr 1fr; gap:12px; margin-bottom:12px;">
+            <h2 style="margin-top:0; font-size:1.2rem; color:#0F172A; border-bottom:1px solid #E2E8F0; padding-bottom:10px;">마스터 라인 등록/관리</h2>
+            <div style="background: var(--primary-soft); padding: 15px; border-radius: 6px; margin-bottom: 15px;">
+                <div style="display:grid; grid-template-columns: 1.5fr 1fr; gap:10px; margin-bottom:10px;">
                     <div><label>환자 번호</label><input type="text" id="newLineId" placeholder="예: HCC22"></div>
                     <div><label>종류</label>
                         <select id="newLineType">
@@ -119,24 +126,25 @@
                         </select>
                     </div>
                 </div>
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:12px;">
-                    <div><label>현재 P (계대수)</label><input type="number" id="newLineP" placeholder="P 번호" min="0"></div>
-                    <div><label style="color:#D97706;">d0 기준 시작일 (매우 중요!)</label><input type="date" id="newLineStartDate"></div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap:10px; margin-bottom:10px;">
+                    <div><label style="color:#D97706;">기준 날짜</label><input type="date" id="newLineStartDate"></div>
+                    <div><label>기준일 P</label><input type="number" id="newLineP" placeholder="계대수" min="0"></div>
+                    <div><label>기준일 누적 D</label><input type="number" id="newLineD" placeholder="일수" min="0" value="0"></div>
+                    <div><label>초기 Well 수</label><input type="number" id="newLineWells" placeholder="개수" min="0"></div>
                 </div>
                 <button class="btn btn-primary" style="width:100%;" onclick="registerNewLine()">신규 라인 등록</button>
             </div>
             <div id="activeLines" style="max-height: 200px; overflow-y: auto;"></div>
-            <button class="btn btn-outline" style="width:100%; margin-top:20px;" onclick="closeModal()">닫기</button>
+            <button class="btn btn-outline" style="width:100%; margin-top:15px;" onclick="closeModal()">닫기</button>
         </div>
     </div>
 
 <script>
-    // 날짜 기본값 세팅
     document.getElementById('logDate').valueAsDate = new Date();
     document.getElementById('newLineStartDate').valueAsDate = new Date();
 
-    let lines = JSON.parse(localStorage.getItem('orgLinesProV2')) || [];
-    let logs = JSON.parse(localStorage.getItem('orgDailyLogsProV2')) || [];
+    let lines = JSON.parse(localStorage.getItem('orgLinesCompact')) || [];
+    let logs = JSON.parse(localStorage.getItem('orgDailyLogsCompact')) || [];
 
     // 날짜 계산 함수
     function calcDDay(line, targetDate = new Date()) {
@@ -154,9 +162,7 @@
         return '';
     }
 
-    // 메인 UI 렌더링
     function updateUI() {
-        // 1. 셀렉트 박스 업데이트
         const select = document.getElementById('lineSelect');
         select.innerHTML = '<option value="">-- 라인 선택 --</option>';
         lines.forEach(l => {
@@ -165,104 +171,108 @@
             select.appendChild(opt);
         });
 
-        // 2. 모달창 라인 목록 업데이트
         const lineList = document.getElementById('activeLines');
         lineList.innerHTML = '';
         lines.forEach((l, idx) => {
             lineList.innerHTML += `
                 <div class="line-item">
                     <div>
-                        <div style="font-weight:600;">${l.patientId}_${l.type}</div>
-                        <div style="font-size:0.8rem; color:var(--text-sub);">P${l.passage} / 시작일: ${l.startDate.split('T')[0]}</div>
+                        <div style="font-weight:600; font-size:0.9rem;">${l.patientId}_${l.type}</div>
+                        <div style="font-size:0.75rem; color:var(--text-sub);">
+                            현재 P${l.passage} | 등록기준: ${l.startDate.split('T')[0]} (P${l.initialP}, d${l.initialBaseDay}) | 초기 ${l.initialWells} Wells
+                        </div>
                     </div>
-                    <button style="border:none; background:none; color:var(--danger); cursor:pointer; font-weight:600;" onclick="deleteLine(${idx})">삭제</button>
+                    <button class="btn btn-delete" onclick="deleteLine(${idx})">삭제</button>
                 </div>`;
         });
 
-        // 3. 타임라인 그룹화 렌더링 (핵심 수정 부분!)
         const timelineContainer = document.getElementById('groupedTimelineContainer');
         timelineContainer.innerHTML = '';
 
         if(lines.length === 0) {
-            timelineContainer.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-sub);">등록된 라인이 없습니다. 마스터 라인을 먼저 등록해주세요.</div>';
+            timelineContainer.innerHTML = '<div style="text-align:center; padding:30px; border:1px solid #E2E8F0; background:white; color:var(--text-sub); border-radius:6px;">등록된 라인이 없습니다. 마스터 라인을 먼저 등록해주세요.</div>';
         }
 
         lines.forEach(line => {
-            // 이 라인에 해당하는 로그만 필터링 후 최신순 정렬
             const lineLogs = logs.filter(log => log.lineId === line.id).sort((a,b) => new Date(b.date) - new Date(a.date));
             
             let html = `
             <div class="timeline-section">
                 <div class="timeline-header">
-                    <span>🧬 ${line.patientId}_${line.type}</span>
+                    <span>${line.patientId}_${line.type}</span>
                     <span class="current-status">현재 상태: P${line.passage} / ${calcDDay(line)}</span>
                 </div>
                 <table>
                     <thead>
                         <tr>
-                            <th style="width: 12%;">Date</th>
-                            <th style="width: 15%;">Action</th>
+                            <th style="width: 10%;">Date</th>
+                            <th style="width: 12%;">Action</th>
                             <th style="width: 12%;">P/D Status</th>
-                            <th style="width: 15%;">과정 (Ratio)</th>
+                            <th style="width: 12%;">과정 (Ratio)</th>
                             <th style="width: 10%;">최종 Well</th>
                             <th style="width: 8%;">Stock</th>
-                            <th style="width: 20%;">Memo</th>
-                            <th style="width: 8%; text-align:center;">Del</th>
+                            <th style="width: 30%;">Memo</th>
+                            <th style="width: 6%; text-align:center;">관리</th>
                         </tr>
                     </thead>
                     <tbody>
             `;
 
             if(lineLogs.length === 0) {
-                html += `<tr><td colspan="8" style="text-align:center; color:var(--text-sub); padding:20px;">아직 기록된 일지가 없습니다.</td></tr>`;
+                html += `<tr><td colspan="8" style="text-align:center; color:var(--text-sub); padding:15px;">기록된 일지가 없습니다.</td></tr>`;
             } else {
                 lineLogs.forEach(log => {
+                    const stockDisplay = log.stocks ? `<span class="stock-text">Stock: ${log.stocks}</span>` : '-';
                     html += `
                     <tr>
-                        <td style="color:var(--text-sub); font-size:0.9rem;">${log.date}</td>
+                        <td style="color:var(--text-sub);">${log.date}</td>
                         <td><span class="badge ${getBadgeColor(log.action)}">${log.action}</span></td>
                         <td class="data-cell" style="color:var(--primary);">P${log.passage} / ${log.dayInfo}</td>
                         <td>${log.details || '-'}</td>
                         <td class="highlight-well">${log.finalWells ? log.finalWells + '개' : '-'}</td>
-                        <td style="color:#0284C7; font-weight:600;">${log.stocks ? log.stocks + '개' : '-'}</td>
+                        <td>${stockDisplay}</td>
                         <td class="memo-cell">${log.memo || '-'}</td>
-                        <td style="text-align:center;"><button onclick="deleteLog('${log.id}')" style="border:none; background:none; cursor:pointer; font-size:1.1rem;">🗑️</button></td>
+                        <td style="text-align:center;"><button class="btn btn-delete" style="padding:4px 8px; font-size:0.75rem;" onclick="deleteLog('${log.id}')">삭제</button></td>
                     </tr>`;
                 });
             }
-
             html += `</tbody></table></div>`;
             timelineContainer.innerHTML += html;
         });
 
-        localStorage.setItem('orgLinesProV2', JSON.stringify(lines));
-        localStorage.setItem('orgDailyLogsProV2', JSON.stringify(logs));
+        localStorage.setItem('orgLinesCompact', JSON.stringify(lines));
+        localStorage.setItem('orgDailyLogsCompact', JSON.stringify(logs));
     }
 
-    // 마스터 라인 등록 (d0 시작일 포함)
+    // 신규 라인 등록 (과거 기준일, P, D, Well 설정)
     function registerNewLine() {
         const pId = document.getElementById('newLineId').value.trim();
         const type = document.getElementById('newLineType').value;
-        const p = document.getElementById('newLineP').value || 0;
         const startDate = document.getElementById('newLineStartDate').value;
+        const p = parseInt(document.getElementById('newLineP').value) || 0;
+        const d = parseInt(document.getElementById('newLineD').value) || 0;
+        const wells = parseInt(document.getElementById('newLineWells').value) || 0;
         
         if(!pId) return alert("환자 번호를 입력하세요.");
-        if(!startDate) return alert("d0 기준 시작일을 지정해주세요.");
+        if(!startDate) return alert("기준 날짜를 지정해주세요.");
         
         lines.push({
             id: Date.now().toString(), 
             patientId: pId, 
             type: type, 
-            passage: parseInt(p),
-            baseDay: 0, 
-            startDate: new Date(startDate).toISOString() // 지정한 날짜 저장
+            passage: p,        // 현재 변화할 P
+            baseDay: d,        // 누적될 D 베이스
+            startDate: new Date(startDate).toISOString(), 
+            initialP: p,       // 등록 정보 기록용
+            initialBaseDay: d, // 등록 정보 기록용
+            initialWells: wells // 등록 정보 기록용
         });
         updateUI(); 
         document.getElementById('newLineId').value = '';
+        document.getElementById('newLineWells').value = '';
         closeModal();
     }
 
-    // 일지 등록 (최종 Well 분리)
     function addDailyLog() {
         const lineId = document.getElementById('lineSelect').value;
         const action = document.getElementById('logAction').value;
@@ -280,7 +290,7 @@
 
         const logEntry = {
             id: Date.now().toString(),
-            lineId: line.id, // 라인 ID로 연결
+            lineId: line.id,
             lineDisplay: `${line.patientId}_${line.type}`, 
             date: dateVal, 
             action: action,
@@ -292,7 +302,6 @@
             memo: memo
         };
 
-        // 스마트 액션: Split과 Reseeding 시 마스터 날짜 업데이트
         if(action === 'Split') {
             line.passage += 1; line.baseDay = 0; line.startDate = new Date(dateVal).toISOString();
         } else if(action === 'Reseeding') {
@@ -302,7 +311,6 @@
 
         logs.push(logEntry); updateUI();
         
-        // 폼 초기화 (연속 입력을 위해 일부 유지)
         document.getElementById('logDetails').value = '';
         document.getElementById('logFinalWells').value = '';
         document.getElementById('logStocks').value = '';
@@ -313,20 +321,15 @@
     function previewDay() {
         const lineId = document.getElementById('lineSelect').value;
         const preview = document.getElementById('previewArea');
-        if(!lineId) { preview.innerHTML = '라인을 선택하면 현재 P/D 상태가 표시됩니다.'; return; }
+        if(!lineId) { preview.innerText = '라인을 선택하면 현재 상태가 표시됩니다.'; return; }
         const line = lines.find(l => l.id === lineId);
-        preview.innerHTML = `💡 현재 이 라인은 <strong>P${line.passage} / ${calcDDay(line)}</strong> 상태입니다. 추가 시점에 이 수치가 박제됩니다.`;
+        preview.innerText = `[상태 확인] 선택한 날짜 기준 이 라인은 P${line.passage} / ${calcDDay(line, document.getElementById('logDate').value)} 입니다.`;
     }
 
     function openLineModal() { document.getElementById('lineModal').style.display = 'flex'; }
     function closeModal() { document.getElementById('lineModal').style.display = 'none'; }
-    function deleteLine(idx) { if(confirm("마스터 라인을 삭제하시겠습니까? (관련 로그는 사라지지 않지만 연결이 끊어집니다)")) { lines.splice(idx, 1); updateUI(); } }
-    function deleteLog(logId) { 
-        if(confirm("기록을 삭제하시겠습니까?")) { 
-            logs = logs.filter(l => l.id !== logId); 
-            updateUI(); 
-        } 
-    }
+    function deleteLine(idx) { if(confirm("마스터 라인을 삭제하시겠습니까?")) { lines.splice(idx, 1); updateUI(); } }
+    function deleteLog(logId) { if(confirm("이 기록을 삭제하시겠습니까?")) { logs = logs.filter(l => l.id !== logId); updateUI(); } }
 
     function exportToCSV() {
         let csv = "\uFEFFDate,Line,Action,P,D,Details(Ratio),Final Wells,Stocks,Memo\n";
@@ -337,8 +340,11 @@
         const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
-        link.download = `Organoid_Pro_Grouped_Log.csv`; link.click();
+        link.download = `Organoid_Compact_Log.csv`; link.click();
     }
+
+    // 날짜 변경 시 프리뷰 업데이트 되도록 이벤트 추가
+    document.getElementById('logDate').addEventListener('change', previewDay);
 
     updateUI();
 </script>
