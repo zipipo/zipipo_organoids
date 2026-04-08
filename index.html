@@ -3,382 +3,292 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>오가노이드 배양 기록부</title>
+    <title>오가노이드 실험 노트</title>
     <link href="https://webfontworld.github.io/score/SCoreDream.css" rel="stylesheet">
     <style>
         :root {
-            --primary-light: #e1f5fe; /* 연한 하늘색 */
-            --primary: #81d4fa;
-            --primary-dark: #0288d1;
-            --text-dark: #333333;
-            --white: #ffffff;
-            --danger: #ffcdd2;
-            --warning: #fff9c4;
-            --safe: #c8e6c9;
+            --bg-color: #f0f8ff; /* 아주 연한 배경 하늘색 */
+            --header-bg: #b3e5fc; /* 진한 테두리 하늘색 */
+            --row-bg: #e1f5fe; /* 입력창 하늘색 */
+            --text-color: #2c3e50;
+            --border-color: #81d4fa;
         }
 
         body {
             font-family: 'SCoreDream', sans-serif;
-            background-color: #f4f9f9;
-            color: var(--text-dark);
+            background-color: var(--bg-color);
+            color: var(--text-color);
             margin: 0;
-            padding: 20px;
+            padding: 30px;
         }
 
-        h1, h2, h3 { color: var(--primary-dark); }
+        h1 {
+            text-align: center;
+            color: #0277bd;
+            font-weight: 500;
+            margin-bottom: 30px;
+        }
 
-        .header-actions {
+        .action-bar {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
+            justify-content: flex-end;
+            margin-bottom: 10px;
         }
 
         button {
             font-family: 'SCoreDream', sans-serif;
-            background-color: var(--primary);
+            background-color: #29b6f6;
+            color: white;
             border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
+            padding: 8px 16px;
+            border-radius: 4px;
             cursor: pointer;
-            font-weight: 500;
+            font-size: 0.9em;
             transition: 0.2s;
         }
-        button:hover { background-color: var(--primary-dark); color: white; }
-        .btn-small { padding: 5px 10px; font-size: 0.9em; }
-        .btn-outline { background-color: white; border: 1px solid var(--primary-dark); color: var(--primary-dark); }
-        .btn-danger { background-color: #ef5350; color: white; }
 
-        /* 메인 테이블 스타일 */
-        .table-container {
-            background: var(--white);
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            overflow: hidden;
+        button:hover {
+            background-color: #0288d1;
         }
 
+        .btn-delete {
+            background-color: #ef5350;
+            padding: 4px 8px;
+            font-size: 0.8em;
+        }
+        
+        .btn-delete:hover { background-color: #c62828; }
+
+        /* 테이블 디자인 */
         table {
             width: 100%;
             border-collapse: collapse;
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background-color: var(--header-bg);
+            color: #01579b;
+            font-weight: 500;
+        }
+
+        /* 입력 폼(맨 윗줄) 스타일 */
+        .input-row {
+            background-color: var(--row-bg);
+        }
+
+        .input-row input, .input-row select {
+            width: 90%;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-family: 'SCoreDream', sans-serif;
+            box-sizing: border-box;
             text-align: center;
         }
 
-        th, td { padding: 15px; border-bottom: 1px solid #eeeeee; }
-        th { background-color: var(--primary-light); font-weight: 600; color: var(--primary-dark); }
-        tr:hover { background-color: #fcfcfc; cursor: pointer; transition: 0.2s; }
+        .input-row input[type="text"] { text-align: left; }
         
-        .status-badge {
-            padding: 5px 10px;
-            border-radius: 20px;
+        /* 기록된 줄에 마우스 올렸을 때 */
+        tr.log-row:hover {
+            background-color: #f9fbfd;
+        }
+
+        .memo-cell {
+            text-align: left;
+            max-width: 250px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 12px;
             font-size: 0.85em;
-            font-weight: 600;
+            color: #333;
+            font-weight: 500;
         }
-
-        /* 모달(팝업) 스타일 */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            width: 90%;
-            max-width: 600px;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-        }
-
-        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary-light); margin-bottom: 20px; padding-bottom: 10px;}
-        
-        .input-group { margin-bottom: 15px; display: flex; align-items: center; }
-        .input-group label { width: 120px; font-weight: 500; }
-        .input-group input, .input-group select, .input-group textarea {
-            flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 5px; font-family: 'SCoreDream';
-        }
-        
-        .action-buttons { display: flex; gap: 10px; margin: 20px 0; padding: 15px; background: var(--primary-light); border-radius: 8px; justify-content: center; }
-        
-        .history-box { background: #f9f9f9; padding: 10px; border-radius: 5px; max-height: 150px; overflow-y: auto; font-size: 0.9em; }
-        .history-item { margin-bottom: 5px; border-bottom: 1px dashed #ddd; padding-bottom: 3px; }
+        .badge.media { background-color: #bbdefb; }
+        .badge.split { background-color: #ffcc80; }
+        .badge.reseed { background-color: #c8e6c9; }
+        .badge.obs { background-color: #e1bee7; }
 
     </style>
 </head>
 <body>
 
-    <div class="header-actions">
-        <h1>🦠 오가노이드 배양 기록부</h1>
-        <div>
-            <button onclick="openAddModal()">+ 새 라인 등록</button>
-            <button class="btn-outline" onclick="exportData()">데이터 백업(다운로드)</button>
-        </div>
+    <h1>🔬 오가노이드 데일리 실험 노트</h1>
+
+    <div class="action-bar">
+        <button onclick="exportToCSV()">엑셀(CSV)로 다운로드</button>
     </div>
 
-    <div class="table-container">
-        <table id="mainTable">
-            <thead>
-                <tr>
-                    <th>환자 번호</th>
-                    <th>종류</th>
-                    <th>계대수 (P)</th>
-                    <th>배양일 (D)</th>
-                    <th>Well 수</th>
-                    <th>배지 상태</th>
-                </tr>
-            </thead>
-            <tbody id="tableBody">
-                </tbody>
-        </table>
-    </div>
-
-    <div class="modal-overlay" id="detailModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modalTitle">상세 정보</h2>
-                <button class="btn-outline btn-small" onclick="closeModal()">닫기</button>
-            </div>
-            
-            <input type="hidden" id="editId">
-            
-            <div class="input-group">
-                <label>환자 번호</label>
-                <input type="text" id="patientId" placeholder="예: HCC22">
-            </div>
-            <div class="input-group">
-                <label>종류</label>
-                <select id="orgType">
-                    <option value="PHH-org">PHH-org</option>
-                    <option value="Tumor-org">Tumor-org</option>
-                    <option value="Chol-org">Chol-org</option>
-                </select>
-            </div>
-            <div class="input-group">
-                <label>계대 수 (P)</label>
-                <input type="number" id="passage" min="0" value="0">
-            </div>
-            <div class="input-group">
-                <label>Well 개수</label>
-                <input type="number" id="wells" min="0" value="1">
-            </div>
-            <div class="input-group">
-                <label>Stock 개수</label>
-                <input type="number" id="stocks" min="0" value="0">
-            </div>
-            <div class="input-group">
-                <label>메모 / 특이사항</label>
-                <textarea id="memo" rows="3" placeholder="특이사항을 적어주세요..."></textarea>
-            </div>
-
-            <div class="action-buttons" id="quickActions" style="display:none;">
-                <button onclick="doMediaChange()">💧 배지 교환 (시간 기록)</button>
-                <button onclick="doSplit()">✂️ Split (P+1, D0)</button>
-                <button onclick="doReseed()">🔄 Reseeding (D유지)</button>
-            </div>
-
-            <div class="input-group" style="display:block;" id="historySection">
-                <label style="display:block; margin-bottom:5px;">기록 히스토리</label>
-                <div class="history-box" id="historyLog"></div>
-            </div>
-
-            <div style="text-align: right; margin-top: 20px;">
-                <button class="btn-danger btn-small" id="deleteBtn" onclick="deleteLine()" style="float:left; display:none;">삭제</button>
-                <button onclick="saveData()">저장하기</button>
-            </div>
-        </div>
-    </div>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 12%;">날짜</th>
+                <th style="width: 15%;">라인 (번호_종류)</th>
+                <th style="width: 12%;">수행 작업</th>
+                <th style="width: 8%;">계대 (P)</th>
+                <th style="width: 10%;">배양일 (D)</th>
+                <th style="width: 8%;">Well 수</th>
+                <th style="width: 25%;">특이사항 (메모)</th>
+                <th style="width: 10%;">추가/삭제</th>
+            </tr>
+        </thead>
+        <tbody id="logBody">
+            <tr class="input-row">
+                <td><input type="date" id="inDate"></td>
+                <td><input type="text" id="inLine" placeholder="예: HCC22_PHH"></td>
+                <td>
+                    <select id="inAction">
+                        <option value="Media Change">Media Change</option>
+                        <option value="Split">Split</option>
+                        <option value="Reseeding">Reseeding</option>
+                        <option value="Observation">관찰(단순기록)</option>
+                    </select>
+                </td>
+                <td><input type="number" id="inPassage" placeholder="P" min="0"></td>
+                <td><input type="text" id="inDay" placeholder="예: 0 또는 12+1"></td>
+                <td><input type="number" id="inWells" placeholder="개수" min="0"></td>
+                <td><input type="text" id="inMemo" placeholder="특이사항 입력..."></td>
+                <td><button onclick="addLog()" style="background-color: #0288d1;">+ 추가</button></td>
+            </tr>
+            </tbody>
+    </table>
 
 <script>
-    let cultures = JSON.parse(localStorage.getItem('organoidData')) || [];
-    let currentEditIndex = -1;
+    // 날짜 입력칸 기본값을 오늘로 설정
+    document.getElementById('inDate').valueAsDate = new Date();
 
-    // 날짜 계산 함수
-    function getDaysDiff(startDateStr) {
-        const start = new Date(startDateStr);
-        const today = new Date();
-        start.setHours(0,0,0,0);
-        today.setHours(0,0,0,0);
-        return Math.floor((today - start) / (1000 * 60 * 60 * 24));
+    // 로컬 스토리지에서 데이터 불러오기
+    let logs = JSON.parse(localStorage.getItem('organoidLogs')) || [];
+
+    // 작업 종류별 뱃지 색상 클래스
+    function getBadgeClass(action) {
+        if(action.includes('Media')) return 'badge media';
+        if(action.includes('Split')) return 'badge split';
+        if(action.includes('Reseed')) return 'badge reseed';
+        return 'badge obs';
     }
 
-    function getDisplayDay(culture) {
-        const diff = getDaysDiff(culture.startDate);
-        if (culture.baseDay === 0) return `d${diff}`;
-        return `d${culture.baseDay}+${diff}`;
-    }
+    // 화면에 데이터 그리기
+    function renderLogs() {
+        const tbody = document.getElementById('logBody');
+        // 첫 번째 줄(입력창)은 남겨두고 나머지만 삭제
+        while (tbody.children.length > 1) {
+            tbody.removeChild(tbody.lastChild);
+        }
 
-    function getMediaStatusInfo(lastChangeDateStr) {
-        if(!lastChangeDateStr) return { text: "정보없음", color: "var(--safe)" };
-        const last = new Date(lastChangeDateStr);
-        const now = new Date();
-        const hoursDiff = (now - last) / (1000 * 60 * 60);
-        
-        if (hoursDiff < 48) return { text: "안전 (2일 이내)", color: "var(--safe)" };
-        if (hoursDiff < 72) return { text: "교환 필요 (2~3일)", color: "var(--warning)" };
-        return { text: "경고 (3일 초과!)", color: "var(--danger)" };
-    }
+        // 최신 날짜가 위로 오도록 정렬하여 그리기
+        const sortedLogs = [...logs].sort((a, b) => new Date(b.date) - new Date(a.date));
 
-    // 메인 테이블 렌더링
-    function renderTable() {
-        const tbody = document.getElementById('tableBody');
-        tbody.innerHTML = '';
-        
-        cultures.forEach((c, index) => {
-            const status = getMediaStatusInfo(c.lastMediaChange);
+        sortedLogs.forEach((log) => {
             const tr = document.createElement('tr');
-            tr.onclick = () => openEditModal(index);
+            tr.className = 'log-row';
             tr.innerHTML = `
-                <td><strong>${c.patientId}</strong></td>
-                <td>${c.type}</td>
-                <td>P${c.passage}</td>
-                <td>${getDisplayDay(c)}</td>
-                <td>${c.wells}개</td>
-                <td><span class="status-badge" style="background-color: ${status.color}">${status.text}</span></td>
+                <td>${log.date}</td>
+                <td><strong>${log.line}</strong></td>
+                <td><span class="${getBadgeClass(log.action)}">${log.action}</span></td>
+                <td>P${log.passage}</td>
+                <td>d${log.day}</td>
+                <td>${log.wells}개</td>
+                <td class="memo-cell" title="${log.memo}">${log.memo}</td>
+                <td><button class="btn-delete" onclick="deleteLog('${log.id}')">삭제</button></td>
             `;
             tbody.appendChild(tr);
         });
-        localStorage.setItem('organoidData', JSON.stringify(cultures));
     }
 
-    // 모달 열기 (새로 추가)
-    function openAddModal() {
-        currentEditIndex = -1;
-        document.getElementById('modalTitle').innerText = "새 오가노이드 라인 등록";
-        document.getElementById('patientId').value = "";
-        document.getElementById('passage').value = 0;
-        document.getElementById('wells').value = 1;
-        document.getElementById('stocks').value = 0;
-        document.getElementById('memo').value = "";
-        document.getElementById('quickActions').style.display = "none";
-        document.getElementById('historySection').style.display = "none";
-        document.getElementById('deleteBtn').style.display = "none";
-        document.getElementById('detailModal').style.display = "flex";
-    }
+    // 새로운 기록 추가하기
+    function addLog() {
+        const date = document.getElementById('inDate').value;
+        const line = document.getElementById('inLine').value.trim();
+        const action = document.getElementById('inAction').value;
+        const passage = document.getElementById('inPassage').value;
+        const day = document.getElementById('inDay').value;
+        const wells = document.getElementById('inWells').value;
+        const memo = document.getElementById('inMemo').value.trim();
 
-    // 모달 열기 (기존 항목 수정)
-    function openEditModal(index) {
-        currentEditIndex = index;
-        const c = cultures[index];
-        document.getElementById('modalTitle').innerText = `${c.patientId} (${c.type}) 상세 관리`;
-        document.getElementById('patientId').value = c.patientId;
-        document.getElementById('orgType').value = c.type;
-        document.getElementById('passage').value = c.passage;
-        document.getElementById('wells').value = c.wells;
-        document.getElementById('stocks').value = c.stocks || 0;
-        document.getElementById('memo').value = c.memo || "";
-        
-        // 히스토리 렌더링
-        const historyBox = document.getElementById('historyLog');
-        historyBox.innerHTML = c.history.map(h => `<div class="history-item">${h}</div>`).join('');
+        if (!line) {
+            alert('라인 이름(예: HCC22_PHH)을 입력해주세요!');
+            return;
+        }
 
-        document.getElementById('quickActions').style.display = "flex";
-        document.getElementById('historySection').style.display = "block";
-        document.getElementById('deleteBtn').style.display = "block";
-        document.getElementById('detailModal').style.display = "flex";
-    }
-
-    function closeModal() {
-        document.getElementById('detailModal').style.display = "none";
-    }
-
-    // 현재 시간을 YYYY.MM.DD HH:MM 형식으로 반환
-    function getNowString() {
-        const now = new Date();
-        return `[${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}]`;
-    }
-
-    // 데이터 저장/업데이트
-    function saveData() {
-        const patientId = document.getElementById('patientId').value.trim();
-        if(!patientId) return alert("환자 번호를 입력하세요!");
-
-        const newData = {
-            patientId: patientId,
-            type: document.getElementById('orgType').value,
-            passage: parseInt(document.getElementById('passage').value),
-            wells: parseInt(document.getElementById('wells').value),
-            stocks: parseInt(document.getElementById('stocks').value),
-            memo: document.getElementById('memo').value,
+        const newLog = {
+            id: Date.now().toString(), // 고유 ID
+            date: date,
+            line: line,
+            action: action,
+            passage: passage || "0",
+            day: day || "0",
+            wells: wells || "1",
+            memo: memo
         };
 
-        if (currentEditIndex === -1) {
-            // 새 항목 추가
-            newData.startDate = new Date().toISOString();
-            newData.baseDay = 0;
-            newData.lastMediaChange = new Date().toISOString();
-            newData.history = [`${getNowString()} 라인 최초 등록 (P${newData.passage})`];
-            cultures.push(newData);
-        } else {
-            // 기존 항목 업데이트 (입력된 P, Well 등만 업데이트하고 날짜는 유지)
-            cultures[currentEditIndex] = { ...cultures[currentEditIndex], ...newData };
-        }
-
-        closeModal();
-        renderTable();
+        logs.push(newLog);
+        localStorage.setItem('organoidLogs', JSON.stringify(logs));
+        
+        // 입력 후 편의를 위해 메모, P, D 값만 살짝 비워주기 (라인명은 연속 입력을 위해 유지)
+        document.getElementById('inMemo').value = "";
+        
+        renderLogs();
     }
 
-    // 액션: Media Change
-    function doMediaChange() {
-        if(confirm("배지 교환(Media Change)을 기록하시겠습니까? 현재 시간이 기록됩니다.")){
-            cultures[currentEditIndex].lastMediaChange = new Date().toISOString();
-            cultures[currentEditIndex].history.unshift(`${getNowString()} 💧 Media Change 완료`);
-            saveData();
+    // 기록 삭제하기
+    function deleteLog(id) {
+        if(confirm('이 기록을 삭제하시겠습니까?')) {
+            logs = logs.filter(log => log.id !== id);
+            localStorage.setItem('organoidLogs', JSON.stringify(logs));
+            renderLogs();
         }
     }
 
-    // 액션: Split
-    function doSplit() {
-        const currentP = cultures[currentEditIndex].passage;
-        if(confirm(`현재 P${currentP}에서 P${currentP + 1}로 Split 하시겠습니까?\nDay는 0일로 리셋됩니다.`)){
-            cultures[currentEditIndex].passage += 1;
-            cultures[currentEditIndex].baseDay = 0;
-            cultures[currentEditIndex].startDate = new Date().toISOString();
-            cultures[currentEditIndex].lastMediaChange = new Date().toISOString();
-            cultures[currentEditIndex].history.unshift(`${getNowString()} ✂️ Split 진행 (P${currentP} -> P${currentP+1})`);
-            saveData();
+    // 엑셀(CSV)로 다운로드 기능
+    function exportToCSV() {
+        if(logs.length === 0) {
+            alert("저장된 데이터가 없습니다.");
+            return;
         }
+        
+        // BOM 추가 (엑셀에서 한글 깨짐 방지)
+        let csvContent = "\uFEFF"; 
+        csvContent += "날짜,라인,수행작업,계대(P),배양일(D),Well수,메모\n";
+
+        const sortedLogs = [...logs].sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        sortedLogs.forEach(row => {
+            // 쉼표가 들어간 메모 처리 (따옴표로 감싸기)
+            let safeMemo = row.memo.replace(/"/g, '""');
+            if(safeMemo.includes(',')) safeMemo = `"${safeMemo}"`;
+
+            let rowStr = `${row.date},${row.line},${row.action},P${row.passage},d${row.day},${row.wells},${safeMemo}`;
+            csvContent += rowStr + "\n";
+        });
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", `오가노이드_기록_${new Date().toISOString().slice(0,10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
-    // 액션: Reseeding
-    function doReseed() {
-        const c = cultures[currentEditIndex];
-        const currentTotalDays = c.baseDay + getDaysDiff(c.startDate);
-        if(confirm(`현재까지 총 배양일(${currentTotalDays}일)을 유지한 채 Reseeding 하시겠습니까?\n내일부터 d${currentTotalDays}+1 로 표기됩니다.`)){
-            cultures[currentEditIndex].baseDay = currentTotalDays;
-            cultures[currentEditIndex].startDate = new Date().toISOString();
-            cultures[currentEditIndex].lastMediaChange = new Date().toISOString();
-            cultures[currentEditIndex].history.unshift(`${getNowString()} 🔄 Reseeding 진행 (d${currentTotalDays}+0 시작)`);
-            saveData();
-        }
-    }
-
-    // 항목 삭제
-    function deleteLine() {
-        if(confirm("정말 이 라인을 삭제하시겠습니까? 복구할 수 없습니다.")){
-            cultures.splice(currentEditIndex, 1);
-            closeModal();
-            renderTable();
-        }
-    }
-
-    // 백업 (JSON 다운로드)
-    function exportData() {
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(cultures));
-        const downloadAnchorNode = document.createElement('a');
-        downloadAnchorNode.setAttribute("href", dataStr);
-        downloadAnchorNode.setAttribute("download", `organoid_backup_${new Date().toISOString().slice(0,10)}.json`);
-        document.body.appendChild(downloadAnchorNode);
-        downloadAnchorNode.click();
-        downloadAnchorNode.remove();
-    }
-
-    // 초기 렌더링
-    renderTable();
+    // 초기 화면 그리기
+    renderLogs();
 </script>
+
 </body>
 </html>
