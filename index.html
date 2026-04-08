@@ -4,177 +4,235 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>오가노이드 실험 노트</title>
-    <link href="https://webfontworld.github.io/score/SCoreDream.css" rel="stylesheet">
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <style>
         :root {
-            --bg-color: #f0f8ff; /* 아주 연한 배경 하늘색 */
-            --header-bg: #b3e5fc; /* 진한 테두리 하늘색 */
-            --row-bg: #e1f5fe; /* 입력창 하늘색 */
-            --text-color: #2c3e50;
-            --border-color: #81d4fa;
+            --bg-body: #F3F4F6;
+            --bg-surface: #FFFFFF;
+            --text-main: #111827;
+            --text-muted: #6B7280;
+            --border-color: #E5E7EB;
+            --primary: #3B82F6;
+            --primary-hover: #2563EB;
+            --danger: #EF4444;
+            --danger-hover: #DC2828;
+            
+            /* 뱃지 색상 */
+            --badge-media-bg: #DBEAFE;
+            --badge-media-text: #1E40AF;
+            --badge-split-bg: #FEF3C7;
+            --badge-split-text: #92400E;
+            --badge-reseed-bg: #D1FAE5;
+            --badge-reseed-text: #065F46;
+            --badge-obs-bg: #F3E8FF;
+            --badge-obs-text: #6B21A8;
         }
 
         body {
-            font-family: 'SCoreDream', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
             margin: 0;
-            padding: 30px;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 24px;
         }
 
         h1 {
-            text-align: center;
-            color: #0277bd;
-            font-weight: 500;
-            margin-bottom: 30px;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 0;
+            letter-spacing: -0.02em;
+            color: var(--text-main);
         }
 
-        .action-bar {
-            display: flex;
-            justify-content: flex-end;
-            margin-bottom: 10px;
+        .header p {
+            margin: 8px 0 0 0;
+            color: var(--text-muted);
+            font-size: 0.95rem;
         }
 
         button {
-            font-family: 'SCoreDream', sans-serif;
-            background-color: #29b6f6;
+            font-family: inherit;
+            background-color: var(--primary);
             color: white;
             border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
             cursor: pointer;
-            font-size: 0.9em;
-            transition: 0.2s;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
 
-        button:hover {
-            background-color: #0288d1;
-        }
+        button:hover { background-color: var(--primary-hover); }
 
         .btn-delete {
-            background-color: #ef5350;
-            padding: 4px 8px;
-            font-size: 0.8em;
+            background-color: transparent;
+            color: var(--text-muted);
+            box-shadow: none;
+            padding: 6px 10px;
         }
         
-        .btn-delete:hover { background-color: #c62828; }
+        .btn-delete:hover {
+            background-color: #FEE2E2;
+            color: var(--danger);
+        }
 
-        /* 테이블 디자인 */
+        /* 테이블 래퍼 (카드 스타일) */
+        .table-card {
+            background-color: var(--bg-surface);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
-            background-color: white;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        th, td {
-            padding: 12px;
-            text-align: center;
-            border-bottom: 1px solid #e0e0e0;
+            text-align: left;
         }
 
         th {
-            background-color: var(--header-bg);
-            color: #01579b;
-            font-weight: 500;
+            background-color: #F9FAFB;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
         }
 
-        /* 입력 폼(맨 윗줄) 스타일 */
-        .input-row {
-            background-color: var(--row-bg);
+        td {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+            font-size: 0.95rem;
         }
 
-        .input-row input, .input-row select {
-            width: 90%;
-            padding: 8px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            font-family: 'SCoreDream', sans-serif;
-            box-sizing: border-box;
-            text-align: center;
-        }
-
-        .input-row input[type="text"] { text-align: left; }
+        tr:last-child td { border-bottom: none; }
         
-        /* 기록된 줄에 마우스 올렸을 때 */
-        tr.log-row:hover {
-            background-color: #f9fbfd;
+        tr.log-row:hover { background-color: #F8FAFC; }
+
+        /* 입력 필드 디자인 */
+        .input-row {
+            background-color: #EFF6FF; /* 아주 연한 파란색 배경으로 입력창 강조 */
+            border-bottom: 2px solid #BFDBFE;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #D1D5DB;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            background-color: white;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
 
         .memo-cell {
-            text-align: left;
-            max-width: 250px;
+            color: var(--text-muted);
+            max-width: 200px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
+        /* 트렌디한 뱃지 디자인 */
         .badge {
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 0.85em;
-            color: #333;
-            font-weight: 500;
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
         }
-        .badge.media { background-color: #bbdefb; }
-        .badge.split { background-color: #ffcc80; }
-        .badge.reseed { background-color: #c8e6c9; }
-        .badge.obs { background-color: #e1bee7; }
+        .badge.media { background-color: var(--badge-media-bg); color: var(--badge-media-text); }
+        .badge.split { background-color: var(--badge-split-bg); color: var(--badge-split-text); }
+        .badge.reseed { background-color: var(--badge-reseed-bg); color: var(--badge-reseed-text); }
+        .badge.obs { background-color: var(--badge-obs-bg); color: var(--badge-obs-text); }
 
     </style>
 </head>
 <body>
 
-    <h1>🔬 오가노이드 데일리 실험 노트</h1>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>🔬 Organoid Logbook</h1>
+                <p>매일의 배양 상태와 작업 내역을 기록하세요.</p>
+            </div>
+            <button onclick="exportToCSV()">↓ CSV 다운로드</button>
+        </div>
 
-    <div class="action-bar">
-        <button onclick="exportToCSV()">엑셀(CSV)로 다운로드</button>
+        <div class="table-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 12%;">Date</th>
+                        <th style="width: 15%;">Line ID</th>
+                        <th style="width: 14%;">Action</th>
+                        <th style="width: 8%;">P (계대)</th>
+                        <th style="width: 10%;">D (배양일)</th>
+                        <th style="width: 8%;">Wells</th>
+                        <th style="width: 25%;">Memo</th>
+                        <th style="width: 8%; text-align: center;">Manage</th>
+                    </tr>
+                </thead>
+                <tbody id="logBody">
+                    <tr class="input-row">
+                        <td><input type="date" id="inDate"></td>
+                        <td><input type="text" id="inLine" placeholder="예: HCC22_PHH"></td>
+                        <td>
+                            <select id="inAction">
+                                <option value="Media Change">Media Change</option>
+                                <option value="Split">Split</option>
+                                <option value="Reseeding">Reseeding</option>
+                                <option value="Observation">Observation</option>
+                            </select>
+                        </td>
+                        <td><input type="number" id="inPassage" placeholder="P" min="0"></td>
+                        <td><input type="text" id="inDay" placeholder="예: 0, 12+1"></td>
+                        <td><input type="number" id="inWells" placeholder="개수" min="0"></td>
+                        <td><input type="text" id="inMemo" placeholder="특이사항 입력..."></td>
+                        <td style="text-align: center;">
+                            <button onclick="addLog()" style="padding: 10px 14px;">+ 추가</button>
+                        </td>
+                    </tr>
+                    </tbody>
+            </table>
+        </div>
     </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th style="width: 12%;">날짜</th>
-                <th style="width: 15%;">라인 (번호_종류)</th>
-                <th style="width: 12%;">수행 작업</th>
-                <th style="width: 8%;">계대 (P)</th>
-                <th style="width: 10%;">배양일 (D)</th>
-                <th style="width: 8%;">Well 수</th>
-                <th style="width: 25%;">특이사항 (메모)</th>
-                <th style="width: 10%;">추가/삭제</th>
-            </tr>
-        </thead>
-        <tbody id="logBody">
-            <tr class="input-row">
-                <td><input type="date" id="inDate"></td>
-                <td><input type="text" id="inLine" placeholder="예: HCC22_PHH"></td>
-                <td>
-                    <select id="inAction">
-                        <option value="Media Change">Media Change</option>
-                        <option value="Split">Split</option>
-                        <option value="Reseeding">Reseeding</option>
-                        <option value="Observation">관찰(단순기록)</option>
-                    </select>
-                </td>
-                <td><input type="number" id="inPassage" placeholder="P" min="0"></td>
-                <td><input type="text" id="inDay" placeholder="예: 0 또는 12+1"></td>
-                <td><input type="number" id="inWells" placeholder="개수" min="0"></td>
-                <td><input type="text" id="inMemo" placeholder="특이사항 입력..."></td>
-                <td><button onclick="addLog()" style="background-color: #0288d1;">+ 추가</button></td>
-            </tr>
-            </tbody>
-    </table>
-
 <script>
-    // 날짜 입력칸 기본값을 오늘로 설정
     document.getElementById('inDate').valueAsDate = new Date();
 
-    // 로컬 스토리지에서 데이터 불러오기
     let logs = JSON.parse(localStorage.getItem('organoidLogs')) || [];
 
-    // 작업 종류별 뱃지 색상 클래스
     function getBadgeClass(action) {
         if(action.includes('Media')) return 'badge media';
         if(action.includes('Split')) return 'badge split';
@@ -182,35 +240,31 @@
         return 'badge obs';
     }
 
-    // 화면에 데이터 그리기
     function renderLogs() {
         const tbody = document.getElementById('logBody');
-        // 첫 번째 줄(입력창)은 남겨두고 나머지만 삭제
         while (tbody.children.length > 1) {
             tbody.removeChild(tbody.lastChild);
         }
 
-        // 최신 날짜가 위로 오도록 정렬하여 그리기
         const sortedLogs = [...logs].sort((a, b) => new Date(b.date) - new Date(a.date));
 
         sortedLogs.forEach((log) => {
             const tr = document.createElement('tr');
             tr.className = 'log-row';
             tr.innerHTML = `
-                <td>${log.date}</td>
-                <td><strong>${log.line}</strong></td>
+                <td style="color: var(--text-muted); font-size: 0.9rem;">${log.date}</td>
+                <td style="font-weight: 600;">${log.line}</td>
                 <td><span class="${getBadgeClass(log.action)}">${log.action}</span></td>
-                <td>P${log.passage}</td>
-                <td>d${log.day}</td>
-                <td>${log.wells}개</td>
-                <td class="memo-cell" title="${log.memo}">${log.memo}</td>
-                <td><button class="btn-delete" onclick="deleteLog('${log.id}')">삭제</button></td>
+                <td style="font-weight: 500;">P${log.passage}</td>
+                <td style="font-weight: 500;">d${log.day}</td>
+                <td>${log.wells}</td>
+                <td class="memo-cell" title="${log.memo}">${log.memo || '-'}</td>
+                <td style="text-align: center;"><button class="btn-delete" onclick="deleteLog('${log.id}')">삭제</button></td>
             `;
             tbody.appendChild(tr);
         });
     }
 
-    // 새로운 기록 추가하기
     function addLog() {
         const date = document.getElementById('inDate').value;
         const line = document.getElementById('inLine').value.trim();
@@ -226,7 +280,7 @@
         }
 
         const newLog = {
-            id: Date.now().toString(), // 고유 ID
+            id: Date.now().toString(),
             date: date,
             line: line,
             action: action,
@@ -239,13 +293,10 @@
         logs.push(newLog);
         localStorage.setItem('organoidLogs', JSON.stringify(logs));
         
-        // 입력 후 편의를 위해 메모, P, D 값만 살짝 비워주기 (라인명은 연속 입력을 위해 유지)
         document.getElementById('inMemo').value = "";
-        
         renderLogs();
     }
 
-    // 기록 삭제하기
     function deleteLog(id) {
         if(confirm('이 기록을 삭제하시겠습니까?')) {
             logs = logs.filter(log => log.id !== id);
@@ -254,24 +305,20 @@
         }
     }
 
-    // 엑셀(CSV)로 다운로드 기능
     function exportToCSV() {
         if(logs.length === 0) {
             alert("저장된 데이터가 없습니다.");
             return;
         }
         
-        // BOM 추가 (엑셀에서 한글 깨짐 방지)
         let csvContent = "\uFEFF"; 
-        csvContent += "날짜,라인,수행작업,계대(P),배양일(D),Well수,메모\n";
+        csvContent += "Date,Line ID,Action,Passage(P),Day(D),Wells,Memo\n";
 
         const sortedLogs = [...logs].sort((a, b) => new Date(b.date) - new Date(a.date));
         
         sortedLogs.forEach(row => {
-            // 쉼표가 들어간 메모 처리 (따옴표로 감싸기)
             let safeMemo = row.memo.replace(/"/g, '""');
             if(safeMemo.includes(',')) safeMemo = `"${safeMemo}"`;
-
             let rowStr = `${row.date},${row.line},${row.action},P${row.passage},d${row.day},${row.wells},${safeMemo}`;
             csvContent += rowStr + "\n";
         });
@@ -280,13 +327,12 @@
         const link = document.createElement("a");
         const url = URL.createObjectURL(blob);
         link.setAttribute("href", url);
-        link.setAttribute("download", `오가노이드_기록_${new Date().toISOString().slice(0,10)}.csv`);
+        link.setAttribute("download", `Organoid_Log_${new Date().toISOString().slice(0,10)}.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
     }
 
-    // 초기 화면 그리기
     renderLogs();
 </script>
 
