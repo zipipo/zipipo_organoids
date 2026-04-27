@@ -3,25 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Organoid OS v2.0</title>
+    <title>Organoid OS v2.1</title>
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <style>
         :root {
             --bg: #F8FAFC; --surface: #FFFFFF; --primary: #3B82F6; --primary-soft: #EFF6FF;
             --text-main: #1E293B; --text-sub: #64748B; --border: #E2E8F0;
-            /* 파스텔 톤 */
             --phh-bg: #E0F2FE; --phh-text: #0369A1;
             --tumor-bg: #FFEDD5; --tumor-text: #9A3412;
             --chol-bg: #F3E8FF; --chol-text: #6B21A8;
             --completed-bg: #F1F5F9; --completed-text: #475569;
         }
-        body { font-family: 'Pretendard', sans-serif; background-color: var(--bg); color: var(--text-main); margin: 0; padding: 12px; line-height: 1.3; }
+        body { font-family: 'Pretendard', sans-serif; background-color: var(--bg); color: var(--text-main); margin: 0; padding: 15px; line-height: 1.3; }
         .container { max-width: 1300px; margin: 0 auto; }
         
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
         h1 { font-size: 1.3rem; font-weight: 700; margin: 0; color: #0F172A; }
         
-        .btn { font-family: inherit; font-weight: 600; cursor: pointer; border-radius: 4px; padding: 5px 10px; border: none; transition: 0.1s; font-size: 0.8rem; }
+        .btn { font-family: inherit; font-weight: 600; cursor: pointer; border-radius: 4px; padding: 0 12px; border: none; transition: 0.1s; font-size: 0.8rem; height: 32px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; }
         .btn-primary { background: var(--primary); color: white; }
         .btn-outline { background: white; border: 1px solid var(--border); color: var(--text-sub); }
         .btn-edit { background: #F1F5F9; color: #475569; border: 1px solid var(--border); }
@@ -29,50 +28,58 @@
         .btn-delete { background: white; color: #DC2626; border: 1px solid #FECACA; }
         .btn:hover { opacity: 0.8; }
 
-        .card { background: var(--surface); border-radius: 6px; border: 1px solid var(--border); margin-bottom: 12px; }
-        .card-header { padding: 8px 12px; border-bottom: 1px solid var(--border); font-weight: 700; background: #F8FAFC; font-size: 0.9rem; }
+        .card { background: var(--surface); border-radius: 6px; border: 1px solid var(--border); margin-bottom: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
+        .card-header { padding: 10px 12px; border-bottom: 1px solid var(--border); font-weight: 700; background: #F8FAFC; font-size: 0.9rem; }
 
-        .entry-form { padding: 10px 12px; background: var(--primary-soft); display: flex; flex-direction: column; gap: 8px; }
-        .form-row { display: grid; gap: 8px; align-items: end; }
-        .row-1 { grid-template-columns: 1.2fr 1.5fr 1.5fr; }
-        .row-2 { grid-template-columns: 1fr 0.6fr 0.6fr 2fr 60px; }
+        .entry-form { padding: 12px; background: var(--primary-soft); display: flex; flex-direction: column; gap: 10px; }
+        .form-row { display: grid; gap: 10px; align-items: end; }
+        .row-1 { grid-template-columns: 1.5fr 1.5fr 1.5fr; }
+        .row-2 { grid-template-columns: 1fr 0.8fr 0.8fr 2fr 70px; }
         
-        label { display: block; font-size: 0.75rem; color: #475569; margin-bottom: 3px; font-weight: 600; }
-        input, select { width: 100%; padding: 5px 8px; border: 1px solid #CBD5E1; border-radius: 4px; font-family: inherit; font-size: 0.85rem; box-sizing: border-box; }
+        label { display: block; font-size: 0.75rem; color: #475569; margin-bottom: 4px; font-weight: 600; }
         
+        /* 인풋 핏(Fit) 교정 - 버튼과 높이 완벽 일치 */
+        input, select { width: 100%; height: 32px; padding: 0 8px; border: 1px solid #CBD5E1; border-radius: 4px; font-family: inherit; font-size: 0.85rem; box-sizing: border-box; }
+        
+        /* 날짜 추가 그룹 정렬 교정 */
+        .date-input-group { display: flex; gap: 6px; align-items: center; }
+        .date-input-group input { flex: 1; }
+        .date-input-group .btn { flex-shrink: 0; }
+
         .timeline-section { margin-bottom: 15px; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
-        .timeline-header { padding: 6px 12px; font-weight: 700; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .timeline-header { padding: 8px 12px; font-weight: 700; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0,0,0,0.05); }
         
-        /* 종류별 색상 */
         .type-phh { background-color: var(--phh-bg); color: var(--phh-text); }
         .type-tumor { background-color: var(--tumor-bg); color: var(--tumor-text); }
         .type-chol { background-color: var(--chol-bg); color: var(--chol-text); }
         .type-completed { background-color: var(--completed-bg); color: var(--completed-text); }
 
         table { width: 100%; border-collapse: collapse; text-align: left; background: white; table-layout: fixed; }
-        th { padding: 6px 8px; background: #F8FAFC; color: var(--text-sub); font-size: 0.7rem; border-bottom: 1px solid var(--border); }
-        td { padding: 6px 8px; border-bottom: 1px solid var(--border); font-size: 0.8rem; vertical-align: middle; }
+        th { padding: 8px; background: #F8FAFC; color: var(--text-sub); font-size: 0.75rem; border-bottom: 1px solid var(--border); }
+        td { padding: 8px; border-bottom: 1px solid var(--border); font-size: 0.8rem; vertical-align: middle; word-wrap: break-word; }
         
-        .badge { padding: 2px 6px; border-radius: 3px; font-size: 0.7rem; font-weight: 600; border: 1px solid rgba(0,0,0,0.1); }
-        .action-edit-btn { background: none; border: none; color: var(--text-sub); cursor: pointer; font-size: 0.75rem; text-decoration: underline; }
+        .badge { padding: 2px 6px; border-radius: 3px; font-size: 0.75rem; font-weight: 600; border: 1px solid rgba(0,0,0,0.1); display: inline-block; }
+        .action-edit-btn { background: none; border: none; color: var(--text-sub); cursor: pointer; font-size: 0.75rem; text-decoration: underline; padding: 0; }
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); justify-content: center; align-items: center; z-index: 100; }
-        .modal-content { background: white; padding: 15px; border-radius: 6px; width: 500px; max-height: 90vh; overflow-y: auto; }
+        .modal-content { background: white; padding: 20px; border-radius: 6px; width: 550px; max-height: 90vh; overflow-y: auto; }
         
-        #bulkDateTags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
-        .date-tag { background: #E2E8F0; padding: 2px 6px; border-radius: 3px; font-size: 0.7rem; display: flex; align-items: center; gap: 4px; }
+        #bulkDateTags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+        .date-tag { background: #E2E8F0; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; display: flex; align-items: center; gap: 6px; font-weight: 500; }
+        .date-tag span { cursor: pointer; font-weight: bold; color: #64748B; }
+        .date-tag span:hover { color: #DC2626; }
     </style>
 </head>
 <body>
 
     <div class="container">
         <div class="header">
-            <h1>Organoid OS v2.0</h1>
-            <div style="display:flex; gap:6px;">
+            <h1>Organoid OS v2.1</h1>
+            <div style="display:flex; gap:8px;">
                 <input type="file" id="csvFileInput" style="display:none;" accept=".csv" onchange="importCSV(event)">
-                <button class="btn btn-outline" onclick="document.getElementById('csvFileInput').click()">CSV 업로드</button>
+                <button class="btn btn-outline" onclick="document.getElementById('csvFileInput').click()">[업로드] CSV 데이터 복원</button>
                 <button class="btn btn-outline" onclick="openLineModal()">마스터 라인 관리</button>
-                <button class="btn btn-outline" onclick="exportToCSV()">CSV 내보내기</button>
+                <button class="btn btn-outline" onclick="exportToCSV()">[다운로드] CSV 내보내기</button>
             </div>
         </div>
 
@@ -81,8 +88,8 @@
             <div class="entry-form">
                 <div class="form-row row-1">
                     <div>
-                        <label>작업 날짜 (중복 가능)</label>
-                        <div style="display:flex; gap:4px;">
+                        <label>작업 날짜 (중복 추가 가능)</label>
+                        <div class="date-input-group">
                             <input type="date" id="logDate">
                             <button class="btn btn-outline" onclick="addBulkDate()">날짜 추가</button>
                         </div>
@@ -105,25 +112,25 @@
                     <div><label>최종 Well</label><input type="number" id="logFinalWells" min="0"></div>
                     <div><label>Stock 수</label><input type="number" id="logStocks" min="0"></div>
                     <div><label>메모</label><input type="text" id="logMemo" placeholder="특이사항"></div>
-                    <button class="btn btn-primary" style="height: 27px;" onclick="saveDailyLog()">기록</button>
+                    <button class="btn btn-primary" onclick="saveDailyLog()">기록</button>
                 </div>
             </div>
-            <div id="previewArea" style="padding: 6px 12px; font-size: 0.8rem; color: var(--primary); font-weight: 600; background: #fff; border-bottom: 1px solid #E2E8F0;"></div>
+            <div id="previewArea" style="padding: 8px 12px; font-size: 0.85rem; color: var(--primary); font-weight: 600; background: #fff; border-bottom: 1px solid #E2E8F0;"></div>
         </div>
 
-        <h2 style="font-size: 0.95rem; margin: 15px 0 8px;">진행 중인 배양 타임라인</h2>
+        <h2 style="font-size: 1rem; margin: 20px 0 10px;">진행 중인 배양 타임라인</h2>
         <div id="activeTimelineContainer"></div>
 
-        <h2 style="font-size: 0.95rem; margin: 25px 0 8px; color: var(--text-sub);">완료된 기록 (Archive)</h2>
+        <h2 style="font-size: 1rem; margin: 30px 0 10px; color: var(--text-sub);">완료된 기록 (Archive)</h2>
         <div id="completedTimelineContainer"></div>
     </div>
 
     <div id="lineModal" class="modal">
         <div class="modal-content">
-            <h2 id="lineModalTitle" style="margin:0 0 10px; font-size:1rem;">라인 등록 및 관리</h2>
-            <div style="background: #F8FAFC; padding: 12px; border-radius: 4px; border: 1px solid #E2E8F0; margin-bottom: 12px;">
+            <h2 id="lineModalTitle" style="margin:0 0 15px; font-size:1.1rem; border-bottom:1px solid #E2E8F0; padding-bottom:10px;">라인 등록 및 관리</h2>
+            <div style="background: #F8FAFC; padding: 15px; border-radius: 6px; border: 1px solid #E2E8F0; margin-bottom: 15px;">
                 <input type="hidden" id="editLineId">
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:8px;">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
                     <div><label>환자 번호</label><input type="text" id="newLineId"></div>
                     <div><label>종류</label>
                         <select id="newLineType">
@@ -133,35 +140,35 @@
                         </select>
                     </div>
                 </div>
-                <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px; margin-bottom:8px;">
+                <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-bottom:10px;">
                     <div><label>기준일 P</label><input type="number" id="newLineP" value="0"></div>
                     <div><label>기준일 d (누적)</label><input type="number" id="newLineBaseD" value="0"></div>
                     <div><label>초기 Well</label><input type="number" id="newLineWells" value="0"></div>
                 </div>
-                <div><label>기준 날짜 (d0/리시딩일)</label><input type="date" id="newLineStartDate"></div>
-                <div style="display:flex; gap:8px; margin-top:10px;">
+                <div><label style="color:#D97706">기준 날짜 (d0 또는 리시딩일)</label><input type="date" id="newLineStartDate"></div>
+                <div style="display:flex; gap:10px; margin-top:15px;">
                     <button class="btn btn-primary" style="flex:1;" onclick="saveLine()">라인 저장/수정</button>
                     <button class="btn btn-outline" onclick="resetLineForm()">취소</button>
                 </div>
             </div>
             <div id="activeLinesList"></div>
-            <button class="btn btn-outline" style="width:100%; margin-top:10px;" onclick="closeModal()">닫기</button>
+            <button class="btn btn-outline" style="width:100%; margin-top:15px;" onclick="closeModal()">닫기</button>
         </div>
     </div>
 
     <div id="logEditModal" class="modal">
         <div class="modal-content">
-            <h2 style="margin:0 0 10px; font-size:1rem;">기록 수정</h2>
+            <h2 style="margin:0 0 15px; font-size:1.1rem; border-bottom:1px solid #E2E8F0; padding-bottom:10px;">기록 수정</h2>
             <input type="hidden" id="editLogId">
-            <div style="display:grid; gap:8px;">
+            <div style="display:grid; gap:10px;">
                 <div><label>날짜</label><input type="date" id="editLogDate"></div>
-                <div><label>수행 액션</label><input type="text" id="editLogAction" readonly style="background:#f1f5f9"></div>
+                <div><label>수행 액션</label><input type="text" id="editLogAction" readonly style="background:#F1F5F9; color:#64748B;"></div>
                 <div><label>과정/Ratio</label><input type="text" id="editLogDetails"></div>
                 <div><label>최종 Well</label><input type="number" id="editLogFinalWells"></div>
                 <div><label>Stock 수</label><input type="number" id="editLogStocks"></div>
                 <div><label>메모</label><input type="text" id="editLogMemo"></div>
             </div>
-            <div style="display:flex; gap:8px; margin-top:15px;">
+            <div style="display:flex; gap:10px; margin-top:20px;">
                 <button class="btn btn-primary" style="flex:1;" onclick="updateLog()">수정 완료</button>
                 <button class="btn btn-outline" onclick="closeLogEditModal()">취소</button>
             </div>
@@ -223,20 +230,20 @@
                     <span>[${line.patientId}_${line.type}] P${line.passage} / ${calcDDay(line)}</span>
                     <div style="display:flex; gap:6px;">
                         ${!line.isCompleted ? `<button class="btn btn-complete" onclick="completeLine('${line.id}')">배양 완료</button>` : ''}
-                        <button class="btn btn-edit" onclick="editLine('${line.id}')">수정</button>
+                        <button class="btn btn-edit" onclick="editLine('${line.id}')">라인 수정</button>
                     </div>
                 </div>
                 <table>
                     <thead>
-                        <tr><th style="width:12%">Date</th><th style="width:15%">Action</th><th style="width:12%">P/D</th><th style="width:12%">Ratio</th><th style="width:8%">Well</th><th style="width:8%">Stock</th><th style="width:25%">Memo</th><th style="width:8%">Edit</th></tr>
+                        <tr><th style="width:12%">Date</th><th style="width:14%">Action</th><th style="width:12%">P/D</th><th style="width:12%">Ratio</th><th style="width:8%">Well</th><th style="width:8%">Stock</th><th style="width:26%">Memo</th><th style="width:8%">Edit</th></tr>
                     </thead>
                     <tbody>`;
             
             lineLogs.forEach(log => {
                 html += `<tr>
                     <td style="color:var(--text-sub)">${log.date}</td>
-                    <td><span class="badge">${log.action}</span></td>
-                    <td style="font-weight:600">P${log.passage}/${log.dayInfo}</td>
+                    <td><span class="badge" style="background:#fff">${log.action}</span></td>
+                    <td style="font-weight:600; color:var(--primary)">P${log.passage}/${log.dayInfo}</td>
                     <td>${log.details || '-'}</td>
                     <td style="color:#059669; font-weight:700">${log.finalWells || '-'}</td>
                     <td style="color:#0284C7; font-weight:600">${log.stocks || '-'}</td>
@@ -251,11 +258,11 @@
 
     function renderLinesList() {
         const list = document.getElementById('activeLinesList');
-        list.innerHTML = '<h3 style="font-size:0.85rem; margin:10px 0 5px;">등록된 라인 목록</h3>';
+        list.innerHTML = '<h3 style="font-size:0.9rem; margin:15px 0 10px;">등록된 라인 목록</h3>';
         lines.forEach(l => {
-            list.innerHTML += `<div class="line-item">
-                <span style="font-size:0.8rem">${l.patientId}_${l.type} ${l.isCompleted ? '(완료)' : ''}</span>
-                <div style="display:flex; gap:4px;">
+            list.innerHTML += `<div class="line-item" style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #E2E8F0; align-items:center;">
+                <span style="font-size:0.85rem; font-weight:500;">${l.patientId}_${l.type} ${l.isCompleted ? '(완료)' : ''}</span>
+                <div style="display:flex; gap:6px;">
                     <button class="btn btn-edit" onclick="editLine('${l.id}')">수정</button>
                     <button class="btn btn-delete" onclick="deleteLine('${l.id}')">삭제</button>
                 </div>
@@ -263,21 +270,16 @@
         });
     }
 
-    // 다중 날짜 등록 로직
     function addBulkDate() {
         const d = document.getElementById('logDate').value;
-        if(d && !bulkDates.includes(d)) {
-            bulkDates.push(d);
-            renderBulkTags();
-        }
+        if(d && !bulkDates.includes(d)) { bulkDates.push(d); renderBulkTags(); }
     }
     function removeBulkDate(d) {
-        bulkDates = bulkDates.filter(date => date !== d);
-        renderBulkTags();
+        bulkDates = bulkDates.filter(date => date !== d); renderBulkTags();
     }
     function renderBulkTags() {
         const container = document.getElementById('bulkDateTags');
-        container.innerHTML = bulkDates.map(d => `<span class="date-tag">${d} <span onclick="removeBulkDate('${d}')" style="cursor:pointer;font-weight:bold;">×</span></span>`).join('');
+        container.innerHTML = bulkDates.map(d => `<span class="date-tag">${d} <span onclick="removeBulkDate('${d}')">✕</span></span>`).join('');
     }
 
     function saveDailyLog() {
@@ -300,19 +302,21 @@
             logs.push(newLog);
 
             if(action === 'Split') {
-                line.passage += 1; line.baseDay = 0; line.startDate = new Date(date).toISOString();
+                line.passage += 1; line.baseDay = 0; line.isReseeded = false; line.startDate = new Date(date).toISOString();
             } else if(action === 'Reseeding') {
                 const diff = Math.floor((new Date(date) - new Date(line.startDate)) / (1000 * 60 * 60 * 24));
-                line.baseDay += diff; line.startDate = new Date(date).toISOString();
+                line.baseDay += diff; line.isReseeded = true; line.startDate = new Date(date).toISOString();
             }
         });
 
         bulkDates = []; renderBulkTags();
-        updateUI();
-        alert("기록 완료");
+        document.getElementById('logDetails').value = '';
+        document.getElementById('logFinalWells').value = '';
+        document.getElementById('logStocks').value = '';
+        document.getElementById('logMemo').value = '';
+        updateUI(); previewDay();
     }
 
-    // 마스터 라인 관리
     function saveLine() {
         const id = document.getElementById('editLineId').value;
         const pId = document.getElementById('newLineId').value;
@@ -328,7 +332,7 @@
             const idx = lines.findIndex(l => l.id === id);
             lines[idx] = { ...lines[idx], patientId: pId, type, passage: p, baseDay: baseD, startDate: new Date(start).toISOString(), initialWells: wells };
         } else {
-            lines.push({ id: Date.now().toString(), patientId: pId, type, passage: p, baseDay: baseD, startDate: new Date(start).toISOString(), initialWells: wells, isCompleted: false });
+            lines.push({ id: Date.now().toString(), patientId: pId, type, passage: p, baseDay: baseD, isReseeded: (baseD > 0), startDate: new Date(start).toISOString(), initialWells: wells, isCompleted: false });
         }
         resetLineForm(); updateUI();
     }
@@ -346,14 +350,14 @@
     }
 
     function completeLine(id) {
-        const m = prompt("완료 메모를 남겨주세요:");
+        const m = prompt("완료 처리하시겠습니까? 완료 메모를 남겨주세요:");
+        if (m === null) return; // 취소 누를 경우
         const l = lines.find(line => line.id === id);
         l.isCompleted = true;
-        logs.push({ id: Date.now().toString(), lineId: id, date: new Date().toISOString().split('T')[0], action: 'Finish', passage: l.passage, dayInfo: 'END', memo: "배양 완료: " + (m || "") });
+        logs.push({ id: Date.now().toString(), lineId: id, date: new Date().toISOString().split('T')[0], action: 'Finish (완료)', passage: l.passage, dayInfo: 'END', memo: m || "실험 종료" });
         updateUI();
     }
 
-    // 로그 수정 기능
     function openLogEditModal(id) {
         const log = logs.find(lg => lg.id === id);
         document.getElementById('editLogId').value = id;
@@ -365,6 +369,7 @@
         document.getElementById('editLogMemo').value = log.memo || "";
         document.getElementById('logEditModal').style.display = 'flex';
     }
+    
     function updateLog() {
         const id = document.getElementById('editLogId').value;
         const idx = logs.findIndex(lg => lg.id === id);
@@ -376,18 +381,108 @@
         closeLogEditModal(); updateUI();
     }
 
-    // CSV 업로드 (Import) 기능
+    // 💡 [핵심] CSV 파싱 및 마스터 라인 자동 복구 로직
+    function parseCSVRow(str) {
+        const result = []; let curVal = ''; let inQuotes = false;
+        for (let i = 0; i < str.length; i++) {
+            const char = str[i];
+            if (inQuotes) {
+                if (char === '"') {
+                    if (i + 1 < str.length && str[i + 1] === '"') { curVal += '"'; i++; } 
+                    else { inQuotes = false; }
+                } else { curVal += char; }
+            } else {
+                if (char === '"') { inQuotes = true; } 
+                else if (char === ',') { result.push(curVal); curVal = ''; } 
+                else { curVal += char; }
+            }
+        }
+        result.push(curVal); return result;
+    }
+
     function importCSV(event) {
         const file = event.target.files[0];
         if (!file) return;
         const reader = new FileReader();
         reader.onload = function(e) {
-            const text = e.target.result;
-            const rows = text.split('\n').map(row => row.split(','));
-            // CSV 헤더 체크 및 데이터 파싱 로직 (기본적인 형태만 지원)
-            alert("CSV 데이터를 분석하여 시스템에 병합합니다. (복잡한 데이터는 일부 누락될 수 있습니다.)");
-            // 실제 구현 시에는 CSV 구조에 따라 lines와 logs 배열에 push하는 로직이 들어갑니다.
-            // 여기서는 연구원님의 기존 데이터를 보존하며 새 데이터를 넣는 방향으로 안내합니다.
+            let text = e.target.result;
+            if (text.charCodeAt(0) === 0xFEFF) text = text.substr(1); // BOM 제거
+            const rows = text.split(/\r?\n/).filter(row => row.trim() !== '');
+            
+            let newLogsCount = 0;
+
+            for(let i=1; i<rows.length; i++) {
+                const row = parseCSVRow(rows[i]);
+                if (row.length < 5) continue; 
+
+                const dateVal = row[0];
+                const patientType = row[1];
+                const action = row[2];
+                const pStr = row[3] || 'P0';
+                const dStr = row[4] || 'd0';
+                const details = row[5] || '';
+                const finalWells = row[6] || '';
+                const stocks = row[7] || '';
+                const memo = row[8] || '';
+
+                if (!patientType || patientType === 'Unknown') continue;
+
+                // 마스터 라인 유추 및 생성
+                const [pId, ...typeArr] = patientType.split('_');
+                const type = typeArr.join('_');
+
+                let line = lines.find(l => l.patientId === pId && l.type === type && !l.isCompleted);
+                if (!line) {
+                    line = {
+                        id: 'imported_' + Date.now() + Math.random(),
+                        patientId: pId, type: type,
+                        passage: parseInt(pStr.replace('P','')) || 0,
+                        baseDay: 0, isReseeded: dStr.includes('+'),
+                        startDate: new Date(dateVal).toISOString(), 
+                        initialWells: finalWells || 0, isCompleted: false
+                    };
+                    lines.push(line);
+                }
+
+                // 중복 로그 체크
+                const exists = logs.find(l => l.lineId === line.id && l.date === dateVal && l.action === action && l.memo === memo);
+                if (!exists) {
+                    logs.push({
+                        id: Date.now() + Math.random().toString(), lineId: line.id,
+                        date: dateVal, action: action, passage: parseInt(pStr.replace('P','')) || 0,
+                        dayInfo: dStr, details: details, finalWells: finalWells, stocks: stocks, memo: memo
+                    });
+                    newLogsCount++;
+                }
+            }
+
+            // 마스터 라인의 현재 상태를 '가장 최신 로그' 기준으로 동기화 (역추적 로직)
+            lines.forEach(line => {
+                const lineLogs = logs.filter(l => l.lineId === line.id).sort((a,b) => new Date(a.date) - new Date(b.date));
+                if (lineLogs.length > 0) {
+                    const latest = lineLogs[lineLogs.length - 1];
+                    line.passage = latest.passage;
+                    
+                    let diff = 0;
+                    if(latest.dayInfo.includes('+')) {
+                        const parts = latest.dayInfo.replace('d','').split('+');
+                        line.baseDay = parseInt(parts[0]) || 0;
+                        diff = parseInt(parts[1]) || 0;
+                        line.isReseeded = true;
+                    } else {
+                        line.baseDay = 0;
+                        diff = parseInt(latest.dayInfo.replace('d','')) || 0;
+                        line.isReseeded = false;
+                    }
+                    const stDate = new Date(latest.date);
+                    stDate.setDate(stDate.getDate() - diff);
+                    line.startDate = stDate.toISOString();
+                }
+            });
+
+            updateUI();
+            alert(`✅ CSV 복원 완료! ${newLogsCount}개의 기록이 시스템에 추가 및 동기화되었습니다.`);
+            document.getElementById('csvFileInput').value = ''; 
         };
         reader.readAsText(file);
     }
@@ -396,27 +491,28 @@
         let csv = "\uFEFFDate,Patient_Type,Action,P,D,Details,Final Wells,Stocks,Memo\n";
         logs.sort((a,b) => new Date(a.date) - new Date(b.date)).forEach(l => {
             const line = lines.find(line => line.id === l.lineId);
-            csv += `${l.date},${line ? line.patientId+'_'+line.type : 'Unknown'},${l.action},${l.passage},${l.dayInfo},"${l.details||''}",${l.finalWells||''},${l.stocks||''},"${(l.memo||'').replace(/"/g,'')}"\n`;
+            csv += `${l.date},${line ? line.patientId+'_'+line.type : 'Unknown'},${l.action},P${l.passage},${l.dayInfo},"${l.details||''}",${l.finalWells||''},${l.stocks||''},"${(l.memo||'').replace(/"/g,'""')}"\n`;
         });
         const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
-        link.download = `Organoid_Log_v2.csv`; link.click();
+        link.download = `Organoid_Log_Backup.csv`; link.click();
     }
 
     function openLineModal() { document.getElementById('lineModal').style.display = 'flex'; }
     function closeModal() { document.getElementById('lineModal').style.display = 'none'; resetLineForm(); }
     function closeLogEditModal() { document.getElementById('logEditModal').style.display = 'none'; }
     function resetLineForm() { document.getElementById('editLineId').value = ''; document.getElementById('newLineId').value = ''; document.getElementById('newLineP').value = 0; document.getElementById('newLineBaseD').value = 0; document.getElementById('newLineWells').value = ''; }
-    function deleteLine(id) { if(confirm("라인을 삭제하면 모든 기록이 사라집니다. 정말 삭제할까요?")) { lines = lines.filter(l => l.id !== id); logs = logs.filter(log => log.lineId !== id); updateUI(); } }
+    function deleteLine(id) { if(confirm("라인과 관련된 모든 로그가 삭제됩니다. 계속하시겠습니까?")) { lines = lines.filter(l => l.id !== id); logs = logs.filter(log => log.lineId !== id); updateUI(); } }
     function previewDay() {
         const lineId = document.getElementById('lineSelect').value;
         const preview = document.getElementById('previewArea');
-        if(!lineId) { preview.innerText = ''; return; }
+        if(!lineId) { preview.innerText = '라인을 선택하면 P/D 상태가 미리 계산됩니다.'; return; }
         const line = lines.find(l => l.id === lineId);
         preview.innerText = `현재 상태: P${line.passage} / ${calcDDay(line, document.getElementById('logDate').value)}`;
     }
 
+    document.getElementById('logDate').addEventListener('change', previewDay);
     updateUI();
 </script>
 </body>
