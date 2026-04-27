@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Organoid OS v2.1</title>
+    <title>Organoid OS v2.2</title>
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <style>
         :root {
@@ -37,11 +37,8 @@
         .row-2 { grid-template-columns: 1fr 0.8fr 0.8fr 2fr 70px; }
         
         label { display: block; font-size: 0.75rem; color: #475569; margin-bottom: 4px; font-weight: 600; }
-        
-        /* 인풋 핏(Fit) 교정 - 버튼과 높이 완벽 일치 */
         input, select { width: 100%; height: 32px; padding: 0 8px; border: 1px solid #CBD5E1; border-radius: 4px; font-family: inherit; font-size: 0.85rem; box-sizing: border-box; }
         
-        /* 날짜 추가 그룹 정렬 교정 */
         .date-input-group { display: flex; gap: 6px; align-items: center; }
         .date-input-group input { flex: 1; }
         .date-input-group .btn { flex-shrink: 0; }
@@ -58,7 +55,30 @@
         th { padding: 8px; background: #F8FAFC; color: var(--text-sub); font-size: 0.75rem; border-bottom: 1px solid var(--border); }
         td { padding: 8px; border-bottom: 1px solid var(--border); font-size: 0.8rem; vertical-align: middle; word-wrap: break-word; }
         
-        .badge { padding: 2px 6px; border-radius: 3px; font-size: 0.75rem; font-weight: 600; border: 1px solid rgba(0,0,0,0.1); display: inline-block; }
+        /* 1. 액션별 뱃지 색상 (세분화) */
+        .badge { padding: 3px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; display: inline-block; white-space: nowrap; }
+        .badge-media { background: #E0F2FE; color: #0284C7; border: 1px solid #BAE6FD; }
+        .badge-split { background: #FFEDD5; color: #C2410C; border: 1px solid #FED7AA; }
+        .badge-reseed { background: #D1FAE5; color: #059669; border: 1px solid #A7F3D0; }
+        .badge-pellet { background: #F3E8FF; color: #7E22CE; border: 1px solid #E9D5FF; }
+        .badge-stock { background: #FCE7F3; color: #BE185D; border: 1px solid #FBCFE8; }
+        .badge-finish { background: #F1F5F9; color: #475569; border: 1px solid #CBD5E1; }
+        .badge-obs { background: #FEF9C3; color: #A16207; border: 1px solid #FEF08A; }
+
+        /* 2. P(계대수)별 색상 인덱싱 */
+        .p-badge { padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 0.8rem; display: inline-block; border: 1px solid transparent; }
+        .p-color-0 { background: #F1F5F9; color: #475569; border-color: #E2E8F0; } /* P0: 회색 */
+        .p-color-1 { background: #E0F2FE; color: #0284C7; border-color: #BAE6FD; } /* P1: 파랑 */
+        .p-color-2 { background: #D1FAE5; color: #059669; border-color: #A7F3D0; } /* P2: 초록 */
+        .p-color-3 { background: #FEF3C7; color: #D97706; border-color: #FDE68A; } /* P3: 노랑/주황 */
+        .p-color-4 { background: #EDE9FE; color: #7C3AED; border-color: #DDD6FE; } /* P4: 보라 */
+        .p-color-5 { background: #FCE7F3; color: #DB2777; border-color: #FBCFE8; } /* P5: 분홍 */
+        .p-color-6 { background: #E0E7FF; color: #4F46E5; border-color: #C7D2FE; } /* P6: 남색 */
+        .p-color-7 { background: #CCFBF1; color: #0D9488; border-color: #99F6E4; } /* P7: 청록 */
+        .p-color-8 { background: #FEE2E2; color: #DC2626; border-color: #FECACA; } /* P8: 빨강 */
+        .p-color-9 { background: #FFEDD5; color: #EA580C; border-color: #FED7AA; } /* P9: 진주황 */
+        .p-color-max { background: #1E293B; color: #F8FAFC; border-color: #0F172A; } /* P10+: 검정계열 */
+
         .action-edit-btn { background: none; border: none; color: var(--text-sub); cursor: pointer; font-size: 0.75rem; text-decoration: underline; padding: 0; }
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); justify-content: center; align-items: center; z-index: 100; }
@@ -74,12 +94,12 @@
 
     <div class="container">
         <div class="header">
-            <h1>Organoid OS v2.1</h1>
+            <h1>Organoid OS v2.2</h1>
             <div style="display:flex; gap:8px;">
                 <input type="file" id="csvFileInput" style="display:none;" accept=".csv" onchange="importCSV(event)">
-                <button class="btn btn-outline" onclick="document.getElementById('csvFileInput').click()">[업로드] CSV 데이터 복원</button>
+                <button class="btn btn-outline" onclick="document.getElementById('csvFileInput').click()">[업로드] CSV 복원</button>
                 <button class="btn btn-outline" onclick="openLineModal()">마스터 라인 관리</button>
-                <button class="btn btn-outline" onclick="exportToCSV()">[다운로드] CSV 내보내기</button>
+                <button class="btn btn-outline" onclick="exportToCSV()">[다운로드] CSV 저장</button>
             </div>
         </div>
 
@@ -198,6 +218,24 @@
         return 'type-chol';
     }
 
+    // 수행 액션 뱃지 컬러 지정
+    function getActionBadge(action) {
+        if (action.includes('Media')) return 'badge-media';
+        if (action.includes('Split')) return 'badge-split';
+        if (action.includes('Reseed')) return 'badge-reseed';
+        if (action.includes('Pellet')) return 'badge-pellet';
+        if (action.includes('Stock')) return 'badge-stock';
+        if (action.includes('Finish') || action.includes('완료')) return 'badge-finish';
+        return 'badge-obs';
+    }
+
+    // Passage 번호 컬러 지정
+    function getPassageClass(pStr) {
+        const pNum = parseInt(String(pStr).replace(/[^0-9]/g, '')) || 0;
+        if(pNum >= 0 && pNum <= 9) return `p-color-${pNum}`;
+        return 'p-color-max';
+    }
+
     function updateUI() {
         const select = document.getElementById('lineSelect');
         select.innerHTML = '<option value="">-- 라인 선택 --</option>';
@@ -227,7 +265,7 @@
             let html = `
             <div class="timeline-section">
                 <div class="timeline-header ${bannerClass}">
-                    <span>[${line.patientId}_${line.type}] P${line.passage} / ${calcDDay(line)}</span>
+                    <span>[${line.patientId}_${line.type}] <span class="p-badge ${getPassageClass(line.passage)}">P${line.passage}</span> / ${calcDDay(line)}</span>
                     <div style="display:flex; gap:6px;">
                         ${!line.isCompleted ? `<button class="btn btn-complete" onclick="completeLine('${line.id}')">배양 완료</button>` : ''}
                         <button class="btn btn-edit" onclick="editLine('${line.id}')">라인 수정</button>
@@ -235,18 +273,21 @@
                 </div>
                 <table>
                     <thead>
-                        <tr><th style="width:12%">Date</th><th style="width:14%">Action</th><th style="width:12%">P/D</th><th style="width:12%">Ratio</th><th style="width:8%">Well</th><th style="width:8%">Stock</th><th style="width:26%">Memo</th><th style="width:8%">Edit</th></tr>
+                        <tr><th style="width:11%">Date</th><th style="width:14%">Action</th><th style="width:14%">P / D</th><th style="width:11%">Ratio</th><th style="width:8%">Well</th><th style="width:8%">Stock</th><th style="width:26%">Memo</th><th style="width:8%">Edit</th></tr>
                     </thead>
                     <tbody>`;
             
             lineLogs.forEach(log => {
                 html += `<tr>
                     <td style="color:var(--text-sub)">${log.date}</td>
-                    <td><span class="badge" style="background:#fff">${log.action}</span></td>
-                    <td style="font-weight:600; color:var(--primary)">P${log.passage}/${log.dayInfo}</td>
+                    <td><span class="badge ${getActionBadge(log.action)}">${log.action}</span></td>
+                    <td>
+                        <span class="p-badge ${getPassageClass(log.passage)}">P${log.passage}</span>
+                        <span style="color:var(--text-sub); font-size:0.8rem; margin-left:4px;">/ ${log.dayInfo}</span>
+                    </td>
                     <td>${log.details || '-'}</td>
                     <td style="color:#059669; font-weight:700">${log.finalWells || '-'}</td>
-                    <td style="color:#0284C7; font-weight:600">${log.stocks || '-'}</td>
+                    <td style="color:#BE185D; font-weight:700">${log.stocks ? log.stocks + ' vial' : '-'}</td>
                     <td>${log.memo || '-'}</td>
                     <td><button class="action-edit-btn" onclick="openLogEditModal('${log.id}')">수정</button></td>
                 </tr>`;
@@ -351,7 +392,7 @@
 
     function completeLine(id) {
         const m = prompt("완료 처리하시겠습니까? 완료 메모를 남겨주세요:");
-        if (m === null) return; // 취소 누를 경우
+        if (m === null) return;
         const l = lines.find(line => line.id === id);
         l.isCompleted = true;
         logs.push({ id: Date.now().toString(), lineId: id, date: new Date().toISOString().split('T')[0], action: 'Finish (완료)', passage: l.passage, dayInfo: 'END', memo: m || "실험 종료" });
@@ -381,7 +422,6 @@
         closeLogEditModal(); updateUI();
     }
 
-    // 💡 [핵심] CSV 파싱 및 마스터 라인 자동 복구 로직
     function parseCSVRow(str) {
         const result = []; let curVal = ''; let inQuotes = false;
         for (let i = 0; i < str.length; i++) {
@@ -406,7 +446,7 @@
         const reader = new FileReader();
         reader.onload = function(e) {
             let text = e.target.result;
-            if (text.charCodeAt(0) === 0xFEFF) text = text.substr(1); // BOM 제거
+            if (text.charCodeAt(0) === 0xFEFF) text = text.substr(1);
             const rows = text.split(/\r?\n/).filter(row => row.trim() !== '');
             
             let newLogsCount = 0;
@@ -427,7 +467,6 @@
 
                 if (!patientType || patientType === 'Unknown') continue;
 
-                // 마스터 라인 유추 및 생성
                 const [pId, ...typeArr] = patientType.split('_');
                 const type = typeArr.join('_');
 
@@ -436,7 +475,7 @@
                     line = {
                         id: 'imported_' + Date.now() + Math.random(),
                         patientId: pId, type: type,
-                        passage: parseInt(pStr.replace('P','')) || 0,
+                        passage: parseInt(pStr.replace(/[^0-9]/g,'')) || 0,
                         baseDay: 0, isReseeded: dStr.includes('+'),
                         startDate: new Date(dateVal).toISOString(), 
                         initialWells: finalWells || 0, isCompleted: false
@@ -444,19 +483,17 @@
                     lines.push(line);
                 }
 
-                // 중복 로그 체크
                 const exists = logs.find(l => l.lineId === line.id && l.date === dateVal && l.action === action && l.memo === memo);
                 if (!exists) {
                     logs.push({
                         id: Date.now() + Math.random().toString(), lineId: line.id,
-                        date: dateVal, action: action, passage: parseInt(pStr.replace('P','')) || 0,
+                        date: dateVal, action: action, passage: parseInt(pStr.replace(/[^0-9]/g,'')) || 0,
                         dayInfo: dStr, details: details, finalWells: finalWells, stocks: stocks, memo: memo
                     });
                     newLogsCount++;
                 }
             }
 
-            // 마스터 라인의 현재 상태를 '가장 최신 로그' 기준으로 동기화 (역추적 로직)
             lines.forEach(line => {
                 const lineLogs = logs.filter(l => l.lineId === line.id).sort((a,b) => new Date(a.date) - new Date(b.date));
                 if (lineLogs.length > 0) {
@@ -481,7 +518,7 @@
             });
 
             updateUI();
-            alert(`✅ CSV 복원 완료! ${newLogsCount}개의 기록이 시스템에 추가 및 동기화되었습니다.`);
+            alert(`✅ CSV 복원 완료! ${newLogsCount}개의 기록이 추가 및 동기화되었습니다.`);
             document.getElementById('csvFileInput').value = ''; 
         };
         reader.readAsText(file);
