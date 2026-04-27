@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Organoid OS v2.2</title>
+    <title>Organoid OS v2.3</title>
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <style>
         :root {
@@ -25,7 +25,7 @@
         .btn-outline { background: white; border: 1px solid var(--border); color: var(--text-sub); }
         .btn-edit { background: #F1F5F9; color: #475569; border: 1px solid var(--border); }
         .btn-complete { background: #D1FAE5; color: #065F46; }
-        .btn-delete { background: white; color: #DC2626; border: 1px solid #FECACA; }
+        .btn-delete { background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; }
         .btn:hover { opacity: 0.8; }
 
         .card { background: var(--surface); border-radius: 6px; border: 1px solid var(--border); margin-bottom: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
@@ -55,7 +55,6 @@
         th { padding: 8px; background: #F8FAFC; color: var(--text-sub); font-size: 0.75rem; border-bottom: 1px solid var(--border); }
         td { padding: 8px; border-bottom: 1px solid var(--border); font-size: 0.8rem; vertical-align: middle; word-wrap: break-word; }
         
-        /* 1. 액션별 뱃지 색상 (세분화) */
         .badge { padding: 3px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; display: inline-block; white-space: nowrap; }
         .badge-media { background: #E0F2FE; color: #0284C7; border: 1px solid #BAE6FD; }
         .badge-split { background: #FFEDD5; color: #C2410C; border: 1px solid #FED7AA; }
@@ -65,24 +64,24 @@
         .badge-finish { background: #F1F5F9; color: #475569; border: 1px solid #CBD5E1; }
         .badge-obs { background: #FEF9C3; color: #A16207; border: 1px solid #FEF08A; }
 
-        /* 2. P(계대수)별 색상 인덱싱 */
         .p-badge { padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 0.8rem; display: inline-block; border: 1px solid transparent; }
-        .p-color-0 { background: #F1F5F9; color: #475569; border-color: #E2E8F0; } /* P0: 회색 */
-        .p-color-1 { background: #E0F2FE; color: #0284C7; border-color: #BAE6FD; } /* P1: 파랑 */
-        .p-color-2 { background: #D1FAE5; color: #059669; border-color: #A7F3D0; } /* P2: 초록 */
-        .p-color-3 { background: #FEF3C7; color: #D97706; border-color: #FDE68A; } /* P3: 노랑/주황 */
-        .p-color-4 { background: #EDE9FE; color: #7C3AED; border-color: #DDD6FE; } /* P4: 보라 */
-        .p-color-5 { background: #FCE7F3; color: #DB2777; border-color: #FBCFE8; } /* P5: 분홍 */
-        .p-color-6 { background: #E0E7FF; color: #4F46E5; border-color: #C7D2FE; } /* P6: 남색 */
-        .p-color-7 { background: #CCFBF1; color: #0D9488; border-color: #99F6E4; } /* P7: 청록 */
-        .p-color-8 { background: #FEE2E2; color: #DC2626; border-color: #FECACA; } /* P8: 빨강 */
-        .p-color-9 { background: #FFEDD5; color: #EA580C; border-color: #FED7AA; } /* P9: 진주황 */
-        .p-color-max { background: #1E293B; color: #F8FAFC; border-color: #0F172A; } /* P10+: 검정계열 */
+        .p-color-0 { background: #F1F5F9; color: #475569; border-color: #E2E8F0; } 
+        .p-color-1 { background: #E0F2FE; color: #0284C7; border-color: #BAE6FD; } 
+        .p-color-2 { background: #D1FAE5; color: #059669; border-color: #A7F3D0; } 
+        .p-color-3 { background: #FEF3C7; color: #D97706; border-color: #FDE68A; } 
+        .p-color-4 { background: #EDE9FE; color: #7C3AED; border-color: #DDD6FE; } 
+        .p-color-5 { background: #FCE7F3; color: #DB2777; border-color: #FBCFE8; } 
+        .p-color-6 { background: #E0E7FF; color: #4F46E5; border-color: #C7D2FE; } 
+        .p-color-7 { background: #CCFBF1; color: #0D9488; border-color: #99F6E4; } 
+        .p-color-8 { background: #FEE2E2; color: #DC2626; border-color: #FECACA; } 
+        .p-color-9 { background: #FFEDD5; color: #EA580C; border-color: #FED7AA; } 
+        .p-color-max { background: #1E293B; color: #F8FAFC; border-color: #0F172A; } 
 
-        .action-edit-btn { background: none; border: none; color: var(--text-sub); cursor: pointer; font-size: 0.75rem; text-decoration: underline; padding: 0; }
+        .action-edit-btn { background: #F8FAFC; border: 1px solid #E2E8F0; color: #475569; border-radius: 4px; cursor: pointer; font-size: 0.75rem; padding: 4px 8px; font-weight: 600; transition: 0.1s; }
+        .action-edit-btn:hover { background: #E2E8F0; }
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); justify-content: center; align-items: center; z-index: 100; }
-        .modal-content { background: white; padding: 20px; border-radius: 6px; width: 550px; max-height: 90vh; overflow-y: auto; }
+        .modal-content { background: white; padding: 20px; border-radius: 6px; width: 550px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         
         #bulkDateTags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
         .date-tag { background: #E2E8F0; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; display: flex; align-items: center; gap: 6px; font-weight: 500; }
@@ -94,7 +93,7 @@
 
     <div class="container">
         <div class="header">
-            <h1>Organoid OS v2.2</h1>
+            <h1>Organoid OS v2.3</h1>
             <div style="display:flex; gap:8px;">
                 <input type="file" id="csvFileInput" style="display:none;" accept=".csv" onchange="importCSV(event)">
                 <button class="btn btn-outline" onclick="document.getElementById('csvFileInput').click()">[업로드] CSV 복원</button>
@@ -147,7 +146,7 @@
 
     <div id="lineModal" class="modal">
         <div class="modal-content">
-            <h2 id="lineModalTitle" style="margin:0 0 15px; font-size:1.1rem; border-bottom:1px solid #E2E8F0; padding-bottom:10px;">라인 등록 및 관리</h2>
+            <h2 style="margin:0 0 15px; font-size:1.1rem; border-bottom:1px solid #E2E8F0; padding-bottom:10px;">라인 등록 및 관리</h2>
             <div style="background: #F8FAFC; padding: 15px; border-radius: 6px; border: 1px solid #E2E8F0; margin-bottom: 15px;">
                 <input type="hidden" id="editLineId">
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
@@ -178,19 +177,41 @@
 
     <div id="logEditModal" class="modal">
         <div class="modal-content">
-            <h2 style="margin:0 0 15px; font-size:1.1rem; border-bottom:1px solid #E2E8F0; padding-bottom:10px;">기록 수정</h2>
+            <h2 style="margin:0 0 15px; font-size:1.1rem; border-bottom:1px solid #E2E8F0; padding-bottom:10px;">기록 상세 수정</h2>
             <input type="hidden" id="editLogId">
-            <div style="display:grid; gap:10px;">
-                <div><label>날짜</label><input type="date" id="editLogDate"></div>
-                <div><label>수행 액션</label><input type="text" id="editLogAction" readonly style="background:#F1F5F9; color:#64748B;"></div>
+            
+            <div style="display:grid; gap:12px; background: #F8FAFC; padding: 15px; border-radius: 6px; border: 1px solid #E2E8F0;">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <div><label>작업 날짜</label><input type="date" id="editLogDate"></div>
+                    <div><label style="color:#0284C7;">수행 액션 (수정 가능)</label>
+                        <select id="editLogAction">
+                            <option value="Media Change">Media Change</option>
+                            <option value="Split">Split</option>
+                            <option value="Reseeding">Reseeding</option>
+                            <option value="Pellet 제작">Pellet 제작</option>
+                            <option value="Stock 제작">Stock 제작</option>
+                            <option value="Observation">Observation</option>
+                            <option value="Finish (완료)">Finish (완료)</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1.5fr; gap:10px;">
+                    <div><label style="color:#7C3AED;">P (계대 수동수정)</label><input type="number" id="editLogP" min="0"></div>
+                    <div><label style="color:#7C3AED;">D (일자 수동수정)</label><input type="text" id="editLogD" placeholder="예: d12+3"></div>
+                </div>
+                <div style="height: 1px; background: #E2E8F0; margin: 4px 0;"></div>
                 <div><label>과정/Ratio</label><input type="text" id="editLogDetails"></div>
-                <div><label>최종 Well</label><input type="number" id="editLogFinalWells"></div>
-                <div><label>Stock 수</label><input type="number" id="editLogStocks"></div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <div><label>최종 Well</label><input type="number" id="editLogFinalWells"></div>
+                    <div><label>Stock 수</label><input type="number" id="editLogStocks"></div>
+                </div>
                 <div><label>메모</label><input type="text" id="editLogMemo"></div>
             </div>
+            
             <div style="display:flex; gap:10px; margin-top:20px;">
-                <button class="btn btn-primary" style="flex:1;" onclick="updateLog()">수정 완료</button>
-                <button class="btn btn-outline" onclick="closeLogEditModal()">취소</button>
+                <button class="btn btn-primary" style="flex:2;" onclick="updateLog()">수정 완료</button>
+                <button class="btn btn-delete" style="flex:1;" onclick="deleteLogFromModal()">삭제</button>
+                <button class="btn btn-outline" style="flex:1;" onclick="closeLogEditModal()">취소</button>
             </div>
         </div>
     </div>
@@ -218,8 +239,8 @@
         return 'type-chol';
     }
 
-    // 수행 액션 뱃지 컬러 지정
     function getActionBadge(action) {
+        if (!action) return 'badge-obs';
         if (action.includes('Media')) return 'badge-media';
         if (action.includes('Split')) return 'badge-split';
         if (action.includes('Reseed')) return 'badge-reseed';
@@ -229,7 +250,6 @@
         return 'badge-obs';
     }
 
-    // Passage 번호 컬러 지정
     function getPassageClass(pStr) {
         const pNum = parseInt(String(pStr).replace(/[^0-9]/g, '')) || 0;
         if(pNum >= 0 && pNum <= 9) return `p-color-${pNum}`;
@@ -273,7 +293,7 @@
                 </div>
                 <table>
                     <thead>
-                        <tr><th style="width:11%">Date</th><th style="width:14%">Action</th><th style="width:14%">P / D</th><th style="width:11%">Ratio</th><th style="width:8%">Well</th><th style="width:8%">Stock</th><th style="width:26%">Memo</th><th style="width:8%">Edit</th></tr>
+                        <tr><th style="width:11%">Date</th><th style="width:14%">Action</th><th style="width:14%">P / D</th><th style="width:11%">Ratio</th><th style="width:8%">Well</th><th style="width:8%">Stock</th><th style="width:26%">Memo</th><th style="width:8%; text-align:center;">Edit</th></tr>
                     </thead>
                     <tbody>`;
             
@@ -289,7 +309,7 @@
                     <td style="color:#059669; font-weight:700">${log.finalWells || '-'}</td>
                     <td style="color:#BE185D; font-weight:700">${log.stocks ? log.stocks + ' vial' : '-'}</td>
                     <td>${log.memo || '-'}</td>
-                    <td><button class="action-edit-btn" onclick="openLogEditModal('${log.id}')">수정</button></td>
+                    <td style="text-align:center;"><button class="action-edit-btn" onclick="openLogEditModal('${log.id}')">수정</button></td>
                 </tr>`;
             });
             html += `</tbody></table></div>`;
@@ -399,27 +419,57 @@
         updateUI();
     }
 
+    // 💡 로그 수정 및 삭제 기능 통합 
     function openLogEditModal(id) {
         const log = logs.find(lg => lg.id === id);
         document.getElementById('editLogId').value = id;
         document.getElementById('editLogDate').value = log.date;
-        document.getElementById('editLogAction').value = log.action;
+        
+        // 셀렉트 박스에 없는 과거 텍스트 호환성 유지
+        let actionSelect = document.getElementById('editLogAction');
+        if(![...actionSelect.options].some(o => o.value === log.action)) {
+            actionSelect.add(new Option(log.action, log.action));
+        }
+        actionSelect.value = log.action;
+
+        // P와 D를 수동으로 고칠 수 있도록 값을 세팅
+        document.getElementById('editLogP').value = log.passage || 0;
+        document.getElementById('editLogD').value = log.dayInfo || "";
+        
         document.getElementById('editLogDetails').value = log.details || "";
         document.getElementById('editLogFinalWells').value = log.finalWells || "";
         document.getElementById('editLogStocks').value = log.stocks || "";
         document.getElementById('editLogMemo').value = log.memo || "";
+        
         document.getElementById('logEditModal').style.display = 'flex';
     }
     
     function updateLog() {
         const id = document.getElementById('editLogId').value;
         const idx = logs.findIndex(lg => lg.id === id);
+        
         logs[idx].date = document.getElementById('editLogDate').value;
+        logs[idx].action = document.getElementById('editLogAction').value;
+        
+        // 수정창에서 입력한 수동 P/D 값 저장
+        logs[idx].passage = parseInt(document.getElementById('editLogP').value) || 0;
+        logs[idx].dayInfo = document.getElementById('editLogD').value;
+
         logs[idx].details = document.getElementById('editLogDetails').value;
         logs[idx].finalWells = document.getElementById('editLogFinalWells').value;
         logs[idx].stocks = document.getElementById('editLogStocks').value;
         logs[idx].memo = document.getElementById('editLogMemo').value;
+        
         closeLogEditModal(); updateUI();
+    }
+
+    function deleteLogFromModal() {
+        const id = document.getElementById('editLogId').value;
+        if(confirm("이 기록을 삭제하시겠습니까? (삭제 후 복구할 수 없습니다)")) {
+            logs = logs.filter(l => l.id !== id);
+            closeLogEditModal();
+            updateUI();
+        }
     }
 
     function parseCSVRow(str) {
