@@ -672,11 +672,77 @@ function saveDailyLog(){
 //  RECALC LOGS FOR LINE
 // ══════════════════════════════════════════
 function recalcLogsForLine(lineId){
-    return;
-}
 
-  // Determine starting state
-  let curP,curBase,resd,curStart;
+  const line = lines.find(l=>l.id===lineId);
+  if(!line) return;
+
+  const lls = logs
+    .filter(l=>l.lineId===lineId)
+    .sort((a,b)=>new Date(a.date)-new Date(b.date));
+
+  let curP=line.passage||0;
+  let curBase=line.baseDay||0;
+  let resd=line.isReseeded||false;
+
+  let curStart=new Date(line.startDate);
+  curStart.setHours(0,0,0,0);
+
+  const seedLog=lls.find(l=>isSeed(l.action));
+
+  if(seedLog){
+    curP=parseP(seedLog.passage);
+    curBase=0;
+    resd=false;
+
+    curStart=new Date(seedLog.date);
+    curStart.setHours(0,0,0,0);
+
+    seedLog.dayInfo='d0';
+  }
+
+  lls.forEach(lg=>{
+
+    if(isSeed(lg.action)) return;
+
+    if(isFin(lg.action)){
+      lg.passage=curP;
+      lg.dayInfo='END';
+      return;
+    }
+
+    const dt=new Date(lg.date);
+    dt.setHours(0,0,0,0);
+
+    const diff=Math.floor((dt-curStart)/86400000);
+
+    lg.passage=curP;
+    lg.dayInfo=(curBase>0||resd)
+      ? `d${curBase}+${diff}`
+      : `d${diff}`;
+
+    if((lg.action||'').includes('Split')){
+      curP++;
+      curBase=0;
+      resd=false;
+
+      curStart=new Date(lg.date);
+      curStart.setHours(0,0,0,0);
+    }
+
+    else if(lg.action==='Reseeding'){
+      curBase+=diff;
+      resd=true;
+
+      curStart=new Date(lg.date);
+      curStart.setHours(0,0,0,0);
+    }
+  });
+
+  line.passage=curP;
+  line.baseDay=curBase;
+  line.isReseeded=resd;
+  line.startDate=curStart.toISOString();
+}
   const seedLog=lls.find(l=>isSeed(l.action));
   if(seedLog){
     curP=parseP(seedLog.passage);curBase=0;resd=false;
@@ -1032,8 +1098,33 @@ function importCSV(event){
 
     // ── Step 3: set each line's CURRENT passage / day from its latest non-finish log ──
 
-    ensureSeedLogs(true);
-    updateUI();
+// Step 3
+
+lines.forEach(line=>{
+
+  const rel=logs
+    .filter(l=>l.lineId===line.id)
+    .sort((a,b)=>new Date(a.date)-new Date(b.date));
+
+  if(!rel.length) return;
+
+  const last=rel[rel.length-1];
+
+  line.passage=parseP(last.passage);
+
+  if(!line.isCompleted){
+
+    const d=parseD(last.dayInfo);
+
+    if(d){
+      line.baseDay=d.base;
+      line.isReseeded=d.base>0;
+    }
+  }
+});
+
+ensureSeedLogs(true);
+updateUI();
     alert(`CSV 복원 완료. 라인 ${lines.length}개, 기록 ${logs.length}개를 불러왔습니다.`);
     document.getElementById('csvFile').value='';
   };
@@ -1086,32 +1177,32 @@ function cleanBroken(){
 //  (used after CSV import, where the CSV already holds first records)
 // ══════════════════════════════════════════
 function ensureSeedLogs(skipCreate){
+
   lines.forEach(line=>{
-    logs.forEach(lg=>{ if(lg.lineId===line.id&&lg.action==='Initial Seeding') lg.action='Seeded'; });
-    const seedLogs=logs.filter(l=>l.lineId===line.id&&l.action==='Seeded')
-      .sort((a,b)=>new Date(a.date)-new Date(b.date));
-    if(seedLogs.length>1){
-      const keep=seedLogs[0].id;
-      logs=logs.filter(l=>!(l.lineId===line.id&&l.action==='Seeded'&&l.id!==keep));
-    }
-function ensureSeedLogs(skipCreate){
-  lines.forEach(line=>{
+
     logs.forEach(lg=>{
-      if(lg.lineId===line.id&&lg.action==='Initial Seeding')
+      if(
+        lg.lineId===line.id &&
+        lg.action==='Initial Seeding'
+      ){
         lg.action='Seeded';
+      }
     });
 
     const seedLogs=logs
-      .filter(l=>l.lineId===line.id&&l.action==='Seeded')
+      .filter(l=>l.lineId===line.id && l.action==='Seeded')
       .sort((a,b)=>new Date(a.date)-new Date(b.date));
 
     if(seedLogs.length>1){
+
       const keep=seedLogs[0].id;
 
       logs=logs.filter(l=>
-        !(l.lineId===line.id &&
+        !(
+          l.lineId===line.id &&
           l.action==='Seeded' &&
-          l.id!==keep)
+          l.id!==keep
+        )
       );
     }
   });
