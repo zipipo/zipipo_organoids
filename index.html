@@ -155,7 +155,6 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
 <body>
 <div class="wrap">
 
-<!-- HEADER -->
 <div class="hdr">
   <h1>Organoid Culture Log</h1>
   <div class="hdr-r">
@@ -167,13 +166,10 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
   </div>
 </div>
 
-<!-- STOCK BANNER -->
 <div id="stockBanner"></div>
 
-<!-- DASHBOARD -->
 <div id="dash"></div>
 
-<!-- ENTRY CARD -->
 <div class="card">
   <div class="card-hd">데일리 작업 기록</div>
   <div class="eform">
@@ -216,11 +212,9 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
   <div class="prev-bar" id="prevArea">라인을 선택하면 P/D 상태가 미리 계산됩니다.</div>
 </div>
 
-<!-- ACTIVE TIMELINES -->
 <div class="sec">진행 중인 배양 타임라인</div>
 <div id="activeTL"></div>
 
-<!-- ARCHIVE -->
 <div class="sec dim">
   <div class="arch-row" id="archRow" onclick="toggleArch()">
     <span class="arch-arr" id="archArr">&#9654;</span>
@@ -232,7 +226,6 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
 
 </div>
 
-<!-- ═══ CELL LINE MODAL ═══ -->
 <div id="lineModal" class="modal">
   <div class="mbox">
     <h2>Cell Line 관리</h2>
@@ -262,7 +255,6 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
   </div>
 </div>
 
-<!-- ═══ LOG EDIT MODAL ═══ -->
 <div id="logModal" class="modal">
   <div class="mbox" style="width:560px;">
     <h2>기록 수정</h2>
@@ -378,7 +370,6 @@ const getC=(type,done)=>done?DONE:(tcm[type]||PAL[0]);
 
 // ══════════════════════════════════════════
 //  MC DAYS (days since last MC or Split)
-//  returns {days, cls} or null
 // ══════════════════════════════════════════
 function mcDays(line){
   if(line.isCompleted) return null;
@@ -443,7 +434,7 @@ function renderDash(){
     typeCards+=`<div class="dtype">
       <div class="dtype-hd" style="background:${c.hbg};color:${c.ht};">
         <span>${esc(type)}</span>
-        <span class="dh-r">${d.count}라인 · ${d.wells} well</span>
+        <span class="dh-r">${d.count}라인</span>
       </div>
       <div class="dtype-body">${dlines}</div>
     </div>`;
@@ -643,11 +634,14 @@ function saveDailyLog(){
   dates.sort().forEach(date=>{
     const line=lines.find(l=>l.id===lineId);
     logs.push({id:uid(),lineId,date,action,passage:line.passage,dayInfo:calcDayStr(line,date),details:det,finalWells:wells,stocks,memo});
+    
+    // Split/Reseeding에 따른 라인 현재 상태(P, d) 임시 동기화
     if(action.includes('Split')){
+      line.passage++; // BUG FIX 3: Split을 할 때 passage를 증가시켜줌
       line.baseDay=0;
       line.isReseeded=false;
       line.startDate=isoD(date);
-} else if(action==='Reseeding'){
+    } else if(action==='Reseeding'){
       const s=new Date(line.startDate),ld=new Date(date);
       s.setHours(0,0,0,0);ld.setHours(0,0,0,0);
       line.baseDay+=Math.floor((ld-s)/86400000);
@@ -659,6 +653,9 @@ function saveDailyLog(){
     }
   });
 
+  // 위에서 대략적인 상태를 넣었으나 확실히 하기 위해 전체 재계산 훅 호출
+  recalcLogsForLine(lineId);
+
   bulkDates=[];renderBulkTags();
   ['logDet','logWells','logStocks','logMemo'].forEach(i=>document.getElementById(i).value='');
   document.getElementById('chkLN2').checked=false;
@@ -669,10 +666,9 @@ function saveDailyLog(){
 }
 
 // ══════════════════════════════════════════
-//  RECALC LOGS FOR LINE
+//  RECALC LOGS FOR LINE (BUG FIX 1: 치명적 Syntax Error 및 로직 전면수정)
 // ══════════════════════════════════════════
 function recalcLogsForLine(lineId){
-
   const line = lines.find(l=>l.id===lineId);
   if(!line) return;
 
@@ -680,111 +676,81 @@ function recalcLogsForLine(lineId){
     .filter(l=>l.lineId===lineId)
     .sort((a,b)=>new Date(a.date)-new Date(b.date));
 
-  let curP=line.passage||0;
-  let curBase=line.baseDay||0;
-  let resd=line.isReseeded||false;
+  if(!lls.length) return;
 
-  let curStart=new Date(line.startDate);
+  let curP = line.passage || 0;
+  let curBase = line.baseDay || 0;
+  let resd = line.isReseeded || false;
+  let curStart = new Date(line.startDate);
   curStart.setHours(0,0,0,0);
 
-  const seedLog=lls.find(l=>isSeed(l.action));
+  const seedLog = lls.find(l=>isSeed(l.action));
 
   if(seedLog){
-    curP=parseP(seedLog.passage);
-    curBase=0;
-    resd=false;
-
-    curStart=new Date(seedLog.date);
+    curP = parseP(seedLog.passage);
+    curBase = 0; 
+    resd = false;
+    curStart = new Date(seedLog.date);
     curStart.setHours(0,0,0,0);
-
-    seedLog.dayInfo='d0';
+    // 마스터라인 등록 시 지정한 base를 seedLog에 보존했다면 불러옵니다.
+    const dObj = parseD(seedLog.dayInfo);
+    if(dObj && dObj.base > 0) {
+      curBase = dObj.base;
+      resd = true;
+    }
+  } else {
+    // Seeded 로그가 없을 때 (예: CSV 복원) -> 가장 이른 일반 로그(Finish 제외)를 기준점으로 잡음
+    const first = lls.find(l=>!isFin(l.action)) || lls[0];
+    curP = parseP(first.passage);
+    const di = parseD(first.dayInfo);
+    if(di){
+      curBase = di.base; 
+      resd = di.base > 0;
+      curStart = new Date(first.date);
+      curStart.setHours(0,0,0,0);
+      curStart.setDate(curStart.getDate() - di.diff); // Diff만큼 뒤로 밀어 StartDate 역산
+    } else {
+      curBase = 0; 
+      resd = false;
+      curStart = new Date(first.date);
+      curStart.setHours(0,0,0,0);
+    }
   }
 
   lls.forEach(lg=>{
-
     if(isSeed(lg.action)) return;
-
     if(isFin(lg.action)){
-      lg.passage=curP;
-      lg.dayInfo='END';
+      lg.passage = curP;
+      lg.dayInfo = 'END';
       return;
     }
-
-    const dt=new Date(lg.date);
+    const dt = new Date(lg.date);
     dt.setHours(0,0,0,0);
-
-    const diff=Math.floor((dt-curStart)/86400000);
-
-    lg.passage=curP;
-    lg.dayInfo=(curBase>0||resd)
-      ? `d${curBase}+${diff}`
-      : `d${diff}`;
+    const diff = Math.floor((dt-curStart)/86400000);
+    
+    lg.passage = curP;
+    lg.dayInfo = (curBase > 0 || resd) ? `d${curBase}+${diff}` : `d${diff}`;
 
     if((lg.action||'').includes('Split')){
       curP++;
-      curBase=0;
-      resd=false;
-
-      curStart=new Date(lg.date);
+      curBase = 0; 
+      resd = false;
+      curStart = new Date(lg.date);
       curStart.setHours(0,0,0,0);
-    }
-
-    else if(lg.action==='Reseeding'){
-      curBase+=diff;
-      resd=true;
-
-      curStart=new Date(lg.date);
+    } else if(lg.action === 'Reseeding'){
+      curBase += diff; 
+      resd = true;
+      curStart = new Date(lg.date);
       curStart.setHours(0,0,0,0);
     }
   });
 
-  line.passage=curP;
-  line.baseDay=curBase;
-  line.isReseeded=resd;
-  line.startDate=curStart.toISOString();
-}
-  const seedLog=lls.find(l=>isSeed(l.action));
-  if(seedLog){
-    curP=parseP(seedLog.passage);curBase=0;resd=false;
-    curStart=new Date(seedLog.date);curStart.setHours(0,0,0,0);
-    seedLog.dayInfo='d0';
-  } else if(lls.length){
-    // no Seeded log (e.g. imported) — anchor to the EARLIEST log:
-    // use its passage as the starting P, and derive base/start from its dayInfo
-    const first=lls.find(l=>!isFin(l.action))||lls[0];
-    curP=parseP(first.passage);
-    const di=parseD(first.dayInfo);
-    if(di){
-      curBase=di.base; resd=di.base>0;
-      curStart=new Date(first.date);curStart.setHours(0,0,0,0);
-      curStart.setDate(curStart.getDate()-di.diff);
-    } else {
-      curBase=0;resd=false;
-      curStart=new Date(first.date);curStart.setHours(0,0,0,0);
-    }
-  } else {
-    curP=line.passage;curBase=line.baseDay;resd=line.isReseeded;
-    curStart=new Date(line.startDate);curStart.setHours(0,0,0,0);
-  }
-
-  lls.forEach(lg=>{
-    if(isSeed(lg.action)) return;
-    if(isFin(lg.action)){lg.passage=curP;lg.dayInfo='END';return;}
-    const dt=new Date(lg.date);dt.setHours(0,0,0,0);
-    const diff=Math.floor((dt-curStart)/86400000);
-    lg.passage=curP;
-    lg.dayInfo=(curBase>0||resd)?`d${curBase}+${diff}`:`d${diff}`;
-    if((lg.action||'').includes('Split')){
-      curP++;curBase=0;resd=false;curStart=new Date(lg.date);curStart.setHours(0,0,0,0);
-    } else if(lg.action==='Reseeding'){
-      curBase+=diff;resd=true;curStart=new Date(lg.date);curStart.setHours(0,0,0,0);
-    }
-  });
-
-  // update line state to reflect "now" (latest)
+  // 최신화된 라인 상태 갱신
   if(!line.isCompleted){
-    line.passage=curP;line.baseDay=curBase;line.isReseeded=resd;
-    line.startDate=curStart.toISOString();
+    line.passage = curP;
+    line.baseDay = curBase;
+    line.isReseeded = resd;
+    line.startDate = curStart.toISOString();
   }
 }
 
@@ -801,21 +767,33 @@ function saveLine(){
   const start=document.getElementById('elStart').value;
   if(!pId||!type||!start) return alert('필수 정보를 입력하세요.');
 
+  const dayStr = baseD>0 ? `d${baseD}+0` : 'd0';
+
   if(id){
     const idx=lines.findIndex(l=>l.id===id);
     lines[idx]={...lines[idx],patientId:pId,type,passage:p,baseDay:baseD,
       isReseeded:(baseD>0),startDate:isoD(start),initialWells:wells};
-    // update seed log to match
+    
+    // BUG FIX 2: seed log를 업데이트 하거나 없으면 무조건 생성합니다 (초기 웰 0 이라도)
     const seed=logs.find(l=>l.lineId===id&&isSeed(l.action));
-    if(seed){seed.date=start;seed.passage=p;seed.finalWells=wells;}
+    if(seed){
+      seed.date=start;
+      seed.passage=p;
+      seed.finalWells=wells;
+      seed.dayInfo=dayStr;
+    } else {
+      logs.push({id:uid()+'_sd',lineId:id,date:start,action:'Seeded',
+        passage:p,dayInfo:dayStr,details:'',finalWells:wells||'',stocks:'',memo:'최초 seeding'});
+    }
+    recalcLogsForLine(id);
   } else {
     const nl={id:uid(),patientId:pId,type,passage:p,baseDay:baseD,
       isReseeded:(baseD>0),startDate:isoD(start),initialWells:wells,isCompleted:false};
     lines.push(nl);
-    if(wells&&parseInt(wells)>0){
-      logs.push({id:uid()+'_sd',lineId:nl.id,date:start,action:'Seeded',
-        passage:p,dayInfo:baseD>0?`d${baseD}+0`:'d0',details:'',finalWells:wells,stocks:'',memo:'최초 seeding'});
-    }
+    
+    // 무조건 Seeded 생성 (초기 상태 안 깨지도록)
+    logs.push({id:uid()+'_sd',lineId:nl.id,date:start,action:'Seeded',
+      passage:p,dayInfo:dayStr,details:'',finalWells:wells||'',stocks:'',memo:'최초 seeding'});
   }
   resetLineForm();updateUI();
 }
@@ -880,6 +858,10 @@ function updateLog(){
   logs[idx].finalWells=document.getElementById('eWells').value;
   logs[idx].stocks    =document.getElementById('eStocks').value;
   logs[idx].memo      =document.getElementById('eMemo').value;
+  
+  // BUG FIX 4: 수동 변경 시 다운스트림 로그들을 전체 재계산
+  recalcLogsForLine(logs[idx].lineId);
+
   closeLogModal();updateUI();
 }
 
@@ -923,8 +905,6 @@ function resetLineForm(){
 
 // ══════════════════════════════════════════
 //  CSV EXPORT
-//  Patient and Type as SEPARATE columns → no underscore/comma ambiguity
-//  (still backward compatible: also writes combined Patient_Type quoted)
 // ══════════════════════════════════════════
 function exportCSV(){
   let csv='\uFEFFDate,Patient,Type,Action,P,D,Details,Final Wells,Stocks,Memo\n';
@@ -941,12 +921,7 @@ function exportCSV(){
 }
 
 // ══════════════════════════════════════════
-//  CSV IMPORT  — robust, handles 3 formats:
-//   (A) new: Date,Patient,Type,Action,...        (separate columns)
-//   (B) old: Date,Patient_Type,Action,P,D,Vessel,Details,...
-//   (C) old: Date,Patient_Type,Action,P,D,Details,...   (no vessel)
-//  Also repairs broken rows where Patient_Type had a comma
-//  (e.g. "HCC26 (2nd, Big)_PHH-org" split across 2 fields)
+//  CSV IMPORT
 // ══════════════════════════════════════════
 function parseCSVRow(str){
   const res=[];let cur='';let inQ=false;
@@ -958,18 +933,15 @@ function parseCSVRow(str){
   res.push(cur);return res;
 }
 
-// Split "HCC26 (2nd, Big)_PHH-org" into patient + type
-// Rule: split on the LAST underscore that is OUTSIDE any parentheses
 function splitPatientType(raw){
   let depth=0, splitAt=-1;
   for(let i=0;i<raw.length;i++){
     const ch=raw[i];
     if(ch==='(') depth++;
     else if(ch===')') depth=Math.max(0,depth-1);
-    else if(ch==='_'&&depth===0) splitAt=i; // remember last top-level underscore
+    else if(ch==='_'&&depth===0) splitAt=i;
   }
   if(splitAt<0){
-    // fallback: last underscore anywhere
     splitAt=raw.lastIndexOf('_');
   }
   if(splitAt<0) return null;
@@ -1027,7 +999,6 @@ function importCSV(event){
         stocks =(r[CI.stocks]||'').trim();
         memo   =(r[CI.memo]||'').trim();
       } else {
-        // repair rows where an unquoted comma split Patient_Type
         let ptEnd=CI.pt;
         while(ptEnd+1<r.length && !KNOWN_ACTIONS.includes((r[ptEnd+1]||'').trim())) ptEnd++;
         const ptRaw=r.slice(CI.pt,ptEnd+1).join(',').trim();
@@ -1052,20 +1023,16 @@ function importCSV(event){
     }
 
     // ── Step 2: sort by date (stable), then group into lines ──
-    // Same patientId+type that appears AFTER a Finish starts a NEW line (re-culture).
     recs.sort((a,b)=>a._t-b._t);
 
-    // FRESH import: wipe existing data
     lines=[]; logs=[]; stockChecks=[];
 
-    // map key "pId||type" → current open line object (or null if closed)
     const openLine={};
 
     recs.forEach(rec=>{
       const key=rec.pId+'||'+rec.type;
       let line=openLine[key];
 
-      // need a new line if none open
       if(!line){
         line={id:'imp_'+uid(),patientId:rec.pId,type:rec.type,
           passage:rec.passage,baseDay:0,isReseeded:false,
@@ -1074,20 +1041,17 @@ function importCSV(event){
         openLine[key]=line;
       }
 
-      // dedupe within this line
       const dup=logs.find(l=>l.lineId===line.id&&l.date===rec.date&&l.action===rec.action&&l.passage===rec.passage&&l.dayInfo===rec.dayInfo);
       if(!dup){
         logs.push({id:uid(),lineId:line.id,date:rec.date,action:rec.action,
           passage:rec.passage,dayInfo:rec.dayInfo||'d0',
           details:rec.details,finalWells:rec.wells,stocks:rec.stocks,memo:rec.memo});
-        // rebuild stock checks
         if(rec.action==='Stock 제작'&&rec.stocks&&parseInt(rec.stocks)>0){
           stockChecks.push({id:uid(),lineLabel:`${rec.pId}_${rec.type}`,date:rec.date,
             stocks:rec.stocks,ln2Done:false,dbDone:false});
         }
       }
 
-      // if this row finishes the line → close it so future rows start fresh
       if(isFin(rec.action)){
         line.isCompleted=true;
         line.finishDate=rec.date;
@@ -1097,34 +1061,30 @@ function importCSV(event){
     });
 
     // ── Step 3: set each line's CURRENT passage / day from its latest non-finish log ──
+    lines.forEach(line=>{
+      const rel=logs.filter(l=>l.lineId===line.id).sort((a,b)=>new Date(a.date)-new Date(b.date));
+      if(!rel.length) return;
+      const last=rel[rel.length-1];
+      line.passage=parseP(last.passage);
+      
+      if(!line.isCompleted){
+        const d=parseD(last.dayInfo);
+        if(d){
+          line.baseDay=d.base;
+          line.isReseeded=d.base>0;
+          
+          // BUG FIX 5: Import 후 미래 Preview가 정상 작동하도록 startDate 역산
+          let dDate = new Date(last.date);
+          dDate.setDate(dDate.getDate() - d.diff);
+          line.startDate = dDate.toISOString();
+        } else {
+          line.startDate = new Date(last.date).toISOString();
+        }
+      }
+    });
 
-// Step 3
-
-lines.forEach(line=>{
-
-  const rel=logs
-    .filter(l=>l.lineId===line.id)
-    .sort((a,b)=>new Date(a.date)-new Date(b.date));
-
-  if(!rel.length) return;
-
-  const last=rel[rel.length-1];
-
-  line.passage=parseP(last.passage);
-
-  if(!line.isCompleted){
-
-    const d=parseD(last.dayInfo);
-
-    if(d){
-      line.baseDay=d.base;
-      line.isReseeded=d.base>0;
-    }
-  }
-});
-
-ensureSeedLogs(true);
-updateUI();
+    ensureSeedLogs(true);
+    updateUI();
     alert(`CSV 복원 완료. 라인 ${lines.length}개, 기록 ${logs.length}개를 불러왔습니다.`);
     document.getElementById('csvFile').value='';
   };
@@ -1133,24 +1093,18 @@ updateUI();
 
 // ══════════════════════════════════════════
 //  CLEAN BROKEN LINES
-//  Removes lines whose type looks broken (starts with "(" / empty)
-//  and logs whose action looks like a stray patient-type fragment
-//  e.g. type="2nd" from "HCC26 (2nd" , or action="Big)_PHH-org"
 // ══════════════════════════════════════════
 function cleanBroken(){
   const KNOWN=['Media Change','Split','Reseeding','Pellet 제작','Stock 제작','Observation','Seeded','Initial Seeding','Finish (완료)','Finish'];
   const isBrokenLine=l=>{
     if(!l.type) return true;
-    // type contains ")" or "(" → leftover fragment
     if(/[()]/.test(l.type)) return true;
-    // patientId ends with "(" with no closing → "HCC26 (2nd"
     const opens=(l.patientId.match(/\(/g)||[]).length;
     const closes=(l.patientId.match(/\)/g)||[]).length;
     if(opens!==closes) return true;
     return false;
   };
   const broken=lines.filter(isBrokenLine);
-  // also detect logs whose action isn't a known action (stray fragment)
   const strayLogs=logs.filter(lg=>{
     const a=(lg.action||'').trim();
     return a && !KNOWN.some(k=>a===k||a.includes(k));
@@ -1173,18 +1127,11 @@ function cleanBroken(){
 
 // ══════════════════════════════════════════
 //  ENSURE SEED LOGS — dedup + normalize
-//  skipCreate=true → only dedup/normalize, don't auto-add Seeded
-//  (used after CSV import, where the CSV already holds first records)
 // ══════════════════════════════════════════
 function ensureSeedLogs(skipCreate){
-
   lines.forEach(line=>{
-
     logs.forEach(lg=>{
-      if(
-        lg.lineId===line.id &&
-        lg.action==='Initial Seeding'
-      ){
+      if(lg.lineId===line.id && lg.action==='Initial Seeding'){
         lg.action='Seeded';
       }
     });
@@ -1194,19 +1141,12 @@ function ensureSeedLogs(skipCreate){
       .sort((a,b)=>new Date(a.date)-new Date(b.date));
 
     if(seedLogs.length>1){
-
       const keep=seedLogs[0].id;
-
-      logs=logs.filter(l=>
-        !(
-          l.lineId===line.id &&
-          l.action==='Seeded' &&
-          l.id!==keep
-        )
-      );
+      logs=logs.filter(l=> !(l.lineId===line.id && l.action==='Seeded' && l.id!==keep) );
     }
   });
 }
+
 // ══════════════════════════════════════════
 //  BOOT — fix legacy data
 // ══════════════════════════════════════════
