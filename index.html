@@ -39,21 +39,34 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--tx);ma
 .sc-chk.done{background:#F1F5F9;border-color:#E2E8F0;color:#94A3B8;text-decoration:line-through;}
 .sc-chk input{cursor:pointer;accent-color:#EA580C;}
 
-/* WELL BOARD */
-#wellBoard{margin-bottom:11px;}
-.wb{background:#fff;border:1px solid var(--bd);border-radius:6px;padding:11px 14px;}
-.wb-ttl{font-size:.76rem;font-weight:700;color:var(--sub);margin-bottom:8px;letter-spacing:.02em;}
-.wb-grid{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start;}
-.wb-total{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:5px;
-          background:#1E293B;color:#F8FAFC;font-size:.79rem;font-weight:700;border:1px solid #0F172A;align-self:flex-start;}
-.wb-total .wt-s{opacity:.65;font-weight:500;}
-.wb-grp{display:flex;flex-direction:column;gap:4px;}
-.wb-type{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:5px;font-size:.77rem;font-weight:600;border:1px solid transparent;}
-.wb-type .wts{opacity:.7;font-weight:500;}
-.wb-lines{display:flex;flex-wrap:wrap;gap:3px;}
-.wb-pill{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:3px;font-size:.71rem;font-weight:600;border:1px solid transparent;}
-.wb-pill .ps{opacity:.6;font-weight:400;}
-.wb-pill .wv{font-weight:800;}
+/* ═══ DASHBOARD (well board) ═══ */
+#dash{margin-bottom:12px;}
+.dash-card{background:#fff;border:1px solid var(--bd);border-radius:8px;padding:14px 16px;}
+.dash-top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px;}
+.dash-ttl{font-size:.82rem;font-weight:700;color:var(--tx);letter-spacing:.01em;}
+.dash-totals{display:flex;gap:8px;flex-wrap:wrap;}
+.dt-pill{display:inline-flex;flex-direction:column;align-items:center;gap:1px;padding:6px 14px;border-radius:7px;
+         background:#1E293B;color:#fff;min-width:64px;}
+.dt-pill .dt-num{font-size:1.05rem;font-weight:800;line-height:1.1;}
+.dt-pill .dt-lbl{font-size:.66rem;opacity:.7;font-weight:500;}
+.dt-pill.warn{background:#B45309;}
+.dt-pill.due{background:#B91C1C;}
+
+/* type sections */
+.dash-types{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:10px;}
+.dtype{border:1px solid var(--bd);border-radius:7px;overflow:hidden;}
+.dtype-hd{padding:7px 11px;display:flex;align-items:center;justify-content:space-between;font-weight:700;font-size:.8rem;}
+.dtype-hd .dh-r{font-size:.74rem;font-weight:600;opacity:.85;}
+.dtype-body{padding:4px 0;}
+.dline{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:5px 11px;border-top:1px solid #F1F5F9;}
+.dline:first-child{border-top:none;}
+.dline-name{font-size:.78rem;font-weight:600;display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+.dline-pd{font-size:.71rem;color:var(--sub);font-weight:500;}
+.dline-well{font-size:.76rem;font-weight:700;color:#166534;white-space:nowrap;}
+.mc-tag{font-size:.69rem;padding:2px 7px;border-radius:10px;font-weight:700;white-space:nowrap;text-align:center;min-width:46px;}
+.mc-ok{background:#DCFCE7;color:#15803D;}
+.mc-warn{background:#FEF3C7;color:#B45309;}
+.mc-due{background:#FEE2E2;color:#B91C1C;}
 
 /* ENTRY CARD */
 .card{background:var(--sur);border-radius:6px;border:1px solid var(--bd);margin-bottom:11px;box-shadow:0 1px 2px rgba(0,0,0,.02);}
@@ -125,11 +138,6 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
 .p9{background:#FFEDD5;color:#EA580C;border-color:#FED7AA;}
 .ph{background:#1E293B;color:#F8FAFC;border-color:#0F172A;}
 
-.mc-chip{font-size:.69rem;padding:2px 5px;border-radius:4px;font-weight:600;display:inline-block;}
-.mc-ok{background:#D1FAE5;color:#065F46;}
-.mc-warn{background:#FEF3C7;color:#92400E;}
-.mc-due{background:#FEE2E2;color:#991B1B;}
-
 /* MODAL */
 .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);justify-content:center;
        align-items:flex-start;z-index:300;padding:20px;overflow-y:auto;}
@@ -151,6 +159,7 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
   <h1>Organoid Culture Log</h1>
   <div class="hdr-r">
     <input type="file" id="csvFile" style="display:none;" accept=".csv" onchange="importCSV(event)">
+    <button class="btn btn-out" onclick="cleanBroken()" style="color:#B91C1C;border-color:#FECACA;">깨진 라인 정리</button>
     <button class="btn btn-out" onclick="document.getElementById('csvFile').click()">CSV 복원</button>
     <button class="btn btn-out" onclick="openLineModal()">Cell Line 관리</button>
     <button class="btn btn-out" onclick="exportCSV()">CSV 저장</button>
@@ -160,8 +169,8 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
 <!-- STOCK BANNER -->
 <div id="stockBanner"></div>
 
-<!-- WELL BOARD -->
-<div id="wellBoard"></div>
+<!-- DASHBOARD -->
+<div id="dash"></div>
 
 <!-- ENTRY CARD -->
 <div class="card">
@@ -230,7 +239,7 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
       <div style="background:#F8FAFC;padding:13px;border-radius:6px;border:1px solid #E2E8F0;margin-bottom:13px;">
         <input type="hidden" id="elId">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px;">
-          <div><label>환자 번호</label><input type="text" id="elPid" placeholder="HCC27"></div>
+          <div><label>환자 번호 / 라인명</label><input type="text" id="elPid" placeholder="HCC26 (2nd, Big)"></div>
           <div><label>종류 (직접 입력)</label><input type="text" id="elType" placeholder="PHH-org, Tumor-org 등"></div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:9px;">
@@ -274,13 +283,13 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
           <div><label style="color:#7C3AED;">D (수동수정)</label><input type="text" id="eD" placeholder="d5 또는 d10+3"></div>
         </div>
         <div style="background:#EFF6FF;border:1px solid #BAE6FD;border-radius:4px;padding:7px 10px;font-size:.76rem;color:#1D4ED8;line-height:1.5;">
-          P/D를 수동수정하면 <strong>이 로그 이후 모든 기록</strong>의 P/D가 자동 재계산됩니다.
+          액션을 Split/Reseeding으로 바꾸면 <strong>이 로그 이후 모든 기록</strong>의 P/D가 자동 재계산됩니다.
         </div>
         <div style="height:1px;background:#E2E8F0;"></div>
         <div><label>과정/Ratio</label><input type="text" id="eDet"></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">
           <div><label>최종 Well</label><input type="number" id="eWells"></div>
-          <div><label>Stock 수</label><input type="number" id="eStocks"></div>
+          <div><label>Stock 수 (vial)</label><input type="number" id="eStocks"></div>
         </div>
         <div><label>메모</label><textarea id="eMemo" rows="3"></textarea></div>
       </div>
@@ -367,18 +376,19 @@ function rebuildColors(){tcm={};let i=0;lines.forEach(l=>{if(!(l.type in tcm)){t
 const getC=(type,done)=>done?DONE:(tcm[type]||PAL[0]);
 
 // ══════════════════════════════════════════
-//  MC CHIP (days since last MC or Split)
+//  MC DAYS (days since last MC or Split)
+//  returns {days, cls} or null
 // ══════════════════════════════════════════
-function mcChip(line){
-  if(line.isCompleted) return '';
+function mcDays(line){
+  if(line.isCompleted) return null;
   const rel=logs.filter(l=>l.lineId===line.id&&(l.action==='Media Change'||(l.action||'').includes('Split')))
     .sort((a,b)=>new Date(b.date)-new Date(a.date));
-  if(!rel.length) return '';
+  if(!rel.length) return null;
   const last=new Date(rel[0].date),now=new Date();
   now.setHours(0,0,0,0);last.setHours(0,0,0,0);
   const d=Math.floor((now-last)/86400000);
   const cls=d<=2?'mc-ok':d===3?'mc-warn':'mc-due';
-  return `<span class="mc-chip ${cls}">MC+${d}d</span>`;
+  return{days:d,cls};
 }
 
 // ══════════════════════════════════════════
@@ -391,31 +401,62 @@ function latestWell(line){
 }
 
 // ══════════════════════════════════════════
-//  WELL BOARD
+//  DASHBOARD (well board + MC summary)
 // ══════════════════════════════════════════
-function renderWellBoard(){
-  const el=document.getElementById('wellBoard');
+function renderDash(){
+  const el=document.getElementById('dash');
   const active=lines.filter(l=>!l.isCompleted);
   if(!active.length){el.innerHTML='';return;}
-  const groups={};let totalLines=active.length,totalWells=0;
+
+  const groups={};
+  let totalLines=active.length, totalWells=0;
+  let mcWarn=0, mcDue=0;   // count of lines needing attention
+
   active.forEach(l=>{
     if(!groups[l.type]) groups[l.type]={count:0,wells:0,lines:[]};
     groups[l.type].count++;
     const w=parseInt(latestWell(l))||0;
-    groups[l.type].wells+=w;totalWells+=w;
-    groups[l.type].lines.push({label:l.patientId,well:w,p:l.passage,day:calcDayStr(l)});
+    groups[l.type].wells+=w; totalWells+=w;
+    const mc=mcDays(l);
+    if(mc){ if(mc.cls==='mc-warn') mcWarn++; if(mc.cls==='mc-due') mcDue++; }
+    groups[l.type].lines.push({label:l.patientId,well:w,p:l.passage,day:calcDayStr(l),mc});
   });
-  let chips='';
+
+  // top totals
+  let totals=`
+    <div class="dt-pill"><span class="dt-num">${totalLines}</span><span class="dt-lbl">배양 라인</span></div>
+    <div class="dt-pill"><span class="dt-num">${totalWells}</span><span class="dt-lbl">총 wells</span></div>`;
+  if(mcWarn>0) totals+=`<div class="dt-pill warn"><span class="dt-num">${mcWarn}</span><span class="dt-lbl">MC 3일차</span></div>`;
+  if(mcDue>0)  totals+=`<div class="dt-pill due"><span class="dt-num">${mcDue}</span><span class="dt-lbl">MC 지연(4일+)</span></div>`;
+
+  // type cards
+  let typeCards='';
   Object.entries(groups).forEach(([type,d])=>{
     const c=getC(type,false);
-    const pills=d.lines.map(ll=>`<span class="wb-pill" style="background:${c.bg};color:${c.tx};border-color:${c.bd};">${ll.label} <span class="ps">P${ll.p} ${ll.day}</span> <span class="wv">${ll.well}w</span></span>`).join('');
-    chips+=`<div class="wb-grp">
-      <div class="wb-type" style="background:${c.bg};color:${c.tx};border-color:${c.bd};">${type} <span class="wts">${d.count}라인</span> <strong>${d.wells}w</strong></div>
-      <div class="wb-lines">${pills}</div>
+    const dlines=d.lines.map(ll=>{
+      const mcTag = ll.mc ? `<span class="mc-tag ${ll.mc.cls}">MC+${ll.mc.days}d</span>` : `<span class="mc-tag mc-ok" style="opacity:.4;">-</span>`;
+      return `<div class="dline">
+        <div class="dline-name">${esc(ll.label)} <span class="dline-pd">P${ll.p} / ${ll.day}</span></div>
+        <div class="dline-well">${ll.well} well</div>
+        ${mcTag}
+      </div>`;
+    }).join('');
+    typeCards+=`<div class="dtype">
+      <div class="dtype-hd" style="background:${c.hbg};color:${c.ht};">
+        <span>${esc(type)}</span>
+        <span class="dh-r">${d.count}라인 · ${d.wells} well</span>
+      </div>
+      <div class="dtype-body">${dlines}</div>
     </div>`;
   });
-  el.innerHTML=`<div class="wb"><div class="wb-ttl">현재 배양 현황</div><div class="wb-grid">
-    <div class="wb-total"><span class="wt-s">배양 중</span> ${totalLines}라인 / ${totalWells}wells</div>${chips}</div></div>`;
+
+  el.innerHTML=`<div class="dash-card">
+    <div class="dash-top">
+      <div class="dash-ttl">현재 배양 현황</div>
+      <div class="dash-totals">${totals}</div>
+    </div>
+    <div class="dash-types">${typeCards}</div>
+  </div>`;
 }
 
 // ══════════════════════════════════════════
@@ -426,7 +467,7 @@ function renderStockBanner(){
   const pend=stockChecks.filter(sc=>!sc.ln2Done||!sc.dbDone);
   if(!pend.length){el.innerHTML='';return;}
   const items=pend.map(sc=>`<div class="sc-item">
-    <div><span class="sc-lbl">${sc.lineLabel}</span> <span class="sc-sub">${sc.date} · ${sc.stocks}vial</span></div>
+    <div><span class="sc-lbl">${esc(sc.lineLabel)}</span> <span class="sc-sub">${sc.date} · ${sc.stocks}vial</span></div>
     <label class="sc-chk ${sc.ln2Done?'done':''}" onclick="toggleSC('${sc.id}','ln2')">
       <input type="checkbox" ${sc.ln2Done?'checked':''} onclick="event.stopPropagation();toggleSC('${sc.id}','ln2')"> LN2 tank 이동
     </label>
@@ -460,16 +501,15 @@ function renderTimelines(containerId,showDone){
       return new Date(b.date)-new Date(a.date);
     });
     const c=getC(line.type,line.isCompleted);
-    const mc=mcChip(line);
     let rows='';
     lgs.forEach(lg=>{
       rows+=`<tr>
         <td style="color:var(--sub)">${lg.date}</td>
-        <td><span class="badge ${badgeCls(lg.action)}">${lg.action}</span></td>
+        <td><span class="badge ${badgeCls(lg.action)}">${esc(lg.action)}</span></td>
         <td><span class="pb ${pCls(lg.passage)}">P${lg.passage}</span> <span style="color:var(--sub);font-size:.75rem;">/ ${lg.dayInfo||'-'}</span></td>
         <td>${esc(lg.details||'-')}</td>
-        <td style="color:#059669;font-weight:700">${lg.finalWells||'-'}</td>
-        <td style="color:#BE185D;font-weight:700">${lg.stocks?lg.stocks+'v':'-'}</td>
+        <td style="color:#059669;font-weight:700">${lg.finalWells?lg.finalWells+' well':'-'}</td>
+        <td style="color:#BE185D;font-weight:700">${lg.stocks?lg.stocks+' vial':'-'}</td>
         <td><span class="mcell">${esc(lg.memo||'-')}</span></td>
         <td style="text-align:center;"><button class="tbl-btn" onclick="openLogModal('${lg.id}')">수정</button></td>
       </tr>`;
@@ -477,30 +517,28 @@ function renderTimelines(containerId,showDone){
     const table=`<table><thead><tr>
       <th style="width:10%">Date</th><th style="width:12%">Action</th>
       <th style="width:13%">P / D</th><th style="width:10%">Ratio</th>
-      <th style="width:6%">Well</th><th style="width:6%">Stock</th>
-      <th style="width:35%">Memo</th><th style="width:8%;text-align:center;">Edit</th>
+      <th style="width:7%">Well</th><th style="width:7%">Stock</th>
+      <th style="width:33%">Memo</th><th style="width:8%;text-align:center;">Edit</th>
     </tr></thead><tbody>${rows}</tbody></table>`;
 
     const bid='tl_'+line.id;
-    const collapsed=showDone;
-    const maxH=collapsed?'0px':'9999px';
+    const maxH=showDone?'0px':'9999px';
 
     el.innerHTML+=`<div class="tl-wrap">
       <div class="tl-hdr" style="background:${c.hbg};color:${c.ht};${showDone?'cursor:pointer;':''}"
            ${showDone?`onclick="toggleTL('${bid}')"`:''}>
         <div class="tl-meta">
           ${showDone?'<span style="font-size:.79rem;opacity:.6;">&#9654;</span>':''}
-          <span style="font-size:.88rem;">[${line.patientId}_${line.type}]</span>
+          <span style="font-size:.88rem;">[${esc(line.patientId)}_${esc(line.type)}]</span>
           <span class="pb ${pCls(line.passage)}">P${line.passage}</span>
           <span style="font-size:.8rem;">/ ${calcDayStr(line)}</span>
-          ${mc}
         </div>
         <div style="display:flex;gap:5px;flex-wrap:wrap;" onclick="event.stopPropagation()">
           ${!showDone?`<button class="btn btn-fin" onclick="completeLine('${line.id}')">배양 완료</button>`:''}
           <button class="btn btn-edt" onclick="editLine('${line.id}')" style="${showDone?'height:26px;font-size:.74rem;':''}">라인 수정</button>
         </div>
       </div>
-      <div id="${bid}" class="tl-body ${collapsed?'col':''}" style="max-height:${maxH};">${table}</div>
+      <div id="${bid}" class="tl-body ${showDone?'col':''}" style="max-height:${maxH};">${table}</div>
     </div>`;
   });
 }
@@ -516,9 +554,6 @@ function toggleTL(id){
   }
 }
 
-// ══════════════════════════════════════════
-//  ARCHIVE TOGGLE
-// ══════════════════════════════════════════
 function toggleArch(){
   archOpen=!archOpen;
   document.getElementById('doneTL').style.display=archOpen?'block':'none';
@@ -526,7 +561,7 @@ function toggleArch(){
 }
 
 // ══════════════════════════════════════════
-//  RENDER LINE LIST (modal)
+//  RENDER LINE LIST
 // ══════════════════════════════════════════
 function renderLineList(){
   const el=document.getElementById('lineList');
@@ -537,7 +572,7 @@ function renderLineList(){
     const c=getC(l.type,l.isCompleted);
     el.innerHTML+=`<div style="display:flex;justify-content:space-between;padding:6px 3px;border-bottom:1px solid #E2E8F0;align-items:center;gap:5px;flex-wrap:wrap;">
       <span style="background:${c.bg};color:${c.tx};border:1px solid ${c.bd};padding:2px 9px;border-radius:4px;font-size:.81rem;font-weight:600;">
-        ${l.patientId}_${l.type}${l.isCompleted?' (완료)':''}
+        ${esc(l.patientId)}_${esc(l.type)}${l.isCompleted?' (완료)':''}
       </span>
       <div style="display:flex;gap:4px;">
         <button class="btn btn-edt" style="height:27px;font-size:.74rem;" onclick="editLine('${l.id}')">수정</button>
@@ -564,7 +599,7 @@ function updateUI(){
   renderTimelines('activeTL',false);
   renderTimelines('doneTL',true);
   renderLineList();
-  renderWellBoard();
+  renderDash();
   renderStockBanner();
   const dc=lines.filter(l=>l.isCompleted).length;
   document.getElementById('archCount').textContent=dc?`(${dc}개)`:'';
@@ -634,54 +669,36 @@ function saveDailyLog(){
 
 // ══════════════════════════════════════════
 //  RECALC LOGS FOR LINE
-//  Called after any log edit that changes action/date/P/D
-//  Walks all logs chronologically and recalculates passage + dayInfo
 // ══════════════════════════════════════════
 function recalcLogsForLine(lineId){
   const line=lines.find(l=>l.id===lineId);
   if(!line) return;
-
-  // Sort all logs for this line chronologically (Seeded first, then date order)
   const lls=logs.filter(l=>l.lineId===lineId).sort((a,b)=>{
     if(isSeed(a.action)&&!isSeed(b.action)) return -1;
     if(!isSeed(a.action)&&isSeed(b.action)) return 1;
     return new Date(a.date)-new Date(b.date);
   });
 
-  // Walk and recalculate using the line's base state
-  let curP   =line.passage;
-  let curBase=line.baseDay;
-  let resd   =line.isReseeded;
-  let curStart=new Date(line.startDate);curStart.setHours(0,0,0,0);
-
-  // To recalc properly, we need to reset from line's INITIAL state
-  // Find the earliest log to reconstruct from the true beginning
-  // Strategy: find the first Seeded log to get the real base, then walk forward
+  // Start from first Seeded log if present
+  let curP,curBase,resd,curStart;
   const seedLog=lls.find(l=>isSeed(l.action));
   if(seedLog){
-    curP    =parseP(seedLog.passage);
-    curBase =0;
-    resd    =false;
+    curP=parseP(seedLog.passage);curBase=0;resd=false;
     curStart=new Date(seedLog.date);curStart.setHours(0,0,0,0);
     seedLog.dayInfo='d0';
+  } else {
+    // no seed log — use line base
+    curP=line.passage;curBase=line.baseDay;resd=line.isReseeded;
+    curStart=new Date(line.startDate);curStart.setHours(0,0,0,0);
   }
 
   lls.forEach(lg=>{
-    if(isSeed(lg.action)){
-      // already handled above
-      return;
-    }
-    if(isFin(lg.action)){
-      lg.passage=curP;
-      lg.dayInfo='END';
-      return;
-    }
+    if(isSeed(lg.action)) return;
+    if(isFin(lg.action)){lg.passage=curP;lg.dayInfo='END';return;}
     const dt=new Date(lg.date);dt.setHours(0,0,0,0);
     const diff=Math.floor((dt-curStart)/86400000);
     lg.passage=curP;
     lg.dayInfo=(curBase>0||resd)?`d${curBase}+${diff}`:`d${diff}`;
-
-    // Advance state for next log
     if((lg.action||'').includes('Split')){
       curP++;curBase=0;resd=false;curStart=new Date(lg.date);curStart.setHours(0,0,0,0);
     } else if(lg.action==='Reseeding'){
@@ -689,34 +706,10 @@ function recalcLogsForLine(lineId){
     }
   });
 
-  // Update line's current state from latest non-finish log
-  const lastActive=lls.slice().reverse().find(l=>!isFin(l.action)&&!isSeed(l.action));
-  if(lastActive){
-    line.passage=lastActive.passage;
-    // rebuild startDate and baseDay from last Split or Reseeding
-    const lastSplit=lls.slice().filter(l=>(l.action||'').includes('Split')).pop();
-    const lastReseed=lls.slice().filter(l=>l.action==='Reseeding').pop();
-    // find the most recent state-change event
-    const candidates=[lastSplit,lastReseed].filter(Boolean).sort((a,b)=>new Date(b.date)-new Date(a.date));
-    if(candidates.length){
-      const ev=candidates[0];
-      if((ev.action||'').includes('Split')){
-        line.passage=parseP(ev.passage)+1;
-        line.baseDay=0;line.isReseeded=false;
-        line.startDate=isoD(ev.date);
-      } else {
-        // Reseeding — reconstruct
-        const di=parseD(ev.dayInfo);
-        if(di){
-          line.baseDay=di.base+di.diff;
-          line.isReseeded=true;
-          line.startDate=isoD(ev.date);
-        }
-      }
-    }
-    // re-check passage from latest log
-    const veryLast=lls.slice().reverse().find(l=>!isFin(l.action));
-    if(veryLast) line.passage=parseP(veryLast.passage);
+  // update line state to reflect "now" (latest)
+  if(!line.isCompleted){
+    line.passage=curP;line.baseDay=curBase;line.isReseeded=resd;
+    line.startDate=curStart.toISOString();
   }
 }
 
@@ -737,18 +730,17 @@ function saveLine(){
     const idx=lines.findIndex(l=>l.id===id);
     lines[idx]={...lines[idx],patientId:pId,type,passage:p,baseDay:baseD,
       isReseeded:(baseD>0),startDate:isoD(start),initialWells:wells};
-    recalcLogsForLine(lines[idx].id);
+    // update seed log to match
+    const seed=logs.find(l=>l.lineId===id&&isSeed(l.action));
+    if(seed){seed.date=start;seed.passage=p;seed.finalWells=wells;}
+    recalcLogsForLine(id);
   } else {
     const nl={id:uid(),patientId:pId,type,passage:p,baseDay:baseD,
       isReseeded:(baseD>0),startDate:isoD(start),initialWells:wells,isCompleted:false};
     lines.push(nl);
-    // auto Seeded log — only if wells > 0 and no existing Seeded log
     if(wells&&parseInt(wells)>0){
-      const hasSeed=logs.some(l=>l.lineId===nl.id&&isSeed(l.action));
-      if(!hasSeed){
-        logs.push({id:uid()+'_sd',lineId:nl.id,date:start,action:'Seeded',
-          passage:p,dayInfo:baseD>0?`d${baseD}+0`:'d0',details:'',finalWells:wells,stocks:'',memo:'최초 seeding'});
-      }
+      logs.push({id:uid()+'_sd',lineId:nl.id,date:start,action:'Seeded',
+        passage:p,dayInfo:baseD>0?`d${baseD}+0`:'d0',details:'',finalWells:wells,stocks:'',memo:'최초 seeding'});
     }
   }
   resetLineForm();updateUI();
@@ -767,9 +759,6 @@ function completeLine(id){
   updateUI();
 }
 
-// ══════════════════════════════════════════
-//  EDIT LINE
-// ══════════════════════════════════════════
 function editLine(id){
   const l=lines.find(x=>x.id===id);
   document.getElementById('elId').value   =l.id;
@@ -788,7 +777,7 @@ function deleteLine(id){
 }
 
 // ══════════════════════════════════════════
-//  LOG EDIT MODAL — with auto-recalc
+//  LOG EDIT MODAL
 // ══════════════════════════════════════════
 function openLogModal(id){
   const lg=logs.find(l=>l.id===id);
@@ -809,34 +798,15 @@ function openLogModal(id){
 function updateLog(){
   const id =document.getElementById('eid').value;
   const idx=logs.findIndex(l=>l.id===id);
-  const prevAction=logs[idx].action;
-  const newAction =document.getElementById('eAct').value;
-  const newDate   =document.getElementById('eDate').value;
-
-  logs[idx].date      =newDate;
-  logs[idx].action    =newAction;
+  logs[idx].date      =document.getElementById('eDate').value;
+  logs[idx].action    =document.getElementById('eAct').value;
   logs[idx].passage   =parseP(document.getElementById('eP').value);
   logs[idx].dayInfo   =document.getElementById('eD').value;
   logs[idx].details   =document.getElementById('eDet').value;
   logs[idx].finalWells=document.getElementById('eWells').value;
   logs[idx].stocks    =document.getElementById('eStocks').value;
   logs[idx].memo      =document.getElementById('eMemo').value;
-
-  // Recalculate all logs for the affected line
-  const lineId=logs[idx].lineId;
-
-  // If action changed from/to Split or Reseeding, need to update line state too
-  // Set line base state from the very first Seeded log, then recalc will fix everything
-  const line=lines.find(l=>l.id===lineId);
-  if(line){
-    const seedLog=logs.filter(l=>l.lineId===lineId&&isSeed(l.action)).sort((a,b)=>new Date(a.date)-new Date(b.date))[0];
-    if(seedLog){
-      line.passage=parseP(seedLog.passage);
-      line.baseDay=0;line.isReseeded=false;
-      line.startDate=isoD(seedLog.date);
-    }
-  }
-  recalcLogsForLine(lineId);
+  recalcLogsForLine(logs[idx].lineId);
   closeLogModal();updateUI();
 }
 
@@ -845,14 +815,7 @@ function deleteLog(){
   const id=document.getElementById('eid').value;
   const lineId=logs.find(l=>l.id===id)?.lineId;
   logs=logs.filter(l=>l.id!==id);
-  if(lineId){
-    const line=lines.find(l=>l.id===lineId);
-    if(line){
-      const seedLog=logs.filter(l=>l.lineId===lineId&&isSeed(l.action)).sort((a,b)=>new Date(a.date)-new Date(b.date))[0];
-      if(seedLog){line.passage=parseP(seedLog.passage);line.baseDay=0;line.isReseeded=false;line.startDate=isoD(seedLog.date);}
-    }
-    recalcLogsForLine(lineId);
-  }
+  if(lineId) recalcLogsForLine(lineId);
   closeLogModal();updateUI();
 }
 
@@ -887,13 +850,17 @@ function resetLineForm(){
 
 // ══════════════════════════════════════════
 //  CSV EXPORT
+//  Patient and Type as SEPARATE columns → no underscore/comma ambiguity
+//  (still backward compatible: also writes combined Patient_Type quoted)
 // ══════════════════════════════════════════
 function exportCSV(){
-  let csv='\uFEFFDate,Patient_Type,Action,P,D,Details,Final Wells,Stocks,Memo\n';
+  let csv='\uFEFFDate,Patient,Type,Action,P,D,Details,Final Wells,Stocks,Memo\n';
   logs.sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(lg=>{
     const line=lines.find(l=>l.id===lg.lineId);
-    const pt=line?`${line.patientId}_${line.type}`:'Unknown';
-    csv+=`${lg.date},${pt},${lg.action},P${lg.passage},${lg.dayInfo||''},"${(lg.details||'').replace(/"/g,'""')}",${lg.finalWells||''},${lg.stocks||''},"${(lg.memo||'').replace(/"/g,'""')}"\n`;
+    const pid =line?line.patientId:'Unknown';
+    const typ =line?line.type:'';
+    const q=s=>`"${String(s||'').replace(/"/g,'""')}"`;
+    csv+=`${lg.date},${q(pid)},${q(typ)},${q(lg.action)},P${lg.passage},${lg.dayInfo||''},${q(lg.details)},${lg.finalWells||''},${lg.stocks||''},${q(lg.memo)}\n`;
   });
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
@@ -901,7 +868,12 @@ function exportCSV(){
 }
 
 // ══════════════════════════════════════════
-//  CSV IMPORT
+//  CSV IMPORT  — robust, handles 3 formats:
+//   (A) new: Date,Patient,Type,Action,...        (separate columns)
+//   (B) old: Date,Patient_Type,Action,P,D,Vessel,Details,...
+//   (C) old: Date,Patient_Type,Action,P,D,Details,...   (no vessel)
+//  Also repairs broken rows where Patient_Type had a comma
+//  (e.g. "HCC26 (2nd, Big)_PHH-org" split across 2 fields)
 // ══════════════════════════════════════════
 function parseCSVRow(str){
   const res=[];let cur='';let inQ=false;
@@ -913,6 +885,24 @@ function parseCSVRow(str){
   res.push(cur);return res;
 }
 
+// Split "HCC26 (2nd, Big)_PHH-org" into patient + type
+// Rule: split on the LAST underscore that is OUTSIDE any parentheses
+function splitPatientType(raw){
+  let depth=0, splitAt=-1;
+  for(let i=0;i<raw.length;i++){
+    const ch=raw[i];
+    if(ch==='(') depth++;
+    else if(ch===')') depth=Math.max(0,depth-1);
+    else if(ch==='_'&&depth===0) splitAt=i; // remember last top-level underscore
+  }
+  if(splitAt<0){
+    // fallback: last underscore anywhere
+    splitAt=raw.lastIndexOf('_');
+  }
+  if(splitAt<0) return null;
+  return {pid:raw.substring(0,splitAt).trim(), type:raw.substring(splitAt+1).trim()};
+}
+
 function importCSV(event){
   const file=event.target.files[0];if(!file) return;
   const reader=new FileReader();
@@ -920,38 +910,79 @@ function importCSV(event){
     let txt=e.target.result;
     if(txt.charCodeAt(0)===0xFEFF) txt=txt.substr(1);
     const rows=txt.split(/\r?\n/).filter(r=>r.trim());
-    let added=0;
+    if(!rows.length){alert('빈 파일입니다.');return;}
 
-    // detect columns dynamically from header
     const hdr=parseCSVRow(rows[0]).map(h=>h.trim().toLowerCase());
-    const hasVessel=hdr.includes('vessel');
-    const CI={
-      date:0,pt:1,action:2,p:3,d:4,
-      vessel:hasVessel?5:-1,
-      details:hasVessel?6:5,
-      wells:hasVessel?7:6,
-      stocks:hasVessel?8:7,
-      memo:hasVessel?9:8,
-    };
+    const hasSeparate = hdr.includes('patient') && hdr.includes('type');
+    const hasVessel   = hdr.includes('vessel');
 
+    // build column index map
+    const idxOf=name=>hdr.indexOf(name);
+    let CI;
+    if(hasSeparate){
+      CI={date:idxOf('date'),patient:idxOf('patient'),type:idxOf('type'),
+          action:idxOf('action'),p:idxOf('p'),d:idxOf('d'),
+          details:idxOf('details'),wells:hdr.indexOf('final wells')>=0?hdr.indexOf('final wells'):idxOf('wells'),
+          stocks:idxOf('stocks'),memo:idxOf('memo')};
+    } else {
+      // combined Patient_Type format
+      CI={date:0,pt:1,action:2,p:3,d:4,
+          vessel:hasVessel?5:-1,
+          details:hasVessel?6:5,
+          wells:hasVessel?7:6,
+          stocks:hasVessel?8:7,
+          memo:hasVessel?9:8};
+    }
+
+    let added=0;
     for(let i=1;i<rows.length;i++){
-      const r=parseCSVRow(rows[i]);
-      if(r.length<5) continue;
-      const dateVal=(r[CI.date]||'').trim();
-      const ptRaw  =(r[CI.pt]||'').trim();
-      const action =(r[CI.action]||'').trim();
-      const pRaw   =(r[CI.p]||'').trim();
-      const dRaw   =(r[CI.d]||'').trim();
-      const details=(r[CI.details]||'').trim();
-      const wells  =(r[CI.wells]||'').trim();
-      const stocks =(r[CI.stocks]||'').trim();
-      const memo   =(r[CI.memo]||'').trim();
-      if(!ptRaw||ptRaw==='Unknown'||!dateVal) continue;
+      let r=parseCSVRow(rows[i]);
+      if(r.length<4) continue;
 
-      const lastUs=ptRaw.lastIndexOf('_');
-      if(lastUs<0) continue;
-      const pId=ptRaw.substring(0,lastUs);
-      const type=ptRaw.substring(lastUs+1);
+      let dateVal,pId,type,action,pRaw,dRaw,details,wells,stocks,memo;
+
+      if(hasSeparate){
+        dateVal=(r[CI.date]||'').trim();
+        pId    =(r[CI.patient]||'').trim();
+        type   =(r[CI.type]||'').trim();
+        action =(r[CI.action]||'').trim();
+        pRaw   =(r[CI.p]||'').trim();
+        dRaw   =(r[CI.d]||'').trim();
+        details=(r[CI.details]||'').trim();
+        wells  =(r[CI.wells]||'').trim();
+        stocks =(r[CI.stocks]||'').trim();
+        memo   =(r[CI.memo]||'').trim();
+      } else {
+        // combined format — but a comma inside an UNQUOTED Patient_Type
+        // would have split the field. Detect & repair:
+        // Heuristic: the "action" field must be a known action word.
+        // If r[2] is NOT a known action, the patient_type was split across r[1]+r[2]+...
+        const KNOWN=['Media Change','Split','Reseeding','Pellet 제작','Stock 제작','Observation','Seeded','Initial Seeding','Finish (완료)'];
+        let ptEnd=CI.pt; // index where patient_type ends
+        // walk forward until we hit a known action
+        while(ptEnd+1<r.length && !KNOWN.includes((r[ptEnd+1]||'').trim())){
+          ptEnd++;
+        }
+        // patient_type = join of r[1..ptEnd]
+        const ptRaw=r.slice(CI.pt,ptEnd+1).join(',').trim();
+        const shift=ptEnd-CI.pt; // how many extra columns were consumed
+
+        dateVal=(r[CI.date]||'').trim();
+        action =(r[CI.action+shift]||'').trim();
+        pRaw   =(r[CI.p+shift]||'').trim();
+        dRaw   =(r[CI.d+shift]||'').trim();
+        details=(r[CI.details+shift]||'').trim();
+        wells  =(r[CI.wells+shift]||'').trim();
+        stocks =(r[CI.stocks+shift]||'').trim();
+        memo   =(r[CI.memo+shift]||'').trim();
+
+        if(!ptRaw||ptRaw==='Unknown') continue;
+        const sp=splitPatientType(ptRaw);
+        if(!sp) continue;
+        pId=sp.pid; type=sp.type;
+      }
+
+      if(!dateVal||!pId||!type) continue;
       const passageNum=parseP(pRaw);
 
       let line=lines.find(l=>l.patientId===pId&&l.type===type&&!l.isCompleted)
@@ -970,7 +1001,10 @@ function importCSV(event){
       }
     }
 
-    // sync line state from logs
+    // clean ratio: remove leftover "라인 등록" detail values from very old data
+    logs.forEach(lg=>{ if(lg.details==='라인 등록') lg.details=''; });
+
+    // sync line state
     lines.forEach(line=>{
       const lls=logs.filter(l=>l.lineId===line.id).sort((a,b)=>new Date(a.date)-new Date(b.date));
       if(!lls.length) return;
@@ -995,28 +1029,57 @@ function importCSV(event){
 }
 
 // ══════════════════════════════════════════
-//  ENSURE SEED LOGS
-//  - Removes duplicate/legacy "Initial Seeding" logs if a "Seeded" log exists
-//  - Creates a Seeded log if none exists and wells > 0
+//  CLEAN BROKEN LINES
+//  Removes lines whose type looks broken (starts with "(" / empty)
+//  and logs whose action looks like a stray patient-type fragment
+//  e.g. type="2nd" from "HCC26 (2nd" , or action="Big)_PHH-org"
+// ══════════════════════════════════════════
+function cleanBroken(){
+  const KNOWN=['Media Change','Split','Reseeding','Pellet 제작','Stock 제작','Observation','Seeded','Initial Seeding','Finish (완료)','Finish'];
+  const isBrokenLine=l=>{
+    if(!l.type) return true;
+    // type contains ")" or "(" → leftover fragment
+    if(/[()]/.test(l.type)) return true;
+    // patientId ends with "(" with no closing → "HCC26 (2nd"
+    const opens=(l.patientId.match(/\(/g)||[]).length;
+    const closes=(l.patientId.match(/\)/g)||[]).length;
+    if(opens!==closes) return true;
+    return false;
+  };
+  const broken=lines.filter(isBrokenLine);
+  // also detect logs whose action isn't a known action (stray fragment)
+  const strayLogs=logs.filter(lg=>{
+    const a=(lg.action||'').trim();
+    return a && !KNOWN.some(k=>a===k||a.includes(k));
+  });
+
+  if(!broken.length && !strayLogs.length){
+    alert('정리할 깨진 라인이 없습니다.');return;
+  }
+  const names=broken.map(l=>`${l.patientId}_${l.type}`).join(', ');
+  if(!confirm(`깨진 라인 ${broken.length}개${names?' ('+names+')':''}와 비정상 로그 ${strayLogs.length}개를 삭제합니다.\n\n삭제 후 원본 CSV를 다시 [CSV 복원] 하면 정상 복구됩니다. 계속할까요?`)) return;
+
+  const brokenIds=new Set(broken.map(l=>l.id));
+  lines=lines.filter(l=>!brokenIds.has(l.id));
+  logs=logs.filter(lg=>!brokenIds.has(lg.lineId));
+  const strayIds=new Set(strayLogs.map(l=>l.id));
+  logs=logs.filter(lg=>!strayIds.has(lg.id));
+  updateUI();
+  alert('정리 완료. 이제 원본 CSV를 다시 복원하세요.');
+}
+
+// ══════════════════════════════════════════
+//  ENSURE SEED LOGS — dedup + normalize
 // ══════════════════════════════════════════
 function ensureSeedLogs(){
   lines.forEach(line=>{
-    const lineLogs=logs.filter(l=>l.lineId===line.id);
-
-    // Normalize "Initial Seeding" → "Seeded"
-    lineLogs.forEach(lg=>{
-      if(lg.action==='Initial Seeding') lg.action='Seeded';
-    });
-
-    // Remove duplicates: if multiple Seeded logs exist, keep only the earliest
+    logs.forEach(lg=>{ if(lg.lineId===line.id&&lg.action==='Initial Seeding') lg.action='Seeded'; });
     const seedLogs=logs.filter(l=>l.lineId===line.id&&l.action==='Seeded')
       .sort((a,b)=>new Date(a.date)-new Date(b.date));
     if(seedLogs.length>1){
       const keep=seedLogs[0].id;
       logs=logs.filter(l=>!(l.lineId===line.id&&l.action==='Seeded'&&l.id!==keep));
     }
-
-    // Create if none
     const hasSeed=logs.some(l=>l.lineId===line.id&&l.action==='Seeded');
     if(!hasSeed&&parseInt(line.initialWells||0)>0){
       logs.push({id:'seed_'+line.id,lineId:line.id,date:line.startDate.split('T')[0],
@@ -1028,17 +1091,16 @@ function ensureSeedLogs(){
 }
 
 // ══════════════════════════════════════════
-//  BOOT — fix legacy data then run
+//  BOOT — fix legacy data
 // ══════════════════════════════════════════
-// Fix passage stored as string "P4"
 logs.forEach(lg=>{
   if(typeof lg.passage==='string') lg.passage=parseP(lg.passage);
   if(lg.passage===null||lg.passage===undefined){
     const line=lines.find(l=>l.id===lg.lineId);
     lg.passage=line?parseP(line.passage):0;
   }
-  // Normalize legacy action names
   if(lg.action==='Initial Seeding') lg.action='Seeded';
+  if(lg.details==='라인 등록') lg.details='';
 });
 lines.forEach(line=>{
   if(typeof line.passage==='string') line.passage=parseP(line.passage);
