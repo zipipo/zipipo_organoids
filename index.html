@@ -237,13 +237,13 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
           <div><label>종류 (직접 입력)</label><input type="text" id="elType" placeholder="PHH-org, Tumor-org 등"></div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:9px;">
-          <div><label>시작 P</label><input type="number" id="elP" value="0" min="0"></div>
+          <div><label>최초 시작 P</label><input type="number" id="elP" value="0" min="0"></div>
           <div><label>누적 d (base)</label><input type="number" id="elBase" value="0" min="0"></div>
           <div><label>초기 Well</label><input type="number" id="elWells" value="0" min="0"></div>
         </div>
         <div><label style="color:#D97706;">기준 날짜 (최초 seeding일)</label><input type="date" id="elStart"></div>
         <div style="display:flex;gap:7px;margin-top:13px;">
-          <button class="btn btn-pri" style="flex:1;" onclick="saveLine()">저장 / 수정</button>
+          <button class="btn btn-pri" style="flex:1;" onclick="saveLine()">저장 (이후 타임라인 자동 재계산)</button>
           <button class="btn btn-out" onclick="resetLineForm()">취소</button>
         </div>
       </div>
@@ -272,8 +272,8 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
           </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">
-          <div><label style="color:#7C3AED;">P (수동수정)</label><input type="number" id="eP" min="0"></div>
-          <div><label style="color:#7C3AED;">D (수동수정)</label><input type="text" id="eD" placeholder="d5 또는 d10+3"></div>
+          <div><label style="color:#7C3AED;">P (수동수정 가능)</label><input type="number" id="eP" min="0"></div>
+          <div><label style="color:#7C3AED;">D (수동수정 가능)</label><input type="text" id="eD" placeholder="d5 또는 d10+3"></div>
         </div>
         <div style="background:#EFF6FF;border:1px solid #BAE6FD;border-radius:4px;padding:7px 10px;font-size:.76rem;color:#1D4ED8;line-height:1.5;">
           기록 수정 시 <strong>해당 로그만 변경</strong>되며, 다른 타임라인에는 영향을 주지 않습니다.
@@ -288,9 +288,10 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
       </div>
     </div>
     <div class="mfoot" style="display:flex;gap:7px;">
-      <button class="btn btn-pri" style="flex:2;" onclick="updateLog()">수정 완료</button>
-      <button class="btn btn-del" style="flex:1;" onclick="deleteLog()">삭제</button>
-      <button class="btn btn-out" style="flex:1;" onclick="closeLogModal()">취소</button>
+      <button class="btn btn-pri" style="flex:1;" onclick="updateLog(false)">수정 저장 (해당 로그만)</button>
+      <button class="btn btn-out" style="flex:1; border-color:var(--pri); color:var(--pri);" onclick="updateLog(true)">저장 후 타임라인 전체 재계산</button>
+      <button class="btn btn-del" onclick="deleteLog()">삭제</button>
+      <button class="btn btn-out" onclick="closeLogModal()">취소</button>
     </div>
   </div>
 </div>
@@ -348,7 +349,7 @@ const isSeed= a=>!!(a&&(a==='Seeded'||a==='Initial Seeding'));
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 const uid   = ()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
 const today = ()=>new Date().toISOString().split('T')[0];
-const isoD  = s =>new Date(s).toISOString();
+const isoD  = s => { try { return new Date(s).toISOString(); } catch(e) { return new Date().toISOString(); } };
 
 // ══════════════════════════════════════════
 //  COLOR MAP
@@ -383,9 +384,6 @@ function mcDays(line){
   return{days:d,cls};
 }
 
-// ══════════════════════════════════════════
-//  LATEST WELL
-// ══════════════════════════════════════════
 function latestWell(line){
   const w=logs.filter(l=>l.lineId===line.id&&l.finalWells!==''&&l.finalWells!=null)
     .sort((a,b)=>new Date(b.date)-new Date(a.date));
@@ -448,16 +446,15 @@ function renderDash(){
 }
 
 // ══════════════════════════════════════════
-//  STOCK BANNER (완료된 배양 숨김 처리)
+//  STOCK BANNER
 // ══════════════════════════════════════════
 function renderStockBanner(){
   const el=document.getElementById('stockBanner');
-  // 진행중인(보류) 항목 중, 해당 라인이 완료(Finish)되지 않은 것만 필터링
   const pend = stockChecks.filter(sc => {
     if (sc.ln2Done && sc.dbDone) return false;
     let line = lines.find(l => l.id === sc.lineId);
-    if(!line) line = lines.find(l => `${l.patientId}_${l.type}` === sc.lineLabel); // 구버전 호환
-    if (line && line.isCompleted) return false; // 완료된 배양분은 배너에 표시안함
+    if(!line) line = lines.find(l => `${l.patientId}_${l.type}` === sc.lineLabel);
+    if (line && line.isCompleted) return false; 
     return true;
   });
 
@@ -556,9 +553,6 @@ function toggleArch(){
   document.getElementById('archRow').classList.toggle('arch-open',archOpen);
 }
 
-// ══════════════════════════════════════════
-//  RENDER LINE LIST
-// ══════════════════════════════════════════
 function renderLineList(){
   const el=document.getElementById('lineList');
   el.innerHTML='<div style="font-size:.85rem;font-weight:700;margin:10px 0 7px;">등록된 라인 목록</div>';
@@ -578,9 +572,6 @@ function renderLineList(){
   });
 }
 
-// ══════════════════════════════════════════
-//  UPDATE UI
-// ══════════════════════════════════════════
 function updateUI(){
   rebuildColors();
   const sel=document.getElementById('lineSelect');
@@ -608,9 +599,6 @@ function saveData(){
   localStorage.setItem('orgStockChks',JSON.stringify(stockChecks));
 }
 
-// ══════════════════════════════════════════
-//  FORM HELPERS
-// ══════════════════════════════════════════
 function onActChange(){
   document.getElementById('stockInline').style.display=
     document.getElementById('logAction').value==='Stock 제작'?'block':'none';
@@ -622,6 +610,120 @@ function removeBulkDate(d){bulkDates=bulkDates.filter(x=>x!==d);renderBulkTags()
 function renderBulkTags(){
   document.getElementById('bulkTags').innerHTML=
     bulkDates.map(d=>`<span class="dtag">${d}<span class="dtx" onclick="removeBulkDate('${d}')">x</span></span>`).join('');
+}
+
+// ══════════════════════════════════════════
+//  SYNC LINE STATE (최신 로그를 바탕으로 라인(마스터)의 현재 상태만 동기화)
+// ══════════════════════════════════════════
+function syncLineState(line) {
+  if (line.isCompleted) return;
+  const rel = logs.filter(l => l.lineId === line.id).sort((a, b) => new Date(a.date) - new Date(b.date));
+  if (rel.length === 0) return;
+  
+  const last = rel[rel.length - 1];
+  let curP = parseP(last.passage);
+  const dObj = parseD(last.dayInfo);
+  let curBase = dObj ? dObj.base : 0;
+  let isResd = curBase > 0;
+  let curStartDt = new Date(last.date);
+  
+  if (dObj && dObj.diff > 0) {
+      curStartDt.setDate(curStartDt.getDate() - dObj.diff);
+  }
+
+  // 액션 처리 '이후'의 상태를 미래를 위해 라인에 세팅
+  if ((last.action || '').includes('Split')) {
+      curP++;
+      curBase = 0;
+      isResd = false;
+      curStartDt = new Date(last.date);
+  } else if (last.action === 'Reseeding') {
+      if (dObj) curBase += dObj.diff;
+      isResd = true;
+      curStartDt = new Date(last.date);
+  }
+
+  line.passage = curP;
+  line.baseDay = curBase;
+  line.isReseeded = isResd;
+  try { line.startDate = curStartDt.toISOString(); } 
+  catch(e) { line.startDate = new Date(last.date).toISOString(); }
+}
+
+// ══════════════════════════════════════════
+//  RECALC LOGS FOR LINE (강력한 정방향 재계산 엔진 - 사용자가 명시적 요청시만 동작)
+// ══════════════════════════════════════════
+function recalcLogsForLine(lineId) {
+  const line = lines.find(l=>l.id===lineId);
+  if(!line) return;
+
+  const lls = logs
+    .filter(l=>l.lineId===lineId)
+    .sort((a,b)=>new Date(a.date)-new Date(b.date));
+
+  if(!lls.length) return;
+
+  let currentP = 0;
+  let currentBaseD = 0;
+  let isResd = false;
+  let currentStartDt = new Date();
+
+  // 1. 최초 기준점 잡기
+  const seedLog = lls.find(lg => isSeed(lg.action));
+  if (seedLog) {
+      currentP = parseP(seedLog.passage);
+      currentStartDt = new Date(seedLog.date);
+      const dObj = parseD(seedLog.dayInfo);
+      if (dObj && dObj.base > 0) {
+          currentBaseD = dObj.base;
+          isResd = true;
+      }
+  } else {
+      const first = lls.find(lg => !isFin(lg.action)) || lls[0];
+      currentP = parseP(first.passage);
+      const di = parseD(first.dayInfo);
+      currentBaseD = di ? di.base : 0;
+      isResd = currentBaseD > 0;
+      currentStartDt = new Date(first.date);
+      if (di && di.diff > 0) {
+          currentStartDt.setDate(currentStartDt.getDate() - di.diff);
+      }
+  }
+  currentStartDt.setHours(0,0,0,0);
+
+  // 2. 타임라인 따라가며 P/D 덮어씌우기 (로그 저장 -> 다음 로그를 위해 상태 전진)
+  lls.forEach(lg => {
+      if (isSeed(lg.action)) return;
+      if (isFin(lg.action)) {
+          lg.passage = currentP;
+          lg.dayInfo = 'END';
+          return;
+      }
+
+      // [핵심] 현재까지 누적된 상태를 해당 로그에 먼저 부여함! (Split 이면 쪼개기 직전의 P/D가 찍힘)
+      lg.passage = currentP;
+      const dt = new Date(lg.date);
+      dt.setHours(0,0,0,0);
+      const diff = Math.max(0, Math.floor((dt - currentStartDt) / 86400000));
+      lg.dayInfo = (currentBaseD > 0 || isResd) ? `d${currentBaseD}+${diff}` : `d${diff}`;
+
+      // [상태 전진] 액션 완료 후, 다음 액션을 위해 상태를 진화시킴
+      if ((lg.action || '').includes('Split')) {
+          currentP++;
+          currentBaseD = 0;
+          isResd = false;
+          currentStartDt = new Date(lg.date);
+          currentStartDt.setHours(0,0,0,0);
+      } else if (lg.action === 'Reseeding') {
+          currentBaseD += diff;
+          isResd = true;
+          currentStartDt = new Date(lg.date);
+          currentStartDt.setHours(0,0,0,0);
+      }
+  });
+
+  // 3. 최신화된 결괏값을 라인(마스터)에 동기화
+  syncLineState(line);
 }
 
 // ══════════════════════════════════════════
@@ -640,7 +742,12 @@ function saveDailyLog(){
   dates.sort().forEach(date=>{
     const line=lines.find(l=>l.id===lineId);
     
-    // (1) 데일리 추가 시, "앞으로" 진행될 라인의 상태(P/D)를 먼저 조율
+    // (1) 현재 라인의 상태를 긁어와서, 일단 그 상태 그대로 로그로 저장!
+    const curP = line.passage;
+    const curDStr = calcDayStr(line, date);
+    logs.push({id:uid(),lineId,date,action,passage:curP,dayInfo:curDStr,details:det,finalWells:wells,stocks,memo});
+
+    // (2) 그 액션이 상태를 바꾸는 액션(Split/Reseeding)이라면, '다음 추가될 로그'를 위해 라인의 정보를 진화시킴
     if (action.includes('Split')) {
         line.passage++;
         line.baseDay = 0;
@@ -653,14 +760,7 @@ function saveDailyLog(){
         line.isReseeded = true;
         line.startDate = isoD(date);
     }
-
-    // (2) 그 상태(P, D)를 읽어와서 해당 로그에 반영합니다.
-    const curP = line.passage;
-    const curDStr = calcDayStr(line, date);
-
-    logs.push({id:uid(),lineId,date,action,passage:curP,dayInfo:curDStr,details:det,finalWells:wells,stocks,memo});
     
-    // Stock Check 배너 추가 시 lineId 부여
     if(action==='Stock 제작'&&stocks&&parseInt(stocks)>0){
       const ln=lines.find(l=>l.id===lineId);
       stockChecks.push({id:uid(),lineId:lineId, lineLabel:`${ln.patientId}_${ln.type}`,date,stocks,ln2Done:false,dbDone:false});
@@ -677,7 +777,7 @@ function saveDailyLog(){
 }
 
 // ══════════════════════════════════════════
-//  SAVE LINE (라인 생성/수정)
+//  SAVE LINE (라인 수정)
 // ══════════════════════════════════════════
 function saveLine(){
   const id   =document.getElementById('elId').value;
@@ -696,16 +796,19 @@ function saveLine(){
     lines[idx].patientId = pId;
     lines[idx].type = type;
     lines[idx].initialWells = wells;
-    // 전체 타임라인에 간섭하지 않고 Seeded 로그만 변경함 (개별 에러 방지)
-    const seed=logs.find(l=>l.lineId===id&&isSeed(l.action));
+    
+    let seed=logs.find(l=>l.lineId===id&&isSeed(l.action));
     if(seed){
       seed.date=start;
       seed.passage=p;
       seed.finalWells=wells;
       seed.dayInfo=dayStr;
+    } else {
+      logs.push({id:uid()+'_sd',lineId:id,date:start,action:'Seeded',
+        passage:p,dayInfo:dayStr,details:'',finalWells:wells||'',stocks:'',memo:'수동 추가'});
     }
+    recalcLogsForLine(id);
   } else {
-    // 신규 추가
     const nl={id:uid(),patientId:pId,type,passage:p,baseDay:baseD,
       isReseeded:(baseD>0),startDate:isoD(start),initialWells:wells,isCompleted:false};
     lines.push(nl);
@@ -723,7 +826,9 @@ function editLine(id){
   let startP = 0;
   let startBase = 0;
   let startWells = l.initialWells || '';
-  let startDt = l.startDate.split('T')[0];
+  let startDt;
+  
+  try { startDt = l.startDate ? l.startDate.split('T')[0] : ''; } catch(e) { startDt = ''; }
 
   const seedLog = lgs.find(lg=>isSeed(lg.action));
   if(seedLog){
@@ -733,7 +838,6 @@ function editLine(id){
     startWells = seedLog.finalWells || '';
     startDt = seedLog.date;
   } else if(lgs.length){
-    // Seed가 없을 경우 첫번째 기록에서 역산
     const first = lgs.find(lg=>!isFin(lg.action)) || lgs[0];
     startP = parseP(first.passage);
     const dObj = parseD(first.dayInfo);
@@ -741,11 +845,13 @@ function editLine(id){
     if(dObj && dObj.diff > 0){
        let d = new Date(first.date);
        d.setDate(d.getDate() - dObj.diff);
-       startDt = d.toISOString().split('T')[0];
+       try { startDt = d.toISOString().split('T')[0]; } catch(e){}
     } else {
        startDt = first.date;
     }
   }
+
+  if(!startDt) startDt = today();
 
   document.getElementById('elId').value   =l.id;
   document.getElementById('elPid').value  =l.patientId;
@@ -773,7 +879,7 @@ function deleteLine(id){
 }
 
 // ══════════════════════════════════════════
-//  LOG EDIT MODAL (강제 재계산 삭제, 수동수정 자율성 보장)
+//  LOG EDIT MODAL
 // ══════════════════════════════════════════
 function openLogModal(id){
   const lg=logs.find(l=>l.id===id);
@@ -792,7 +898,7 @@ function openLogModal(id){
   document.getElementById('logModal').classList.add('open');
 }
 
-function updateLog(){
+function updateLog(doRecalc){
   const id =document.getElementById('eid').value;
   const idx=logs.findIndex(l=>l.id===id);
   logs[idx].date      =document.getElementById('eDate').value;
@@ -804,14 +910,25 @@ function updateLog(){
   logs[idx].stocks    =document.getElementById('eStocks').value;
   logs[idx].memo      =document.getElementById('eMemo').value;
   
-  // 강제 재계산 (recalcLogsForLine) 구문을 완전히 제거했습니다.
+  if(doRecalc) {
+      recalcLogsForLine(logs[idx].lineId);
+  } else {
+      const line = lines.find(l => l.id === logs[idx].lineId);
+      if (line) syncLineState(line); 
+  }
+  
   closeLogModal();updateUI();
 }
 
 function deleteLog(){
   if(!confirm('이 기록을 삭제하시겠습니까?')) return;
   const id=document.getElementById('eid').value;
+  const lineId=logs.find(l=>l.id===id)?.lineId;
   logs=logs.filter(l=>l.id!==id);
+  if(lineId) {
+     const line = lines.find(l => l.id === lineId);
+     if (line) syncLineState(line);
+  }
   closeLogModal();updateUI();
 }
 
@@ -856,7 +973,7 @@ function exportCSV(){
 }
 
 // ══════════════════════════════════════════
-//  CSV IMPORT (강제 재계산 삭제 -> CSV에 있는 값 그대로 100% 반영)
+//  CSV IMPORT
 // ══════════════════════════════════════════
 function parseCSVRow(str){
   const res=[];let cur='';let inQ=false;
@@ -975,7 +1092,6 @@ function importCSV(event){
 
       const dup=logs.find(l=>l.lineId===line.id&&l.date===rec.date&&l.action===rec.action&&l.passage===rec.passage&&l.dayInfo===rec.dayInfo);
       if(!dup){
-        // 재계산 없이, CSV에 적혀있던 P와 D를 100% 그대로 반영하여 넣습니다.
         logs.push({id:uid(),lineId:line.id,date:rec.date,action:rec.action,
           passage:rec.passage,dayInfo:rec.dayInfo||'d0',
           details:rec.details,finalWells:rec.wells,stocks:rec.stocks,memo:rec.memo});
@@ -994,31 +1110,19 @@ function importCSV(event){
       }
     });
 
-    // ── 라인의 "현재 상태"를 가장 마지막 로그 기준으로 세팅 ──
-    lines.forEach(line=>{
-      const rel=logs.filter(l=>l.lineId===line.id).sort((a,b)=>new Date(a.date)-new Date(b.date));
-      if(!rel.length) return;
-      const last=rel[rel.length-1];
-      
-      line.passage = parseP(last.passage);
-      
-      if(!line.isCompleted){
-        const d = parseD(last.dayInfo);
-        if(d){
-          line.baseDay = d.base;
-          line.isReseeded = d.base>0;
-          let dDate = new Date(last.date);
-          dDate.setDate(dDate.getDate() - d.diff);
-          line.startDate = dDate.toISOString();
-        } else {
-          line.startDate = new Date(last.date).toISOString();
-        }
+    // ── 라인의 "현재 최신 상태" 오류 강제 동기화 ──
+    lines.forEach(line => {
+      if(line.isCompleted) {
+        const rel = logs.filter(l => l.lineId === line.id).sort((a, b) => new Date(a.date) - new Date(b.date));
+        if(rel.length) line.passage = parseP(rel[rel.length-1].passage);
+      } else {
+        syncLineState(line);
       }
     });
 
     ensureSeedLogs(true);
     updateUI();
-    alert(`CSV 복원 완료. 라인 ${lines.length}개, 기록 ${logs.length}개를 불러왔습니다.\n(모든 P/D 값은 CSV 원본 데이터를 100% 따릅니다.)`);
+    alert(`CSV 복원 완료. (모든 P/D 값은 CSV 원본 데이터를 100% 따릅니다.)`);
     document.getElementById('csvFile').value='';
   };
   reader.readAsText(file);
@@ -1098,6 +1202,8 @@ lines.forEach(line=>{
     const fl=logs.filter(l=>l.lineId===line.id&&isFin(l.action)).sort((a,b)=>new Date(b.date)-new Date(a.date))[0];
     if(fl){line.finishDate=fl.date;line.finishDayStr=fl.dayInfo||'END';}
   }
+  
+  syncLineState(line);
 });
 
 ensureSeedLogs(true);
