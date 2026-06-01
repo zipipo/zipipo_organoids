@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Organoid OS v2.6</title>
+    <title>Organoid OS v2.8</title>
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <style>
         :root {
@@ -32,11 +32,12 @@
         .card { background: var(--surface); border-radius: 6px; border: 1px solid var(--border); margin-bottom: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
         .card-header { padding: 10px 12px; border-bottom: 1px solid var(--border); font-weight: 700; background: #F8FAFC; font-size: 0.9rem; }
 
-        /* 📋 개편된 텍스트 대시보드 스타일 */
+        /* 📋 종류별 개수 기능이 강화된 대시보드 구조 */
         .dashboard-box { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-bottom: 12px; display: flex; gap: 20px; align-items: start; }
-        .dash-summary { min-width: 150px; border-right: 1px solid var(--border); padding-right: 20px; }
-        .dash-summary .lbl { font-size: 0.75rem; color: var(--text-sub); font-weight: 600; }
-        .dash-summary .val { font-size: 1.8rem; font-weight: 800; color: var(--primary); margin-top: 4px; }
+        .dash-summary { min-width: 220px; border-right: 1px solid var(--border); padding-right: 20px; }
+        .dash-summary .lbl { font-size: 0.75rem; color: var(--text-sub); font-weight: 600; margin-bottom: 4px; }
+        .dash-summary .val { font-size: 1.1rem; font-weight: 700; color: var(--text-main); line-height: 1.4; }
+        .dash-type-breakdown { font-size: 0.8rem; color: #475569; margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--border); }
         .dash-status-list { flex: 1; }
         .dash-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; text-align: left; }
         .dash-table th { color: var(--text-sub); padding: 4px 6px; font-weight: 600; border-bottom: 1px solid var(--border); background: #F8FAFC; }
@@ -109,8 +110,9 @@
 
     <div class="container">
         <div class="header">
-            <h1>Organoid OS v2.6</h1>
+            <h1>Organoid OS v2.8</h1>
             <div style="display:flex; gap:8px;">
+                <button class="btn btn-delete" onclick="clearAllDataSystem()">시스템 완전 초기화</button>
                 <input type="file" id="csvFileInput" style="display:none;" accept=".csv" onchange="importCSV(event)">
                 <button class="btn btn-outline" onclick="document.getElementById('csvFileInput').click()">[업로드] CSV 복원</button>
                 <button class="btn btn-outline" onclick="openLineModal()">마스터 라인 관리</button>
@@ -120,8 +122,13 @@
 
         <div class="dashboard-box">
             <div class="dash-summary">
-                <div class="lbl">🧪 배양 중인 라인</div>
-                <div class="val" id="dashTotalLines">0</div>
+                <div class="lbl">🧪 현재 배양 현황</div>
+                <div class="val">
+                    라인 수: <span id="dashTotalLines" style="color:var(--primary)">0</span>개<br>
+                    총 Well 수: <span id="dashTotalWells" style="color:#059669">0</span>개
+                </div>
+                <div class="dash-type-breakdown" id="dashTypeBreakdownArea">
+                    </div>
             </div>
             <div class="dash-status-list">
                 <table class="dash-table">
@@ -201,7 +208,7 @@
                     <input type="hidden" id="editLineId">
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
                         <div><label>환자 번호</label><input type="text" id="newLineId"></div>
-                        <div><label>종류 (신규 자동 축적)</label>
+                        <div><label>종류 (신규 자동 기억)</label>
                             <input type="text" id="newLineType" list="organoidTypes" placeholder="직접입력 또는 선택">
                             <datalist id="organoidTypes">
                                 </datalist>
@@ -284,9 +291,6 @@
                         <div><label>Stock 수</label><input type="number" id="editLogStocks"></div>
                     </div>
                     <div><label>메모</label><textarea id="editLogMemo" rows="3"></textarea></div>
-                    <div style="font-size:0.75rem; color:#64748B; background:#F1F5F9; padding:8px; border-radius:4px;">
-                        💡 <b>안내:</b> 액션(Split/Reseeding)이나 날짜를 수정하면, 이후 모든 로그의 P와 D-day가 <b>자동으로 재계산</b>됩니다.
-                    </div>
                 </div>
             </div>
             <div class="modal-footer" style="display:flex; gap:10px;">
@@ -300,12 +304,17 @@
 <script>
     let lines = JSON.parse(localStorage.getItem('orgLinesV2')) || [];
     let logs = JSON.parse(localStorage.getItem('orgLogsV2')) || [];
-    // 🔄 종류 자동완성 기억 저장소
     let orgTypes = JSON.parse(localStorage.getItem('orgTypesV2')) || ['PHH-org', 'Tumor-org', 'Chol-org'];
     let bulkDates = [];
 
     document.getElementById('logDate').valueAsDate = new Date();
     document.getElementById('newLineStartDate').valueAsDate = new Date();
+
+    function clearAllDataSystem() {
+        if(confirm("🚨 주의: 브라우저에 저장된 오가노이드 OS 관련 모든 데이터를 지우고 완전 깨끗한 초기 상태로 만듭니다. 진행할까요?")) {
+            localStorage.clear(); lines = []; logs = []; orgTypes = ['PHH-org', 'Tumor-org', 'Chol-org']; updateUI();
+        }
+    }
 
     function calcDDay(line, targetDate = new Date()) {
         let tDate = new Date(targetDate);
@@ -345,6 +354,7 @@
         return 'p-color-max';
     }
 
+    // 🔄 v2.8 데이터 매칭 유연성 엔진 (텍스트 내 포함 여부 검사 방식으로 롤백 해결)
     function recalculateLine(lineId) {
         const lineLogs = logs.filter(l => l.lineId === lineId).sort((a, b) => new Date(a.date) - new Date(b.date));
         if (lineLogs.length === 0) return;
@@ -356,9 +366,9 @@
         let isReseeded = line.initialIsReseeded ?? false;
 
         lineLogs.forEach(log => {
-            if (log.action === 'Split') {
+            if (log.action.includes('Split')) {
                 currentP += 1; currentBaseDay = 0; currentStartDate = new Date(log.date); isReseeded = false;
-            } else if (log.action === 'Reseeding') {
+            } else if (log.action.includes('Reseeding')) {
                 let diff = Math.floor((new Date(log.date) - currentStartDate) / 86400000);
                 if (diff < 0) diff = 0;
                 currentBaseDay += diff; currentStartDate = new Date(log.date); isReseeded = true;
@@ -375,22 +385,29 @@
         line.isReseeded = isReseeded;
     }
 
-    // 📋 개편된 스마트 텍스트 대시보드 엔진
+    // 📋 개편된 스마트 텍스트 대시보드 엔진 (종류별 세부 합산 및 Well 수 완벽 분할)
     function updateDashboard() {
         const activeLines = lines.filter(l => !l.isCompleted);
         document.getElementById('dashTotalLines').innerText = activeLines.length;
 
         let html = '';
+        let totalWells = 0;
+        let typeMetrics = {}; // 종류별 개수 및 Well 합산용 딕셔너리
+
         if (activeLines.length === 0) {
-            html = '<tr><td colspan="5" style="text-align:center; color:var(--text-sub); padding:15px;">현재 배양 중인 라인이 없습니다.</td></tr>';
-            document.getElementById('dashLinesStatusArea').innerHTML = html;
+            document.getElementById('dashLinesStatusArea').innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-sub); padding:15px;">현재 배양 중인 라인이 없습니다.</td></tr>';
+            document.getElementById('dashTotalWells').innerText = 0;
+            document.getElementById('dashTypeBreakdownArea').innerHTML = '';
             return;
         }
 
         activeLines.forEach(line => {
-            // 마지막 미디어 체인지 또는 스플릿 날짜 추적
+            // 종류 초기 세팅
+            if(!typeMetrics[line.type]) { typeMetrics[line.type] = { count: 0, wells: 0 }; }
+            typeMetrics[line.type].count += 1;
+
             const lineLogs = logs.filter(log => log.lineId === line.id && 
-                ['Media Change', 'Split', 'Reseeding', 'Initial Seeding'].includes(log.action))
+                (log.action.includes('Media') || log.action.includes('Split') || log.action.includes('Reseed') || log.action.includes('Seeding')))
                 .sort((a,b) => new Date(b.date) - new Date(a.date));
             
             let lastDateStr = line.initialStartDate ? line.initialStartDate.split('T')[0] : line.startDate.split('T')[0];
@@ -406,11 +423,13 @@
             today.setHours(0,0,0,0); lastDate.setHours(0,0,0,0);
             const diffDays = Math.floor((today - lastDate) / 86400000);
 
-            // 실시간 최신 Well 규모 파악
             const allLogs = logs.filter(log => log.lineId === line.id).sort((a,b) => new Date(b.date) - new Date(a.date));
-            let currentWell = (allLogs.length > 0 && allLogs[0].finalWells) ? allLogs[0].finalWells : (line.initialWells || '-');
+            let currentWell = (allLogs.length > 0 && allLogs[0].finalWells) ? allLogs[0].finalWells : (line.initialWells || '0');
+            
+            let wNum = parseInt(currentWell) || 0;
+            totalWells += wNum;
+            typeMetrics[line.type].wells += wNum; // 종류별 웰 누적
 
-            // ⚠️ 2~3일 주기 오버 여부 판단 조건식 규칙
             let statusBadge = '<span style="color:#059669; font-weight:600; background:#D1FAE5; padding:2px 6px; border-radius:4px;">정상</span>';
             if (diffDays >= 3) {
                 statusBadge = '<span style="color:#DC2626; font-weight:600; background:#FEF2F2; padding:2px 6px; border-radius:4px;">⚠️ 미디어 교체 필요</span>';
@@ -428,14 +447,21 @@
         });
 
         document.getElementById('dashLinesStatusArea').innerHTML = html;
+        document.getElementById('dashTotalWells').innerText = totalWells;
+
+        // 📋 종류별 디테일 브레이크다운을 HTML 텍스트로 생성출력
+        let breakdownHtml = '';
+        Object.keys(typeMetrics).sort().forEach(tName => {
+            breakdownHtml += `• <b>${tName}</b>: ${typeMetrics[tName].count}개 라인 (${typeMetrics[tName].wells}w)<br>`;
+        });
+        document.getElementById('dashTypeBreakdownArea').innerHTML = breakdownHtml;
     }
 
-    // ⚡ 원클릭 미디어체인지 매직 퀵 버튼 엔진
+    // ⚡ 퀵 미디어 체인지 - 정식 명칭은 'Media Change'로 깔끔하게 처리
     function quickMediaChange(lineId) {
         const line = lines.find(l => l.id === lineId);
         const todayStr = new Date().toISOString().split('T')[0];
         
-        // 이전 로그에서 정보 상속(Vessel, Well 유실 방지)
         const lineLogs = logs.filter(log => log.lineId === lineId).sort((a,b) => new Date(b.date) - new Date(a.date));
         let prevVessel = "-";
         let prevWells = line.initialWells || "";
@@ -449,7 +475,7 @@
             id: Date.now() + Math.random().toString(),
             lineId, date: todayStr, action: 'Media Change', vessel: prevVessel,
             passage: line.passage, dayInfo: calcDDay(line, todayStr), details: '',
-            finalWells: prevWells, stocks: '', memo: '⚡ 퀵 미디어 체인지 버튼 사용'
+            finalWells: prevWells, stocks: '', memo: 'Media change 완료'
         };
         
         logs.push(newLog);
@@ -502,7 +528,7 @@
                 <div class="timeline-header ${bannerClass}">
                     <span>[${line.patientId}_${line.type}] <span class="p-badge ${getPassageClass(line.passage)}">P${line.passage}</span> / ${calcDDay(line)}</span>
                     <div style="display:flex; gap:6px; align-items:center;">
-                        ${!line.isCompleted ? `<button class="btn btn-quick" onclick="quickMediaChange('${line.id}')">⚡ 퀵 미디어 체인지</button>` : ''}
+                        ${!line.isCompleted ? `<button class="btn btn-quick" onclick="quickMediaChange('${line.id}')">Media Change</button>` : ''}
                         ${!line.isCompleted ? `<button class="btn btn-complete" onclick="completeLine('${line.id}')">배양 완료</button>` : ''}
                         <button class="btn btn-edit" onclick="editLine('${line.id}')">라인 수정</button>
                     </div>
@@ -610,10 +636,7 @@
 
         if(!pId || !start || !type) return alert("필수 정보(환자번호, 종류, 시작일)를 입력하세요.");
 
-        // 🔄 새로운 종류(Type) 발견 시 로컬 기억 저장소에 축적
-        if (!orgTypes.includes(type)) {
-            orgTypes.push(type);
-        }
+        if (!orgTypes.includes(type)) { orgTypes.push(type); }
 
         if(id) {
             const idx = lines.findIndex(l => l.id === id);
@@ -746,7 +769,9 @@
             
             const headerCount = parseCSVRow(rows[0]).length;
             const hasVesselCol = headerCount >= 10;
-            let newLogsCount = 0;
+            
+            // 🚨 백업 복원 시 옛날 라인 중복 표기 방지를 위한 내부 배열 리셋 규칙 적용
+            lines = []; logs = [];
 
             for(let i=1; i<rows.length; i++) {
                 const row = parseCSVRow(rows[i]);
@@ -770,7 +795,10 @@
                 const [pId, ...typeArr] = patientType.split('_');
                 const type = typeArr.join('_');
 
-                let line = lines.find(l => l.patientId === pId && l.type === type && !l.isCompleted);
+                // 🔄 옛날 라인 격리: Action에 Finish가 있으면 자동으로 완료 라인 처리 플래그 부여
+                let isLineFinish = action.includes('Finish') || action.includes('완료');
+
+                let line = lines.find(l => l.patientId === pId && l.type === type);
                 if (!line) {
                     line = {
                         id: 'imported_' + Date.now() + Math.random(),
@@ -778,25 +806,27 @@
                         passage: parseInt(pStr.replace(/[^0-9]/g,'')) || 0,
                         baseDay: 0, isReseeded: dStr.includes('+'),
                         startDate: new Date(dateVal).toISOString(), 
-                        initialWells: finalWells || 0, isCompleted: false
+                        initialWells: finalWells || 0, isCompleted: isLineFinish
                     };
                     lines.push(line);
                 }
 
-                const exists = logs.find(l => l.lineId === line.id && l.date === dateVal && l.action === action && l.memo === memo);
-                if (!exists) {
-                    logs.push({
-                        id: Date.now() + Math.random().toString(), lineId: line.id,
-                        date: dateVal, action: action, vessel: vessel, passage: parseInt(pStr.replace(/[^0-9]/g,'')) || 0,
-                        dayInfo: dStr, details: details, finalWells: finalWells, stocks: stocks, memo: memo
-                    });
-                    newLogsCount++;
-                }
+                if (isLineFinish) { line.isCompleted = true; }
+
+                logs.push({
+                    id: Date.now() + Math.random().toString(), lineId: line.id,
+                    date: dateVal, action: action, vessel: vessel, passage: parseInt(pStr.replace(/[^0-9]/g,'')) || 0,
+                    dayInfo: dStr, details: details, finalWells: finalWells, stocks: stocks, memo: memo
+                });
             }
 
+            // 종류 목록 리빌드
+            lines.forEach(l => { if(!orgTypes.includes(l.type)) orgTypes.push(l.type); });
+
+            // 복원 완료 후 강력 유연 재계산 정렬 수행
             lines.forEach(line => recalculateLine(line.id));
             updateUI();
-            alert(`✅ CSV 복원 완료! ${newLogsCount}개의 기록이 추가 및 동기화되었습니다.`);
+            alert(`✅ 오가노이드 데이터 완벽 복원 및 정화 완료!\n종류별 통계 데이터 동기화 완료되었습니다.`);
             document.getElementById('csvFileInput').value = ''; 
         };
         reader.readAsText(file);
@@ -811,7 +841,7 @@
         const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
-        link.download = `Organoid_Log_Backup_v2.6.csv`; link.click();
+        link.download = `Organoid_Log_Backup_v2.8.csv`; link.click();
     }
 
     function openLineModal() { document.getElementById('lineModal').style.display = 'flex'; }
