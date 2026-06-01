@@ -644,8 +644,10 @@ function saveDailyLog(){
     const line=lines.find(l=>l.id===lineId);
     logs.push({id:uid(),lineId,date,action,passage:line.passage,dayInfo:calcDayStr(line,date),details:det,finalWells:wells,stocks,memo});
     if(action.includes('Split')){
-      line.passage+=1;line.baseDay=0;line.isReseeded=false;line.startDate=isoD(date);
-    } else if(action==='Reseeding'){
+      line.baseDay=0;
+      line.isReseeded=false;
+      line.startDate=isoD(date);
+} else if(action==='Reseeding'){
       const s=new Date(line.startDate),ld=new Date(date);
       s.setHours(0,0,0,0);ld.setHours(0,0,0,0);
       line.baseDay+=Math.floor((ld-s)/86400000);
@@ -670,13 +672,8 @@ function saveDailyLog(){
 //  RECALC LOGS FOR LINE
 // ══════════════════════════════════════════
 function recalcLogsForLine(lineId){
-  const line=lines.find(l=>l.id===lineId);
-  if(!line) return;
-  const lls=logs.filter(l=>l.lineId===lineId).sort((a,b)=>{
-    if(isSeed(a.action)&&!isSeed(b.action)) return -1;
-    if(!isSeed(a.action)&&isSeed(b.action)) return 1;
-    return new Date(a.date)-new Date(b.date);
-  });
+    return;
+}
 
   // Determine starting state
   let curP,curBase,resd,curStart;
@@ -745,7 +742,6 @@ function saveLine(){
     // update seed log to match
     const seed=logs.find(l=>l.lineId===id&&isSeed(l.action));
     if(seed){seed.date=start;seed.passage=p;seed.finalWells=wells;}
-    recalcLogsForLine(id);
   } else {
     const nl={id:uid(),patientId:pId,type,passage:p,baseDay:baseD,
       isReseeded:(baseD>0),startDate:isoD(start),initialWells:wells,isCompleted:false};
@@ -818,7 +814,6 @@ function updateLog(){
   logs[idx].finalWells=document.getElementById('eWells').value;
   logs[idx].stocks    =document.getElementById('eStocks').value;
   logs[idx].memo      =document.getElementById('eMemo').value;
-  recalcLogsForLine(logs[idx].lineId);
   closeLogModal();updateUI();
 }
 
@@ -1036,18 +1031,6 @@ function importCSV(event){
     });
 
     // ── Step 3: set each line's CURRENT passage / day from its latest non-finish log ──
-    lines.forEach(line=>{
-      const lls=logs.filter(l=>l.lineId===line.id).sort((a,b)=>new Date(a.date)-new Date(b.date));
-      if(!lls.length) return;
-      const latest=lls.slice().reverse().find(l=>!isFin(l.action))||lls[lls.length-1];
-      line.passage=parseP(latest.passage);
-      const di=parseD(latest.dayInfo);
-      if(di!==null){
-        line.baseDay=di.base;line.isReseeded=di.base>0;
-        const ld=new Date(latest.date);ld.setHours(0,0,0,0);ld.setDate(ld.getDate()-di.diff);
-        line.startDate=ld.toISOString();
-      }
-    });
 
     ensureSeedLogs(true);
     updateUI();
@@ -1111,17 +1094,28 @@ function ensureSeedLogs(skipCreate){
       const keep=seedLogs[0].id;
       logs=logs.filter(l=>!(l.lineId===line.id&&l.action==='Seeded'&&l.id!==keep));
     }
-    if(skipCreate) return;
-    const hasSeed=logs.some(l=>l.lineId===line.id&&l.action==='Seeded');
-    if(!hasSeed&&parseInt(line.initialWells||0)>0){
-      logs.push({id:'seed_'+line.id,lineId:line.id,date:line.startDate.split('T')[0],
-        action:'Seeded',passage:parseP(line.passage),
-        dayInfo:line.baseDay>0?`d${line.baseDay}+0`:'d0',
-        details:'',finalWells:line.initialWells,stocks:'',memo:'최초 seeding'});
+function ensureSeedLogs(skipCreate){
+  lines.forEach(line=>{
+    logs.forEach(lg=>{
+      if(lg.lineId===line.id&&lg.action==='Initial Seeding')
+        lg.action='Seeded';
+    });
+
+    const seedLogs=logs
+      .filter(l=>l.lineId===line.id&&l.action==='Seeded')
+      .sort((a,b)=>new Date(a.date)-new Date(b.date));
+
+    if(seedLogs.length>1){
+      const keep=seedLogs[0].id;
+
+      logs=logs.filter(l=>
+        !(l.lineId===line.id &&
+          l.action==='Seeded' &&
+          l.id!==keep)
+      );
     }
   });
 }
-
 // ══════════════════════════════════════════
 //  BOOT — fix legacy data
 // ══════════════════════════════════════════
@@ -1143,7 +1137,7 @@ lines.forEach(line=>{
   }
 });
 
-ensureSeedLogs();
+ensureSeedLogs(true);
 updateUI();
 </script>
 </body>
