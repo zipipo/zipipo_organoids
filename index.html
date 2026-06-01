@@ -1,984 +1,1052 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Organoid OS v3.0</title>
-    <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-    <style>
-        :root {
-            --bg: #F8FAFC; --surface: #FFFFFF; --primary: #3B82F6; --primary-soft: #EFF6FF;
-            --text-main: #1E293B; --text-sub: #64748B; --border: #E2E8F0;
-        }
-        * { box-sizing: border-box; }
-        body { font-family: 'Pretendard', sans-serif; background: var(--bg); color: var(--text-main); margin: 0; padding: 15px; line-height: 1.3; }
-        .container { max-width: 1300px; margin: 0 auto; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Organoid Culture Log</title>
+<link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"/>
+<style>
+:root{--bg:#F8FAFC;--sur:#fff;--pri:#3B82F6;--psoft:#EFF6FF;--tx:#1E293B;--sub:#64748B;--bd:#E2E8F0;}
+*{box-sizing:border-box;}
+body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--tx);margin:0;padding:15px;line-height:1.3;}
+.wrap{max-width:1340px;margin:0 auto;}
 
-        /* ── HEADER ── */
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        h1 { font-size: 1.3rem; font-weight: 700; margin: 0; color: #0F172A; }
+/* HEADER */
+.hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:11px;flex-wrap:wrap;gap:8px;}
+.hdr h1{font-size:1.18rem;font-weight:700;margin:0;color:#0F172A;}
+.hdr-r{display:flex;gap:6px;flex-wrap:wrap;}
 
-        /* ── SUMMARY BAR ── */
-        #summaryBar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
-        .summary-chip {
-            display: inline-flex; align-items: center; gap: 6px;
-            padding: 5px 10px; border-radius: 5px; font-size: 0.78rem; font-weight: 600;
-            border: 1px solid transparent;
-        }
-        .summary-chip .chip-label { opacity: 0.75; font-weight: 500; }
+/* BUTTONS */
+.btn{font-family:inherit;font-weight:600;cursor:pointer;border-radius:4px;padding:0 11px;border:none;
+     transition:opacity .1s;font-size:.79rem;height:30px;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;}
+.btn:hover{opacity:.78;}
+.btn-pri{background:var(--pri);color:#fff;}
+.btn-out{background:#fff;border:1px solid var(--bd);color:var(--sub);}
+.btn-edt{background:#F1F5F9;color:#475569;border:1px solid var(--bd);}
+.btn-fin{background:#D1FAE5;color:#065F46;border:1px solid #A7F3D0;}
+.btn-del{background:#FEF2F2;color:#DC2626;border:1px solid #FECACA;}
 
-        /* ── BUTTONS ── */
-        .btn { font-family: inherit; font-weight: 600; cursor: pointer; border-radius: 4px; padding: 0 12px; border: none; transition: opacity .1s; font-size: 0.8rem; height: 32px; display: inline-flex; align-items: center; justify-content: center; }
-        .btn:hover { opacity: .8; }
-        .btn-primary { background: var(--primary); color: #fff; }
-        .btn-outline { background: #fff; border: 1px solid var(--border); color: var(--text-sub); }
-        .btn-edit { background: #F1F5F9; color: #475569; border: 1px solid var(--border); }
-        .btn-complete { background: #D1FAE5; color: #065F46; border: 1px solid #A7F3D0; }
-        .btn-delete { background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; }
+/* STOCK BANNER */
+#stockBanner{margin-bottom:10px;}
+.sc-card{background:#FFF7ED;border:1px solid #FED7AA;border-radius:6px;padding:10px 14px;display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;}
+.sc-title{font-size:.79rem;font-weight:700;color:#9A3412;white-space:nowrap;padding-top:3px;}
+.sc-item{display:flex;flex-direction:column;gap:3px;background:#fff;border:1px solid #FED7AA;border-radius:5px;padding:6px 10px;min-width:185px;}
+.sc-lbl{font-size:.76rem;font-weight:700;color:#9A3412;}
+.sc-sub{font-size:.72rem;color:#B45309;}
+.sc-chk{display:flex;align-items:center;gap:5px;background:#fff;border:1px solid #FED7AA;border-radius:4px;
+        padding:3px 8px;font-size:.75rem;cursor:pointer;transition:.1s;user-select:none;}
+.sc-chk:hover{background:#FFF7ED;}
+.sc-chk.done{background:#F1F5F9;border-color:#E2E8F0;color:#94A3B8;text-decoration:line-through;}
+.sc-chk input{cursor:pointer;accent-color:#EA580C;}
 
-        /* ── CARDS ── */
-        .card { background: var(--surface); border-radius: 6px; border: 1px solid var(--border); margin-bottom: 12px; box-shadow: 0 1px 2px rgba(0,0,0,.02); }
-        .card-header { padding: 10px 12px; border-bottom: 1px solid var(--border); font-weight: 700; background: #F8FAFC; font-size: .9rem; }
+/* WELL BOARD */
+#wellBoard{margin-bottom:11px;}
+.wb{background:#fff;border:1px solid var(--bd);border-radius:6px;padding:11px 14px;}
+.wb-ttl{font-size:.76rem;font-weight:700;color:var(--sub);margin-bottom:8px;letter-spacing:.02em;}
+.wb-grid{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start;}
+.wb-total{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:5px;
+          background:#1E293B;color:#F8FAFC;font-size:.79rem;font-weight:700;border:1px solid #0F172A;align-self:flex-start;}
+.wb-total .wt-s{opacity:.65;font-weight:500;}
+.wb-grp{display:flex;flex-direction:column;gap:4px;}
+.wb-type{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:5px;font-size:.77rem;font-weight:600;border:1px solid transparent;}
+.wb-type .wts{opacity:.7;font-weight:500;}
+.wb-lines{display:flex;flex-wrap:wrap;gap:3px;}
+.wb-pill{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:3px;font-size:.71rem;font-weight:600;border:1px solid transparent;}
+.wb-pill .ps{opacity:.6;font-weight:400;}
+.wb-pill .wv{font-weight:800;}
 
-        /* ── ENTRY FORM ── */
-        .entry-form { padding: 12px; background: var(--primary-soft); display: flex; flex-direction: column; gap: 10px; }
-        .form-row { display: grid; gap: 10px; align-items: end; }
-        .row-1 { grid-template-columns: 1.5fr 1.5fr 1.5fr; }
-        .row-2 { grid-template-columns: 1fr 0.8fr 0.8fr 2fr 70px; }
-        label { display: block; font-size: .75rem; color: #475569; margin-bottom: 4px; font-weight: 600; }
-        input, select, textarea { width: 100%; padding: 4px 8px; border: 1px solid #CBD5E1; border-radius: 4px; font-family: inherit; font-size: .85rem; }
-        input, select { height: 32px; }
-        textarea { resize: vertical; min-height: 32px; line-height: 1.4; }
-        .date-input-group { display: flex; gap: 6px; align-items: center; }
-        .date-input-group input { flex: 1; }
-        #bulkDateTags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
-        .date-tag { background: #E2E8F0; padding: 3px 8px; border-radius: 4px; font-size: .75rem; display: flex; align-items: center; gap: 5px; font-weight: 500; }
-        .date-tag-x { cursor: pointer; font-weight: bold; color: #64748B; }
-        .date-tag-x:hover { color: #DC2626; }
+/* ENTRY CARD */
+.card{background:var(--sur);border-radius:6px;border:1px solid var(--bd);margin-bottom:11px;box-shadow:0 1px 2px rgba(0,0,0,.02);}
+.card-hd{padding:9px 12px;border-bottom:1px solid var(--bd);font-weight:700;background:#F8FAFC;font-size:.87rem;}
+.eform{padding:12px;background:var(--psoft);display:flex;flex-direction:column;gap:9px;}
+.frow{display:grid;gap:9px;align-items:end;}
+.r1{grid-template-columns:1.6fr 1.6fr 1fr;}
+.r2{grid-template-columns:1fr .75fr .75fr 1.9fr 64px;}
+label{display:block;font-size:.72rem;color:#475569;margin-bottom:3px;font-weight:600;}
+input,select,textarea{width:100%;padding:4px 8px;border:1px solid #CBD5E1;border-radius:4px;font-family:inherit;font-size:.83rem;}
+input,select{height:31px;}
+textarea{resize:vertical;min-height:31px;line-height:1.45;}
+.dgrp{display:flex;gap:5px;align-items:center;}
+.dgrp input{flex:1;}
+#bulkTags{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;}
+.dtag{background:#E2E8F0;padding:2px 7px;border-radius:4px;font-size:.72rem;display:flex;align-items:center;gap:4px;}
+.dtx{cursor:pointer;color:#64748B;font-weight:700;}.dtx:hover{color:#DC2626;}
+.prev-bar{padding:7px 12px;font-size:.82rem;color:var(--pri);font-weight:600;background:#fff;min-height:31px;border-bottom:1px solid var(--bd);}
 
-        /* ── TIMELINE ── */
-        .timeline-section { margin-bottom: 12px; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
-        .timeline-header { padding: 8px 12px; font-weight: 700; font-size: .85rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0,0,0,.05); flex-wrap: wrap; gap: 6px; }
+/* STOCK INLINE */
+#stockInline{display:none;background:#FFF7ED;border:1px solid #FED7AA;border-radius:4px;padding:7px 10px;}
+#stockInline>label{color:#9A3412;margin-bottom:5px;}
+.si-row{display:flex;gap:14px;flex-wrap:wrap;}
+.si-row label{font-size:.75rem;display:flex;align-items:center;gap:4px;color:#475569;font-weight:500;cursor:pointer;margin:0;}
+.si-row input{width:auto;height:auto;}
 
-        /* ── TABLE ── */
-        table { width: 100%; border-collapse: collapse; text-align: left; background: #fff; table-layout: fixed; }
-        th { padding: 7px 8px; background: #F8FAFC; color: var(--text-sub); font-size: .75rem; border-bottom: 1px solid var(--border); }
-        td { padding: 7px 8px; border-bottom: 1px solid var(--border); font-size: .8rem; vertical-align: top; word-wrap: break-word; }
-        td .memo-text { white-space: pre-line; }
+/* SECTION TITLES */
+.sec{font-size:.95rem;font-weight:700;margin:18px 0 7px;}
+.sec.dim{color:var(--sub);}
+.arch-row{display:flex;align-items:center;gap:7px;cursor:pointer;user-select:none;}
+.arch-arr{font-size:.82rem;transition:transform .2s;display:inline-block;}
+.arch-open .arch-arr{transform:rotate(90deg);}
+#archCount{font-size:.77rem;font-weight:500;color:#94A3B8;}
 
-        /* ── BADGES ── */
-        .badge { padding: 3px 6px; border-radius: 4px; font-size: .72rem; font-weight: 600; display: inline-block; white-space: nowrap; }
-        .badge-media { background: #E0F2FE; color: #0284C7; border: 1px solid #BAE6FD; }
-        .badge-split { background: #FFEDD5; color: #C2410C; border: 1px solid #FED7AA; }
-        .badge-reseed { background: #D1FAE5; color: #059669; border: 1px solid #A7F3D0; }
-        .badge-pellet { background: #F3E8FF; color: #7E22CE; border: 1px solid #E9D5FF; }
-        .badge-stock { background: #FCE7F3; color: #BE185D; border: 1px solid #FBCFE8; }
-        .badge-finish { background: #F1F5F9; color: #475569; border: 1px solid #CBD5E1; }
-        .badge-obs { background: #FEF9C3; color: #A16207; border: 1px solid #FEF08A; }
-        .badge-seeded { background: #CCFBF1; color: #0F766E; border: 1px solid #99F6E4; }
+/* TIMELINE */
+.tl-wrap{margin-bottom:9px;border:1px solid var(--bd);border-radius:5px;overflow:hidden;}
+.tl-hdr{padding:8px 12px;font-weight:700;font-size:.83rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;}
+.tl-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.tl-body{overflow:hidden;transition:max-height .25s ease;}
+.tl-body.col{max-height:0!important;}
 
-        .p-badge { padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: .78rem; display: inline-block; border: 1px solid transparent; }
-        .p-color-0 { background:#F1F5F9; color:#475569; border-color:#E2E8F0; }
-        .p-color-1 { background:#E0F2FE; color:#0284C7; border-color:#BAE6FD; }
-        .p-color-2 { background:#D1FAE5; color:#059669; border-color:#A7F3D0; }
-        .p-color-3 { background:#FEF3C7; color:#D97706; border-color:#FDE68A; }
-        .p-color-4 { background:#EDE9FE; color:#7C3AED; border-color:#DDD6FE; }
-        .p-color-5 { background:#FCE7F3; color:#DB2777; border-color:#FBCFE8; }
-        .p-color-6 { background:#E0E7FF; color:#4F46E5; border-color:#C7D2FE; }
-        .p-color-7 { background:#CCFBF1; color:#0D9488; border-color:#99F6E4; }
-        .p-color-8 { background:#FEE2E2; color:#DC2626; border-color:#FECACA; }
-        .p-color-9 { background:#FFEDD5; color:#EA580C; border-color:#FED7AA; }
-        .p-color-max { background:#1E293B; color:#F8FAFC; border-color:#0F172A; }
+/* TABLE */
+table{width:100%;border-collapse:collapse;text-align:left;background:#fff;table-layout:fixed;}
+th{padding:6px 8px;background:#F8FAFC;color:var(--sub);font-size:.71rem;border-bottom:1px solid var(--bd);}
+td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-align:top;word-break:break-word;}
+.mcell{white-space:pre-line;}
 
-        /* Media change alert */
-        .mc-alert { font-size: .72rem; padding: 2px 6px; border-radius: 4px; font-weight: 600; display: inline-block; margin-left: 6px; }
-        .mc-ok { background:#D1FAE5; color:#065F46; }
-        .mc-warn { background:#FEF3C7; color:#92400E; }
-        .mc-overdue { background:#FEE2E2; color:#991B1B; }
+/* BADGES */
+.badge{padding:2px 6px;border-radius:4px;font-size:.7rem;font-weight:600;display:inline-block;white-space:nowrap;border:1px solid transparent;}
+.bm{background:#E0F2FE;color:#0284C7;border-color:#BAE6FD;}
+.bsp{background:#FFEDD5;color:#C2410C;border-color:#FED7AA;}
+.br{background:#D1FAE5;color:#059669;border-color:#A7F3D0;}
+.bpl{background:#F3E8FF;color:#7E22CE;border-color:#E9D5FF;}
+.bst{background:#FCE7F3;color:#BE185D;border-color:#FBCFE8;}
+.bf{background:#F1F5F9;color:#475569;border-color:#CBD5E1;}
+.bo{background:#FEF9C3;color:#A16207;border-color:#FEF08A;}
+.bsd{background:#CCFBF1;color:#0F766E;border-color:#99F6E4;}
 
-        /* ── MODAL ── */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.4); justify-content: center; align-items: flex-start; z-index: 100; padding: 20px; overflow-y: auto; }
-        .modal-content { background: #fff; padding: 20px; border-radius: 6px; width: 580px; max-width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,.15); margin: auto; }
-        .modal-footer { position: sticky; bottom: 0; background: #fff; padding-top: 12px; margin-top: 15px; border-top: 1px solid var(--border); }
+.pb{padding:2px 6px;border-radius:4px;font-weight:700;font-size:.77rem;display:inline-block;border:1px solid transparent;}
+.p0{background:#F1F5F9;color:#475569;border-color:#E2E8F0;}
+.p1{background:#E0F2FE;color:#0284C7;border-color:#BAE6FD;}
+.p2{background:#D1FAE5;color:#059669;border-color:#A7F3D0;}
+.p3{background:#FEF3C7;color:#D97706;border-color:#FDE68A;}
+.p4{background:#EDE9FE;color:#7C3AED;border-color:#DDD6FE;}
+.p5{background:#FCE7F3;color:#DB2777;border-color:#FBCFE8;}
+.p6{background:#E0E7FF;color:#4F46E5;border-color:#C7D2FE;}
+.p7{background:#CCFBF1;color:#0D9488;border-color:#99F6E4;}
+.p8{background:#FEE2E2;color:#DC2626;border-color:#FECACA;}
+.p9{background:#FFEDD5;color:#EA580C;border-color:#FED7AA;}
+.ph{background:#1E293B;color:#F8FAFC;border-color:#0F172A;}
 
-        /* ── ACTION BTN in table ── */
-        .action-edit-btn { background:#F8FAFC; border:1px solid #E2E8F0; color:#475569; border-radius:4px; cursor:pointer; font-size:.72rem; padding:3px 7px; font-weight:600; transition:.1s; }
-        .action-edit-btn:hover { background:#E2E8F0; }
+.mc-chip{font-size:.69rem;padding:2px 5px;border-radius:4px;font-weight:600;display:inline-block;}
+.mc-ok{background:#D1FAE5;color:#065F46;}
+.mc-warn{background:#FEF3C7;color:#92400E;}
+.mc-due{background:#FEE2E2;color:#991B1B;}
 
-        .preview-bar { padding: 8px 12px; font-size: .85rem; color: var(--primary); font-weight: 600; background: #fff; border-bottom: 1px solid #E2E8F0; min-height: 34px; }
-
-        .section-title { font-size: 1rem; margin: 20px 0 10px; font-weight: 700; }
-        .section-title.muted { color: var(--text-sub); }
-
-        .line-split-btn { background: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; border-radius: 4px; cursor: pointer; font-size: .72rem; padding: 3px 7px; font-weight: 600; transition: .1s; }
-        .line-split-btn:hover { opacity: .8; }
-    </style>
+/* MODAL */
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);justify-content:center;
+       align-items:flex-start;z-index:300;padding:20px;overflow-y:auto;}
+.modal.open{display:flex;}
+.mbox{background:#fff;padding:20px;border-radius:6px;width:600px;max-width:100%;
+      box-shadow:0 12px 30px rgba(0,0,0,.15);margin:auto;display:flex;flex-direction:column;max-height:calc(100vh - 40px);}
+.mscroll{overflow-y:auto;flex:1;padding-right:2px;}
+.mbox h2{margin:0 0 13px;font-size:1.02rem;border-bottom:1px solid #E2E8F0;padding-bottom:9px;flex-shrink:0;}
+.mfoot{padding-top:11px;border-top:1px solid var(--bd);flex-shrink:0;margin-top:12px;}
+.tbl-btn{background:#F8FAFC;border:1px solid #E2E8F0;color:#475569;border-radius:4px;cursor:pointer;font-size:.7rem;padding:3px 6px;font-weight:600;transition:.1s;}
+.tbl-btn:hover{background:#E2E8F0;}
+</style>
 </head>
 <body>
-<div class="container">
+<div class="wrap">
 
-    <!-- HEADER -->
-    <div class="header">
-        <h1>Organoid OS v3.0</h1>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            <input type="file" id="csvFileInput" style="display:none;" accept=".csv" onchange="importCSV(event)">
-            <button class="btn btn-outline" onclick="document.getElementById('csvFileInput').click()">CSV 복원</button>
-            <button class="btn btn-outline" onclick="openLineModal()">마스터 라인 관리</button>
-            <button class="btn btn-outline" onclick="exportToCSV()">CSV 저장</button>
+<!-- HEADER -->
+<div class="hdr">
+  <h1>Organoid Culture Log</h1>
+  <div class="hdr-r">
+    <input type="file" id="csvFile" style="display:none;" accept=".csv" onchange="importCSV(event)">
+    <button class="btn btn-out" onclick="document.getElementById('csvFile').click()">CSV 복원</button>
+    <button class="btn btn-out" onclick="openLineModal()">Cell Line 관리</button>
+    <button class="btn btn-out" onclick="exportCSV()">CSV 저장</button>
+  </div>
+</div>
+
+<!-- STOCK BANNER -->
+<div id="stockBanner"></div>
+
+<!-- WELL BOARD -->
+<div id="wellBoard"></div>
+
+<!-- ENTRY CARD -->
+<div class="card">
+  <div class="card-hd">데일리 작업 기록</div>
+  <div class="eform">
+    <div class="frow r1">
+      <div>
+        <label>작업 날짜 (다중 추가 가능)</label>
+        <div class="dgrp">
+          <input type="date" id="logDate">
+          <button class="btn btn-out" onclick="addBulkDate()">날짜 추가</button>
         </div>
+        <div id="bulkTags"></div>
+      </div>
+      <div><label>라인 선택</label><select id="lineSelect" onchange="previewDay()"></select></div>
+      <div><label>수행 액션</label>
+        <select id="logAction" onchange="onActChange()">
+          <option value="Media Change">Media Change</option>
+          <option value="Split">Split (P+1, d0)</option>
+          <option value="Reseeding">Reseeding (d 누적)</option>
+          <option value="Pellet 제작">Pellet 제작</option>
+          <option value="Stock 제작">Stock 제작</option>
+          <option value="Observation">Observation</option>
+        </select>
+      </div>
     </div>
-
-    <!-- SUMMARY BAR -->
-    <div id="summaryBar"></div>
-
-    <!-- ENTRY FORM -->
-    <div class="card">
-        <div class="card-header">데일리 작업 기록</div>
-        <div class="entry-form">
-            <div class="form-row row-1">
-                <div>
-                    <label>작업 날짜 (중복 추가 가능)</label>
-                    <div class="date-input-group">
-                        <input type="date" id="logDate">
-                        <button class="btn btn-outline" onclick="addBulkDate()">날짜 추가</button>
-                    </div>
-                    <div id="bulkDateTags"></div>
-                </div>
-                <div><label>라인 선택</label><select id="lineSelect" onchange="previewDay()"></select></div>
-                <div><label>수행 액션</label>
-                    <select id="logAction">
-                        <option value="Media Change">Media Change</option>
-                        <option value="Split">Split (P+1, d0)</option>
-                        <option value="Reseeding">Reseeding (d누적+0)</option>
-                        <option value="Pellet 제작">Pellet 제작</option>
-                        <option value="Stock 제작">Stock 제작</option>
-                        <option value="Observation">Observation</option>
-                    </select>
-                </div>
-            </div>
-            <div class="form-row row-2">
-                <div><label>과정/Ratio</label><input type="text" id="logDetails" placeholder="1:4 등"></div>
-                <div><label>최종 Well</label><input type="number" id="logFinalWells" min="0"></div>
-                <div><label>Stock 수</label><input type="number" id="logStocks" min="0"></div>
-                <div><label>메모 (엔터 줄바꿈)</label><textarea id="logMemo" placeholder="특이사항" rows="1"></textarea></div>
-                <button class="btn btn-primary" onclick="saveDailyLog()">기록</button>
-            </div>
-        </div>
-        <div class="preview-bar" id="previewArea">라인을 선택하면 P/D 상태가 미리 계산됩니다.</div>
+    <div class="frow r2">
+      <div><label>과정/Ratio</label><input type="text" id="logDet" placeholder="1:4 등"></div>
+      <div><label>최종 Well</label><input type="number" id="logWells" min="0"></div>
+      <div><label>Stock (vial)</label><input type="number" id="logStocks" min="0"></div>
+      <div><label>메모 (엔터=줄바꿈)</label><textarea id="logMemo" rows="1" placeholder="특이사항"></textarea></div>
+      <button class="btn btn-pri" onclick="saveDailyLog()">기록</button>
     </div>
+    <div id="stockInline">
+      <label>Stock 후처리 예정 항목 (기록 후 배너에 표시)</label>
+      <div class="si-row">
+        <label><input type="checkbox" id="chkLN2"> LN2 tank 이동 (다음날)</label>
+        <label><input type="checkbox" id="chkDB"> DB 업데이트</label>
+      </div>
+    </div>
+  </div>
+  <div class="prev-bar" id="prevArea">라인을 선택하면 P/D 상태가 미리 계산됩니다.</div>
+</div>
 
-    <!-- ACTIVE TIMELINES -->
-    <div class="section-title">진행 중인 배양 타임라인</div>
-    <div id="activeTimelineContainer"></div>
+<!-- ACTIVE TIMELINES -->
+<div class="sec">진행 중인 배양 타임라인</div>
+<div id="activeTL"></div>
 
-    <!-- COMPLETED TIMELINES -->
-    <div class="section-title muted">완료된 기록 (Archive)</div>
-    <div id="completedTimelineContainer"></div>
+<!-- ARCHIVE -->
+<div class="sec dim">
+  <div class="arch-row" id="archRow" onclick="toggleArch()">
+    <span class="arch-arr" id="archArr">&#9654;</span>
+    <span>완료된 기록 (Archive)</span>
+    <span id="archCount"></span>
+  </div>
+</div>
+<div id="doneTL" style="display:none;"></div>
 
 </div>
 
-<!-- LINE MODAL -->
+<!-- ═══ CELL LINE MODAL ═══ -->
 <div id="lineModal" class="modal">
-    <div class="modal-content">
-        <h2 style="margin:0 0 15px; font-size:1.1rem; border-bottom:1px solid #E2E8F0; padding-bottom:10px;">라인 등록 및 관리</h2>
-        <div style="background:#F8FAFC; padding:15px; border-radius:6px; border:1px solid #E2E8F0; margin-bottom:15px;">
-            <input type="hidden" id="editLineId">
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
-                <div><label>환자 번호</label><input type="text" id="newLineId"></div>
-                <div><label>종류 (직접 입력)</label><input type="text" id="newLineType" placeholder="Tumor-org, PHH-org 등"></div>
-            </div>
-            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:10px;">
-                <div><label>기준일 P</label><input type="number" id="newLineP" value="0"></div>
-                <div><label>기준일 d (누적)</label><input type="number" id="newLineBaseD" value="0"></div>
-                <div><label>초기 Well</label><input type="number" id="newLineWells" value="0"></div>
-            </div>
-            <div><label style="color:#D97706;">기준 날짜 (seeding일 / 리시딩일)</label><input type="date" id="newLineStartDate"></div>
-            <div style="display:flex; gap:10px; margin-top:15px;">
-                <button class="btn btn-primary" style="flex:1;" onclick="saveLine()">라인 저장/수정</button>
-                <button class="btn btn-outline" onclick="resetLineForm()">취소</button>
-            </div>
+  <div class="mbox">
+    <h2>Cell Line 관리</h2>
+    <div class="mscroll">
+      <div style="background:#F8FAFC;padding:13px;border-radius:6px;border:1px solid #E2E8F0;margin-bottom:13px;">
+        <input type="hidden" id="elId">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px;">
+          <div><label>환자 번호</label><input type="text" id="elPid" placeholder="HCC27"></div>
+          <div><label>종류 (직접 입력)</label><input type="text" id="elType" placeholder="PHH-org, Tumor-org 등"></div>
         </div>
-        <div id="activeLinesList"></div>
-        <div class="modal-footer">
-            <button class="btn btn-outline" style="width:100%;" onclick="closeModal()">닫기</button>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:9px;">
+          <div><label>시작 P</label><input type="number" id="elP" value="0" min="0"></div>
+          <div><label>누적 d (base)</label><input type="number" id="elBase" value="0" min="0"></div>
+          <div><label>초기 Well</label><input type="number" id="elWells" value="0" min="0"></div>
         </div>
+        <div><label style="color:#D97706;">기준 날짜 (최초 seeding일)</label><input type="date" id="elStart"></div>
+        <div style="display:flex;gap:7px;margin-top:13px;">
+          <button class="btn btn-pri" style="flex:1;" onclick="saveLine()">저장 / 수정</button>
+          <button class="btn btn-out" onclick="resetLineForm()">취소</button>
+        </div>
+      </div>
+      <div id="lineList"></div>
     </div>
+    <div class="mfoot">
+      <button class="btn btn-out" style="width:100%;" onclick="closeLineModal()">닫기</button>
+    </div>
+  </div>
 </div>
 
-<!-- LOG EDIT MODAL -->
-<div id="logEditModal" class="modal">
-    <div class="modal-content">
-        <h2 style="margin:0 0 15px; font-size:1.1rem; border-bottom:1px solid #E2E8F0; padding-bottom:10px;">기록 상세 수정</h2>
-        <input type="hidden" id="editLogId">
-        <div style="display:grid; gap:12px; background:#F8FAFC; padding:15px; border-radius:6px; border:1px solid #E2E8F0;">
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                <div><label>작업 날짜</label><input type="date" id="editLogDate"></div>
-                <div><label style="color:#0284C7;">수행 액션</label>
-                    <select id="editLogAction">
-                        <option value="Seeded">Seeded</option>
-                        <option value="Media Change">Media Change</option>
-                        <option value="Split">Split</option>
-                        <option value="Reseeding">Reseeding</option>
-                        <option value="Pellet 제작">Pellet 제작</option>
-                        <option value="Stock 제작">Stock 제작</option>
-                        <option value="Observation">Observation</option>
-                        <option value="Finish (완료)">Finish (완료)</option>
-                    </select>
-                </div>
-            </div>
-            <div style="display:grid; grid-template-columns:1fr 1.5fr; gap:10px;">
-                <div><label style="color:#7C3AED;">P (수동수정)</label><input type="number" id="editLogP" min="0"></div>
-                <div><label style="color:#7C3AED;">D (수동수정)</label><input type="text" id="editLogD" placeholder="예: d12+3"></div>
-            </div>
-            <div style="height:1px; background:#E2E8F0;"></div>
-            <div><label>과정/Ratio</label><input type="text" id="editLogDetails"></div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                <div><label>최종 Well</label><input type="number" id="editLogFinalWells"></div>
-                <div><label>Stock 수</label><input type="number" id="editLogStocks"></div>
-            </div>
-            <div><label>메모 (엔터 줄바꿈)</label><textarea id="editLogMemo" rows="3"></textarea></div>
+<!-- ═══ LOG EDIT MODAL ═══ -->
+<div id="logModal" class="modal">
+  <div class="mbox" style="width:560px;">
+    <h2>기록 수정</h2>
+    <div class="mscroll">
+      <input type="hidden" id="eid">
+      <div style="background:#F8FAFC;padding:13px;border-radius:6px;border:1px solid #E2E8F0;display:grid;gap:10px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">
+          <div><label>날짜</label><input type="date" id="eDate"></div>
+          <div><label>액션</label>
+            <select id="eAct">
+              <option>Seeded</option><option>Media Change</option><option>Split</option>
+              <option>Reseeding</option><option>Pellet 제작</option><option>Stock 제작</option>
+              <option>Observation</option><option>Finish (완료)</option>
+            </select>
+          </div>
         </div>
-        <div style="display:flex; gap:10px; margin-top:15px;">
-            <button class="btn btn-primary" style="flex:2;" onclick="updateLog()">수정 완료</button>
-            <button class="btn btn-delete" style="flex:1;" onclick="deleteLogFromModal()">삭제</button>
-            <button class="btn btn-outline" style="flex:1;" onclick="closeLogEditModal()">취소</button>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">
+          <div><label style="color:#7C3AED;">P (수동수정)</label><input type="number" id="eP" min="0"></div>
+          <div><label style="color:#7C3AED;">D (수동수정)</label><input type="text" id="eD" placeholder="d5 또는 d10+3"></div>
         </div>
+        <div style="background:#EFF6FF;border:1px solid #BAE6FD;border-radius:4px;padding:7px 10px;font-size:.76rem;color:#1D4ED8;line-height:1.5;">
+          P/D를 수동수정하면 <strong>이 로그 이후 모든 기록</strong>의 P/D가 자동 재계산됩니다.
+        </div>
+        <div style="height:1px;background:#E2E8F0;"></div>
+        <div><label>과정/Ratio</label><input type="text" id="eDet"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">
+          <div><label>최종 Well</label><input type="number" id="eWells"></div>
+          <div><label>Stock 수</label><input type="number" id="eStocks"></div>
+        </div>
+        <div><label>메모</label><textarea id="eMemo" rows="3"></textarea></div>
+      </div>
     </div>
+    <div class="mfoot" style="display:flex;gap:7px;">
+      <button class="btn btn-pri" style="flex:2;" onclick="updateLog()">수정 완료 + 재계산</button>
+      <button class="btn btn-del" style="flex:1;" onclick="deleteLog()">삭제</button>
+      <button class="btn btn-out" style="flex:1;" onclick="closeLogModal()">취소</button>
+    </div>
+  </div>
 </div>
 
 <script>
-// ─────────────────────────────────────────────
+// ══════════════════════════════════════════
 //  DATA
-// ─────────────────────────────────────────────
-let lines = JSON.parse(localStorage.getItem('orgLinesV2')) || [];
-let logs  = JSON.parse(localStorage.getItem('orgLogsV2'))  || [];
-let bulkDates = [];
+// ══════════════════════════════════════════
+let lines       = JSON.parse(localStorage.getItem('orgLinesV2'))   || [];
+let logs        = JSON.parse(localStorage.getItem('orgLogsV2'))    || [];
+let stockChecks = JSON.parse(localStorage.getItem('orgStockChks')) || [];
+let archOpen    = false;
 
-// init date inputs
 document.getElementById('logDate').valueAsDate = new Date();
-document.getElementById('newLineStartDate').valueAsDate = new Date();
+document.getElementById('elStart').valueAsDate = new Date();
 
-// ─────────────────────────────────────────────
-//  TYPE → COLOR mapping (동적)
-// ─────────────────────────────────────────────
-const TYPE_COLOR_PALETTE = [
-    { bg:'#E0F2FE', text:'#0369A1', border:'#BAE6FD', headerBg:'#DBEAFE', headerText:'#1D4ED8' },
-    { bg:'#FFEDD5', text:'#9A3412', border:'#FED7AA', headerBg:'#FED7AA', headerText:'#7C2D12' },
-    { bg:'#F3E8FF', text:'#6B21A8', border:'#E9D5FF', headerBg:'#EDE9FE', headerText:'#5B21B6' },
-    { bg:'#D1FAE5', text:'#065F46', border:'#A7F3D0', headerBg:'#CCFBF1', headerText:'#134E4A' },
-    { bg:'#FCE7F3', text:'#9D174D', border:'#FBCFE8', headerBg:'#FCE7F3', headerText:'#831843' },
-    { bg:'#FEF3C7', text:'#78350F', border:'#FDE68A', headerBg:'#FEF9C3', headerText:'#713F12' },
-    { bg:'#E0E7FF', text:'#3730A3', border:'#C7D2FE', headerBg:'#E0E7FF', headerText:'#312E81' },
-    { bg:'#CCFBF1', text:'#134E4A', border:'#99F6E4', headerBg:'#CCFBF1', headerText:'#0F766E' },
+// ══════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════
+const parseP = s => (s===null||s===undefined)?0:(parseInt(String(s).replace(/[^0-9]/g,''))||0);
+
+function parseD(str){
+  if(!str||str==='END'||str==='-') return null;
+  const s=String(str).replace(/^d/i,'');
+  if(s.includes('+')){const[a,b]=s.split('+');return{base:parseInt(a)||0,diff:parseInt(b)||0};}
+  return{base:0,diff:parseInt(s)||0};
+}
+
+function calcDayStr(line,targetDate){
+  if(line.isCompleted&&line.finishDate) return line.finishDayStr||'END';
+  const start=new Date(line.startDate),tgt=targetDate?new Date(targetDate):new Date();
+  start.setHours(0,0,0,0);tgt.setHours(0,0,0,0);
+  const diff=Math.floor((tgt-start)/86400000);
+  return line.baseDay>0?`d${line.baseDay}+${diff}`:`d${diff}`;
+}
+
+const pCls = n=>{const v=parseP(n);return v<=9?'p'+v:'ph';};
+
+function badgeCls(a){
+  if(!a) return 'bo';
+  const l=a.toLowerCase();
+  if(l==='seeded') return 'bsd';
+  if(l.includes('media')) return 'bm';
+  if(l.includes('split')) return 'bsp';
+  if(l.includes('reseed')) return 'br';
+  if(l.includes('pellet')) return 'bpl';
+  if(l.includes('stock')) return 'bst';
+  if(l.includes('finish')||l.includes('완료')) return 'bf';
+  return 'bo';
+}
+
+const isFin = a=>!!(a&&(a.includes('Finish')||a.includes('완료')));
+const isSeed= a=>!!(a&&(a==='Seeded'||a==='Initial Seeding'));
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+const uid   = ()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
+const today = ()=>new Date().toISOString().split('T')[0];
+const isoD  = s =>new Date(s).toISOString();
+
+// ══════════════════════════════════════════
+//  COLOR MAP
+// ══════════════════════════════════════════
+const PAL=[
+  {bg:'#E0F2FE',tx:'#0369A1',bd:'#BAE6FD',hbg:'#DBEAFE',ht:'#1D4ED8'},
+  {bg:'#FFEDD5',tx:'#9A3412',bd:'#FED7AA',hbg:'#FED7AA',ht:'#7C2D12'},
+  {bg:'#F3E8FF',tx:'#6B21A8',bd:'#E9D5FF',hbg:'#EDE9FE',ht:'#5B21B6'},
+  {bg:'#D1FAE5',tx:'#065F46',bd:'#A7F3D0',hbg:'#CCFBF1',ht:'#134E4A'},
+  {bg:'#FCE7F3',tx:'#9D174D',bd:'#FBCFE8',hbg:'#FCE7F3',ht:'#831843'},
+  {bg:'#FEF3C7',tx:'#78350F',bd:'#FDE68A',hbg:'#FEF9C3',ht:'#713F12'},
+  {bg:'#E0E7FF',tx:'#3730A3',bd:'#C7D2FE',hbg:'#E0E7FF',ht:'#312E81'},
+  {bg:'#CCFBF1',tx:'#134E4A',bd:'#99F6E4',hbg:'#CCFBF1',ht:'#0F766E'},
 ];
-const COMPLETED_COLOR = { bg:'#F1F5F9', text:'#475569', border:'#E2E8F0', headerBg:'#F1F5F9', headerText:'#475569' };
+const DONE={bg:'#F1F5F9',tx:'#475569',bd:'#E2E8F0',hbg:'#F1F5F9',ht:'#475569'};
+let tcm={};
+function rebuildColors(){tcm={};let i=0;lines.forEach(l=>{if(!(l.type in tcm)){tcm[l.type]=PAL[i%PAL.length];i++;}});}
+const getC=(type,done)=>done?DONE:(tcm[type]||PAL[0]);
 
-let typeColorMap = {};
-let typeColorIndex = 0;
-
-function getTypeColor(type, isCompleted) {
-    if (isCompleted) return COMPLETED_COLOR;
-    if (!typeColorMap[type]) {
-        typeColorMap[type] = TYPE_COLOR_PALETTE[typeColorIndex % TYPE_COLOR_PALETTE.length];
-        typeColorIndex++;
-    }
-    return typeColorMap[type];
+// ══════════════════════════════════════════
+//  MC CHIP (days since last MC or Split)
+// ══════════════════════════════════════════
+function mcChip(line){
+  if(line.isCompleted) return '';
+  const rel=logs.filter(l=>l.lineId===line.id&&(l.action==='Media Change'||(l.action||'').includes('Split')))
+    .sort((a,b)=>new Date(b.date)-new Date(a.date));
+  if(!rel.length) return '';
+  const last=new Date(rel[0].date),now=new Date();
+  now.setHours(0,0,0,0);last.setHours(0,0,0,0);
+  const d=Math.floor((now-last)/86400000);
+  const cls=d<=2?'mc-ok':d===3?'mc-warn':'mc-due';
+  return `<span class="mc-chip ${cls}">MC+${d}d</span>`;
 }
 
-// Rebuild typeColorMap from existing lines on load
-function rebuildTypeColors() {
-    typeColorMap = {};
-    typeColorIndex = 0;
-    const seen = [];
-    lines.forEach(l => {
-        if (!seen.includes(l.type)) {
-            seen.push(l.type);
-            typeColorMap[l.type] = TYPE_COLOR_PALETTE[typeColorIndex % TYPE_COLOR_PALETTE.length];
-            typeColorIndex++;
-        }
-    });
+// ══════════════════════════════════════════
+//  LATEST WELL
+// ══════════════════════════════════════════
+function latestWell(line){
+  const w=logs.filter(l=>l.lineId===line.id&&l.finalWells!==''&&l.finalWells!=null)
+    .sort((a,b)=>new Date(b.date)-new Date(a.date));
+  return w.length?w[0].finalWells:(line.initialWells||'');
 }
 
-// ─────────────────────────────────────────────
-//  DAY CALCULATION
-// ─────────────────────────────────────────────
-function calcDDay(line, targetDate) {
-    // if completed, use finish date
-    let useDate;
-    if (line.isCompleted && line.finishDate) {
-        useDate = new Date(line.finishDate);
-    } else {
-        useDate = targetDate ? new Date(targetDate) : new Date();
-    }
-    const start = new Date(line.startDate);
-    start.setHours(0,0,0,0); useDate.setHours(0,0,0,0);
-    const diff = Math.floor((useDate - start) / 86400000);
-    return (line.baseDay > 0 || line.isReseeded) ? `d${line.baseDay}+${diff}` : `d${diff}`;
+// ══════════════════════════════════════════
+//  WELL BOARD
+// ══════════════════════════════════════════
+function renderWellBoard(){
+  const el=document.getElementById('wellBoard');
+  const active=lines.filter(l=>!l.isCompleted);
+  if(!active.length){el.innerHTML='';return;}
+  const groups={};let totalLines=active.length,totalWells=0;
+  active.forEach(l=>{
+    if(!groups[l.type]) groups[l.type]={count:0,wells:0,lines:[]};
+    groups[l.type].count++;
+    const w=parseInt(latestWell(l))||0;
+    groups[l.type].wells+=w;totalWells+=w;
+    groups[l.type].lines.push({label:l.patientId,well:w,p:l.passage,day:calcDayStr(l)});
+  });
+  let chips='';
+  Object.entries(groups).forEach(([type,d])=>{
+    const c=getC(type,false);
+    const pills=d.lines.map(ll=>`<span class="wb-pill" style="background:${c.bg};color:${c.tx};border-color:${c.bd};">${ll.label} <span class="ps">P${ll.p} ${ll.day}</span> <span class="wv">${ll.well}w</span></span>`).join('');
+    chips+=`<div class="wb-grp">
+      <div class="wb-type" style="background:${c.bg};color:${c.tx};border-color:${c.bd};">${type} <span class="wts">${d.count}라인</span> <strong>${d.wells}w</strong></div>
+      <div class="wb-lines">${pills}</div>
+    </div>`;
+  });
+  el.innerHTML=`<div class="wb"><div class="wb-ttl">현재 배양 현황</div><div class="wb-grid">
+    <div class="wb-total"><span class="wt-s">배양 중</span> ${totalLines}라인 / ${totalWells}wells</div>${chips}</div></div>`;
 }
 
-// ─────────────────────────────────────────────
-//  ACTION BADGE
-// ─────────────────────────────────────────────
-function getActionBadge(action) {
-    if (!action) return 'badge-obs';
-    if (action === 'Seeded') return 'badge-seeded';
-    if (action.includes('Media')) return 'badge-media';
-    if (action.includes('Split')) return 'badge-split';
-    if (action.includes('Reseed')) return 'badge-reseed';
-    if (action.includes('Pellet')) return 'badge-pellet';
-    if (action.includes('Stock')) return 'badge-stock';
-    if (action.includes('Finish') || action.includes('완료')) return 'badge-finish';
-    return 'badge-obs';
+// ══════════════════════════════════════════
+//  STOCK BANNER
+// ══════════════════════════════════════════
+function renderStockBanner(){
+  const el=document.getElementById('stockBanner');
+  const pend=stockChecks.filter(sc=>!sc.ln2Done||!sc.dbDone);
+  if(!pend.length){el.innerHTML='';return;}
+  const items=pend.map(sc=>`<div class="sc-item">
+    <div><span class="sc-lbl">${sc.lineLabel}</span> <span class="sc-sub">${sc.date} · ${sc.stocks}vial</span></div>
+    <label class="sc-chk ${sc.ln2Done?'done':''}" onclick="toggleSC('${sc.id}','ln2')">
+      <input type="checkbox" ${sc.ln2Done?'checked':''} onclick="event.stopPropagation();toggleSC('${sc.id}','ln2')"> LN2 tank 이동
+    </label>
+    <label class="sc-chk ${sc.dbDone?'done':''}" onclick="toggleSC('${sc.id}','db')">
+      <input type="checkbox" ${sc.dbDone?'checked':''} onclick="event.stopPropagation();toggleSC('${sc.id}','db')"> DB 업데이트
+    </label>
+  </div>`).join('');
+  el.innerHTML=`<div class="sc-card"><div class="sc-title">Stock 후처리 체크</div><div style="display:flex;flex-wrap:wrap;gap:7px;">${items}</div></div>`;
 }
 
-function getPassageClass(p) {
-    const n = parseInt(String(p).replace(/[^0-9]/g,'')) || 0;
-    return n <= 9 ? `p-color-${n}` : 'p-color-max';
+function toggleSC(id,field){
+  const sc=stockChecks.find(s=>s.id===id);if(!sc) return;
+  if(field==='ln2') sc.ln2Done=!sc.ln2Done;
+  if(field==='db')  sc.dbDone =!sc.dbDone;
+  saveData();renderStockBanner();
 }
 
-// ─────────────────────────────────────────────
-//  MEDIA CHANGE ALERT
-//  마지막 Media Change 또는 Split 이후 며칠 경과
-// ─────────────────────────────────────────────
-function getMCAlert(line) {
-    if (line.isCompleted) return '';
-    const lineLogs = logs.filter(l => l.lineId === line.id);
-    // last media change or split
-    const relevant = lineLogs
-        .filter(l => l.action === 'Media Change' || l.action.includes('Split'))
-        .sort((a,b) => new Date(b.date) - new Date(a.date));
-    if (!relevant.length) return '';
-    const lastDate = new Date(relevant[0].date);
-    const today = new Date(); today.setHours(0,0,0,0); lastDate.setHours(0,0,0,0);
-    const days = Math.floor((today - lastDate) / 86400000);
-    if (days <= 2) return `<span class="mc-alert mc-ok">MC +${days}d</span>`;
-    if (days === 3) return `<span class="mc-alert mc-warn">MC +${days}d</span>`;
-    return `<span class="mc-alert mc-overdue">MC +${days}d</span>`;
-}
-
-// ─────────────────────────────────────────────
-//  SUMMARY BAR
-// ─────────────────────────────────────────────
-function renderSummary() {
-    const bar = document.getElementById('summaryBar');
-    const activeLines = lines.filter(l => !l.isCompleted);
-    if (!activeLines.length) { bar.innerHTML = ''; return; }
-
-    // group by type
-    const groups = {};
-    activeLines.forEach(l => {
-        if (!groups[l.type]) groups[l.type] = { count: 0, wells: 0 };
-        groups[l.type].count++;
-        // latest well count from logs
-        const lineLogs = logs.filter(lg => lg.lineId === l.id).sort((a,b)=>new Date(b.date)-new Date(a.date));
-        const lastWell = lineLogs.find(lg => lg.finalWells);
-        groups[l.type].wells += lastWell ? parseInt(lastWell.finalWells) || 0 : parseInt(l.initialWells) || 0;
-    });
-
-    let html = '';
-    Object.entries(groups).forEach(([type, data]) => {
-        const c = getTypeColor(type, false);
-        html += `<span class="summary-chip" style="background:${c.bg}; color:${c.text}; border-color:${c.border};">
-            ${type}
-            <span class="chip-label">${data.count}라인</span>
-            <strong>${data.wells} wells</strong>
-        </span>`;
-    });
-    bar.innerHTML = html;
-}
-
-// ─────────────────────────────────────────────
+// ══════════════════════════════════════════
 //  RENDER TIMELINES
-// ─────────────────────────────────────────────
-function renderTimelines(containerId, filterCompleted) {
-    const container = document.getElementById(containerId);
-    container.innerHTML = '';
-    const filteredLines = lines.filter(l => !!l.isCompleted === filterCompleted);
+// ══════════════════════════════════════════
+function renderTimelines(containerId,showDone){
+  const el=document.getElementById(containerId);
+  el.innerHTML='';
+  const filtered=lines.filter(l=>!!l.isCompleted===showDone);
+  if(!filtered.length){el.innerHTML='<div style="color:#94A3B8;font-size:.81rem;padding:5px 0;">없음</div>';return;}
 
-    filteredLines.forEach(line => {
-        const lineLogs = logs
-            .filter(log => log.lineId === line.id)
-            .sort((a,b) => {
-                // Finish goes to top, then desc date
-                const aFinish = a.action && (a.action.includes('Finish') || a.action.includes('완료'));
-                const bFinish = b.action && (b.action.includes('Finish') || b.action.includes('완료'));
-                if (aFinish && !bFinish) return -1;
-                if (!aFinish && bFinish) return 1;
-                return new Date(b.date) - new Date(a.date);
-            });
-
-        const c = getTypeColor(line.type, line.isCompleted);
-        const mcAlert = getMCAlert(line);
-
-        let html = `
-        <div class="timeline-section">
-            <div class="timeline-header" style="background:${c.headerBg}; color:${c.headerText};">
-                <span>
-                    [${line.patientId}_${line.type}]
-                    <span class="p-badge ${getPassageClass(line.passage)}">P${line.passage}</span>
-                    / ${calcDDay(line)}
-                    ${mcAlert}
-                </span>
-                <div style="display:flex; gap:6px; flex-wrap:wrap;">
-                    ${!line.isCompleted ? `<button class="btn btn-complete" onclick="completeLine('${line.id}')">배양 완료</button>` : ''}
-                    <button class="btn btn-edit" onclick="editLine('${line.id}')">라인 수정</button>
-                </div>
-            </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th style="width:10%">Date</th>
-                        <th style="width:13%">Action</th>
-                        <th style="width:13%">P / D</th>
-                        <th style="width:10%">Ratio</th>
-                        <th style="width:7%">Well</th>
-                        <th style="width:7%">Stock</th>
-                        <th style="width:32%">Memo</th>
-                        <th style="width:8%; text-align:center;">Edit</th>
-                    </tr>
-                </thead>
-                <tbody>`;
-
-        lineLogs.forEach(log => {
-            html += `<tr>
-                <td style="color:var(--text-sub)">${log.date}</td>
-                <td><span class="badge ${getActionBadge(log.action)}">${log.action}</span></td>
-                <td>
-                    <span class="p-badge ${getPassageClass(log.passage)}">P${log.passage}</span>
-                    <span style="color:var(--text-sub); font-size:.78rem; margin-left:3px;">/ ${log.dayInfo}</span>
-                </td>
-                <td>${log.details || '-'}</td>
-                <td style="color:#059669; font-weight:700">${log.finalWells || '-'}</td>
-                <td style="color:#BE185D; font-weight:700">${log.stocks ? log.stocks + ' vial' : '-'}</td>
-                <td><span class="memo-text">${escHtml(log.memo || '-')}</span></td>
-                <td style="text-align:center;"><button class="action-edit-btn" onclick="openLogEditModal('${log.id}')">수정</button></td>
-            </tr>`;
-        });
-
-        html += `</tbody></table></div>`;
-        container.innerHTML += html;
+  filtered.forEach(line=>{
+    const lgs=logs.filter(lg=>lg.lineId===line.id).sort((a,b)=>{
+      const af=isFin(a.action),bf=isFin(b.action);
+      if(af&&!bf) return -1;if(!af&&bf) return 1;
+      return new Date(b.date)-new Date(a.date);
     });
-}
-
-function escHtml(str) {
-    return String(str)
-        .replace(/&/g,'&amp;')
-        .replace(/</g,'&lt;')
-        .replace(/>/g,'&gt;')
-        .replace(/"/g,'&quot;');
-}
-
-// ─────────────────────────────────────────────
-//  RENDER LINES LIST (modal)
-// ─────────────────────────────────────────────
-function renderLinesList() {
-    const list = document.getElementById('activeLinesList');
-    list.innerHTML = '<h3 style="font-size:.9rem; margin:15px 0 10px;">등록된 라인 목록</h3>';
-
-    const active = lines.filter(l => !l.isCompleted);
-    const completed = lines.filter(l => l.isCompleted);
-
-    [...active, ...completed].forEach(l => {
-        const c = getTypeColor(l.type, l.isCompleted);
-        list.innerHTML += `
-        <div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #E2E8F0; align-items:center; gap:6px; flex-wrap:wrap;">
-            <span style="font-size:.85rem; font-weight:500; background:${c.bg}; color:${c.text}; border:1px solid ${c.border}; padding:2px 8px; border-radius:4px;">
-                ${l.patientId}_${l.type} ${l.isCompleted ? '(완료)' : ''}
-            </span>
-            <div style="display:flex; gap:6px;">
-                ${!l.isCompleted ? `<button class="line-split-btn" onclick="manualSplit('${l.id}')">Split (P+1)</button>` : ''}
-                <button class="btn btn-edit" onclick="editLine('${l.id}')">수정</button>
-                <button class="btn btn-delete" onclick="deleteLine('${l.id}')">삭제</button>
-            </div>
-        </div>`;
+    const c=getC(line.type,line.isCompleted);
+    const mc=mcChip(line);
+    let rows='';
+    lgs.forEach(lg=>{
+      rows+=`<tr>
+        <td style="color:var(--sub)">${lg.date}</td>
+        <td><span class="badge ${badgeCls(lg.action)}">${lg.action}</span></td>
+        <td><span class="pb ${pCls(lg.passage)}">P${lg.passage}</span> <span style="color:var(--sub);font-size:.75rem;">/ ${lg.dayInfo||'-'}</span></td>
+        <td>${esc(lg.details||'-')}</td>
+        <td style="color:#059669;font-weight:700">${lg.finalWells||'-'}</td>
+        <td style="color:#BE185D;font-weight:700">${lg.stocks?lg.stocks+'v':'-'}</td>
+        <td><span class="mcell">${esc(lg.memo||'-')}</span></td>
+        <td style="text-align:center;"><button class="tbl-btn" onclick="openLogModal('${lg.id}')">수정</button></td>
+      </tr>`;
     });
+    const table=`<table><thead><tr>
+      <th style="width:10%">Date</th><th style="width:12%">Action</th>
+      <th style="width:13%">P / D</th><th style="width:10%">Ratio</th>
+      <th style="width:6%">Well</th><th style="width:6%">Stock</th>
+      <th style="width:35%">Memo</th><th style="width:8%;text-align:center;">Edit</th>
+    </tr></thead><tbody>${rows}</tbody></table>`;
+
+    const bid='tl_'+line.id;
+    const collapsed=showDone;
+    const maxH=collapsed?'0px':'9999px';
+
+    el.innerHTML+=`<div class="tl-wrap">
+      <div class="tl-hdr" style="background:${c.hbg};color:${c.ht};${showDone?'cursor:pointer;':''}"
+           ${showDone?`onclick="toggleTL('${bid}')"`:''}>
+        <div class="tl-meta">
+          ${showDone?'<span style="font-size:.79rem;opacity:.6;">&#9654;</span>':''}
+          <span style="font-size:.88rem;">[${line.patientId}_${line.type}]</span>
+          <span class="pb ${pCls(line.passage)}">P${line.passage}</span>
+          <span style="font-size:.8rem;">/ ${calcDayStr(line)}</span>
+          ${mc}
+        </div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;" onclick="event.stopPropagation()">
+          ${!showDone?`<button class="btn btn-fin" onclick="completeLine('${line.id}')">배양 완료</button>`:''}
+          <button class="btn btn-edt" onclick="editLine('${line.id}')" style="${showDone?'height:26px;font-size:.74rem;':''}">라인 수정</button>
+        </div>
+      </div>
+      <div id="${bid}" class="tl-body ${collapsed?'col':''}" style="max-height:${maxH};">${table}</div>
+    </div>`;
+  });
 }
 
-// ─────────────────────────────────────────────
+function toggleTL(id){
+  const el=document.getElementById(id);if(!el) return;
+  if(el.classList.contains('col')){
+    el.classList.remove('col');el.style.maxHeight=el.scrollHeight+'px';
+    el.addEventListener('transitionend',()=>{if(!el.classList.contains('col'))el.style.maxHeight='9999px';},{once:true});
+  } else {
+    el.style.maxHeight=el.scrollHeight+'px';
+    requestAnimationFrame(()=>{el.classList.add('col');el.style.maxHeight='0px';});
+  }
+}
+
+// ══════════════════════════════════════════
+//  ARCHIVE TOGGLE
+// ══════════════════════════════════════════
+function toggleArch(){
+  archOpen=!archOpen;
+  document.getElementById('doneTL').style.display=archOpen?'block':'none';
+  document.getElementById('archRow').classList.toggle('arch-open',archOpen);
+}
+
+// ══════════════════════════════════════════
+//  RENDER LINE LIST (modal)
+// ══════════════════════════════════════════
+function renderLineList(){
+  const el=document.getElementById('lineList');
+  el.innerHTML='<div style="font-size:.85rem;font-weight:700;margin:10px 0 7px;">등록된 라인 목록</div>';
+  const active=lines.filter(l=>!l.isCompleted);
+  const done  =lines.filter(l=> l.isCompleted);
+  [...active,...done].forEach(l=>{
+    const c=getC(l.type,l.isCompleted);
+    el.innerHTML+=`<div style="display:flex;justify-content:space-between;padding:6px 3px;border-bottom:1px solid #E2E8F0;align-items:center;gap:5px;flex-wrap:wrap;">
+      <span style="background:${c.bg};color:${c.tx};border:1px solid ${c.bd};padding:2px 9px;border-radius:4px;font-size:.81rem;font-weight:600;">
+        ${l.patientId}_${l.type}${l.isCompleted?' (완료)':''}
+      </span>
+      <div style="display:flex;gap:4px;">
+        <button class="btn btn-edt" style="height:27px;font-size:.74rem;" onclick="editLine('${l.id}')">수정</button>
+        <button class="btn btn-del" style="height:27px;font-size:.74rem;" onclick="deleteLine('${l.id}')">삭제</button>
+      </div>
+    </div>`;
+  });
+}
+
+// ══════════════════════════════════════════
 //  UPDATE UI
-// ─────────────────────────────────────────────
-function updateUI() {
-    rebuildTypeColors();
-
-    const select = document.getElementById('lineSelect');
-    const prev = select.value;
-    select.innerHTML = '<option value="">-- 라인 선택 --</option>';
-    lines.filter(l => !l.isCompleted).forEach(l => {
-        const opt = document.createElement('option');
-        opt.value = l.id;
-        opt.innerText = `${l.patientId}_${l.type} (P${l.passage})`;
-        select.appendChild(opt);
-    });
-    if (prev) select.value = prev;
-
-    renderTimelines('activeTimelineContainer', false);
-    renderTimelines('completedTimelineContainer', true);
-    renderLinesList();
-    renderSummary();
-
-    localStorage.setItem('orgLinesV2', JSON.stringify(lines));
-    localStorage.setItem('orgLogsV2',  JSON.stringify(logs));
+// ══════════════════════════════════════════
+function updateUI(){
+  rebuildColors();
+  const sel=document.getElementById('lineSelect');
+  const prev=sel.value;
+  sel.innerHTML='<option value="">-- 라인 선택 --</option>';
+  lines.filter(l=>!l.isCompleted).forEach(l=>{
+    const o=document.createElement('option');
+    o.value=l.id;o.textContent=`${l.patientId}_${l.type} (P${l.passage})`;
+    sel.appendChild(o);
+  });
+  if(prev) sel.value=prev;
+  renderTimelines('activeTL',false);
+  renderTimelines('doneTL',true);
+  renderLineList();
+  renderWellBoard();
+  renderStockBanner();
+  const dc=lines.filter(l=>l.isCompleted).length;
+  document.getElementById('archCount').textContent=dc?`(${dc}개)`:'';
+  saveData();
 }
 
-// ─────────────────────────────────────────────
-//  BULK DATE
-// ─────────────────────────────────────────────
-function addBulkDate() {
-    const d = document.getElementById('logDate').value;
-    if (d && !bulkDates.includes(d)) { bulkDates.push(d); renderBulkTags(); }
-}
-function removeBulkDate(d) { bulkDates = bulkDates.filter(x => x !== d); renderBulkTags(); }
-function renderBulkTags() {
-    document.getElementById('bulkDateTags').innerHTML =
-        bulkDates.map(d => `<span class="date-tag">${d} <span class="date-tag-x" onclick="removeBulkDate('${d}')">x</span></span>`).join('');
+function saveData(){
+  localStorage.setItem('orgLinesV2',  JSON.stringify(lines));
+  localStorage.setItem('orgLogsV2',   JSON.stringify(logs));
+  localStorage.setItem('orgStockChks',JSON.stringify(stockChecks));
 }
 
-// ─────────────────────────────────────────────
+// ══════════════════════════════════════════
+//  FORM HELPERS
+// ══════════════════════════════════════════
+function onActChange(){
+  document.getElementById('stockInline').style.display=
+    document.getElementById('logAction').value==='Stock 제작'?'block':'none';
+}
+
+let bulkDates=[];
+function addBulkDate(){const d=document.getElementById('logDate').value;if(d&&!bulkDates.includes(d)){bulkDates.push(d);renderBulkTags();}}
+function removeBulkDate(d){bulkDates=bulkDates.filter(x=>x!==d);renderBulkTags();}
+function renderBulkTags(){
+  document.getElementById('bulkTags').innerHTML=
+    bulkDates.map(d=>`<span class="dtag">${d}<span class="dtx" onclick="removeBulkDate('${d}')">x</span></span>`).join('');
+}
+
+// ══════════════════════════════════════════
 //  SAVE DAILY LOG
-// ─────────────────────────────────────────────
-function saveDailyLog() {
-    const lineId = document.getElementById('lineSelect').value;
-    const action  = document.getElementById('logAction').value;
-    const details = document.getElementById('logDetails').value;
-    const wells   = document.getElementById('logFinalWells').value;
-    const stocks  = document.getElementById('logStocks').value;
-    const memo    = document.getElementById('logMemo').value;
+// ══════════════════════════════════════════
+function saveDailyLog(){
+  const lineId=document.getElementById('lineSelect').value;
+  const action=document.getElementById('logAction').value;
+  const det   =document.getElementById('logDet').value.trim();
+  const wells =document.getElementById('logWells').value;
+  const stocks=document.getElementById('logStocks').value;
+  const memo  =document.getElementById('logMemo').value;
+  const dates =bulkDates.length>0?[...bulkDates]:[document.getElementById('logDate').value];
+  if(!lineId||!dates.length) return alert('라인과 날짜를 확인하세요.');
 
-    let datesToProcess = bulkDates.length > 0 ? [...bulkDates] : [document.getElementById('logDate').value];
-    if (!lineId || !datesToProcess.length) return alert('라인과 날짜를 확인하세요.');
-
-    datesToProcess.sort().forEach(date => {
-        const line = lines.find(l => l.id === lineId);
-        const dInfo = calcDDay(line, date);
-        const newLog = {
-            id: Date.now() + Math.random().toString(),
-            lineId, date, action,
-            passage: line.passage,
-            dayInfo: dInfo,
-            details, finalWells: wells, stocks, memo
-        };
-        logs.push(newLog);
-
-        if (action === 'Split' || action.includes('Split (P+1')) {
-            line.passage += 1;
-            line.baseDay = 0;
-            line.isReseeded = false;
-            line.startDate = new Date(date).toISOString();
-        } else if (action === 'Reseeding') {
-            const diff = Math.floor((new Date(date) - new Date(line.startDate)) / 86400000);
-            line.baseDay += diff;
-            line.isReseeded = true;
-            line.startDate = new Date(date).toISOString();
-        }
-    });
-
-    bulkDates = []; renderBulkTags();
-    document.getElementById('logDetails').value  = '';
-    document.getElementById('logFinalWells').value = '';
-    document.getElementById('logStocks').value   = '';
-    document.getElementById('logMemo').value     = '';
-    updateUI(); previewDay();
-}
-
-// ─────────────────────────────────────────────
-//  SAVE LINE (create / update)
-// ─────────────────────────────────────────────
-function saveLine() {
-    const id    = document.getElementById('editLineId').value;
-    const pId   = document.getElementById('newLineId').value.trim();
-    const type  = document.getElementById('newLineType').value.trim();
-    const p     = parseInt(document.getElementById('newLineP').value) || 0;
-    const baseD = parseInt(document.getElementById('newLineBaseD').value) || 0;
-    const wells = document.getElementById('newLineWells').value;
-    const start = document.getElementById('newLineStartDate').value;
-
-    if (!pId || !type || !start) return alert('필수 정보를 입력하세요.');
-
-    if (id) {
-        // UPDATE existing line
-        const idx = lines.findIndex(l => l.id === id);
-        lines[idx] = { ...lines[idx], patientId: pId, type, passage: p, baseDay: baseD, startDate: new Date(start).toISOString(), initialWells: wells };
-        // update P/D on subsequent logs if needed (best-effort: update passage/dayInfo in logs after the edited line)
-        recalcLogsForLine(lines[idx]);
-    } else {
-        // CREATE new line
-        const newLine = {
-            id: Date.now().toString(), patientId: pId, type,
-            passage: p, baseDay: baseD,
-            isReseeded: (baseD > 0),
-            startDate: new Date(start).toISOString(),
-            initialWells: wells,
-            isCompleted: false
-        };
-        lines.push(newLine);
-
-        // Auto-create Seeded log on start date
-        if (wells && parseInt(wells) > 0) {
-            const seedLog = {
-                id: Date.now() + '_seed',
-                lineId: newLine.id,
-                date: start,
-                action: 'Seeded',
-                passage: p,
-                dayInfo: baseD > 0 ? `d${baseD}+0` : 'd0',
-                details: '',
-                finalWells: wells,
-                stocks: '',
-                memo: '최초 seeding'
-            };
-            logs.push(seedLog);
-        }
+  dates.sort().forEach(date=>{
+    const line=lines.find(l=>l.id===lineId);
+    logs.push({id:uid(),lineId,date,action,passage:line.passage,dayInfo:calcDayStr(line,date),details:det,finalWells:wells,stocks,memo});
+    if(action.includes('Split')){
+      line.passage+=1;line.baseDay=0;line.isReseeded=false;line.startDate=isoD(date);
+    } else if(action==='Reseeding'){
+      const s=new Date(line.startDate),ld=new Date(date);
+      s.setHours(0,0,0,0);ld.setHours(0,0,0,0);
+      line.baseDay+=Math.floor((ld-s)/86400000);
+      line.isReseeded=true;line.startDate=isoD(date);
     }
-    resetLineForm(); updateUI();
+    if(action==='Stock 제작'&&stocks&&parseInt(stocks)>0){
+      const ln=lines.find(l=>l.id===lineId);
+      stockChecks.push({id:uid(),lineLabel:`${ln.patientId}_${ln.type}`,date,stocks,ln2Done:false,dbDone:false});
+    }
+  });
+
+  bulkDates=[];renderBulkTags();
+  ['logDet','logWells','logStocks','logMemo'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('chkLN2').checked=false;
+  document.getElementById('chkDB').checked=false;
+  document.getElementById('stockInline').style.display='none';
+  document.getElementById('logAction').value='Media Change';
+  updateUI();previewDay();
 }
 
-// Recalculate logs passage/dayInfo after line manual edit
-function recalcLogsForLine(line) {
-    const lineLogs = logs
-        .filter(l => l.lineId === line.id)
-        .sort((a,b) => new Date(a.date) - new Date(b.date));
+// ══════════════════════════════════════════
+//  RECALC LOGS FOR LINE
+//  Called after any log edit that changes action/date/P/D
+//  Walks all logs chronologically and recalculates passage + dayInfo
+// ══════════════════════════════════════════
+function recalcLogsForLine(lineId){
+  const line=lines.find(l=>l.id===lineId);
+  if(!line) return;
 
-    let curP = line.passage;
-    let curBaseDay = line.baseDay;
-    let curStart = new Date(line.startDate);
-    let curReseeded = line.isReseeded;
+  // Sort all logs for this line chronologically (Seeded first, then date order)
+  const lls=logs.filter(l=>l.lineId===lineId).sort((a,b)=>{
+    if(isSeed(a.action)&&!isSeed(b.action)) return -1;
+    if(!isSeed(a.action)&&isSeed(b.action)) return 1;
+    return new Date(a.date)-new Date(b.date);
+  });
 
-    lineLogs.forEach(log => {
-        if (log.action === 'Seeded') {
-            log.passage = curP;
-            log.dayInfo = curBaseDay > 0 ? `d${curBaseDay}+0` : 'd0';
-            return;
+  // Walk and recalculate using the line's base state
+  let curP   =line.passage;
+  let curBase=line.baseDay;
+  let resd   =line.isReseeded;
+  let curStart=new Date(line.startDate);curStart.setHours(0,0,0,0);
+
+  // To recalc properly, we need to reset from line's INITIAL state
+  // Find the earliest log to reconstruct from the true beginning
+  // Strategy: find the first Seeded log to get the real base, then walk forward
+  const seedLog=lls.find(l=>isSeed(l.action));
+  if(seedLog){
+    curP    =parseP(seedLog.passage);
+    curBase =0;
+    resd    =false;
+    curStart=new Date(seedLog.date);curStart.setHours(0,0,0,0);
+    seedLog.dayInfo='d0';
+  }
+
+  lls.forEach(lg=>{
+    if(isSeed(lg.action)){
+      // already handled above
+      return;
+    }
+    if(isFin(lg.action)){
+      lg.passage=curP;
+      lg.dayInfo='END';
+      return;
+    }
+    const dt=new Date(lg.date);dt.setHours(0,0,0,0);
+    const diff=Math.floor((dt-curStart)/86400000);
+    lg.passage=curP;
+    lg.dayInfo=(curBase>0||resd)?`d${curBase}+${diff}`:`d${diff}`;
+
+    // Advance state for next log
+    if((lg.action||'').includes('Split')){
+      curP++;curBase=0;resd=false;curStart=new Date(lg.date);curStart.setHours(0,0,0,0);
+    } else if(lg.action==='Reseeding'){
+      curBase+=diff;resd=true;curStart=new Date(lg.date);curStart.setHours(0,0,0,0);
+    }
+  });
+
+  // Update line's current state from latest non-finish log
+  const lastActive=lls.slice().reverse().find(l=>!isFin(l.action)&&!isSeed(l.action));
+  if(lastActive){
+    line.passage=lastActive.passage;
+    // rebuild startDate and baseDay from last Split or Reseeding
+    const lastSplit=lls.slice().filter(l=>(l.action||'').includes('Split')).pop();
+    const lastReseed=lls.slice().filter(l=>l.action==='Reseeding').pop();
+    // find the most recent state-change event
+    const candidates=[lastSplit,lastReseed].filter(Boolean).sort((a,b)=>new Date(b.date)-new Date(a.date));
+    if(candidates.length){
+      const ev=candidates[0];
+      if((ev.action||'').includes('Split')){
+        line.passage=parseP(ev.passage)+1;
+        line.baseDay=0;line.isReseeded=false;
+        line.startDate=isoD(ev.date);
+      } else {
+        // Reseeding — reconstruct
+        const di=parseD(ev.dayInfo);
+        if(di){
+          line.baseDay=di.base+di.diff;
+          line.isReseeded=true;
+          line.startDate=isoD(ev.date);
         }
-        const logDate = new Date(log.date);
-        logDate.setHours(0,0,0,0); curStart.setHours(0,0,0,0);
-        const diff = Math.floor((logDate - curStart) / 86400000);
-        log.passage = curP;
-        log.dayInfo = (curBaseDay > 0 || curReseeded) ? `d${curBaseDay}+${diff}` : `d${diff}`;
-
-        if (log.action && (log.action.includes('Split'))) {
-            curP++;
-            curBaseDay = 0;
-            curReseeded = false;
-            curStart = new Date(log.date);
-        } else if (log.action === 'Reseeding') {
-            curBaseDay += diff;
-            curReseeded = true;
-            curStart = new Date(log.date);
-        }
-    });
+      }
+    }
+    // re-check passage from latest log
+    const veryLast=lls.slice().reverse().find(l=>!isFin(l.action));
+    if(veryLast) line.passage=parseP(veryLast.passage);
+  }
 }
 
-// ─────────────────────────────────────────────
-//  MANUAL SPLIT from line list
-// ─────────────────────────────────────────────
-function manualSplit(lineId) {
-    const dateStr = prompt('Split 날짜를 입력하세요 (YYYY-MM-DD):', new Date().toISOString().split('T')[0]);
-    if (!dateStr) return;
-    const line = lines.find(l => l.id === lineId);
-    const dInfo = calcDDay(line, dateStr);
-    logs.push({
-        id: Date.now() + Math.random().toString(),
-        lineId, date: dateStr,
-        action: 'Split',
-        passage: line.passage,
-        dayInfo: dInfo,
-        details: '', finalWells: '', stocks: '',
-        memo: '라인 관리에서 수동 Split'
-    });
-    line.passage += 1;
-    line.baseDay = 0;
-    line.isReseeded = false;
-    line.startDate = new Date(dateStr).toISOString();
-    updateUI();
+// ══════════════════════════════════════════
+//  SAVE LINE
+// ══════════════════════════════════════════
+function saveLine(){
+  const id   =document.getElementById('elId').value;
+  const pId  =document.getElementById('elPid').value.trim();
+  const type =document.getElementById('elType').value.trim();
+  const p    =parseInt(document.getElementById('elP').value)||0;
+  const baseD=parseInt(document.getElementById('elBase').value)||0;
+  const wells=document.getElementById('elWells').value;
+  const start=document.getElementById('elStart').value;
+  if(!pId||!type||!start) return alert('필수 정보를 입력하세요.');
+
+  if(id){
+    const idx=lines.findIndex(l=>l.id===id);
+    lines[idx]={...lines[idx],patientId:pId,type,passage:p,baseDay:baseD,
+      isReseeded:(baseD>0),startDate:isoD(start),initialWells:wells};
+    recalcLogsForLine(lines[idx].id);
+  } else {
+    const nl={id:uid(),patientId:pId,type,passage:p,baseDay:baseD,
+      isReseeded:(baseD>0),startDate:isoD(start),initialWells:wells,isCompleted:false};
+    lines.push(nl);
+    // auto Seeded log — only if wells > 0 and no existing Seeded log
+    if(wells&&parseInt(wells)>0){
+      const hasSeed=logs.some(l=>l.lineId===nl.id&&isSeed(l.action));
+      if(!hasSeed){
+        logs.push({id:uid()+'_sd',lineId:nl.id,date:start,action:'Seeded',
+          passage:p,dayInfo:baseD>0?`d${baseD}+0`:'d0',details:'',finalWells:wells,stocks:'',memo:'최초 seeding'});
+      }
+    }
+  }
+  resetLineForm();updateUI();
 }
 
-// ─────────────────────────────────────────────
+// ══════════════════════════════════════════
 //  COMPLETE LINE
-// ─────────────────────────────────────────────
-function completeLine(id) {
-    const m = prompt('완료 처리하시겠습니까? 완료 메모를 남겨주세요:');
-    if (m === null) return;
-    const l = lines.find(line => line.id === id);
-    const today = new Date().toISOString().split('T')[0];
-    l.isCompleted = true;
-    l.finishDate = today; // store finish date to freeze day counter
-    logs.push({
-        id: Date.now().toString(), lineId: id,
-        date: today,
-        action: 'Finish (완료)',
-        passage: l.passage,
-        dayInfo: calcDDay(l, today),
-        details: '', finalWells: '', stocks: '',
-        memo: m || '실험 종료'
-    });
-    updateUI();
+// ══════════════════════════════════════════
+function completeLine(id){
+  const m=prompt('완료 처리하시겠습니까? 메모:');if(m===null) return;
+  const line=lines.find(l=>l.id===id);
+  const t=today(),ds=calcDayStr(line,t);
+  line.isCompleted=true;line.finishDate=t;line.finishDayStr=ds;
+  logs.push({id:uid(),lineId:id,date:t,action:'Finish (완료)',passage:line.passage,
+    dayInfo:ds,details:'',finalWells:'',stocks:'',memo:m||'실험 종료'});
+  updateUI();
 }
 
-// ─────────────────────────────────────────────
+// ══════════════════════════════════════════
 //  EDIT LINE
-// ─────────────────────────────────────────────
-function editLine(id) {
-    const l = lines.find(line => line.id === id);
-    document.getElementById('editLineId').value = l.id;
-    document.getElementById('newLineId').value  = l.patientId;
-    document.getElementById('newLineType').value = l.type;
-    document.getElementById('newLineP').value   = l.passage;
-    document.getElementById('newLineBaseD').value = l.baseDay;
-    document.getElementById('newLineWells').value = l.initialWells || '';
-    document.getElementById('newLineStartDate').value = l.startDate.split('T')[0];
-    openLineModal();
+// ══════════════════════════════════════════
+function editLine(id){
+  const l=lines.find(x=>x.id===id);
+  document.getElementById('elId').value   =l.id;
+  document.getElementById('elPid').value  =l.patientId;
+  document.getElementById('elType').value =l.type;
+  document.getElementById('elP').value    =l.passage;
+  document.getElementById('elBase').value =l.baseDay;
+  document.getElementById('elWells').value=l.initialWells||'';
+  document.getElementById('elStart').value=l.startDate.split('T')[0];
+  openLineModal();
 }
 
-// ─────────────────────────────────────────────
-//  LOG EDIT MODAL
-// ─────────────────────────────────────────────
-function openLogEditModal(id) {
-    const log = logs.find(lg => lg.id === id);
-    document.getElementById('editLogId').value   = id;
-    document.getElementById('editLogDate').value = log.date;
+function deleteLine(id){
+  if(!confirm('라인과 관련된 모든 로그가 삭제됩니다. 계속하시겠습니까?')) return;
+  lines=lines.filter(l=>l.id!==id);logs=logs.filter(l=>l.lineId!==id);updateUI();
+}
 
-    const sel = document.getElementById('editLogAction');
-    if (![...sel.options].some(o => o.value === log.action)) {
-        sel.add(new Option(log.action, log.action));
+// ══════════════════════════════════════════
+//  LOG EDIT MODAL — with auto-recalc
+// ══════════════════════════════════════════
+function openLogModal(id){
+  const lg=logs.find(l=>l.id===id);
+  document.getElementById('eid').value   =id;
+  document.getElementById('eDate').value =lg.date;
+  const sel=document.getElementById('eAct');
+  if(![...sel.options].some(o=>o.value===lg.action)) sel.add(new Option(lg.action,lg.action));
+  sel.value=lg.action;
+  document.getElementById('eP').value    =lg.passage;
+  document.getElementById('eD').value    =lg.dayInfo||'';
+  document.getElementById('eDet').value  =lg.details||'';
+  document.getElementById('eWells').value=lg.finalWells||'';
+  document.getElementById('eStocks').value=lg.stocks||'';
+  document.getElementById('eMemo').value =lg.memo||'';
+  document.getElementById('logModal').classList.add('open');
+}
+
+function updateLog(){
+  const id =document.getElementById('eid').value;
+  const idx=logs.findIndex(l=>l.id===id);
+  const prevAction=logs[idx].action;
+  const newAction =document.getElementById('eAct').value;
+  const newDate   =document.getElementById('eDate').value;
+
+  logs[idx].date      =newDate;
+  logs[idx].action    =newAction;
+  logs[idx].passage   =parseP(document.getElementById('eP').value);
+  logs[idx].dayInfo   =document.getElementById('eD').value;
+  logs[idx].details   =document.getElementById('eDet').value;
+  logs[idx].finalWells=document.getElementById('eWells').value;
+  logs[idx].stocks    =document.getElementById('eStocks').value;
+  logs[idx].memo      =document.getElementById('eMemo').value;
+
+  // Recalculate all logs for the affected line
+  const lineId=logs[idx].lineId;
+
+  // If action changed from/to Split or Reseeding, need to update line state too
+  // Set line base state from the very first Seeded log, then recalc will fix everything
+  const line=lines.find(l=>l.id===lineId);
+  if(line){
+    const seedLog=logs.filter(l=>l.lineId===lineId&&isSeed(l.action)).sort((a,b)=>new Date(a.date)-new Date(b.date))[0];
+    if(seedLog){
+      line.passage=parseP(seedLog.passage);
+      line.baseDay=0;line.isReseeded=false;
+      line.startDate=isoD(seedLog.date);
     }
-    sel.value = log.action;
-
-    document.getElementById('editLogP').value         = log.passage || 0;
-    document.getElementById('editLogD').value         = log.dayInfo || '';
-    document.getElementById('editLogDetails').value   = log.details || '';
-    document.getElementById('editLogFinalWells').value = log.finalWells || '';
-    document.getElementById('editLogStocks').value    = log.stocks || '';
-    document.getElementById('editLogMemo').value      = log.memo || '';
-
-    document.getElementById('logEditModal').style.display = 'flex';
+  }
+  recalcLogsForLine(lineId);
+  closeLogModal();updateUI();
 }
 
-function updateLog() {
-    const id  = document.getElementById('editLogId').value;
-    const idx = logs.findIndex(lg => lg.id === id);
-    logs[idx].date       = document.getElementById('editLogDate').value;
-    logs[idx].action     = document.getElementById('editLogAction').value;
-    logs[idx].passage    = parseInt(document.getElementById('editLogP').value) || 0;
-    logs[idx].dayInfo    = document.getElementById('editLogD').value;
-    logs[idx].details    = document.getElementById('editLogDetails').value;
-    logs[idx].finalWells = document.getElementById('editLogFinalWells').value;
-    logs[idx].stocks     = document.getElementById('editLogStocks').value;
-    logs[idx].memo       = document.getElementById('editLogMemo').value;
-    closeLogEditModal(); updateUI();
-}
-
-function deleteLogFromModal() {
-    const id = document.getElementById('editLogId').value;
-    if (confirm('이 기록을 삭제하시겠습니까? 복구할 수 없습니다.')) {
-        logs = logs.filter(l => l.id !== id);
-        closeLogEditModal(); updateUI();
+function deleteLog(){
+  if(!confirm('이 기록을 삭제하시겠습니까?')) return;
+  const id=document.getElementById('eid').value;
+  const lineId=logs.find(l=>l.id===id)?.lineId;
+  logs=logs.filter(l=>l.id!==id);
+  if(lineId){
+    const line=lines.find(l=>l.id===lineId);
+    if(line){
+      const seedLog=logs.filter(l=>l.lineId===lineId&&isSeed(l.action)).sort((a,b)=>new Date(a.date)-new Date(b.date))[0];
+      if(seedLog){line.passage=parseP(seedLog.passage);line.baseDay=0;line.isReseeded=false;line.startDate=isoD(seedLog.date);}
     }
+    recalcLogsForLine(lineId);
+  }
+  closeLogModal();updateUI();
 }
 
-// ─────────────────────────────────────────────
+// ══════════════════════════════════════════
 //  PREVIEW
-// ─────────────────────────────────────────────
-function previewDay() {
-    const lineId  = document.getElementById('lineSelect').value;
-    const preview = document.getElementById('previewArea');
-    if (!lineId) { preview.innerText = '라인을 선택하면 P/D 상태가 미리 계산됩니다.'; return; }
-    const line = lines.find(l => l.id === lineId);
-    preview.innerText = `현재 상태: P${line.passage} / ${calcDDay(line, document.getElementById('logDate').value)}`;
+// ══════════════════════════════════════════
+function previewDay(){
+  const lineId=document.getElementById('lineSelect').value;
+  const pr=document.getElementById('prevArea');
+  if(!lineId){pr.textContent='라인을 선택하면 P/D 상태가 미리 계산됩니다.';return;}
+  const line=lines.find(l=>l.id===lineId);
+  pr.textContent=`현재 상태: P${line.passage} / ${calcDayStr(line,document.getElementById('logDate').value)}`;
 }
-document.getElementById('logDate').addEventListener('change', previewDay);
+document.getElementById('logDate').addEventListener('change',previewDay);
 
-// ─────────────────────────────────────────────
+// ══════════════════════════════════════════
 //  MODAL OPEN/CLOSE
-// ─────────────────────────────────────────────
-function openLineModal() { document.getElementById('lineModal').style.display = 'flex'; }
-function closeModal() { document.getElementById('lineModal').style.display = 'none'; resetLineForm(); }
-function closeLogEditModal() { document.getElementById('logEditModal').style.display = 'none'; }
-function resetLineForm() {
-    document.getElementById('editLineId').value = '';
-    document.getElementById('newLineId').value  = '';
-    document.getElementById('newLineType').value = '';
-    document.getElementById('newLineP').value   = 0;
-    document.getElementById('newLineBaseD').value = 0;
-    document.getElementById('newLineWells').value = '';
-    document.getElementById('newLineStartDate').valueAsDate = new Date();
+// ══════════════════════════════════════════
+function openLineModal(){updateUI();document.getElementById('lineModal').classList.add('open');}
+function closeLineModal(){document.getElementById('lineModal').classList.remove('open');resetLineForm();}
+function closeLogModal(){document.getElementById('logModal').classList.remove('open');}
+function resetLineForm(){
+  ['elId','elPid','elType'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('elP').value=0;document.getElementById('elBase').value=0;
+  document.getElementById('elWells').value=0;document.getElementById('elStart').valueAsDate=new Date();
 }
+['lineModal','logModal'].forEach(id=>{
+  document.getElementById(id).addEventListener('click',e=>{
+    if(e.target===document.getElementById(id)) document.getElementById(id).classList.remove('open');
+  });
+});
 
-// ─────────────────────────────────────────────
-//  DELETE LINE
-// ─────────────────────────────────────────────
-function deleteLine(id) {
-    if (confirm('라인과 관련된 모든 로그가 삭제됩니다. 계속하시겠습니까?')) {
-        lines = lines.filter(l => l.id !== id);
-        logs  = logs.filter(log => log.lineId !== id);
-        updateUI();
-    }
-}
-
-// ─────────────────────────────────────────────
+// ══════════════════════════════════════════
 //  CSV EXPORT
-// ─────────────────────────────────────────────
-function exportToCSV() {
-    let csv = '\uFEFFDate,Patient_Type,Action,P,D,Details,Final Wells,Stocks,Memo\n';
-    logs.sort((a,b) => new Date(a.date) - new Date(b.date)).forEach(l => {
-        const line = lines.find(ln => ln.id === l.lineId);
-        const memoEsc = (l.memo || '').replace(/"/g, '""');
-        csv += `${l.date},${line ? line.patientId+'_'+line.type : 'Unknown'},${l.action},P${l.passage},${l.dayInfo},"${l.details||''}",${l.finalWells||''},${l.stocks||''},"${memoEsc}"\n`;
-    });
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'Organoid_Log_Backup.csv';
-    link.click();
+// ══════════════════════════════════════════
+function exportCSV(){
+  let csv='\uFEFFDate,Patient_Type,Action,P,D,Details,Final Wells,Stocks,Memo\n';
+  logs.sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(lg=>{
+    const line=lines.find(l=>l.id===lg.lineId);
+    const pt=line?`${line.patientId}_${line.type}`:'Unknown';
+    csv+=`${lg.date},${pt},${lg.action},P${lg.passage},${lg.dayInfo||''},"${(lg.details||'').replace(/"/g,'""')}",${lg.finalWells||''},${lg.stocks||''},"${(lg.memo||'').replace(/"/g,'""')}"\n`;
+  });
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
+  a.download=`Organoid_Log_${today()}.csv`;a.click();
 }
 
-// ─────────────────────────────────────────────
+// ══════════════════════════════════════════
 //  CSV IMPORT
-// ─────────────────────────────────────────────
-function parseCSVRow(str) {
-    const result = []; let cur = ''; let inQ = false;
-    for (let i = 0; i < str.length; i++) {
-        const ch = str[i];
-        if (inQ) {
-            if (ch === '"') { if (str[i+1] === '"') { cur += '"'; i++; } else inQ = false; }
-            else cur += ch;
-        } else {
-            if (ch === '"') inQ = true;
-            else if (ch === ',') { result.push(cur); cur = ''; }
-            else cur += ch;
-        }
-    }
-    result.push(cur); return result;
+// ══════════════════════════════════════════
+function parseCSVRow(str){
+  const res=[];let cur='';let inQ=false;
+  for(let i=0;i<str.length;i++){
+    const c=str[i];
+    if(inQ){if(c==='"'){if(str[i+1]==='"'){cur+='"';i++;}else inQ=false;}else cur+=c;}
+    else{if(c==='"')inQ=true;else if(c===','){res.push(cur);cur='';}else cur+=c;}
+  }
+  res.push(cur);return res;
 }
 
-function importCSV(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        let text = e.target.result;
-        if (text.charCodeAt(0) === 0xFEFF) text = text.substr(1);
-        const rows = text.split(/\r?\n/).filter(r => r.trim() !== '');
-        let added = 0;
+function importCSV(event){
+  const file=event.target.files[0];if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    let txt=e.target.result;
+    if(txt.charCodeAt(0)===0xFEFF) txt=txt.substr(1);
+    const rows=txt.split(/\r?\n/).filter(r=>r.trim());
+    let added=0;
 
-        for (let i = 1; i < rows.length; i++) {
-            const row = parseCSVRow(rows[i]);
-            if (row.length < 5) continue;
-
-            const [dateVal, patientType, action, pStr, dStr, details, finalWells, stocks, memo] = row;
-            if (!patientType || patientType === 'Unknown') continue;
-
-            const underIdx = patientType.lastIndexOf('_');
-            if (underIdx < 0) continue;
-            const pId  = patientType.substring(0, underIdx);
-            const type = patientType.substring(underIdx + 1);
-
-            let line = lines.find(l => l.patientId === pId && l.type === type && !l.isCompleted);
-            if (!line) {
-                line = {
-                    id: 'imported_' + Date.now() + Math.random(),
-                    patientId: pId, type,
-                    passage: parseInt((pStr||'').replace(/[^0-9]/g,'')) || 0,
-                    baseDay: 0, isReseeded: (dStr||'').includes('+'),
-                    startDate: new Date(dateVal).toISOString(),
-                    initialWells: finalWells || 0,
-                    isCompleted: false
-                };
-                lines.push(line);
-            }
-
-            const exists = logs.find(l => l.lineId === line.id && l.date === dateVal && l.action === action && l.memo === (memo||''));
-            if (!exists) {
-                logs.push({
-                    id: Date.now() + Math.random().toString(),
-                    lineId: line.id,
-                    date: dateVal, action,
-                    passage: parseInt((pStr||'').replace(/[^0-9]/g,'')) || 0,
-                    dayInfo: dStr || 'd0',
-                    details: details || '',
-                    finalWells: finalWells || '',
-                    stocks: stocks || '',
-                    memo: memo || ''
-                });
-                added++;
-            }
-        }
-
-        // sync line state from latest log
-        lines.forEach(line => {
-            const lineLogs = logs.filter(l => l.lineId === line.id).sort((a,b) => new Date(a.date) - new Date(b.date));
-            if (!lineLogs.length) return;
-            const latest = lineLogs[lineLogs.length - 1];
-            line.passage = latest.passage;
-
-            // check finish
-            const finishLog = lineLogs.find(l => l.action && (l.action.includes('Finish') || l.action.includes('완료')));
-            if (finishLog) {
-                line.isCompleted = true;
-                line.finishDate = finishLog.date;
-            }
-
-            const di = latest.dayInfo || 'd0';
-            if (di.includes('+')) {
-                const parts = di.replace('d','').split('+');
-                line.baseDay = parseInt(parts[0]) || 0;
-                const diff   = parseInt(parts[1]) || 0;
-                line.isReseeded = true;
-                const s = new Date(latest.date); s.setDate(s.getDate() - diff);
-                line.startDate = s.toISOString();
-            } else {
-                line.baseDay = 0;
-                const diff = parseInt(di.replace('d','')) || 0;
-                line.isReseeded = false;
-                const s = new Date(latest.date); s.setDate(s.getDate() - diff);
-                line.startDate = s.toISOString();
-            }
-        });
-
-        // Ensure existing lines with wells but no Seeded log get one
-        ensureSeedLogs();
-
-        updateUI();
-        alert(`CSV 복원 완료. ${added}개 기록 추가.`);
-        document.getElementById('csvFileInput').value = '';
+    // detect columns dynamically from header
+    const hdr=parseCSVRow(rows[0]).map(h=>h.trim().toLowerCase());
+    const hasVessel=hdr.includes('vessel');
+    const CI={
+      date:0,pt:1,action:2,p:3,d:4,
+      vessel:hasVessel?5:-1,
+      details:hasVessel?6:5,
+      wells:hasVessel?7:6,
+      stocks:hasVessel?8:7,
+      memo:hasVessel?9:8,
     };
-    reader.readAsText(file);
-}
 
-// ─────────────────────────────────────────────
-//  ENSURE SEED LOGS for existing lines
-// ─────────────────────────────────────────────
-function ensureSeedLogs() {
-    lines.forEach(line => {
-        const hasSeed = logs.some(l => l.lineId === line.id && l.action === 'Seeded');
-        if (!hasSeed && (parseInt(line.initialWells) > 0)) {
-            const startDateStr = line.startDate.split('T')[0];
-            logs.push({
-                id: 'seed_' + line.id,
-                lineId: line.id,
-                date: startDateStr,
-                action: 'Seeded',
-                passage: line.passage,
-                dayInfo: line.baseDay > 0 ? `d${line.baseDay}+0` : 'd0',
-                details: '',
-                finalWells: line.initialWells,
-                stocks: '',
-                memo: '최초 seeding'
-            });
-        }
-    });
-}
+    for(let i=1;i<rows.length;i++){
+      const r=parseCSVRow(rows[i]);
+      if(r.length<5) continue;
+      const dateVal=(r[CI.date]||'').trim();
+      const ptRaw  =(r[CI.pt]||'').trim();
+      const action =(r[CI.action]||'').trim();
+      const pRaw   =(r[CI.p]||'').trim();
+      const dRaw   =(r[CI.d]||'').trim();
+      const details=(r[CI.details]||'').trim();
+      const wells  =(r[CI.wells]||'').trim();
+      const stocks =(r[CI.stocks]||'').trim();
+      const memo   =(r[CI.memo]||'').trim();
+      if(!ptRaw||ptRaw==='Unknown'||!dateVal) continue;
 
-// ─────────────────────────────────────────────
-//  BOOT
-// ─────────────────────────────────────────────
-// Handle finishDate for already-completed lines imported from old data
-lines.forEach(line => {
-    if (line.isCompleted && !line.finishDate) {
-        const finishLog = logs
-            .filter(l => l.lineId === line.id && l.action && (l.action.includes('Finish') || l.action.includes('완료')))
-            .sort((a,b) => new Date(b.date) - new Date(a.date))[0];
-        if (finishLog) line.finishDate = finishLog.date;
+      const lastUs=ptRaw.lastIndexOf('_');
+      if(lastUs<0) continue;
+      const pId=ptRaw.substring(0,lastUs);
+      const type=ptRaw.substring(lastUs+1);
+      const passageNum=parseP(pRaw);
+
+      let line=lines.find(l=>l.patientId===pId&&l.type===type&&!l.isCompleted)
+              ||lines.find(l=>l.patientId===pId&&l.type===type);
+      if(!line){
+        line={id:'imp_'+uid(),patientId:pId,type,passage:passageNum,baseDay:0,isReseeded:false,
+          startDate:isoD(dateVal),initialWells:wells,isCompleted:false};
+        lines.push(line);
+      }
+
+      const dup=logs.find(l=>l.lineId===line.id&&l.date===dateVal&&l.action===action&&l.memo===memo);
+      if(!dup){
+        logs.push({id:uid(),lineId:line.id,date:dateVal,action,
+          passage:passageNum,dayInfo:dRaw||'d0',details,finalWells:wells,stocks,memo});
+        added++;
+      }
     }
+
+    // sync line state from logs
+    lines.forEach(line=>{
+      const lls=logs.filter(l=>l.lineId===line.id).sort((a,b)=>new Date(a.date)-new Date(b.date));
+      if(!lls.length) return;
+      const fl=lls.slice().reverse().find(l=>isFin(l.action));
+      if(fl){line.isCompleted=true;line.finishDate=fl.date;line.finishDayStr=fl.dayInfo&&fl.dayInfo!=='END'?fl.dayInfo:'END';}
+      const latest=lls.slice().reverse().find(l=>!isFin(l.action))||lls[lls.length-1];
+      line.passage=parseP(latest.passage);
+      const di=parseD(latest.dayInfo);
+      if(di!==null){
+        line.baseDay=di.base;line.isReseeded=di.base>0;
+        const ld=new Date(latest.date);ld.setHours(0,0,0,0);ld.setDate(ld.getDate()-di.diff);
+        line.startDate=ld.toISOString();
+      }
+    });
+
+    ensureSeedLogs();
+    updateUI();
+    alert(`CSV 복원 완료. ${added}개 기록 추가.`);
+    document.getElementById('csvFile').value='';
+  };
+  reader.readAsText(file);
+}
+
+// ══════════════════════════════════════════
+//  ENSURE SEED LOGS
+//  - Removes duplicate/legacy "Initial Seeding" logs if a "Seeded" log exists
+//  - Creates a Seeded log if none exists and wells > 0
+// ══════════════════════════════════════════
+function ensureSeedLogs(){
+  lines.forEach(line=>{
+    const lineLogs=logs.filter(l=>l.lineId===line.id);
+
+    // Normalize "Initial Seeding" → "Seeded"
+    lineLogs.forEach(lg=>{
+      if(lg.action==='Initial Seeding') lg.action='Seeded';
+    });
+
+    // Remove duplicates: if multiple Seeded logs exist, keep only the earliest
+    const seedLogs=logs.filter(l=>l.lineId===line.id&&l.action==='Seeded')
+      .sort((a,b)=>new Date(a.date)-new Date(b.date));
+    if(seedLogs.length>1){
+      const keep=seedLogs[0].id;
+      logs=logs.filter(l=>!(l.lineId===line.id&&l.action==='Seeded'&&l.id!==keep));
+    }
+
+    // Create if none
+    const hasSeed=logs.some(l=>l.lineId===line.id&&l.action==='Seeded');
+    if(!hasSeed&&parseInt(line.initialWells||0)>0){
+      logs.push({id:'seed_'+line.id,lineId:line.id,date:line.startDate.split('T')[0],
+        action:'Seeded',passage:parseP(line.passage),
+        dayInfo:line.baseDay>0?`d${line.baseDay}+0`:'d0',
+        details:'',finalWells:line.initialWells,stocks:'',memo:'최초 seeding'});
+    }
+  });
+}
+
+// ══════════════════════════════════════════
+//  BOOT — fix legacy data then run
+// ══════════════════════════════════════════
+// Fix passage stored as string "P4"
+logs.forEach(lg=>{
+  if(typeof lg.passage==='string') lg.passage=parseP(lg.passage);
+  if(lg.passage===null||lg.passage===undefined){
+    const line=lines.find(l=>l.id===lg.lineId);
+    lg.passage=line?parseP(line.passage):0;
+  }
+  // Normalize legacy action names
+  if(lg.action==='Initial Seeding') lg.action='Seeded';
+});
+lines.forEach(line=>{
+  if(typeof line.passage==='string') line.passage=parseP(line.passage);
+  if(!line.passage&&line.passage!==0) line.passage=0;
+  if(line.isCompleted&&!line.finishDate){
+    const fl=logs.filter(l=>l.lineId===line.id&&isFin(l.action)).sort((a,b)=>new Date(b.date)-new Date(a.date))[0];
+    if(fl){line.finishDate=fl.date;line.finishDayStr=fl.dayInfo||'END';}
+  }
 });
 
 ensureSeedLogs();
