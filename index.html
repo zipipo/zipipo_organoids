@@ -44,13 +44,14 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--tx);ma
 .dash-card{background:#fff;border:1px solid var(--bd);border-radius:8px;padding:14px 16px;}
 .dash-top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px;}
 .dash-ttl{font-size:.82rem;font-weight:700;color:var(--tx);letter-spacing:.01em;}
-.dash-totals{display:flex;gap:8px;flex-wrap:wrap;}
-.dt-pill{display:inline-flex;flex-direction:column;align-items:center;gap:1px;padding:6px 14px;border-radius:7px;
-         background:#1E293B;color:#fff;min-width:64px;}
-.dt-pill .dt-num{font-size:1.05rem;font-weight:800;line-height:1.1;}
-.dt-pill .dt-lbl{font-size:.66rem;opacity:.7;font-weight:500;}
-.dt-pill.warn{background:#B45309;}
-.dt-pill.due{background:#B91C1C;}
+.dash-totals{display:flex;gap:14px;flex-wrap:wrap;align-items:center;}
+.dt-pill{display:inline-flex;align-items:baseline;gap:5px;}
+.dt-pill .dt-num{font-size:1.15rem;font-weight:800;line-height:1;color:#0F172A;}
+.dt-pill .dt-lbl{font-size:.72rem;font-weight:600;color:var(--sub);}
+.dt-pill.warn .dt-num{color:#B45309;}
+.dt-pill.warn .dt-lbl{color:#B45309;}
+.dt-pill.due .dt-num{color:#B91C1C;}
+.dt-pill.due .dt-lbl{color:#B91C1C;}
 
 /* type sections */
 .dash-types{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:10px;}
@@ -422,10 +423,8 @@ function renderDash(){
     groups[l.type].lines.push({label:l.patientId,well:w,p:l.passage,day:calcDayStr(l),mc});
   });
 
-  // top totals
-  let totals=`
-    <div class="dt-pill"><span class="dt-num">${totalLines}</span><span class="dt-lbl">배양 라인</span></div>
-    <div class="dt-pill"><span class="dt-num">${totalWells}</span><span class="dt-lbl">총 wells</span></div>`;
+  // top totals — line count only (no total wells)
+  let totals=`<div class="dt-pill"><span class="dt-num">${totalLines}</span><span class="dt-lbl">배양 라인</span></div>`;
   if(mcWarn>0) totals+=`<div class="dt-pill warn"><span class="dt-num">${mcWarn}</span><span class="dt-lbl">MC 3일차</span></div>`;
   if(mcDue>0)  totals+=`<div class="dt-pill due"><span class="dt-num">${mcDue}</span><span class="dt-lbl">MC 지연(4일+)</span></div>`;
 
@@ -679,15 +678,28 @@ function recalcLogsForLine(lineId){
     return new Date(a.date)-new Date(b.date);
   });
 
-  // Start from first Seeded log if present
+  // Determine starting state
   let curP,curBase,resd,curStart;
   const seedLog=lls.find(l=>isSeed(l.action));
   if(seedLog){
     curP=parseP(seedLog.passage);curBase=0;resd=false;
     curStart=new Date(seedLog.date);curStart.setHours(0,0,0,0);
     seedLog.dayInfo='d0';
+  } else if(lls.length){
+    // no Seeded log (e.g. imported) — anchor to the EARLIEST log:
+    // use its passage as the starting P, and derive base/start from its dayInfo
+    const first=lls.find(l=>!isFin(l.action))||lls[0];
+    curP=parseP(first.passage);
+    const di=parseD(first.dayInfo);
+    if(di){
+      curBase=di.base; resd=di.base>0;
+      curStart=new Date(first.date);curStart.setHours(0,0,0,0);
+      curStart.setDate(curStart.getDate()-di.diff);
+    } else {
+      curBase=0;resd=false;
+      curStart=new Date(first.date);curStart.setHours(0,0,0,0);
+    }
   } else {
-    // no seed log — use line base
     curP=line.passage;curBase=line.baseDay;resd=line.isReseeded;
     curStart=new Date(line.startDate);curStart.setHours(0,0,0,0);
   }
@@ -903,8 +915,15 @@ function splitPatientType(raw){
   return {pid:raw.substring(0,splitAt).trim(), type:raw.substring(splitAt+1).trim()};
 }
 
+const KNOWN_ACTIONS=['Media Change','Split','Reseeding','Pellet 제작','Stock 제작','Observation','Seeded','Initial Seeding','Finish (완료)','Finish'];
+
 function importCSV(event){
   const file=event.target.files[0];if(!file) return;
+  if(lines.length||logs.length){
+    if(!confirm('CSV 복원은 기존 데이터를 모두 지우고 새로 불러옵니다.\n(같은 파일을 여러 번 복원해도 중복되지 않습니다.)\n계속할까요?')){
+      document.getElementById('csvFile').value='';return;
+    }
+  }
   const reader=new FileReader();
   reader.onload=e=>{
     let txt=e.target.result;
@@ -915,8 +934,6 @@ function importCSV(event){
     const hdr=parseCSVRow(rows[0]).map(h=>h.trim().toLowerCase());
     const hasSeparate = hdr.includes('patient') && hdr.includes('type');
     const hasVessel   = hdr.includes('vessel');
-
-    // build column index map
     const idxOf=name=>hdr.indexOf(name);
     let CI;
     if(hasSeparate){
@@ -925,20 +942,16 @@ function importCSV(event){
           details:idxOf('details'),wells:hdr.indexOf('final wells')>=0?hdr.indexOf('final wells'):idxOf('wells'),
           stocks:idxOf('stocks'),memo:idxOf('memo')};
     } else {
-      // combined Patient_Type format
       CI={date:0,pt:1,action:2,p:3,d:4,
-          vessel:hasVessel?5:-1,
-          details:hasVessel?6:5,
-          wells:hasVessel?7:6,
-          stocks:hasVessel?8:7,
-          memo:hasVessel?9:8};
+          vessel:hasVessel?5:-1,details:hasVessel?6:5,
+          wells:hasVessel?7:6,stocks:hasVessel?8:7,memo:hasVessel?9:8};
     }
 
-    let added=0;
+    // ── Step 1: parse every row into a normalized record ──
+    const recs=[];
     for(let i=1;i<rows.length;i++){
       let r=parseCSVRow(rows[i]);
       if(r.length<4) continue;
-
       let dateVal,pId,type,action,pRaw,dRaw,details,wells,stocks,memo;
 
       if(hasSeparate){
@@ -953,20 +966,11 @@ function importCSV(event){
         stocks =(r[CI.stocks]||'').trim();
         memo   =(r[CI.memo]||'').trim();
       } else {
-        // combined format — but a comma inside an UNQUOTED Patient_Type
-        // would have split the field. Detect & repair:
-        // Heuristic: the "action" field must be a known action word.
-        // If r[2] is NOT a known action, the patient_type was split across r[1]+r[2]+...
-        const KNOWN=['Media Change','Split','Reseeding','Pellet 제작','Stock 제작','Observation','Seeded','Initial Seeding','Finish (완료)'];
-        let ptEnd=CI.pt; // index where patient_type ends
-        // walk forward until we hit a known action
-        while(ptEnd+1<r.length && !KNOWN.includes((r[ptEnd+1]||'').trim())){
-          ptEnd++;
-        }
-        // patient_type = join of r[1..ptEnd]
+        // repair rows where an unquoted comma split Patient_Type
+        let ptEnd=CI.pt;
+        while(ptEnd+1<r.length && !KNOWN_ACTIONS.includes((r[ptEnd+1]||'').trim())) ptEnd++;
         const ptRaw=r.slice(CI.pt,ptEnd+1).join(',').trim();
-        const shift=ptEnd-CI.pt; // how many extra columns were consumed
-
+        const shift=ptEnd-CI.pt;
         dateVal=(r[CI.date]||'').trim();
         action =(r[CI.action+shift]||'').trim();
         pRaw   =(r[CI.p+shift]||'').trim();
@@ -975,41 +979,66 @@ function importCSV(event){
         wells  =(r[CI.wells+shift]||'').trim();
         stocks =(r[CI.stocks+shift]||'').trim();
         memo   =(r[CI.memo+shift]||'').trim();
-
         if(!ptRaw||ptRaw==='Unknown') continue;
         const sp=splitPatientType(ptRaw);
         if(!sp) continue;
         pId=sp.pid; type=sp.type;
       }
-
       if(!dateVal||!pId||!type) continue;
-      const passageNum=parseP(pRaw);
-
-      let line=lines.find(l=>l.patientId===pId&&l.type===type&&!l.isCompleted)
-              ||lines.find(l=>l.patientId===pId&&l.type===type);
-      if(!line){
-        line={id:'imp_'+uid(),patientId:pId,type,passage:passageNum,baseDay:0,isReseeded:false,
-          startDate:isoD(dateVal),initialWells:wells,isCompleted:false};
-        lines.push(line);
-      }
-
-      const dup=logs.find(l=>l.lineId===line.id&&l.date===dateVal&&l.action===action&&l.memo===memo);
-      if(!dup){
-        logs.push({id:uid(),lineId:line.id,date:dateVal,action,
-          passage:passageNum,dayInfo:dRaw||'d0',details,finalWells:wells,stocks,memo});
-        added++;
-      }
+      if(details==='라인 등록') details='';
+      recs.push({date:dateVal,pId,type,action,passage:parseP(pRaw),
+        dayInfo:dRaw||'',details,wells,stocks,memo,_t:new Date(dateVal).getTime()});
     }
 
-    // clean ratio: remove leftover "라인 등록" detail values from very old data
-    logs.forEach(lg=>{ if(lg.details==='라인 등록') lg.details=''; });
+    // ── Step 2: sort by date (stable), then group into lines ──
+    // Same patientId+type that appears AFTER a Finish starts a NEW line (re-culture).
+    recs.sort((a,b)=>a._t-b._t);
 
-    // sync line state
+    // FRESH import: wipe existing data
+    lines=[]; logs=[]; stockChecks=[];
+
+    // map key "pId||type" → current open line object (or null if closed)
+    const openLine={};
+
+    recs.forEach(rec=>{
+      const key=rec.pId+'||'+rec.type;
+      let line=openLine[key];
+
+      // need a new line if none open
+      if(!line){
+        line={id:'imp_'+uid(),patientId:rec.pId,type:rec.type,
+          passage:rec.passage,baseDay:0,isReseeded:false,
+          startDate:isoD(rec.date),initialWells:rec.wells,isCompleted:false};
+        lines.push(line);
+        openLine[key]=line;
+      }
+
+      // dedupe within this line
+      const dup=logs.find(l=>l.lineId===line.id&&l.date===rec.date&&l.action===rec.action&&l.passage===rec.passage&&l.dayInfo===rec.dayInfo);
+      if(!dup){
+        logs.push({id:uid(),lineId:line.id,date:rec.date,action:rec.action,
+          passage:rec.passage,dayInfo:rec.dayInfo||'d0',
+          details:rec.details,finalWells:rec.wells,stocks:rec.stocks,memo:rec.memo});
+        // rebuild stock checks
+        if(rec.action==='Stock 제작'&&rec.stocks&&parseInt(rec.stocks)>0){
+          stockChecks.push({id:uid(),lineLabel:`${rec.pId}_${rec.type}`,date:rec.date,
+            stocks:rec.stocks,ln2Done:false,dbDone:false});
+        }
+      }
+
+      // if this row finishes the line → close it so future rows start fresh
+      if(isFin(rec.action)){
+        line.isCompleted=true;
+        line.finishDate=rec.date;
+        line.finishDayStr=(rec.dayInfo&&rec.dayInfo!=='END')?rec.dayInfo:'END';
+        openLine[key]=null;
+      }
+    });
+
+    // ── Step 3: set each line's CURRENT passage / day from its latest non-finish log ──
     lines.forEach(line=>{
       const lls=logs.filter(l=>l.lineId===line.id).sort((a,b)=>new Date(a.date)-new Date(b.date));
       if(!lls.length) return;
-      const fl=lls.slice().reverse().find(l=>isFin(l.action));
-      if(fl){line.isCompleted=true;line.finishDate=fl.date;line.finishDayStr=fl.dayInfo&&fl.dayInfo!=='END'?fl.dayInfo:'END';}
       const latest=lls.slice().reverse().find(l=>!isFin(l.action))||lls[lls.length-1];
       line.passage=parseP(latest.passage);
       const di=parseD(latest.dayInfo);
@@ -1020,9 +1049,9 @@ function importCSV(event){
       }
     });
 
-    ensureSeedLogs();
+    ensureSeedLogs(true);
     updateUI();
-    alert(`CSV 복원 완료. ${added}개 기록 추가.`);
+    alert(`CSV 복원 완료. 라인 ${lines.length}개, 기록 ${logs.length}개를 불러왔습니다.`);
     document.getElementById('csvFile').value='';
   };
   reader.readAsText(file);
@@ -1070,8 +1099,10 @@ function cleanBroken(){
 
 // ══════════════════════════════════════════
 //  ENSURE SEED LOGS — dedup + normalize
+//  skipCreate=true → only dedup/normalize, don't auto-add Seeded
+//  (used after CSV import, where the CSV already holds first records)
 // ══════════════════════════════════════════
-function ensureSeedLogs(){
+function ensureSeedLogs(skipCreate){
   lines.forEach(line=>{
     logs.forEach(lg=>{ if(lg.lineId===line.id&&lg.action==='Initial Seeding') lg.action='Seeded'; });
     const seedLogs=logs.filter(l=>l.lineId===line.id&&l.action==='Seeded')
@@ -1080,6 +1111,7 @@ function ensureSeedLogs(){
       const keep=seedLogs[0].id;
       logs=logs.filter(l=>!(l.lineId===line.id&&l.action==='Seeded'&&l.id!==keep));
     }
+    if(skipCreate) return;
     const hasSeed=logs.some(l=>l.lineId===line.id&&l.action==='Seeded');
     if(!hasSeed&&parseInt(line.initialWells||0)>0){
       logs.push({id:'seed_'+line.id,lineId:line.id,date:line.startDate.split('T')[0],
