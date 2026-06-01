@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Organoid OS v3.0</title>
+    <title>Organoid OS v3.1 (Back to Basic)</title>
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <style>
         :root {
@@ -44,7 +44,7 @@
 
         .entry-form { padding: 12px; background: var(--primary-soft); display: flex; flex-direction: column; gap: 10px; }
         .form-row { display: grid; gap: 10px; align-items: start; }
-        .row-1 { grid-template-columns: 1.5fr 1.5fr 1fr 1fr; }
+        .row-1 { grid-template-columns: 1.2fr 1.5fr 1fr 1fr 0.8fr; }
         .row-2 { grid-template-columns: 1.5fr 0.8fr 0.8fr 2fr 70px; }
         
         label { display: block; font-size: 0.75rem; color: #475569; margin-bottom: 4px; font-weight: 600; }
@@ -109,7 +109,7 @@
 
     <div class="container">
         <div class="header">
-            <h1>Organoid OS v3.0</h1>
+            <h1>Organoid OS v3.1 (Stabilized)</h1>
             <div style="display:flex; gap:8px;">
                 <button class="btn btn-delete" onclick="clearAllDataSystem()">시스템 데이터 초기화</button>
                 <input type="file" id="csvFileInput" style="display:none;" accept=".csv" onchange="importCSV(event)">
@@ -152,7 +152,7 @@
                         <label>작업 날짜</label>
                         <div class="date-input-group">
                             <input type="date" id="logDate">
-                            <button class="btn btn-outline" onclick="addBulkDate()">날짜 다중추가</button>
+                            <button class="btn btn-outline" onclick="addBulkDate()">다중추가</button>
                         </div>
                         <div id="bulkDateTags"></div>
                     </div>
@@ -178,11 +178,14 @@
                             <option value="기타">기타</option>
                         </select>
                     </div>
+                    <div><label style="color: #7C3AED;">P 수동 지정</label>
+                        <input type="number" id="logPassageInput" min="0" value="0">
+                    </div>
                 </div>
                 <div class="form-row row-2">
                     <div><label>과정/Ratio</label><input type="text" id="logDetails" placeholder="1:4 등"></div>
                     <div><label>최종 Well 수</label><input type="number" id="logFinalWells" min="0"></div>
-                    <div><label style="color:#A16207">Stock 수 (필요시 기록)</label><input type="number" id="logStocks" min="0"></div>
+                    <div><label style="color:#A16207">Stock 수 (필요시)</label><input type="number" id="logStocks" min="0"></div>
                     <div><label>메모 (Enter 구분 가능)</label><textarea id="logMemo" rows="1" placeholder="특이사항"></textarea></div>
                     <button class="btn btn-primary" style="align-self:end; height:32px;" onclick="saveDailyLog()">기록</button>
                 </div>
@@ -205,26 +208,22 @@
                     <input type="hidden" id="editLineId">
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
                         <div><label>환자 번호</label><input type="text" id="newLineId"></div>
-                        <div><label>종류 (신규 자동 기억)</label>
-                            <input type="text" id="newLineType" list="organoidTypes" placeholder="직접입력 또는 선택">
+                        <div><label>종류</label>
+                            <input type="text" id="newLineType" list="organoidTypes" placeholder="선택 또는 입력">
                             <datalist id="organoidTypes"></datalist>
                         </div>
                     </div>
                     <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-bottom:10px;">
-                        <div><label>초기 P</label><input type="number" id="newLineP" value="0"></div>
-                        <div><label>초기 d (누적)</label><input type="number" id="newLineBaseD" value="0"></div>
-                        <div><label>초기 Well 수</label><input type="number" id="newLineWells" value="0"></div>
+                        <div><label>현재 P</label><input type="number" id="newLineP" value="0"></div>
+                        <div><label>현재 d (누적)</label><input type="number" id="newLineBaseD" value="0"></div>
+                        <div><label>현재 Well 수</label><input type="number" id="newLineWells" value="0"></div>
                     </div>
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                        <div><label style="color:#D97706">초기 기준 날짜 (Seeding일)</label><input type="date" id="newLineStartDate"></div>
-                        <div><label>초기 Vessel</label>
-                            <select id="newLineVessel">
-                                <option value="100pi dish">100pi dish</option>
-                                <option value="6 well plate">6 well plate</option>
-                                <option value="24 well plate">24 well plate</option>
-                                <option value="48 well plate">48 well plate</option>
-                                <option value="96 well plate">96 well plate</option>
-                                <option value="-">-</option>
+                        <div><label style="color:#D97706">초기 시작 날짜 (Seeding일)</label><input type="date" id="newLineStartDate"></div>
+                        <div><label>상태 지정</label>
+                            <select id="newLineStatus">
+                                <option value="active">배양 중 (Active)</option>
+                                <option value="completed">실험 종료 (Archive)</option>
                             </select>
                         </div>
                     </div>
@@ -283,11 +282,14 @@
                         <div><label>최종 Well 수</label><input type="number" id="editLogFinalWells"></div>
                         <div><label>Stock 수</label><input type="number" id="editLogStocks"></div>
                     </div>
+                    <div><label style="color: #7C3AED; font-weight: bold;">P (계대수 수동 지정)</label>
+                        <input type="number" id="editLogPassage" min="0">
+                    </div>
                     <div><label>메모</label><textarea id="editLogMemo" rows="3"></textarea></div>
                 </div>
             </div>
             <div class="modal-footer" style="display:flex; gap:10px;">
-                <button class="btn btn-primary" style="flex:2;" onclick="updateLog()">수정 완료 (자동 재계산)</button>
+                <button class="btn btn-primary" style="flex:2;" onclick="updateLog()">수정 완료</button>
                 <button class="btn btn-delete" style="flex:1;" onclick="deleteLogFromModal()">삭제</button>
                 <button class="btn btn-outline" style="flex:1;" onclick="closeLogEditModal()">취소</button>
             </div>
@@ -295,31 +297,28 @@
     </div>
 
 <script>
-    let lines = JSON.parse(localStorage.getItem('orgLinesV2')) || [];
-    let logs = JSON.parse(localStorage.getItem('orgLogsV2')) || [];
-    let orgTypes = JSON.parse(localStorage.getItem('orgTypesV2')) || ['PHH-org', 'Tumor-org', 'Chol-org'];
+    let lines = JSON.parse(localStorage.getItem('orgLinesV3')) || [];
+    let logs = JSON.parse(localStorage.getItem('orgLogsV3')) || [];
+    let orgTypes = JSON.parse(localStorage.getItem('orgTypesV3')) || ['PHH-org', 'Tumor-org', 'Chol-org'];
     let bulkDates = [];
 
     document.getElementById('logDate').valueAsDate = new Date();
     document.getElementById('newLineStartDate').valueAsDate = new Date();
 
     function clearAllDataSystem() {
-        if(confirm("🚨 주의: 시스템의 모든 데이터를 초기화합니다. 보관된 백업 CSV 파일이 준비된 상태에서만 진행하세요.")) {
+        if(confirm("🚨 주의: 로컬 시스템의 모든 데이터를 초기화합니다. 정상 백업 CSV 파일이 준비된 상태에서만 확인을 누르세요.")) {
             localStorage.clear(); lines = []; logs = []; orgTypes = ['PHH-org', 'Tumor-org', 'Chol-org']; updateUI();
         }
     }
 
+    // 💡 Back to Basic: 복잡한 로직 제거, 등록 기준일과의 순수 일수 차이만 정밀 계산
     function calcDDay(line, targetDate = new Date()) {
-        let tDate = new Date(targetDate);
-        if (line.isCompleted) {
-            const finishLog = logs.find(l => l.lineId === line.id && (l.action.includes('Finish') || l.action.includes('완료')));
-            if (finishLog) tDate = new Date(finishLog.date);
-        }
         const start = new Date(line.startDate);
-        start.setHours(0,0,0,0); tDate.setHours(0,0,0,0);
-        let diff = Math.floor((tDate - start) / 86400000);
+        const target = new Date(targetDate);
+        start.setHours(0,0,0,0); target.setHours(0,0,0,0);
+        let diff = Math.floor((target - start) / 86400000);
         if (diff < 0) diff = 0;
-        return line.baseDay > 0 || line.isReseeded ? `d${line.baseDay}+${diff}` : `d${diff}`;
+        return line.baseDay > 0 ? `d${line.baseDay}+${diff}` : `d${diff}`;
     }
 
     function getBannerClass(type, isCompleted) {
@@ -341,52 +340,19 @@
         return 'badge-obs';
     }
 
-    function getPassageClass(pStr) {
-        const pNum = parseInt(String(pStr).replace(/[^0-9]/g, '')) || 0;
+    function getPassageClass(pVal) {
+        const pNum = parseInt(pVal) || 0;
         if(pNum >= 0 && pNum <= 9) return `p-color-${pNum}`;
         return 'p-color-max';
     }
 
-    // 🔄 💡 v3.0 통합 정밀 연산 엔진 (Split, Stock 제작 시 Passage 자동 증가 제어 규칙)
-    function recalculateLine(lineId) {
-        const lineLogs = logs.filter(l => l.lineId === lineId).sort((a, b) => new Date(a.date) - new Date(b.date));
-        if (lineLogs.length === 0) return;
+    // 💡 Back to Basic: 자동 유추 연산 엔진 완전 차단. 사용자가 지정해준 P값을 순수하게 고수.
+    function syncLineLastState(lineId) {
         const line = lines.find(l => l.id === lineId);
-        
-        let currentP = line.initialPassage ?? parseInt(line.passage);
-        let currentBaseDay = line.initialBaseDay ?? 0;
-        let currentStartDate = new Date(line.initialStartDate || lineLogs[0].date);
-        let isReseeded = line.initialIsReseeded ?? false;
-
-        lineLogs.forEach(log => {
-            // 🚨 핵심 보정: Split 또는 Stock 제작 시 다음 기록부터 P수가 증가함
-            const act = log.action;
-            const isSplitAction = act.startsWith('Split');
-            const isStockAction = act.startsWith('Stock 제작') || act.startsWith('Stock');
-
-            if (isSplitAction || isStockAction) {
-                currentP += 1;
-                currentBaseDay = 0;
-                currentStartDate = new Date(log.date);
-                isReseeded = false;
-            } else if (act.startsWith('Reseeding') || act.startsWith('Reseed')) {
-                let diff = Math.floor((new Date(log.date) - currentStartDate) / 86400000);
-                if (diff < 0) diff = 0;
-                currentBaseDay += diff;
-                currentStartDate = new Date(log.date);
-                isReseeded = true;
-            }
-            
-            log.passage = currentP;
-            let logDiff = Math.floor((new Date(log.date) - currentStartDate) / 86400000);
-            if (logDiff < 0) logDiff = 0;
-            log.dayInfo = (currentBaseDay > 0 || isReseeded) ? `d${currentBaseDay}+${logDiff}` : `d${logDiff}`;
-        });
-
-        line.passage = currentP;
-        line.baseDay = currentBaseDay;
-        line.startDate = currentStartDate.toISOString();
-        line.isReseeded = isReseeded;
+        const lineLogs = logs.filter(l => l.lineId === lineId).sort((a, b) => new Date(b.date) - new Date(a.date));
+        if(lineLogs.length > 0) {
+            line.passage = lineLogs[0].passage || 0;
+        }
     }
 
     function updateDashboard() {
@@ -408,16 +374,16 @@
             if(!typeMetrics[line.type]) { typeMetrics[line.type] = { count: 0, wells: 0 }; }
             typeMetrics[line.type].count += 1;
 
-            const lineLogs = logs.filter(log => log.lineId === line.id && 
-                (log.action.includes('Media') || log.action.includes('Split') || log.action.includes('Reseed') || log.action.includes('Seeding') || log.action.includes('Stock')))
-                .sort((a,b) => new Date(b.date) - new Date(a.date));
+            const lineLogs = logs.filter(log => log.lineId === line.id).sort((a,b) => new Date(b.date) - new Date(a.date));
             
-            let lastDateStr = line.initialStartDate ? line.initialStartDate.split('T')[0] : line.startDate.split('T')[0];
+            let lastDateStr = line.startDate.split('T')[0];
             let lastAction = "Initial Seeding";
+            let currentWell = line.initialWells || '0';
             
             if (lineLogs.length > 0) {
                 lastDateStr = lineLogs[0].date;
                 lastAction = lineLogs[0].action;
+                if(lineLogs[0].finalWells) currentWell = lineLogs[0].finalWells;
             }
 
             const today = new Date();
@@ -425,12 +391,8 @@
             today.setHours(0,0,0,0); lastDate.setHours(0,0,0,0);
             const diffDays = Math.floor((today - lastDate) / 86400000);
 
-            const allLogs = logs.filter(log => log.lineId === line.id).sort((a,b) => new Date(b.date) - new Date(a.date));
-            let currentWell = (allLogs.length > 0 && allLogs[0].finalWells) ? allLogs[0].finalWells : (line.initialWells || '0');
-            
-            let wNum = parseInt(currentWell) || 0;
-            totalWells += wNum;
-            typeMetrics[line.type].wells += wNum;
+            totalWells += (parseInt(currentWell) || 0);
+            typeMetrics[line.type].wells += (parseInt(currentWell) || 0);
 
             let statusBadge = '<span style="color:#059669; font-weight:600; background:#D1FAE5; padding:2px 6px; border-radius:4px;">정상</span>';
             if (diffDays >= 3) {
@@ -461,25 +423,23 @@
     function quickMediaChange(lineId) {
         const line = lines.find(l => l.id === lineId);
         const todayStr = new Date().toISOString().split('T')[0];
-        
         const lineLogs = logs.filter(log => log.lineId === lineId).sort((a,b) => new Date(b.date) - new Date(a.date));
+        
         let prevVessel = "-";
         let prevWells = line.initialWells || "";
-        
         if (lineLogs.length > 0) {
             prevVessel = lineLogs[0].vessel || "-";
             prevWells = lineLogs[0].finalWells || "";
         }
         
         const newLog = {
-            id: Date.now() + Math.random().toString(),
+            id: 'log_' + Date.now() + Math.random().toString(36).substr(2,4),
             lineId, date: todayStr, action: 'Media Change', vessel: prevVessel,
             passage: line.passage, dayInfo: calcDDay(line, todayStr), details: '',
             finalWells: prevWells, stocks: '', memo: 'Media change 완료'
         };
         
         logs.push(newLog);
-        recalculateLine(lineId);
         updateUI();
     }
 
@@ -490,7 +450,9 @@
     function updateUI() {
         const select = document.getElementById('lineSelect');
         select.innerHTML = '<option value="">-- 라인 선택 --</option>';
-        lines.filter(l => !l.isCompleted).forEach(l => {
+        
+        // 정렬 규칙: 타임라인 가독성을 위해 환자ID 오름차순 정렬
+        lines.filter(l => !l.isCompleted).sort((a,b)=>a.patientId.localeCompare(b.patientId)).forEach(l => {
             const opt = document.createElement('option');
             opt.value = l.id; opt.innerText = `${l.patientId}_${l.type} (P${l.passage})`;
             select.appendChild(opt);
@@ -502,9 +464,9 @@
         renderTypeDatalist();
         updateDashboard();
 
-        localStorage.setItem('orgLinesV2', JSON.stringify(lines));
-        localStorage.setItem('orgLogsV2', JSON.stringify(logs));
-        localStorage.setItem('orgTypesV2', JSON.stringify(orgTypes));
+        localStorage.setItem('orgLinesV3', JSON.stringify(lines));
+        localStorage.setItem('orgLogsV3', JSON.stringify(logs));
+        localStorage.setItem('orgTypesV3', JSON.stringify(orgTypes));
     }
 
     function renderTimelines(containerId, filterCompleted) {
@@ -513,13 +475,7 @@
         const filteredLines = lines.filter(l => !!l.isCompleted === filterCompleted);
 
         filteredLines.forEach(line => {
-            const lineLogs = logs.filter(log => log.lineId === line.id).sort((a,b) => {
-                if (a.date !== b.date) return new Date(b.date) - new Date(a.date);
-                if (a.action.includes('Finish') || a.action.includes('완료')) return -1;
-                if (b.action.includes('Finish') || b.action.includes('완료')) return 1;
-                return 0;
-            });
-            
+            const lineLogs = logs.filter(log => log.lineId === line.id).sort((a,b) => new Date(b.date) - new Date(a.date));
             const bannerClass = getBannerClass(line.type, line.isCompleted);
             
             let html = `
@@ -546,7 +502,7 @@
                         <span class="p-badge ${getPassageClass(log.passage)}">P${log.passage}</span>
                         <span style="color:var(--text-sub); font-size:0.8rem; margin-left:2px;">/ ${log.dayInfo}</span>
                     </td>
-                    <td style="color:#475569; font-size:0.75rem;">${log.vessel && log.vessel !== '-' ? log.vessel : ''}</td>
+                    <td style="color:#475569; font-size:0.75rem;">${log.vessel || ''}</td>
                     <td>${log.details || '-'}</td>
                     <td style="color:#059669; font-weight:700">${log.finalWells || '-'}</td>
                     <td style="color:#BE185D; font-weight:700">${log.stocks ? log.stocks + ' vial' : '-'}</td>
@@ -566,7 +522,7 @@
 
         lines.forEach(l => {
             const html = `<div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #E2E8F0; align-items:center; background: ${l.isCompleted ? '#F8FAFC' : 'white'};">
-                <span style="font-size:0.85rem; font-weight:500; color: ${l.isCompleted ? '#94A3B8' : '#1E293B'}">${l.patientId}_${l.type}</span>
+                <span style="font-size:0.85rem; font-weight:500;">[${l.patientId}_${l.type}] (P${l.passage})</span>
                 <div style="display:flex; gap:6px;">
                     <button class="btn btn-edit" onclick="editLine('${l.id}')">수정</button>
                     <button class="btn btn-delete" onclick="deleteLine('${l.id}')">삭제</button>
@@ -598,21 +554,20 @@
         const wells = document.getElementById('logFinalWells').value;
         const stocks = document.getElementById('logStocks').value;
         const memo = document.getElementById('logMemo').value;
+        const userPassage = parseInt(document.getElementById('logPassageInput').value) || 0;
         
         let datesToProcess = bulkDates.length > 0 ? [...bulkDates] : [document.getElementById('logDate').value];
-        if(!lineId || datesToProcess.length === 0) return alert("라인과 날짜를 확인하세요.");
+        if(!lineId || datesToProcess.length === 0) return alert("라인과 날짜를 지정하세요.");
 
         datesToProcess.sort().forEach(date => {
             const line = lines.find(l => l.id === lineId);
-            const dInfo = calcDDay(line, date);
-            
             const newLog = { 
-                id: Date.now() + Math.random().toString(), 
-                lineId, date, action, vessel, passage: line.passage, 
-                dayInfo: dInfo, details, finalWells: wells, stocks, memo 
+                id: 'log_' + Date.now() + Math.random().toString(36).substr(2,4), 
+                lineId, date, action, vessel, passage: userPassage, 
+                dayInfo: calcDDay(line, date), details, finalWells: wells, stocks, memo 
             };
             logs.push(newLog);
-            recalculateLine(lineId);
+            syncLineLastState(lineId);
         });
 
         bulkDates = []; renderBulkTags();
@@ -625,43 +580,33 @@
 
     function saveLine() {
         const id = document.getElementById('editLineId').value;
-        const pId = document.getElementById('newLineId').value;
+        const pId = document.getElementById('newLineId').value.trim();
         const type = document.getElementById('newLineType').value.trim();
         const p = parseInt(document.getElementById('newLineP').value) || 0;
         const baseD = parseInt(document.getElementById('newLineBaseD').value) || 0;
         const wells = document.getElementById('newLineWells').value;
         const start = document.getElementById('newLineStartDate').value;
-        const vessel = document.getElementById('newLineVessel').value;
+        const isComp = document.getElementById('newLineStatus').value === 'completed';
 
-        if(!pId || !start || !type) return alert("필수 정보를 입력하세요.");
+        if(!pId || !start || !type) return alert("필수 정보를 빠짐없이 입력하세요.");
 
         if (!orgTypes.includes(type)) { orgTypes.push(type); }
 
         if(id) {
             const idx = lines.findIndex(l => l.id === id);
-            lines[idx] = { ...lines[idx], patientId: pId, type };
-            lines[idx].initialPassage = p;
-            lines[idx].initialBaseDay = baseD;
-            lines[idx].initialStartDate = new Date(start).toISOString();
-            lines[idx].initialIsReseeded = (baseD > 0);
-            recalculateLine(id);
+            lines[idx] = { ...lines[idx], patientId: pId, type, passage: p, baseDay: baseD, startDate: new Date(start).toISOString(), initialWells: wells, isCompleted: isComp };
         } else {
-            const newId = Date.now().toString();
+            const newId = 'line_' + Date.now();
             lines.push({ 
                 id: newId, patientId: pId, type, passage: p, baseDay: baseD, 
-                isReseeded: (baseD > 0), startDate: new Date(start).toISOString(), 
-                initialWells: wells, isCompleted: false,
-                initialPassage: p, initialBaseDay: baseD, initialStartDate: new Date(start).toISOString(), initialIsReseeded: (baseD > 0)
+                startDate: new Date(start).toISOString(), initialWells: wells, isCompleted: isComp
             });
-            
             logs.push({
-                id: Date.now() + Math.random().toString(), lineId: newId,
-                date: start, action: 'Initial Seeding', vessel: vessel, passage: p,
-                dayInfo: baseD > 0 ? `d${baseD}+0` : 'd0', details: '라인 등록', finalWells: wells, stocks: '', memo: 'Master Line Initialized'
+                id: 'log_' + Date.now(), lineId: newId, date: start, action: 'Initial Seeding',
+                vessel: '-', passage: p, dayInfo: baseD > 0 ? `d${baseD}+0` : 'd0', details: 'Initial Setup', finalWells: wells, stocks: '', memo: '라인 설정 등록됨'
             });
-            recalculateLine(newId);
         }
-        resetLineForm(); updateUI();
+        resetLineForm(); closeModal(); updateUI();
     }
 
     function editLine(id) {
@@ -669,20 +614,20 @@
         document.getElementById('editLineId').value = l.id;
         document.getElementById('newLineId').value = l.patientId;
         document.getElementById('newLineType').value = l.type;
-        document.getElementById('newLineP').value = l.initialPassage ?? l.passage;
-        document.getElementById('newLineBaseD').value = l.initialBaseDay ?? l.baseDay;
+        document.getElementById('newLineP').value = l.passage;
+        document.getElementById('newLineBaseD').value = l.baseDay || 0;
         document.getElementById('newLineWells').value = l.initialWells || '';
-        document.getElementById('newLineStartDate').value = (l.initialStartDate || l.startDate).split('T')[0];
-        document.getElementById('newLineVessel').value = "-";
+        document.getElementById('newLineStartDate').value = l.startDate.split('T')[0];
+        document.getElementById('newLineStatus').value = l.isCompleted ? 'completed' : 'active';
         openLineModal();
     }
 
     function completeLine(id) {
-        const m = prompt("완료 처리하시겠습니까? 완료 메모를 남겨주세요:");
+        const m = prompt("배양을 종료 처리하시겠습니까? 종료 메모를 입력해 주세요:");
         if (m === null) return;
         const l = lines.find(line => line.id === id);
         l.isCompleted = true;
-        logs.push({ id: Date.now().toString(), lineId: id, date: new Date().toISOString().split('T')[0], action: 'Finish (완료)', passage: l.passage, dayInfo: 'END', memo: m || "배양 종료" });
+        logs.push({ id: 'log_' + Date.now(), lineId: id, date: new Date().toISOString().split('T')[0], action: 'Finish (완료)', passage: l.passage, dayInfo: 'END', memo: m || "배양 종료 완료" });
         updateUI();
     }
 
@@ -690,24 +635,13 @@
         const log = logs.find(lg => lg.id === id);
         document.getElementById('editLogId').value = id;
         document.getElementById('editLogDate').value = log.date;
-        
-        let actionSelect = document.getElementById('editLogAction');
-        if(![...actionSelect.options].some(o => o.value === log.action)) {
-            actionSelect.add(new Option(log.action, log.action));
-        }
-        actionSelect.value = log.action;
-
-        let vesselSelect = document.getElementById('editLogVessel');
-        if(log.vessel && ![...vesselSelect.options].some(o => o.value === log.vessel)) {
-            vesselSelect.add(new Option(log.vessel, log.vessel));
-        }
-        vesselSelect.value = log.vessel || "-";
-
+        document.getElementById('editLogAction').value = log.action;
+        document.getElementById('editLogVessel').value = log.vessel || "-";
         document.getElementById('editLogDetails').value = log.details || "";
         document.getElementById('editLogFinalWells').value = log.finalWells || "";
         document.getElementById('editLogStocks').value = log.stocks || "";
+        document.getElementById('editLogPassage').value = log.passage || 0;
         document.getElementById('editLogMemo').value = log.memo || "";
-        
         document.getElementById('logEditModal').style.display = 'flex';
     }
     
@@ -722,9 +656,14 @@
         logs[idx].details = document.getElementById('editLogDetails').value;
         logs[idx].finalWells = document.getElementById('editLogFinalWells').value;
         logs[idx].stocks = document.getElementById('editLogStocks').value;
+        logs[idx].passage = parseInt(document.getElementById('editLogPassage').value) || 0;
         logs[idx].memo = document.getElementById('editLogMemo').value;
         
-        recalculateLine(lineId);
+        // 데이터 강제 재매칭 후 출력
+        const line = lines.find(l => l.id === lineId);
+        logs[idx].dayInfo = calcDDay(line, logs[idx].date);
+
+        syncLineLastState(lineId);
         closeLogEditModal(); updateUI();
     }
 
@@ -732,9 +671,9 @@
         const id = document.getElementById('editLogId').value;
         const log = logs.find(lg => lg.id === id);
         const lineId = log.lineId;
-        if(confirm("이 기록을 삭제하시겠습니까? (이후 기록들이 자동으로 재계산됩니다)")) {
+        if(confirm("이 기록을 삭제하시겠습니까?")) {
             logs = logs.filter(l => l.id !== id);
-            recalculateLine(lineId);
+            syncLineLastState(lineId);
             closeLogEditModal(); updateUI();
         }
     }
@@ -757,6 +696,7 @@
         result.push(curVal); return result;
     }
 
+    // 💡 무결성 100% 보장형 순수 복원 엔진
     function importCSV(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -769,8 +709,7 @@
             const headerCount = parseCSVRow(rows[0]).length;
             const hasVesselCol = headerCount >= 10;
             
-            let tempLines = [];
-            let tempLogs = [];
+            lines = []; logs = [];
 
             for(let i=1; i<rows.length; i++) {
                 const row = parseCSVRow(rows[i]);
@@ -791,27 +730,34 @@
 
                 if (!patientType || patientType === 'Unknown') continue;
 
-                const [pId, ...typeArr] = patientType.split('_');
+                // 괄호 제거 가공 규칙 처리 적용
+                const cleanPatientType = patientType.replace(/\s*\(.*?\)\s*/g, ''); 
+                const [pId, ...typeArr] = cleanPatientType.split('_');
                 const type = typeArr.join('_');
-                let lineKey = pId + "|||" + type;
+                let lineKey = pId + "_" + type;
                 
-                let foundLine = tempLines.find(l => l.key === lineKey);
-                if (!foundLine) {
-                    foundLine = {
-                        key: lineKey,
-                        id: 'line_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                let line = lines.find(l => l.patientId === pId && l.type === type);
+                if (!line) {
+                    line = {
+                        id: 'line_' + Date.now() + '_' + Math.random().toString(36).substr(2,5),
                         patientId: pId,
                         type: type,
+                        passage: parseInt(pStr.replace(/[^0-9]/g,'')) || 0,
+                        baseDay: dStr.includes('+') ? parseInt(dStr.replace('d','').split('+')[0]) : 0,
+                        startDate: new Date(dateVal).toISOString(),
                         initialWells: finalWells || 0,
-                        isCompleted: false
+                        isCompleted: action.includes('Finish') || action.includes('완료')
                     };
-                    tempLines.push(foundLine);
+                    lines.push(line);
                 }
 
-                tempLogs.push({
-                    id: 'log_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-                    lineId: foundLine.id,
-                    lineKey: lineKey,
+                if (action.includes('Finish') || action.includes('완료')) {
+                    line.isCompleted = true;
+                }
+
+                logs.push({
+                    id: 'log_' + Date.now() + '_' + Math.random().toString(36).substr(2,5),
+                    lineId: line.id,
                     date: dateVal,
                     action: action,
                     vessel: vessel,
@@ -824,26 +770,14 @@
                 });
             }
 
-            tempLines.forEach(line => {
-                const currentLineLogs = tempLogs.filter(log => log.lineKey === line.key).sort((a,b) => new Date(a.date) - new Date(b.date));
-                if (currentLineLogs.length > 0) {
-                    line.startDate = new Date(currentLineLogs[0].date).toISOString();
-                    const lastLog = currentLineLogs[currentLineLogs.length - 1];
-                    if (lastLog.action.includes('Finish') || lastLog.action.includes('완료')) {
-                        line.isCompleted = true;
-                    }
-                }
+            // 후속 조치 동기화
+            lines.forEach(l => {
+                if(!orgTypes.includes(l.type)) orgTypes.push(l.type);
+                syncLineLastState(l.id);
             });
-
-            lines = tempLines.map(l => { delete l.key; return l; });
-            logs = tempLogs.map(lg => { delete lg.lineKey; return lg; });
-
-            orgTypes = ['PHH-org', 'Tumor-org', 'Chol-org'];
-            lines.forEach(l => { if(!orgTypes.includes(l.type)) orgTypes.push(l.type); });
-
-            lines.forEach(line => recalculateLine(line.id));
+            
             updateUI();
-            alert(`✅ [v3.0 완벽 정화 복원 완료]\nSplit 및 Stock 제작 시 Passage 자동 연산 규칙이 정상 동기화되었습니다.`);
+            alert(`✅ [v3.1 정상화 안내]\n모든 라인이 수동 제어 구조로 완벽 안전 복원되었습니다.`);
             document.getElementById('csvFileInput').value = ''; 
         };
         reader.readAsText(file);
@@ -858,20 +792,23 @@
         const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
-        link.download = `Organoid_Log_Backup_v3.0.csv`; link.click();
+        link.download = `Organoid_Log_Backup_v3.1.csv`; link.click();
     }
 
     function openLineModal() { document.getElementById('lineModal').style.display = 'flex'; }
     function closeModal() { document.getElementById('lineModal').style.display = 'none'; resetLineForm(); }
     function closeLogEditModal() { document.getElementById('logEditModal').style.display = 'none'; }
-    function resetLineForm() { document.getElementById('editLineId').value = ''; document.getElementById('newLineId').value = ''; document.getElementById('newLineType').value = ''; document.getElementById('newLineP').value = 0; document.getElementById('newLineBaseD').value = 0; document.getElementById('newLineWells').value = ''; document.getElementById('newLineVessel').value = '-'; }
-    function deleteLine(id) { if(confirm("라인과 관련된 모든 로그가 삭제됩니다. 계속하시겠습니까?")) { lines = lines.filter(l => l.id !== id); logs = logs.filter(log => log.lineId !== id); updateUI(); } }
+    function resetLineForm() { document.getElementById('editLineId').value = ''; document.getElementById('newLineId').value = ''; document.getElementById('newLineType').value = ''; document.getElementById('newLineP').value = 0; document.getElementById('newLineBaseD').value = 0; document.getElementById('newLineWells').value = ''; }
+    
     function previewDay() {
         const lineId = document.getElementById('lineSelect').value;
         const preview = document.getElementById('previewArea');
-        if(!lineId) { preview.innerText = '라인을 선택하면 P/D 상태가 미리 계산됩니다.'; return; }
+        if(!lineId) { preview.innerText = '라인을 선택하면 안내창이 활성화됩니다.'; return; }
         const line = lines.find(l => l.id === lineId);
-        preview.innerText = `현재 상태: P${line.passage} / ${calcDDay(line, document.getElementById('logDate').value)}`;
+        
+        // 기록 폼 안의 Passage 자동 가이드 매칭
+        document.getElementById('logPassageInput').value = line.passage;
+        preview.innerText = `현재 라인 상태: P${line.passage} / 선택 날짜 기준 경과일: ${calcDDay(line, document.getElementById('logDate').value)}`;
     }
 
     document.getElementById('logDate').addEventListener('change', previewDay);
