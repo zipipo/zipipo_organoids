@@ -150,6 +150,20 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
 .mfoot{padding-top:11px;border-top:1px solid var(--bd);flex-shrink:0;margin-top:12px;}
 .tbl-btn{background:#F8FAFC;border:1px solid #E2E8F0;color:#475569;border-radius:4px;cursor:pointer;font-size:.7rem;padding:3px 6px;font-weight:600;transition:.1s;}
 .tbl-btn:hover{background:#E2E8F0;}
+
+/* ═══ MICROSCOPE FILENAME PANEL ═══ */
+.micro-mag-chip{cursor:pointer;user-select:none;padding:4px 12px;border-radius:14px;font-size:.78rem;font-weight:700;transition:.1s;}
+.micro-card{border:1px solid var(--bd);border-radius:7px;overflow:hidden;margin-bottom:9px;}
+.micro-hd{padding:7px 11px;display:flex;align-items:center;justify-content:space-between;font-weight:700;font-size:.83rem;gap:8px;flex-wrap:wrap;}
+.micro-hd .mh-r{display:flex;align-items:center;gap:8px;}
+.micro-line-copy{background:rgba(255,255,255,.65);border:1px solid rgba(0,0,0,.08);border-radius:4px;cursor:pointer;font-size:.7rem;padding:3px 8px;font-weight:700;}
+.micro-line-copy:hover{background:#fff;}
+.micro-body{padding:5px 0;}
+.micro-name{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 11px;border-top:1px solid #F1F5F9;cursor:pointer;transition:.1s;}
+.micro-name:first-child{border-top:none;}
+.micro-name:hover{background:#F8FAFC;}
+.mm-txt{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.82rem;color:#0F172A;word-break:break-all;}
+.mm-copy{font-size:.72rem;font-weight:700;color:#3B82F6;white-space:nowrap;flex-shrink:0;}
 </style>
 </head>
 <body>
@@ -296,6 +310,35 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
   </div>
 </div>
 
+<!-- ═══ MICROSCOPE FILENAME MODAL ═══ -->
+<div id="microModal" class="modal">
+  <div class="mbox" style="width:660px;">
+    <h2>현미경 사진 정리 — 파일명 생성</h2>
+    <div class="mscroll">
+      <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:6px;padding:11px 13px;margin-bottom:12px;">
+        <div>
+          <label>촬영 날짜</label>
+          <input type="date" id="microDate" onchange="renderMicroList()" style="height:32px;">
+        </div>
+        <div style="flex:1;min-width:150px;">
+          <label>배율 선택</label>
+          <div id="microMagChips" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+        </div>
+        <button class="btn btn-pri" onclick="copyAllMicro(this)">전체 복사</button>
+      </div>
+      <div style="font-size:.74rem;color:#94A3B8;margin-bottom:9px;line-height:1.5;">
+        · 형식: <code>날짜_환자_타입_p값_d값_배율</code> (well·100pi 등은 직접 추가)<br>
+        · 날짜를 바꾸면 현재 배양 중인 라인의 P / D 가 그 날짜 기준으로 자동 재계산됩니다.<br>
+        · 파일명을 클릭하면 클립보드에 복사됩니다.
+      </div>
+      <div id="microList"></div>
+    </div>
+    <div class="mfoot">
+      <button class="btn btn-out" style="width:100%;" onclick="closeMicroModal()">닫기</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ══════════════════════════════════════════
 //  DATA
@@ -304,6 +347,9 @@ let lines       = JSON.parse(localStorage.getItem('orgLinesV2'))   || [];
 let logs        = JSON.parse(localStorage.getItem('orgLogsV2'))    || [];
 let stockChecks = JSON.parse(localStorage.getItem('orgStockChks')) || [];
 let archOpen    = false;
+
+let microMags   = ['4x','10x','20x'];
+const ALL_MAGS  = ['4x','10x','20x'];
 
 document.getElementById('logDate').valueAsDate = new Date();
 document.getElementById('elStart').valueAsDate = new Date();
@@ -396,7 +442,18 @@ function latestWell(line){
 function renderDash(){
   const el=document.getElementById('dash');
   const active=lines.filter(l=>!l.isCompleted);
-  if(!active.length){el.innerHTML='';return;}
+  const microBtn=`<button class="btn btn-out" style="border-color:#BFDBFE;color:#2563EB;background:#EFF6FF;font-weight:700;" onclick="openMicroModal()">현미경 사진 정리</button>`;
+
+  if(!active.length){
+    el.innerHTML=`<div class="dash-card">
+      <div class="dash-top">
+        <div class="dash-ttl">현재 배양 현황</div>
+        <div class="dash-totals">${microBtn}</div>
+      </div>
+      <div style="color:#94A3B8;font-size:.82rem;padding:4px 0;">현재 진행 중인 배양 라인이 없습니다.</div>
+    </div>`;
+    return;
+  }
 
   const groups={};
   let totalLines=active.length;
@@ -439,10 +496,156 @@ function renderDash(){
   el.innerHTML=`<div class="dash-card">
     <div class="dash-top">
       <div class="dash-ttl">현재 배양 현황</div>
-      <div class="dash-totals">${totals}</div>
+      <div class="dash-totals">${totals}${microBtn}</div>
     </div>
     <div class="dash-types">${typeCards}</div>
   </div>`;
+}
+
+// ══════════════════════════════════════════
+//  MICROSCOPE FILENAME GENERATOR
+// ══════════════════════════════════════════
+// "2026-06-23" → "260623"
+function ymd6(dateStr){
+  if(!dateStr) return '';
+  const p=dateStr.split('-');
+  if(p.length===3) return p[0].slice(2)+p[1].padStart(2,'0')+p[2].padStart(2,'0');
+  const d=new Date(dateStr);
+  return String(d.getFullYear()).slice(2)+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
+}
+
+// 특정 날짜 기준의 passage / day 를 로그를 역추적해서 계산
+function microStateAtDate(line, targetDate){
+  const tgt=new Date(targetDate); tgt.setHours(0,0,0,0);
+  const lls=logs.filter(l=>l.lineId===line.id && !isFin(l.action))
+                .sort((a,b)=>new Date(a.date)-new Date(b.date));
+  if(!lls.length) return { passage: line.passage, dayStr: calcDayStr(line, targetDate) };
+
+  const anchor = lls.find(lg=>isSeed(lg.action)) || lls[0];
+  let P=parseP(anchor.passage);
+  const dObj=parseD(anchor.dayInfo);
+  let baseD=dObj?dObj.base:0;
+  let isResd=baseD>0;
+  let periodStart=new Date(anchor.date);
+  if(dObj && dObj.diff>0) periodStart.setDate(periodStart.getDate()-dObj.diff);
+  periodStart.setHours(0,0,0,0);
+
+  lls.forEach(lg=>{
+    if(lg===anchor) return;
+    if(isSeed(lg.action)) return;
+    const d=new Date(lg.date); d.setHours(0,0,0,0);
+    if(d>=tgt) return;   // 촬영일 당일/이후의 Split·Reseeding 은 아직 미반영 (그날 찍은 사진은 처리 전 상태)
+    if((lg.action||'').includes('Split')){ P++; baseD=0; isResd=false; periodStart=d; }
+    else if(lg.action==='Reseeding'){
+      const diff=Math.max(0,Math.floor((d-periodStart)/86400000));
+      baseD+=diff; isResd=true; periodStart=d;
+    }
+  });
+
+  const diff=Math.max(0,Math.floor((tgt-periodStart)/86400000));
+  const dayStr=(baseD>0||isResd)?`d${baseD}+${diff}`:`d${diff}`;
+  return { passage:P, dayStr };
+}
+
+function buildMicroName(line, dateStr, mag){
+  const st=microStateAtDate(line,dateStr);
+  return `${ymd6(dateStr)}_${line.patientId}_${line.type}_p${st.passage}_${st.dayStr}_${mag}`;
+}
+
+function openMicroModal(){
+  const di=document.getElementById('microDate');
+  if(!di.value) di.valueAsDate=new Date();
+  renderMicroMagChips();
+  renderMicroList();
+  document.getElementById('microModal').classList.add('open');
+}
+function closeMicroModal(){ document.getElementById('microModal').classList.remove('open'); }
+
+function renderMicroMagChips(){
+  document.getElementById('microMagChips').innerHTML=ALL_MAGS.map(m=>{
+    const on=microMags.includes(m);
+    return `<span class="micro-mag-chip" onclick="toggleMag('${m}')"
+      style="border:1px solid ${on?'#3B82F6':'#CBD5E1'};background:${on?'#EFF6FF':'#fff'};color:${on?'#1D4ED8':'#94A3B8'};">${m}</span>`;
+  }).join('');
+}
+function toggleMag(m){
+  if(microMags.includes(m)) microMags=microMags.filter(x=>x!==m);
+  else microMags=ALL_MAGS.filter(x=> microMags.includes(x) || x===m);
+  renderMicroMagChips();
+  renderMicroList();
+}
+
+function renderMicroList(){
+  const el=document.getElementById('microList');
+  const dateStr=document.getElementById('microDate').value;
+  const active=lines.filter(l=>!l.isCompleted);
+  if(!active.length){ el.innerHTML='<div style="color:#94A3B8;font-size:.83rem;padding:8px 2px;">현재 진행 중인 배양 라인이 없습니다.</div>'; return; }
+  if(!dateStr){ el.innerHTML='<div style="color:#94A3B8;font-size:.83rem;padding:8px 2px;">날짜를 선택하세요.</div>'; return; }
+
+  let html='';
+  active.forEach(line=>{
+    const st=microStateAtDate(line,dateStr);
+    const c=getC(line.type,false);
+    const rows=microMags.map(mag=>{
+      const nm=buildMicroName(line,dateStr,mag);
+      return `<div class="micro-name" data-name="${esc(nm)}" onclick="copyText(this.dataset.name,this)">
+        <span class="mm-txt">${esc(nm)}</span>
+        <span class="mm-copy">복사</span>
+      </div>`;
+    }).join('') || '<div style="padding:7px 11px;color:#94A3B8;font-size:.78rem;">배율을 선택하세요.</div>';
+
+    html+=`<div class="micro-card">
+      <div class="micro-hd" style="background:${c.hbg};color:${c.ht};">
+        <span>[${esc(line.patientId)}_${esc(line.type)}]</span>
+        <span class="mh-r">
+          <span style="font-size:.78rem;font-weight:600;">P${st.passage} / ${esc(st.dayStr)}</span>
+          ${microMags.length?`<button class="micro-line-copy" data-line="${esc(line.id)}" onclick="event.stopPropagation();copyLineMicro(this.dataset.line,this)">라인 복사</button>`:''}
+        </span>
+      </div>
+      <div class="micro-body">${rows}</div>
+    </div>`;
+  });
+  el.innerHTML=html;
+}
+
+function copyLineMicro(lineId, btn){
+  const line=lines.find(l=>l.id===lineId);
+  if(!line) return;
+  const dateStr=document.getElementById('microDate').value;
+  const all=microMags.map(mag=>buildMicroName(line,dateStr,mag));
+  if(!all.length) return;
+  copyText(all.join('\n'),null);
+  if(btn){ const o=btn.textContent; btn.textContent='복사됨!'; setTimeout(()=>btn.textContent=o,1100); }
+}
+
+function copyAllMicro(btn){
+  const dateStr=document.getElementById('microDate').value;
+  const active=lines.filter(l=>!l.isCompleted);
+  const all=[];
+  active.forEach(line=>{ microMags.forEach(mag=>{ all.push(buildMicroName(line,dateStr,mag)); }); });
+  if(!all.length) return alert('복사할 항목이 없습니다. (배율 또는 진행 중인 라인을 확인하세요)');
+  copyText(all.join('\n'),null);
+  if(btn){ const o=btn.textContent; btn.textContent='전체 복사됨!'; setTimeout(()=>btn.textContent=o,1200); }
+}
+
+function copyText(txt, elm){
+  const done=()=>{
+    if(elm){
+      const c=elm.querySelector('.mm-copy')||elm;
+      const old=c.textContent; c.textContent='복사됨!'; c.style.color='#059669';
+      setTimeout(()=>{c.textContent=old;c.style.color='';},1100);
+    }
+  };
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(done).catch(()=>fallbackCopy(txt,done));
+  } else fallbackCopy(txt,done);
+}
+function fallbackCopy(txt,cb){
+  const ta=document.createElement('textarea');
+  ta.value=txt; ta.style.position='fixed'; ta.style.top='-1000px'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  try{ document.execCommand('copy'); }catch(e){}
+  document.body.removeChild(ta); if(cb) cb();
 }
 
 // ══════════════════════════════════════════
@@ -588,6 +791,7 @@ function updateUI(){
   renderLineList();
   renderDash();
   renderStockBanner();
+  if(document.getElementById('microModal').classList.contains('open')) renderMicroList();
   const dc=lines.filter(l=>l.isCompleted).length;
   document.getElementById('archCount').textContent=dc?`(${dc}개)`:'';
   saveData();
@@ -949,7 +1153,7 @@ function resetLineForm(){
   document.getElementById('elP').value=0;document.getElementById('elBase').value=0;
   document.getElementById('elWells').value=0;document.getElementById('elStart').valueAsDate=new Date();
 }
-['lineModal','logModal'].forEach(id=>{
+['lineModal','logModal','microModal'].forEach(id=>{
   document.getElementById(id).addEventListener('click',e=>{
     if(e.target===document.getElementById(id)) document.getElementById(id).classList.remove('open');
   });
