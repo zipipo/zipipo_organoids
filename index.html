@@ -125,6 +125,8 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
 .bf{background:#F1F5F9;color:#475569;border-color:#CBD5E1;}
 .bo{background:#FEF9C3;color:#A16207;border-color:#FEF08A;}
 .bsd{background:#CCFBF1;color:#0F766E;border-color:#99F6E4;}
+.bfx{background:#E0E7FF;color:#4338CA;border-color:#C7D2FE;}
+.bhv{background:#FFE4E6;color:#BE123C;border-color:#FECDD3;}
 
 .pb{padding:2px 6px;border-radius:4px;font-weight:700;font-size:.77rem;display:inline-block;border:1px solid transparent;}
 .p0{background:#F1F5F9;color:#475569;border-color:#E2E8F0;}
@@ -173,7 +175,6 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
   <h1>Organoid & Cell Culture Log</h1>
   <div class="hdr-r">
     <input type="file" id="csvFile" style="display:none;" accept=".csv" onchange="importCSV(event)">
-    <button class="btn btn-out" onclick="cleanBroken()" style="color:#B91C1C;border-color:#FECACA;">깨진 라인 정리</button>
     <button class="btn btn-out" onclick="document.getElementById('csvFile').click()">CSV 복원</button>
     <button class="btn btn-out" onclick="openLineModal()">Cell Line 관리</button>
     <button class="btn btn-out" onclick="exportCSV()">CSV 저장</button>
@@ -196,15 +197,26 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
         </div>
         <div id="bulkTags"></div>
       </div>
-      <div><label>라인 선택</label><select id="lineSelect" onchange="previewDay()"></select></div>
+      <div>
+        <label>라인 선택 (다중 추가 가능)</label>
+        <div class="dgrp">
+          <select id="lineSelect" onchange="previewDay()"></select>
+          <button class="btn btn-out" onclick="addBulkLine()">라인 추가</button>
+        </div>
+        <div id="bulkLineTags"></div>
+      </div>
       <div><label>수행 액션</label>
         <select id="logAction" onchange="onActChange()">
           <option value="Media Change">Media Change</option>
           <option value="Split">Split (P+1, d0)</option>
           <option value="Reseeding">Reseeding (d 누적)</option>
-          <option value="Pellet 제작">Pellet 제작</option>
-          <option value="Stock 제작">Stock 제작</option>
+          <option value="Pellet (passage 유지)">Pellet (passage 유지)</option>
+          <option value="Pellet (p+1)">Pellet (p+1)</option>
+          <option value="Stock (passage 유지)">Stock (passage 유지)</option>
+          <option value="Stock (p+1)">Stock (p+1)</option>
           <option value="Observation">Observation</option>
+          <option value="Fixation">Fixation</option>
+          <option value="Harvest">Harvest</option>
         </select>
       </div>
     </div>
@@ -280,8 +292,8 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
           <div><label>액션</label>
             <select id="eAct">
               <option>Seeded</option><option>Media Change</option><option>Split</option>
-              <option>Reseeding</option><option>Pellet 제작</option><option>Stock 제작</option>
-              <option>Observation</option><option>Finish (완료)</option>
+              <option>Reseeding</option><option>Pellet (passage 유지)</option><option>Pellet (p+1)</option><option>Stock (passage 유지)</option><option>Stock (p+1)</option>
+              <option>Observation</option><option>Fixation</option><option>Harvest</option><option>Finish (완료)</option>
             </select>
           </div>
         </div>
@@ -374,7 +386,7 @@ function calcDayStr(line,targetDate){
   return line.baseDay>0?`d${line.baseDay}+${diff}`:`d${diff}`;
 }
 
-const pCls = n=>{const v=parseP(n);return v<=9?'p'+v:'ph';};
+const pCls = n=>{const v=parseP(n);return 'p'+(((v%10)+10)%10);};
 
 function badgeCls(a){
   if(!a) return 'bo';
@@ -385,12 +397,15 @@ function badgeCls(a){
   if(l.includes('reseed')) return 'br';
   if(l.includes('pellet')) return 'bpl';
   if(l.includes('stock')) return 'bst';
+  if(l.includes('fixation')) return 'bfx';
+  if(l.includes('harvest')) return 'bhv';
   if(l.includes('finish')||l.includes('완료')) return 'bf';
   return 'bo';
 }
 
 const isFin = a=>!!(a&&(a.includes('Finish')||a.includes('완료')));
 const isSeed= a=>!!(a&&(a==='Seeded'||a==='Initial Seeding'));
+const isPassageUp = a=>{ if(!a) return false; const l=a.toLowerCase(); return l.includes('split')||l.includes('p+1'); };
 
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 const uid   = ()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
@@ -420,7 +435,7 @@ const getC=(type,done)=>done?DONE:(tcm[type]||PAL[0]);
 // ══════════════════════════════════════════
 function mcDays(line){
   if(line.isCompleted) return null;
-  const rel=logs.filter(l=>l.lineId===line.id&&(l.action==='Media Change'||(l.action||'').includes('Split')))
+  const rel=logs.filter(l=>l.lineId===line.id&&(l.action==='Media Change'||isPassageUp(l.action)))
     .sort((a,b)=>new Date(b.date)-new Date(a.date));
   if(!rel.length) return null;
   const last=new Date(rel[0].date),now=new Date();
@@ -535,7 +550,7 @@ function microStateAtDate(line, targetDate){
     if(isSeed(lg.action)) return;
     const d=new Date(lg.date); d.setHours(0,0,0,0);
     if(d>=tgt) return;   // 촬영일 당일/이후의 Split·Reseeding 은 아직 미반영 (그날 찍은 사진은 처리 전 상태)
-    if((lg.action||'').includes('Split')){ P++; baseD=0; isResd=false; periodStart=d; }
+    if(isPassageUp(lg.action)){ P++; baseD=0; isResd=false; periodStart=d; }
     else if(lg.action==='Reseeding'){
       const diff=Math.max(0,Math.floor((d-periodStart)/86400000));
       baseD+=diff; isResd=true; periodStart=d;
@@ -786,6 +801,7 @@ function updateUI(){
     sel.appendChild(o);
   });
   if(prev) sel.value=prev;
+  renderBulkLineTags();
   renderTimelines('activeTL',false);
   renderTimelines('doneTL',true);
   renderLineList();
@@ -805,15 +821,27 @@ function saveData(){
 
 function onActChange(){
   document.getElementById('stockInline').style.display=
-    document.getElementById('logAction').value==='Stock 제작'?'block':'none';
+    document.getElementById('logAction').value.includes('Stock')?'block':'none';
 }
 
 let bulkDates=[];
+let bulkLines=[];
 function addBulkDate(){const d=document.getElementById('logDate').value;if(d&&!bulkDates.includes(d)){bulkDates.push(d);renderBulkTags();}}
 function removeBulkDate(d){bulkDates=bulkDates.filter(x=>x!==d);renderBulkTags();}
 function renderBulkTags(){
   document.getElementById('bulkTags').innerHTML=
     bulkDates.map(d=>`<span class="dtag">${d}<span class="dtx" onclick="removeBulkDate('${d}')">x</span></span>`).join('');
+}
+function addBulkLine(){const id=document.getElementById('lineSelect').value;if(id&&!bulkLines.includes(id)){bulkLines.push(id);renderBulkLineTags();}}
+function removeBulkLine(id){bulkLines=bulkLines.filter(x=>x!==id);renderBulkLineTags();}
+function renderBulkLineTags(){
+  const el=document.getElementById('bulkLineTags');
+  if(!el) return;
+  el.innerHTML=bulkLines.map(id=>{
+    const ln=lines.find(l=>l.id===id);
+    const label=ln?`${ln.patientId}_${ln.type}`:id;
+    return `<span class="dtag">${esc(label)}<span class="dtx" onclick="removeBulkLine('${id}')">x</span></span>`;
+  }).join('');
 }
 
 // ══════════════════════════════════════════
@@ -836,7 +864,7 @@ function syncLineState(line) {
   }
 
   // 액션 처리 '이후'의 상태를 미래를 위해 라인에 세팅
-  if ((last.action || '').includes('Split')) {
+  if (isPassageUp(last.action)) {
       curP++;
       curBase = 0;
       isResd = false;
@@ -912,7 +940,7 @@ function recalcLogsForLine(lineId) {
       lg.dayInfo = (currentBaseD > 0 || isResd) ? `d${currentBaseD}+${diff}` : `d${diff}`;
 
       // [상태 전진] 액션 완료 후, 다음 액션을 위해 상태를 진화시킴
-      if ((lg.action || '').includes('Split')) {
+      if (isPassageUp(lg.action)) {
           currentP++;
           currentBaseD = 0;
           isResd = false;
@@ -934,17 +962,20 @@ function recalcLogsForLine(lineId) {
 //  SAVE DAILY LOG
 // ══════════════════════════════════════════
 function saveDailyLog(){
-  const lineId=document.getElementById('lineSelect').value;
+  const selVal=document.getElementById('lineSelect').value;
+  const lineIds=bulkLines.length>0?[...bulkLines]:(selVal?[selVal]:[]);
   const action=document.getElementById('logAction').value;
   const det   =document.getElementById('logDet').value.trim();
   const wells =document.getElementById('logWells').value;
   const stocks=document.getElementById('logStocks').value;
   const memo  =document.getElementById('logMemo').value;
-  const dates =bulkDates.length>0?[...bulkDates]:[document.getElementById('logDate').value];
-  if(!lineId||!dates.length) return alert('라인과 날짜를 확인하세요.');
+  const dates =bulkDates.length>0?[...bulkDates]:[document.getElementById('logDate').value].filter(Boolean);
+  if(!lineIds.length||!dates.length) return alert('라인과 날짜를 확인하세요.');
 
-  dates.sort().forEach(date=>{
+  lineIds.forEach(lineId=>{
+  dates.slice().sort().forEach(date=>{
     const line=lines.find(l=>l.id===lineId);
+    if(!line) return;
     
     // (1) 현재 라인의 상태를 긁어와서, 일단 그 상태 그대로 로그로 저장!
     const curP = line.passage;
@@ -952,7 +983,7 @@ function saveDailyLog(){
     logs.push({id:uid(),lineId,date,action,passage:curP,dayInfo:curDStr,details:det,finalWells:wells,stocks,memo});
 
     // (2) 그 액션이 상태를 바꾸는 액션(Split/Reseeding)이라면, '다음 추가될 로그'를 위해 라인의 정보를 진화시킴
-    if (action.includes('Split')) {
+    if (isPassageUp(action)) {
         line.passage++;
         line.baseDay = 0;
         line.isReseeded = false;
@@ -965,13 +996,15 @@ function saveDailyLog(){
         line.startDate = isoD(date);
     }
     
-    if(action==='Stock 제작'&&stocks&&parseInt(stocks)>0){
+    if(action.includes('Stock')&&stocks&&parseInt(stocks)>0){
       const ln=lines.find(l=>l.id===lineId);
       stockChecks.push({id:uid(),lineId:lineId, lineLabel:`${ln.patientId}_${ln.type}`,date,stocks,ln2Done:false,dbDone:false});
     }
   });
+  });
 
   bulkDates=[];renderBulkTags();
+  bulkLines=[];renderBulkLineTags();
   ['logDet','logWells','logStocks','logMemo'].forEach(i=>document.getElementById(i).value='');
   document.getElementById('chkLN2').checked=false;
   document.getElementById('chkDB').checked=false;
@@ -1204,7 +1237,7 @@ function splitPatientType(raw){
   return {pid:raw.substring(0,splitAt).trim(), type:raw.substring(splitAt+1).trim()};
 }
 
-const KNOWN_ACTIONS=['Media Change','Split','Reseeding','Pellet 제작','Stock 제작','Observation','Seeded','Initial Seeding','Finish (완료)','Finish'];
+const KNOWN_ACTIONS=['Media Change','Split','Reseeding','Pellet 제작','Stock 제작','Pellet (passage 유지)','Pellet (p+1)','Stock (passage 유지)','Stock (p+1)','Observation','Fixation','Harvest','Seeded','Initial Seeding','Finish (완료)','Finish'];
 
 function importCSV(event){
   const file=event.target.files[0];if(!file) return;
@@ -1300,7 +1333,7 @@ function importCSV(event){
           passage:rec.passage,dayInfo:rec.dayInfo||'d0',
           details:rec.details,finalWells:rec.wells,stocks:rec.stocks,memo:rec.memo});
         
-        if(rec.action==='Stock 제작'&&rec.stocks&&parseInt(rec.stocks)>0){
+        if((rec.action||'').includes('Stock')&&rec.stocks&&parseInt(rec.stocks)>0){
           stockChecks.push({id:uid(), lineId:line.id, lineLabel:`${rec.pId}_${rec.type}`,date:rec.date,
             stocks:rec.stocks,ln2Done:false,dbDone:false});
         }
@@ -1330,40 +1363,6 @@ function importCSV(event){
     document.getElementById('csvFile').value='';
   };
   reader.readAsText(file);
-}
-
-// ══════════════════════════════════════════
-//  CLEAN BROKEN LINES
-// ══════════════════════════════════════════
-function cleanBroken(){
-  const KNOWN=['Media Change','Split','Reseeding','Pellet 제작','Stock 제작','Observation','Seeded','Initial Seeding','Finish (완료)','Finish'];
-  const isBrokenLine=l=>{
-    if(!l.type) return true;
-    if(/[()]/.test(l.type)) return true;
-    const opens=(l.patientId.match(/\(/g)||[]).length;
-    const closes=(l.patientId.match(/\)/g)||[]).length;
-    if(opens!==closes) return true;
-    return false;
-  };
-  const broken=lines.filter(isBrokenLine);
-  const strayLogs=logs.filter(lg=>{
-    const a=(lg.action||'').trim();
-    return a && !KNOWN.some(k=>a===k||a.includes(k));
-  });
-
-  if(!broken.length && !strayLogs.length){
-    alert('정리할 깨진 라인이 없습니다.');return;
-  }
-  const names=broken.map(l=>`${l.patientId}_${l.type}`).join(', ');
-  if(!confirm(`깨진 라인 ${broken.length}개${names?' ('+names+')':''}와 비정상 로그 ${strayLogs.length}개를 삭제합니다.\n\n삭제 후 원본 CSV를 다시 [CSV 복원] 하면 정상 복구됩니다. 계속할까요?`)) return;
-
-  const brokenIds=new Set(broken.map(l=>l.id));
-  lines=lines.filter(l=>!brokenIds.has(l.id));
-  logs=logs.filter(lg=>!brokenIds.has(lg.lineId));
-  const strayIds=new Set(strayLogs.map(l=>l.id));
-  logs=logs.filter(lg=>!strayIds.has(lg.id));
-  updateUI();
-  alert('정리 완료. 이제 원본 CSV를 다시 복원하세요.');
 }
 
 // ══════════════════════════════════════════
@@ -1397,6 +1396,8 @@ logs.forEach(lg=>{
     lg.passage=line?parseP(line.passage):0;
   }
   if(lg.action==='Initial Seeding') lg.action='Seeded';
+  if(lg.action==='Pellet 제작') lg.action='Pellet (passage 유지)';
+  if(lg.action==='Stock 제작') lg.action='Stock (passage 유지)';
   if(lg.details==='라인 등록') lg.details='';
 });
 lines.forEach(line=>{
