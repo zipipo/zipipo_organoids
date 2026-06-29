@@ -181,6 +181,9 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
 .sb-prev{font-size:.78rem;font-weight:700;color:#0F172A;margin-top:5px;word-break:break-all;}
 .sb-x{flex:none;background:#FEE2E2;color:#DC2626;border:none;border-radius:5px;width:28px;height:28px;font-size:1rem;cursor:pointer;font-weight:700;}
 .sb-x:hover{background:#FECACA;}
+.sb-listhd{display:flex;align-items:center;justify-content:space-between;font-size:.78rem;color:#64748B;margin:2px 2px 8px;}
+.sb-clear{background:#FEE2E2;color:#DC2626;border:none;border-radius:5px;padding:4px 10px;font-size:.74rem;font-weight:700;cursor:pointer;}
+.sb-clear:hover{background:#FECACA;}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/utif@3.1.0/UTIF.min.js"></script>
 </head>
@@ -340,35 +343,6 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
   </div>
 </div>
 
-<!-- ═══ MICROSCOPE FILENAME MODAL ═══ -->
-<div id="microModal" class="modal">
-  <div class="mbox" style="width:660px;">
-    <h2>현미경 사진 정리 — 파일명 생성</h2>
-    <div class="mscroll">
-      <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:6px;padding:11px 13px;margin-bottom:12px;">
-        <div>
-          <label>촬영 날짜</label>
-          <input type="date" id="microDate" onchange="renderMicroList()" style="height:32px;">
-        </div>
-        <div style="flex:1;min-width:150px;">
-          <label>배율 선택</label>
-          <div id="microMagChips" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
-        </div>
-        <button class="btn btn-pri" onclick="copyAllMicro(this)">전체 복사</button>
-      </div>
-      <div style="font-size:.74rem;color:#94A3B8;margin-bottom:9px;line-height:1.5;">
-        · 형식: <code>날짜_환자_타입_p값_d값_배율</code> (well·100pi 등은 직접 추가)<br>
-        · 날짜를 바꾸면 현재 배양 중인 라인의 P / D 가 그 날짜 기준으로 자동 재계산됩니다.<br>
-        · 파일명을 클릭하면 클립보드에 복사됩니다.
-      </div>
-      <div id="microList"></div>
-    </div>
-    <div class="mfoot">
-      <button class="btn btn-out" style="width:100%;" onclick="closeMicroModal()">닫기</button>
-    </div>
-  </div>
-</div>
-
 <script>
 // ══════════════════════════════════════════
 //  DATA
@@ -378,7 +352,6 @@ let logs        = JSON.parse(localStorage.getItem('orgLogsV2'))    || [];
 let stockChecks = JSON.parse(localStorage.getItem('orgStockChks')) || [];
 let archOpen    = false;
 
-let microMags   = ['4x','10x','20x'];
 const ALL_MAGS  = ['4x','10x','20x'];
 
 document.getElementById('logDate').valueAsDate = new Date();
@@ -475,14 +448,13 @@ function latestWell(line){
 function renderDash(){
   const el=document.getElementById('dash');
   const active=lines.filter(l=>!l.isCompleted);
-  const microBtn=`<button class="btn btn-out" style="border-color:#BFDBFE;color:#2563EB;background:#EFF6FF;font-weight:700;" onclick="openMicroModal()">현미경 사진 정리</button>`;
   const sbarBtn=`<button class="btn btn-out" style="border-color:#FBCFE8;color:#DB2777;background:#FDF2F8;font-weight:700;margin-left:6px;" onclick="openSbarModal()">스케일바 + 저장</button>`;
 
   if(!active.length){
     el.innerHTML=`<div class="dash-card">
       <div class="dash-top">
         <div class="dash-ttl">현재 배양 현황</div>
-        <div class="dash-totals">${microBtn}${sbarBtn}</div>
+        <div class="dash-totals">${sbarBtn}</div>
       </div>
       <div style="color:#94A3B8;font-size:.82rem;padding:4px 0;">현재 진행 중인 배양 라인이 없습니다.</div>
     </div>`;
@@ -530,7 +502,7 @@ function renderDash(){
   el.innerHTML=`<div class="dash-card">
     <div class="dash-top">
       <div class="dash-ttl">현재 배양 현황</div>
-      <div class="dash-totals">${totals}${microBtn}${sbarBtn}</div>
+      <div class="dash-totals">${totals}${sbarBtn}</div>
     </div>
     <div class="dash-types">${typeCards}</div>
   </div>`;
@@ -584,82 +556,6 @@ function microStateAtDate(line, targetDate){
 function buildMicroName(line, dateStr, mag){
   const st=microStateAtDate(line,dateStr);
   return `${ymd6(dateStr)}_${line.patientId}_${line.type}_p${st.passage}_${st.dayStr}_${mag}`;
-}
-
-function openMicroModal(){
-  const di=document.getElementById('microDate');
-  if(!di.value) di.valueAsDate=new Date();
-  renderMicroMagChips();
-  renderMicroList();
-  document.getElementById('microModal').classList.add('open');
-}
-function closeMicroModal(){ document.getElementById('microModal').classList.remove('open'); }
-
-function renderMicroMagChips(){
-  document.getElementById('microMagChips').innerHTML=ALL_MAGS.map(m=>{
-    const on=microMags.includes(m);
-    return `<span class="micro-mag-chip" onclick="toggleMag('${m}')"
-      style="border:1px solid ${on?'#3B82F6':'#CBD5E1'};background:${on?'#EFF6FF':'#fff'};color:${on?'#1D4ED8':'#94A3B8'};">${m}</span>`;
-  }).join('');
-}
-function toggleMag(m){
-  if(microMags.includes(m)) microMags=microMags.filter(x=>x!==m);
-  else microMags=ALL_MAGS.filter(x=> microMags.includes(x) || x===m);
-  renderMicroMagChips();
-  renderMicroList();
-}
-
-function renderMicroList(){
-  const el=document.getElementById('microList');
-  const dateStr=document.getElementById('microDate').value;
-  const active=lines.filter(l=>!l.isCompleted);
-  if(!active.length){ el.innerHTML='<div style="color:#94A3B8;font-size:.83rem;padding:8px 2px;">현재 진행 중인 배양 라인이 없습니다.</div>'; return; }
-  if(!dateStr){ el.innerHTML='<div style="color:#94A3B8;font-size:.83rem;padding:8px 2px;">날짜를 선택하세요.</div>'; return; }
-
-  let html='';
-  active.forEach(line=>{
-    const st=microStateAtDate(line,dateStr);
-    const c=getC(line.type,false);
-    const rows=microMags.map(mag=>{
-      const nm=buildMicroName(line,dateStr,mag);
-      return `<div class="micro-name" data-name="${esc(nm)}" onclick="copyText(this.dataset.name,this)">
-        <span class="mm-txt">${esc(nm)}</span>
-        <span class="mm-copy">복사</span>
-      </div>`;
-    }).join('') || '<div style="padding:7px 11px;color:#94A3B8;font-size:.78rem;">배율을 선택하세요.</div>';
-
-    html+=`<div class="micro-card">
-      <div class="micro-hd" style="background:${c.hbg};color:${c.ht};">
-        <span>[${esc(line.patientId)}_${esc(line.type)}]</span>
-        <span class="mh-r">
-          <span style="font-size:.78rem;font-weight:600;">P${st.passage} / ${esc(st.dayStr)}</span>
-          ${microMags.length?`<button class="micro-line-copy" data-line="${esc(line.id)}" onclick="event.stopPropagation();copyLineMicro(this.dataset.line,this)">라인 복사</button>`:''}
-        </span>
-      </div>
-      <div class="micro-body">${rows}</div>
-    </div>`;
-  });
-  el.innerHTML=html;
-}
-
-function copyLineMicro(lineId, btn){
-  const line=lines.find(l=>l.id===lineId);
-  if(!line) return;
-  const dateStr=document.getElementById('microDate').value;
-  const all=microMags.map(mag=>buildMicroName(line,dateStr,mag));
-  if(!all.length) return;
-  copyText(all.join('\n'),null);
-  if(btn){ const o=btn.textContent; btn.textContent='복사됨!'; setTimeout(()=>btn.textContent=o,1100); }
-}
-
-function copyAllMicro(btn){
-  const dateStr=document.getElementById('microDate').value;
-  const active=lines.filter(l=>!l.isCompleted);
-  const all=[];
-  active.forEach(line=>{ microMags.forEach(mag=>{ all.push(buildMicroName(line,dateStr,mag)); }); });
-  if(!all.length) return alert('복사할 항목이 없습니다. (배율 또는 진행 중인 라인을 확인하세요)');
-  copyText(all.join('\n'),null);
-  if(btn){ const o=btn.textContent; btn.textContent='전체 복사됨!'; setTimeout(()=>btn.textContent=o,1200); }
 }
 
 function copyText(txt, elm){
@@ -826,7 +722,6 @@ function updateUI(){
   renderLineList();
   renderDash();
   renderStockBanner();
-  if(document.getElementById('microModal').classList.contains('open')) renderMicroList();
   const dc=lines.filter(l=>l.isCompleted).length;
   document.getElementById('archCount').textContent=dc?`(${dc}개)`:'';
   saveData();
@@ -1205,7 +1100,7 @@ function resetLineForm(){
   document.getElementById('elP').value=0;document.getElementById('elBase').value=0;
   document.getElementById('elWells').value=0;document.getElementById('elStart').valueAsDate=new Date();
 }
-['lineModal','logModal','microModal'].forEach(id=>{
+['lineModal','logModal'].forEach(id=>{
   document.getElementById(id).addEventListener('click',e=>{
     if(e.target===document.getElementById(id)) document.getElementById(id).classList.remove('open');
   });
@@ -1516,21 +1411,24 @@ async function handleSbarFiles(fileList){
 
 function sbSet(i,k,v){ if(sbFiles[i]){ sbFiles[i][k]=v; renderSbarList(); } }
 function sbRemove(i){ sbFiles.splice(i,1); renderSbarList(); }
+function sbClearAll(){ if(sbFiles.length && confirm('추가한 사진 '+sbFiles.length+'장을 모두 지울까요?')){ sbFiles=[]; renderSbarList(); } }
 
 function renderSbarList(){
   const el=document.getElementById('sbList');
   const date=document.getElementById('sbDate').value;
   const active=lines.filter(l=>!l.isCompleted);
   if(!sbFiles.length){ el.innerHTML='<div class="sb-empty">아직 추가된 사진이 없습니다. 위 영역에 끌어다 놓으세요.</div>'; return; }
-  el.innerHTML = sbFiles.map((f,i)=>{
+  const barOn = (document.getElementById('sbAddBar')||{}).checked!==false;
+  const head=`<div class="sb-listhd"><span>추가된 사진 <b>${sbFiles.length}</b>장</span><button class="sb-clear" onclick="sbClearAll()">전체 삭제</button></div>`;
+  el.innerHTML = head + sbFiles.map((f,i)=>{
     const lineOpts=active.map(l=>`<option value="${esc(l.id)}" ${l.id===f.lineId?'selected':''}>[${esc(l.patientId)}_${esc(l.type)}]</option>`).join('') || '<option value="">진행 중 라인 없음</option>';
     const magOpts=ALL_MAGS.map(m=>`<option value="${m}" ${m===f.mag?'selected':''}>${m}</option>`).join('');
     const line=lines.find(l=>l.id===f.lineId);
     let preview='— (라인·날짜를 선택하세요)', barInfo='';
     if(line&&date){
       preview=buildMicroName(line,date,f.mag)+'.png';
-      const cal=SB_CAL[f.mag];
-      barInfo = cal? `바 ${Math.round(cal*(f.w/SB_REF_W))}px / 100µm` : '⚠ 배율 보정값 없음';
+      if(!barOn){ barInfo='스케일바 없음'; }
+      else { const cal=SB_CAL[f.mag]; barInfo = cal? `바 ${Math.round(cal*(f.w/SB_REF_W))}px / 100µm` : '⚠ 배율 보정값 없음'; }
     }
     return `<div class="sb-row">
       <img class="sb-thumb" src="${f.thumb}">
@@ -1548,35 +1446,36 @@ function renderSbarList(){
   }).join('');
 }
 
+function sbBarOn(){ const t=document.getElementById('sbAddBar'); return !t || t.checked; }
+
 function sbDrawBar(src, mag){
   const W=src.width, H=src.height;
   const out=document.createElement('canvas'); out.width=W; out.height=H;
   const ctx=out.getContext('2d');
   ctx.drawImage(src,0,0);
   const cal=SB_CAL[mag];
-  if(cal){
+  if(sbBarOn() && cal){
     const barLen=cal*(W/SB_REF_W);
-    const barH=Math.max(2,Math.round(W*0.005));
-    const margin=Math.round(W*0.04);
+    // PPT 스타일: 가늘고 단정한 막대 + 작은 글씨, 부드러운 그림자로 대비
+    const barH=Math.max(2,Math.round(H*0.006));
+    const margin=Math.round(W*0.028);
     const x=W-margin-barLen, y=H-margin-barH;
     const color=document.getElementById('sbColor').value;
-    // 대비용 외곽선
-    ctx.lineWidth=Math.max(1,Math.round(W*0.0013));
-    ctx.strokeStyle = (color==='#ffffff')?'rgba(0,0,0,.55)':'rgba(255,255,255,.65)';
-    ctx.strokeRect(x,y,barLen,barH);
+    const soft=(color==='#ffffff')?'rgba(0,0,0,.45)':'rgba(255,255,255,.55)';
+    ctx.save();
+    ctx.shadowColor=soft;
+    ctx.shadowBlur=Math.max(2,Math.round(W*0.0028));
+    ctx.shadowOffsetX=0; ctx.shadowOffsetY=Math.max(1,Math.round(W*0.0014));
     ctx.fillStyle=color;
     ctx.fillRect(x,y,barLen,barH);
     if(document.getElementById('sbLabel').checked){
-      const fs=Math.max(11,Math.round(W*0.024));
-      ctx.font='bold '+fs+'px sans-serif';
+      const fs=Math.max(11,Math.round(H*0.021));   // 작게
+      ctx.font='600 '+fs+'px Pretendard, sans-serif';
       ctx.textAlign='center'; ctx.textBaseline='alphabetic';
-      const tx=x+barLen/2, ty=y-Math.round(W*0.009);
-      ctx.lineWidth=Math.max(1.5,fs*0.14);
-      ctx.strokeStyle=(color==='#ffffff')?'rgba(0,0,0,.55)':'rgba(255,255,255,.65)';
-      ctx.strokeText('100 µm', tx, ty);
       ctx.fillStyle=color;
-      ctx.fillText('100 µm', tx, ty);
+      ctx.fillText('100 µm', x+barLen/2, y-Math.round(H*0.010));
     }
+    ctx.restore();
   }
   return out;
 }
@@ -1594,6 +1493,7 @@ async function sbarSaveAll(btn){
     catch(e){ return; } // 사용자가 취소
   }
   const ot=btn.textContent; btn.disabled=true; btn.textContent='저장 중...';
+  try{ await document.fonts.load('600 24px Pretendard'); await document.fonts.ready; }catch(e){}
   const cnt={};
   try{
     for(const f of sbFiles){
@@ -1627,6 +1527,7 @@ async function sbarSaveAll(btn){
     <div class="mscroll">
       <div style="display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:6px;padding:11px 13px;margin-bottom:12px;">
         <div><label>촬영 날짜</label><input type="date" id="sbDate" onchange="renderSbarList()" style="height:32px;"></div>
+        <div style="padding-bottom:6px;"><label style="display:flex;align-items:center;gap:5px;cursor:pointer;margin:0;"><input type="checkbox" id="sbAddBar" checked onchange="renderSbarList()" style="width:auto;"> <b>스케일바 추가</b></label></div>
         <div><label>바 색상</label><select id="sbColor" onchange="renderSbarList()" style="height:32px;width:auto;"><option value="#ffffff">흰색</option><option value="#000000">검정</option></select></div>
         <div style="padding-bottom:6px;"><label style="display:flex;align-items:center;gap:5px;cursor:pointer;margin:0;"><input type="checkbox" id="sbLabel" checked style="width:auto;"> 100µm 라벨 표시</label></div>
       </div>
@@ -1635,7 +1536,7 @@ async function sbarSaveAll(btn){
       </div>
       <div style="font-size:.74rem;color:#94A3B8;margin:9px 0;line-height:1.5;">
         · 사진마다 라인·배율을 고르면 날짜 기준 P / D 가 자동 계산되어 파일명이 만들어집니다.<br>
-        · 저장 시 배율에 맞는 100µm 스케일바가 사진에 그려져 저장됩니다. (4x·10x·20x 보정값 기준, 사진 해상도에 맞춰 자동 환산)
+        · '스케일바 추가'를 켜면 배율에 맞는 100µm 스케일바가 사진에 그려져 저장됩니다. (끄면 이름만 바꿔 저장)
       </div>
       <div id="sbList"></div>
     </div>
