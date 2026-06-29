@@ -184,6 +184,12 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
 .sb-listhd{display:flex;align-items:center;justify-content:space-between;font-size:.78rem;color:#64748B;margin:2px 2px 8px;}
 .sb-clear{background:#FEE2E2;color:#DC2626;border:none;border-radius:5px;padding:4px 10px;font-size:.74rem;font-weight:700;cursor:pointer;}
 .sb-clear:hover{background:#FECACA;}
+.sb-unsel{color:#94A3B8;}
+.sb-loading{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;flex-direction:column;gap:15px;background:rgba(15,23,42,.5);backdrop-filter:blur(2px);}
+.sb-loading.on{display:flex;}
+.sb-spin{width:48px;height:48px;border:5px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sbspin .8s linear infinite;}
+@keyframes sbspin{to{transform:rotate(360deg);}}
+.sb-loadtxt{color:#fff;font-size:.95rem;font-weight:600;letter-spacing:.2px;}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/utif@3.1.0/UTIF.min.js"></script>
 </head>
@@ -1396,15 +1402,19 @@ function sbMakeThumb(src){
 
 async function handleSbarFiles(fileList){
   const arr=[...fileList].filter(f=>/\.(tif|tiff|png|jpe?g|webp|bmp)$/i.test(f.name)||(f.type&&f.type.startsWith('image/')));
-  const active=lines.filter(l=>!l.isCompleted);
-  const defLine=(active[0]||{}).id||'';
-  let failed=[];
-  for(const f of arr){
-    try{
-      const {canvas,w,h}=await sbLoadImageFile(f);
-      sbFiles.push({id:'sb'+Date.now()+Math.random().toString(36).slice(2,6), fname:f.name, srcCanvas:canvas, w, h, thumb:sbMakeThumb(canvas), lineId:defLine, mag:'4x'});
-    }catch(e){ failed.push(f.name+' ('+e.message+')'); }
-  }
+  if(!arr.length) return;
+  let failed=[], done=0;
+  sbLoading(true,'사진 불러오는 중…');
+  try{
+    for(const f of arr){
+      try{
+        const {canvas,w,h}=await sbLoadImageFile(f);
+        sbFiles.push({id:'sb'+Date.now()+Math.random().toString(36).slice(2,6), fname:f.name, srcCanvas:canvas, w, h, thumb:sbMakeThumb(canvas), lineId:'', mag:'4x'});
+      }catch(e){ failed.push(f.name+' ('+e.message+')'); }
+      done++; sbLoading(true,`사진 불러오는 중… (${done}/${arr.length})`);
+      await new Promise(r=>setTimeout(r,0));
+    }
+  } finally { sbLoading(false); }
   renderSbarList();
   if(failed.length) alert('일부 파일을 불러오지 못했습니다:\n'+failed.join('\n'));
 }
@@ -1421,7 +1431,8 @@ function renderSbarList(){
   const barOn = (document.getElementById('sbAddBar')||{}).checked!==false;
   const head=`<div class="sb-listhd"><span>추가된 사진 <b>${sbFiles.length}</b>장</span><button class="sb-clear" onclick="sbClearAll()">전체 삭제</button></div>`;
   el.innerHTML = head + sbFiles.map((f,i)=>{
-    const lineOpts=active.map(l=>`<option value="${esc(l.id)}" ${l.id===f.lineId?'selected':''}>[${esc(l.patientId)}_${esc(l.type)}]</option>`).join('') || '<option value="">진행 중 라인 없음</option>';
+    const _opts=active.map(l=>`<option value="${esc(l.id)}" ${l.id===f.lineId?'selected':''}>[${esc(l.patientId)}_${esc(l.type)}]</option>`).join('');
+    const lineOpts=`<option value="" ${!f.lineId?'selected':''}>라인 선택…</option>`+(_opts||'<option value="" disabled>진행 중 라인 없음</option>');
     const magOpts=ALL_MAGS.map(m=>`<option value="${m}" ${m===f.mag?'selected':''}>${m}</option>`).join('');
     const line=lines.find(l=>l.id===f.lineId);
     let preview='— (라인·날짜를 선택하세요)', barInfo='';
@@ -1435,7 +1446,7 @@ function renderSbarList(){
       <div class="sb-mid">
         <div class="sb-orig">${esc(f.fname)} · ${f.w}×${f.h}px</div>
         <div class="sb-ctrls">
-          <select onchange="sbSet(${i},'lineId',this.value)">${lineOpts}</select>
+          <select class="${f.lineId?'':'sb-unsel'}" onchange="sbSet(${i},'lineId',this.value)">${lineOpts}</select>
           <select onchange="sbSet(${i},'mag',this.value)">${magOpts}</select>
           <span class="sb-bar">${barInfo}</span>
         </div>
@@ -1447,6 +1458,7 @@ function renderSbarList(){
 }
 
 function sbBarOn(){ const t=document.getElementById('sbAddBar'); return !t || t.checked; }
+function sbLoading(on, txt){ const el=document.getElementById('sbLoading'); if(!el) return; if(txt!=null){ const t=document.getElementById('sbLoadTxt'); if(t) t.textContent=txt; } el.classList.toggle('on', !!on); }
 
 function sbDrawBar(src, mag){
   const W=src.width, H=src.height;
@@ -1456,26 +1468,22 @@ function sbDrawBar(src, mag){
   const cal=SB_CAL[mag];
   if(sbBarOn() && cal){
     const barLen=cal*(W/SB_REF_W);
-    // PPT 스타일: 가늘고 단정한 막대 + 작은 글씨, 부드러운 그림자로 대비
-    const barH=Math.max(2,Math.round(H*0.006));
+    const barH=Math.max(2,Math.round(H*0.007));     // 가로 막대 두께
+    const capH=barH*3;                               // 양끝 세로 캡 높이 (I-bar)
     const margin=Math.round(W*0.028);
-    const x=W-margin-barLen, y=H-margin-barH;
+    const x2=W-margin, x1=x2-barLen;
+    const cy=H-margin-capH/2;                        // 막대 중심 y
     const color=document.getElementById('sbColor').value;
-    const soft=(color==='#ffffff')?'rgba(0,0,0,.45)':'rgba(255,255,255,.55)';
-    ctx.save();
-    ctx.shadowColor=soft;
-    ctx.shadowBlur=Math.max(2,Math.round(W*0.0028));
-    ctx.shadowOffsetX=0; ctx.shadowOffsetY=Math.max(1,Math.round(W*0.0014));
     ctx.fillStyle=color;
-    ctx.fillRect(x,y,barLen,barH);
+    ctx.fillRect(x1, Math.round(cy-barH/2), barLen, barH);                 // 가로 막대
+    ctx.fillRect(Math.round(x1-barH/2), Math.round(cy-capH/2), barH, capH); // 왼쪽 캡
+    ctx.fillRect(Math.round(x2-barH/2), Math.round(cy-capH/2), barH, capH); // 오른쪽 캡
     if(document.getElementById('sbLabel').checked){
-      const fs=Math.max(11,Math.round(H*0.021));   // 작게
-      ctx.font='600 '+fs+'px Pretendard, sans-serif';
+      const fs=Math.max(12,Math.round(H*0.030));
+      ctx.font=`${fs}px "Times New Roman", serif`;  // 사진과 같은 세리프체 (그림자 없음)
       ctx.textAlign='center'; ctx.textBaseline='alphabetic';
-      ctx.fillStyle=color;
-      ctx.fillText('100 µm', x+barLen/2, y-Math.round(H*0.010));
+      ctx.fillText('100\u03bcm', (x1+x2)/2, Math.round(cy-capH/2-H*0.012));
     }
-    ctx.restore();
   }
   return out;
 }
@@ -1494,6 +1502,7 @@ async function sbarSaveAll(btn){
   }
   const ot=btn.textContent; btn.disabled=true; btn.textContent='저장 중...';
   try{ await document.fonts.load('600 24px Pretendard'); await document.fonts.ready; }catch(e){}
+  sbLoading(true,'저장 중…'); let saved=0;
   const cnt={};
   try{
     for(const f of sbFiles){
@@ -1511,11 +1520,13 @@ async function sbarSaveAll(btn){
         setTimeout(()=>URL.revokeObjectURL(a.href),2000);
         await new Promise(r=>setTimeout(r,200));
       }
+      saved++; sbLoading(true,`저장 중… (${saved}/${sbFiles.length})`);
     }
     alert(sbFiles.length+'개 저장 완료'+(dir?' (선택한 폴더)':' (브라우저 다운로드 폴더)'));
   }catch(e){
     alert('저장 중 오류: '+e.message);
   }finally{
+    sbLoading(false);
     btn.disabled=false; btn.textContent=ot;
   }
 }
@@ -1546,5 +1557,6 @@ async function sbarSaveAll(btn){
     </div>
   </div>
 </div>
+<div id="sbLoading" class="sb-loading"><div class="sb-spin"></div><div class="sb-loadtxt" id="sbLoadTxt">처리 중…</div></div>
 </body>
 </html>
