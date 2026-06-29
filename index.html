@@ -468,12 +468,13 @@ function renderDash(){
   const el=document.getElementById('dash');
   const active=lines.filter(l=>!l.isCompleted);
   const sbarBtn=`<button class="btn btn-out" style="border-color:#FBCFE8;color:#DB2777;background:#FDF2F8;font-weight:700;margin-left:6px;" onclick="openSbarModal()">사진 이름·스케일바 저장</button>`;
+  const pptBtn=`<button class="btn btn-out" style="border-color:#C7D2FE;color:#4F46E5;background:#EEF2FF;font-weight:700;margin-left:6px;" onclick="openPptModal()">PPT 만들기</button>`;
 
   if(!active.length){
     el.innerHTML=`<div class="dash-card">
       <div class="dash-top">
         <div class="dash-ttl">현재 배양 현황</div>
-        <div class="dash-totals">${sbarBtn}</div>
+        <div class="dash-totals">${sbarBtn}${pptBtn}</div>
       </div>
       <div style="color:#94A3B8;font-size:.82rem;padding:4px 0;">현재 진행 중인 배양 라인이 없습니다.</div>
     </div>`;
@@ -521,7 +522,7 @@ function renderDash(){
   el.innerHTML=`<div class="dash-card">
     <div class="dash-top">
       <div class="dash-ttl">현재 배양 현황</div>
-      <div class="dash-totals">${totals}${sbarBtn}</div>
+      <div class="dash-totals">${totals}${sbarBtn}${pptBtn}</div>
     </div>
     <div class="dash-types">${typeCards}</div>
   </div>`;
@@ -1657,6 +1658,202 @@ async function sbarSaveAll(btn){
     btn.disabled=false; btn.textContent=ot;
   }
 }
+
+// ══════════════════════════════════════════
+//  폴더 → PPT 만들기 (브라우저, PptxGenJS)
+// ══════════════════════════════════════════
+const PPTG = { slideW:33.867, slideH:19.05, marginX:0.7, titleTop:0.75, titleH:1.7,
+  contentGap:0.3, bottomMargin:0.4, MAG_ORDER:['4x','10x','20x'], COLS:5,
+  gutter:1.0, colGap:0.35, rowGap:0.18, headerH:0.72, headerGap:0.12,
+  qRows:3, capH:0.5, maxImgPx:1400 };
+function pptIN(cm){ return cm/2.54; }
+
+function openPptModal(){ document.getElementById('pptModal').classList.add('open'); }
+function closePptModal(){ document.getElementById('pptModal').classList.remove('open'); }
+
+function pptEnsureLib(){
+  return new Promise((res,rej)=>{
+    if(window.PptxGenJS||window.pptxgen) return res();
+    const sc=document.createElement('script');
+    sc.src='https://cdn.jsdelivr.net/gh/gitbrent/pptxgenjs@3.12.0/dist/pptxgen.bundle.js';
+    sc.onload=()=>res(); sc.onerror=()=>rej(new Error('PPT 라이브러리 로드 실패 (인터넷 필요)'));
+    document.head.appendChild(sc);
+  });
+}
+
+async function* pptWalk(dir, path){
+  for await (const e of dir.values()){
+    if(e.kind==='file') yield {handle:e, name:e.name, path:path+e.name};
+    else if(e.kind==='directory') yield* pptWalk(e, path+e.name+'/');
+  }
+}
+
+function pptCanvasToData(cv){
+  const aspect=cv.height/cv.width;
+  if(cv.width>PPTG.maxImgPx){
+    const s=PPTG.maxImgPx/cv.width;
+    const c2=document.createElement('canvas');
+    c2.width=PPTG.maxImgPx; c2.height=Math.round(cv.height*s);
+    c2.getContext('2d').drawImage(cv,0,0,c2.width,c2.height);
+    cv=c2;
+  }
+  return {dataURL:cv.toDataURL('image/jpeg',0.92), aspect};
+}
+
+function pptParse(name){
+  const stem=name.replace(/\.[^.]+$/,'');
+  const toks=stem.split('_');
+  const RE_DATE=/^\d{6}$/, RE_PASS=/^p\d+$/i, RE_DAY=/^d\d.*$/i,
+        RE_WELL=/^(well|dish|plate|spot|insert|flask)\d+$/i, RE_MAG=/^(\d+)x(?:\((\d+)\))?$/i;
+  const o={date:'',group:stem.replace(/_/g,' ').trim(),passage:'',passageVal:0,day:'',
+           well:'',wellVal:0,mag:'',magVal:9999,region:'',regionVal:0,named:false};
+  if(!toks.length||!RE_DATE.test(toks[0])) return o;
+  o.named=true; o.date=toks[0];
+  const rest=toks.slice(1);
+  const isStruct=t=>RE_PASS.test(t)||RE_DAY.test(t)||RE_WELL.test(t)||RE_MAG.test(t);
+  let fs=rest.length;
+  for(let i=0;i<rest.length;i++){ if(isStruct(rest[i])){ fs=i; break; } }
+  o.group=rest.slice(0,fs).join(' ').trim();
+  for(const t of rest.slice(fs)){
+    if(RE_PASS.test(t)&&!o.passage){ o.passage=t.toLowerCase(); o.passageVal=parseInt(t.replace(/\D/g,''))||0; }
+    else if(RE_DAY.test(t)&&!o.day){ o.day=t.toLowerCase(); }
+    else if(RE_WELL.test(t)&&!o.well){ o.well=t.toLowerCase(); o.wellVal=parseInt(t.replace(/\D/g,''))||0; }
+    else if(RE_MAG.test(t)){ const m=t.match(RE_MAG); if(!o.mag){ o.mag=m[1]+'x'; o.magVal=parseInt(m[1]); if(m[2]){ o.region=m[2]; o.regionVal=parseInt(m[2]); } } }
+  }
+  return o;
+}
+
+function pptFmtDate(d){ return (d&&d.length===6)?`${d.slice(0,2)}.${d.slice(2,4)}.${d.slice(4,6)}`:d; }
+function pptColHeader(c){ const a=[pptFmtDate(c.date)]; if(c.passage)a.push(c.passage.toUpperCase()); if(c.day)a.push(c.day); if(c.well)a.push(c.well); return a.join('  '); }
+function pptDateRange(items){ const ds=[...new Set(items.map(i=>i.meta.date).filter(Boolean))].sort(); if(!ds.length) return ''; return ds.length===1?pptFmtDate(ds[0]):`${pptFmtDate(ds[0])} – ${pptFmtDate(ds[ds.length-1])}`; }
+function pptCmpArr(a,b){ for(let i=0;i<a.length;i++){ if(a[i]<b[i])return -1; if(a[i]>b[i])return 1; } return 0; }
+function pptNatCmp(a,b){ const k=x=>x.replace(/\d+/g,n=>n.padStart(10,'0')); return k(a).localeCompare(k(b)); }
+function pptDetectMag(stem){ const m=stem.match(/(?<![A-Za-z0-9])(\d{1,3})[xX](?![A-Za-z0-9])/); return m?m[1]+'x':''; }
+
+function pptT(slide,text,x,y,w,h,opts){ slide.addText(text,Object.assign({x:pptIN(x),y:pptIN(y),w:pptIN(w),h:pptIN(h),fontFace:'Pretendard',margin:0},opts)); }
+function pptBadge(slide,mag,ix,iy,iw){
+  const bw=(mag.length<=2?0.46:0.62), bh=0.34;
+  pptT(slide,mag,ix+iw-bw,iy,bw,bh,{fontSize:7,color:'000000',align:'center',valign:'middle',fill:{color:'FFFFFF'}});
+}
+
+function pptDrawGrid(slide,columns,title,dr){
+  pptT(slide,[{text:title,options:{bold:true,fontSize:24,color:'1A1A1A'}}].concat(dr?[{text:'\n'+dr,options:{fontSize:13,color:'8A8A8A'}}]:[]),
+       PPTG.marginX,PPTG.titleTop,PPTG.slideW-2*PPTG.marginX,PPTG.titleH,{align:'left',valign:'top'});
+  const gridTop=PPTG.titleTop+PPTG.titleH+PPTG.contentGap;
+  const availH=PPTG.slideH-gridTop-PPTG.bottomMargin;
+  const usableW=(PPTG.slideW-2*PPTG.marginX)-PPTG.gutter;
+  let colW=(usableW-(PPTG.COLS-1)*PPTG.colGap)/PPTG.COLS;
+  let rowH=PPTG.MAG_ORDER.map(mag=>{ const a=columns.filter(c=>c.imgs[mag]).map(c=>c.imgs[mag].aspect); return colW*(a.length?Math.max.apply(null,a):0.5625); });
+  let totalH=PPTG.headerH+PPTG.headerGap+rowH.reduce((x,y)=>x+y,0)+PPTG.rowGap*(PPTG.MAG_ORDER.length-1);
+  if(totalH>availH){ const k=availH/totalH; colW*=k; rowH=rowH.map(h=>h*k); totalH*=k; }
+  const left=PPTG.marginX, top=gridTop+Math.max(0,(availH-totalH)/2);
+  let ry=top+PPTG.headerH+PPTG.headerGap;
+  PPTG.MAG_ORDER.forEach((mag,i)=>{ pptT(slide,mag,left,ry,PPTG.gutter-0.1,rowH[i],{fontSize:12,bold:true,color:'9A3412',align:'center',valign:'middle'}); ry+=rowH[i]+PPTG.rowGap; });
+  let cx=left+PPTG.gutter;
+  columns.forEach(col=>{
+    pptT(slide,pptColHeader(col),cx,top,colW,PPTG.headerH,{fontSize:11,bold:true,color:'3C3C3C',align:'center',valign:'middle'});
+    let ry2=top+PPTG.headerH+PPTG.headerGap;
+    PPTG.MAG_ORDER.forEach((mag,i)=>{
+      const it=col.imgs[mag];
+      if(it){ const ih=colW*it.aspect, iy=ry2+Math.max(0,(rowH[i]-ih)/2);
+        slide.addImage({data:it.dataURL,x:pptIN(cx),y:pptIN(iy),w:pptIN(colW),h:pptIN(ih)});
+        pptBadge(slide,mag,cx,iy,colW);
+      }
+      ry2+=rowH[i]+PPTG.rowGap;
+    });
+    cx+=colW+PPTG.colGap;
+  });
+}
+
+function pptDrawQuick(slide,cells,title){
+  pptT(slide,title,PPTG.marginX,PPTG.titleTop,PPTG.slideW-2*PPTG.marginX,PPTG.titleH,{bold:true,fontSize:24,color:'1A1A1A',align:'left',valign:'top'});
+  const gridTop=PPTG.titleTop+PPTG.titleH+PPTG.contentGap;
+  const availH=PPTG.slideH-gridTop-PPTG.bottomMargin;
+  let colW=((PPTG.slideW-2*PPTG.marginX)-(PPTG.COLS-1)*PPTG.colGap)/PPTG.COLS;
+  let capH=PPTG.capH;
+  let rowH=[]; for(let r=0;r<PPTG.qRows;r++){ const a=cells.filter((_,i)=>i%PPTG.qRows===r).map(c=>c.aspect); rowH.push(colW*(a.length?Math.max.apply(null,a):0.5625)); }
+  let totalH=rowH.reduce((x,y)=>x+y+capH,0)+PPTG.rowGap*(PPTG.qRows-1);
+  if(totalH>availH){ const k=availH/totalH; colW*=k; rowH=rowH.map(h=>h*k); capH*=k; totalH*=k; }
+  const left=PPTG.marginX, top=gridTop+Math.max(0,(availH-totalH)/2);
+  cells.forEach((cell,idx)=>{
+    const c=Math.floor(idx/PPTG.qRows), r=idx%PPTG.qRows;
+    const x=left+c*(colW+PPTG.colGap);
+    let yy=top; for(let k=0;k<r;k++) yy+=rowH[k]+capH+PPTG.rowGap;
+    const ih=colW*cell.aspect, iy=yy+Math.max(0,(rowH[r]-ih)/2);
+    slide.addImage({data:cell.dataURL,x:pptIN(x),y:pptIN(iy),w:pptIN(colW),h:pptIN(ih)});
+    const dm=pptDetectMag(cell.name.replace(/\.[^.]+$/,'')); if(dm) pptBadge(slide,dm,x,iy,colW);
+    pptT(slide,cell.name.replace(/\.[^.]+$/,'').replace(/_/g,' '),x,yy+rowH[r]+0.04,colW,capH,{fontSize:10,color:'3C3C3C',align:'center',valign:'top'});
+  });
+}
+
+async function pptBuild(items){
+  const PG=window.PptxGenJS||window.pptxgen;
+  const pptx=new PG(); pptx.layout='LAYOUT_WIDE';
+  const named=items.filter(it=>it.meta.named);
+  const unnamed=items.filter(it=>!it.meta.named);
+  const groups={};
+  named.forEach(it=>{ (groups[it.meta.group]=groups[it.meta.group]||[]).push(it); });
+  Object.keys(groups).sort().forEach(g=>{
+    const gi=groups[g], colsMap={};
+    gi.forEach(it=>{ const m=it.meta, key=[m.date,m.passageVal,m.wellVal,m.regionVal,m.day].join('|');
+      if(!colsMap[key]) colsMap[key]={date:m.date,passage:m.passage,day:m.day,well:m.well,sort:[m.date,m.passageVal,m.wellVal,m.regionVal],imgs:{}};
+      if(!colsMap[key].imgs[m.mag]) colsMap[key].imgs[m.mag]=it; });
+    const cols=Object.values(colsMap).sort((a,b)=>pptCmpArr(a.sort,b.sort));
+    const dr=pptDateRange(gi), tot=Math.ceil(cols.length/PPTG.COLS);
+    for(let i=0;i<cols.length;i+=PPTG.COLS){
+      const slide=pptx.addSlide();
+      const suf=tot>1?`  (${Math.floor(i/PPTG.COLS)+1}/${tot})`:'';
+      pptDrawGrid(slide,cols.slice(i,i+PPTG.COLS),g+suf,dr);
+    }
+  });
+  if(unnamed.length){
+    unnamed.sort((a,b)=>pptNatCmp(a.name,b.name));
+    const per=PPTG.COLS*PPTG.qRows, tot=Math.ceil(unnamed.length/per);
+    for(let i=0;i<unnamed.length;i+=per){
+      const slide=pptx.addSlide();
+      const suf=tot>1?`  (${Math.floor(i/per)+1}/${tot})`:'';
+      pptDrawQuick(slide,unnamed.slice(i,i+per),'기타 이미지'+suf);
+    }
+  }
+  return await pptx.write({outputType:'blob'});
+}
+
+async function pptPickAndBuild(btn){
+  if(!window.showDirectoryPicker){ alert('이 기능은 Chrome 또는 Edge에서만 됩니다.'); return; }
+  let dir;
+  try{ dir=await window.showDirectoryPicker({mode:'readwrite',id:'orgPptDir'}); }catch(e){ return; }
+  const ot=btn.textContent; btn.disabled=true;
+  sbLoading(true,'준비 중…');
+  try{
+    await pptEnsureLib();
+    sbLoading(true,'사진 찾는 중…');
+    const files=[];
+    for await (const f of pptWalk(dir,'')){ if(/\.(tif|tiff|png|jpe?g|webp|bmp)$/i.test(f.name)) files.push(f); }
+    if(!files.length){ alert('폴더에서 이미지를 찾지 못했습니다.'); return; }
+    files.sort((a,b)=>pptNatCmp(a.name,b.name));
+    const items=[]; let done=0, fail=0;
+    for(const f of files){
+      try{
+        const file=await f.handle.getFile();
+        const {canvas}=await sbLoadImageFile(file);
+        const {dataURL,aspect}=pptCanvasToData(canvas);
+        items.push({name:f.name, dataURL, aspect, meta:pptParse(f.name)});
+      }catch(e){ fail++; }
+      done++; sbLoading(true,`사진 읽는 중… (${done}/${files.length})`);
+      await new Promise(r=>setTimeout(r,0));
+    }
+    if(!items.length){ alert('이미지를 불러오지 못했습니다.'); return; }
+    sbLoading(true,'PPT 만드는 중…');
+    const blob=await pptBuild(items);
+    const fh=await dir.getFileHandle('report.pptx',{create:true});
+    const w=await fh.createWritable(); await w.write(blob); await w.close();
+    sbLoading(false);
+    const nn=items.filter(i=>i.meta.named).length;
+    alert(`완료! 사진 ${items.length}장 → report.pptx 저장됨\n(규칙 이름 ${nn}장 / 기타 ${items.length-nn}장`+(fail?` / 실패 ${fail}장`:'')+`)`);
+    closePptModal();
+  }catch(e){ sbLoading(false); alert('오류: '+e.message); }
+  finally{ btn.disabled=false; btn.textContent=ot; }
+}
 </script>
 
 <div id="sbarModal" class="modal">
@@ -1682,6 +1879,25 @@ async function sbarSaveAll(btn){
     <div class="mfoot" style="display:flex;gap:8px;">
       <button class="btn btn-out" style="flex:1;" onclick="closeSbarModal()">닫기</button>
       <button class="btn btn-pri" style="flex:2;" onclick="sbarSaveAll(this)">폴더에 저장</button>
+    </div>
+  </div>
+</div>
+<div id="pptModal" class="modal">
+  <div class="mbox" style="width:560px;">
+    <h2>폴더 → PPT 만들기</h2>
+    <div class="mscroll">
+      <div style="font-size:.83rem;color:#475569;line-height:1.65;">
+        선택한 폴더(하위 폴더 포함)의 사진을 자동으로 정리해 PPT를 만듭니다.<br><br>
+        · <b>규칙 이름</b> (<code>날짜_환자_타입_pX_dY_배율</code>)<br>
+        &nbsp;&nbsp;→ 세로 4x / 10x / 20x, 가로 날짜 그리드 (열 위에 날짜·P·day 헤더, 슬라이드당 5세트)<br>
+        · <b>그 외 이름</b> (Image_0001 등) → "기타 이미지" 슬라이드에 3행 × 5열로 정리<br><br>
+        결과는 선택한 폴더 안에 <b>report.pptx</b> 로 저장됩니다.<br>
+        <span style="color:#94A3B8;">PNG · JPG · TIFF 지원 · Chrome / Edge 필요</span>
+      </div>
+    </div>
+    <div class="mfoot" style="display:flex;gap:8px;">
+      <button class="btn btn-out" style="flex:1;" onclick="closePptModal()">닫기</button>
+      <button class="btn btn-pri" style="flex:2;" onclick="pptPickAndBuild(this)">폴더 선택해서 PPT 만들기</button>
     </div>
   </div>
 </div>
