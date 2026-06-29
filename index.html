@@ -31,11 +31,12 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--tx);ma
 #stockBanner{margin-bottom:10px;}
 .sc-card{background:#FFF7ED;border:1px solid #FED7AA;border-radius:6px;padding:10px 14px;display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;}
 .sc-title{font-size:.79rem;font-weight:700;color:#9A3412;white-space:nowrap;padding-top:3px;}
-.sc-item{display:flex;flex-direction:column;gap:3px;background:#fff;border:1px solid #FED7AA;border-radius:5px;padding:6px 10px;min-width:185px;}
+.sc-item{display:flex;flex-direction:column;gap:4px;background:#fff;border:1px solid #FED7AA;border-radius:5px;padding:7px 11px;min-width:175px;width:max-content;}
+.sc-head{white-space:nowrap;display:flex;align-items:baseline;gap:6px;}
 .sc-lbl{font-size:.76rem;font-weight:700;color:#9A3412;}
 .sc-sub{font-size:.72rem;color:#B45309;}
 .sc-chk{display:flex;align-items:center;gap:5px;background:#fff;border:1px solid #FED7AA;border-radius:4px;
-        padding:3px 8px;font-size:.75rem;cursor:pointer;transition:.1s;user-select:none;}
+        padding:3px 8px;font-size:.75rem;cursor:pointer;transition:.1s;user-select:none;white-space:nowrap;flex:none;}
 .sc-chk:hover{background:#FFF7ED;}
 .sc-chk.done{background:#F1F5F9;border-color:#E2E8F0;color:#94A3B8;text-decoration:line-through;}
 .sc-chk input{cursor:pointer;accent-color:#EA580C;}
@@ -92,7 +93,7 @@ textarea{resize:vertical;min-height:31px;line-height:1.45;}
 #stockInline{display:none;background:#FFF7ED;border:1px solid #FED7AA;border-radius:4px;padding:7px 10px;}
 #stockInline>label{color:#9A3412;margin-bottom:5px;}
 .si-row{display:flex;gap:14px;flex-wrap:wrap;}
-.si-row label{font-size:.75rem;display:flex;align-items:center;gap:4px;color:#475569;font-weight:500;cursor:pointer;margin:0;}
+.si-row label{font-size:.75rem;display:flex;align-items:center;gap:4px;color:#475569;font-weight:500;cursor:pointer;margin:0;white-space:nowrap;}
 .si-row input{width:auto;height:auto;}
 
 /* SECTION TITLES */
@@ -455,7 +456,7 @@ function latestWell(line){
 function renderDash(){
   const el=document.getElementById('dash');
   const active=lines.filter(l=>!l.isCompleted);
-  const sbarBtn=`<button class="btn btn-out" style="border-color:#FBCFE8;color:#DB2777;background:#FDF2F8;font-weight:700;margin-left:6px;" onclick="openSbarModal()">스케일바 + 저장</button>`;
+  const sbarBtn=`<button class="btn btn-out" style="border-color:#FBCFE8;color:#DB2777;background:#FDF2F8;font-weight:700;margin-left:6px;" onclick="openSbarModal()">사진 이름·스케일바 저장</button>`;
 
   if(!active.length){
     el.innerHTML=`<div class="dash-card">
@@ -600,7 +601,7 @@ function renderStockBanner(){
 
   if(!pend.length){el.innerHTML='';return;}
   const items=pend.map(sc=>`<div class="sc-item">
-    <div><span class="sc-lbl">${esc(sc.lineLabel)}</span> <span class="sc-sub">${sc.date} · ${sc.stocks}vial</span></div>
+    <div class="sc-head"><span class="sc-lbl">${esc(sc.lineLabel)}</span> <span class="sc-sub">${sc.date} · ${sc.stocks}vial</span></div>
     <label class="sc-chk ${sc.ln2Done?'done':''}" onclick="toggleSC('${sc.id}','ln2')">
       <input type="checkbox" ${sc.ln2Done?'checked':''} onclick="event.stopPropagation();toggleSC('${sc.id}','ln2')"> LN2 tank 이동
     </label>
@@ -741,8 +742,9 @@ function saveData(){
 }
 
 function onActChange(){
+  const v=document.getElementById('logAction').value;
   document.getElementById('stockInline').style.display=
-    document.getElementById('logAction').value.includes('Stock')?'block':'none';
+    (v.includes('Stock')||v.includes('Split'))?'block':'none';
 }
 
 let bulkDates=[];
@@ -917,7 +919,7 @@ function saveDailyLog(){
         line.startDate = isoD(date);
     }
     
-    if(action.includes('Stock')&&stocks&&parseInt(stocks)>0){
+    if(stocks&&parseInt(stocks)>0){
       const ln=lines.find(l=>l.id===lineId);
       stockChecks.push({id:uid(),lineId:lineId, lineLabel:`${ln.patientId}_${ln.type}`,date,stocks,ln2Done:false,dbDone:false});
     }
@@ -1535,7 +1537,7 @@ async function sbarSaveAll(btn){
 
 <div id="sbarModal" class="modal">
   <div class="mbox" style="width:680px;">
-    <h2>현미경 사진 — 스케일바 + 이름 저장</h2>
+    <h2>현미경 사진 — 이름·스케일바 넣어 저장</h2>
     <div class="mscroll">
       <div style="display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:6px;padding:11px 13px;margin-bottom:12px;">
         <div><label>촬영 날짜</label><input type="date" id="sbDate" onchange="renderSbarList()" style="height:32px;"></div>
