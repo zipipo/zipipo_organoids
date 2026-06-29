@@ -166,7 +166,23 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
 .micro-name:hover{background:#F8FAFC;}
 .mm-txt{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.82rem;color:#0F172A;word-break:break-all;}
 .mm-copy{font-size:.72rem;font-weight:700;color:#3B82F6;white-space:nowrap;flex-shrink:0;}
+
+/* === scale-bar tool === */
+.sb-drop{border:2px dashed #CBD5E1;border-radius:8px;padding:22px;text-align:center;color:#64748B;font-size:.85rem;cursor:pointer;line-height:1.6;transition:.12s;}
+.sb-drop:hover,.sb-drop.drag{border-color:#3B82F6;background:#EFF6FF;color:#1D4ED8;}
+.sb-empty{color:#94A3B8;font-size:.82rem;padding:10px 2px;}
+.sb-row{display:flex;align-items:center;gap:11px;border:1px solid #E2E8F0;border-radius:7px;padding:8px 10px;margin-bottom:8px;}
+.sb-thumb{width:auto;height:46px;border-radius:4px;border:1px solid #E2E8F0;background:#000;flex:none;}
+.sb-mid{flex:1;min-width:0;}
+.sb-orig{font-size:.72rem;color:#94A3B8;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sb-ctrls{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+.sb-ctrls select{height:30px;width:auto;}
+.sb-bar{font-size:.72rem;color:#64748B;}
+.sb-prev{font-size:.78rem;font-weight:700;color:#0F172A;margin-top:5px;word-break:break-all;}
+.sb-x{flex:none;background:#FEE2E2;color:#DC2626;border:none;border-radius:5px;width:28px;height:28px;font-size:1rem;cursor:pointer;font-weight:700;}
+.sb-x:hover{background:#FECACA;}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/utif@3.1.0/UTIF.min.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -460,12 +476,13 @@ function renderDash(){
   const el=document.getElementById('dash');
   const active=lines.filter(l=>!l.isCompleted);
   const microBtn=`<button class="btn btn-out" style="border-color:#BFDBFE;color:#2563EB;background:#EFF6FF;font-weight:700;" onclick="openMicroModal()">현미경 사진 정리</button>`;
+  const sbarBtn=`<button class="btn btn-out" style="border-color:#FBCFE8;color:#DB2777;background:#FDF2F8;font-weight:700;margin-left:6px;" onclick="openSbarModal()">스케일바 + 저장</button>`;
 
   if(!active.length){
     el.innerHTML=`<div class="dash-card">
       <div class="dash-top">
         <div class="dash-ttl">현재 배양 현황</div>
-        <div class="dash-totals">${microBtn}</div>
+        <div class="dash-totals">${microBtn}${sbarBtn}</div>
       </div>
       <div style="color:#94A3B8;font-size:.82rem;padding:4px 0;">현재 진행 중인 배양 라인이 없습니다.</div>
     </div>`;
@@ -513,7 +530,7 @@ function renderDash(){
   el.innerHTML=`<div class="dash-card">
     <div class="dash-top">
       <div class="dash-ttl">현재 배양 현황</div>
-      <div class="dash-totals">${totals}${microBtn}</div>
+      <div class="dash-totals">${totals}${microBtn}${sbarBtn}</div>
     </div>
     <div class="dash-types">${typeCards}</div>
   </div>`;
@@ -1415,6 +1432,218 @@ lines.forEach(line=>{
 
 ensureSeedLogs(true);
 updateUI();
+
+// ══════════════════════════════════════════
+//  현미경 스케일바 + 폴더 저장
+// ══════════════════════════════════════════
+const SB_CAL = {'4x':101,'10x':252,'20x':510}; // 100µm 당 px (원본 폭 3840px 기준)
+const SB_REF_W = 3840;
+let sbFiles = []; // {id, fname, srcCanvas, w, h, thumb, lineId, mag}
+
+function openSbarModal(){
+  const di=document.getElementById('sbDate');
+  if(!di.value) di.valueAsDate=new Date();
+  if(!window._sbWired){
+    const drop=document.getElementById('sbDrop'), inp=document.getElementById('sbInput');
+    drop.addEventListener('click',()=>inp.click());
+    inp.addEventListener('change',e=>{handleSbarFiles(e.target.files); inp.value='';});
+    ['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('drag');}));
+    ['dragleave'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('drag');}));
+    drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('drag'); if(e.dataTransfer&&e.dataTransfer.files) handleSbarFiles(e.dataTransfer.files);});
+    window._sbWired=true;
+  }
+  renderSbarList();
+  document.getElementById('sbarModal').classList.add('open');
+}
+function closeSbarModal(){ document.getElementById('sbarModal').classList.remove('open'); }
+
+function sbLoadImageFile(file){
+  return new Promise((resolve,reject)=>{
+    const isTiff=/\.(tif|tiff)$/i.test(file.name)||file.type==='image/tiff';
+    if(isTiff){
+      if(typeof UTIF==='undefined'){reject(new Error('TIFF 디코더가 로드되지 않았습니다(인터넷 필요).')); return;}
+      const fr=new FileReader();
+      fr.onload=()=>{
+        try{
+          const buf=fr.result;
+          const ifds=UTIF.decode(buf);
+          UTIF.decodeImage(buf, ifds[0]);
+          const rgba=UTIF.toRGBA8(ifds[0]);
+          const w=ifds[0].width, h=ifds[0].height;
+          const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+          const ctx=cv.getContext('2d');
+          const id=ctx.createImageData(w,h); id.data.set(rgba); ctx.putImageData(id,0,0);
+          resolve({canvas:cv,w,h});
+        }catch(e){reject(e);}
+      };
+      fr.onerror=()=>reject(new Error('파일 읽기 실패'));
+      fr.readAsArrayBuffer(file);
+    } else {
+      const img=new Image(); const url=URL.createObjectURL(file);
+      img.onload=()=>{
+        const w=img.naturalWidth,h=img.naturalHeight;
+        const cv=document.createElement('canvas');cv.width=w;cv.height=h;
+        cv.getContext('2d').drawImage(img,0,0);
+        URL.revokeObjectURL(url); resolve({canvas:cv,w,h});
+      };
+      img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('이미지 로드 실패'));};
+      img.src=url;
+    }
+  });
+}
+
+function sbMakeThumb(src){
+  const th=46, ratio=src.width/src.height, tw=Math.max(1,Math.round(th*ratio));
+  const c=document.createElement('canvas');c.width=tw;c.height=th;
+  c.getContext('2d').drawImage(src,0,0,tw,th);
+  return c.toDataURL('image/png');
+}
+
+async function handleSbarFiles(fileList){
+  const arr=[...fileList].filter(f=>/\.(tif|tiff|png|jpe?g|webp|bmp)$/i.test(f.name)||(f.type&&f.type.startsWith('image/')));
+  const active=lines.filter(l=>!l.isCompleted);
+  const defLine=(active[0]||{}).id||'';
+  let failed=[];
+  for(const f of arr){
+    try{
+      const {canvas,w,h}=await sbLoadImageFile(f);
+      sbFiles.push({id:'sb'+Date.now()+Math.random().toString(36).slice(2,6), fname:f.name, srcCanvas:canvas, w, h, thumb:sbMakeThumb(canvas), lineId:defLine, mag:'4x'});
+    }catch(e){ failed.push(f.name+' ('+e.message+')'); }
+  }
+  renderSbarList();
+  if(failed.length) alert('일부 파일을 불러오지 못했습니다:\n'+failed.join('\n'));
+}
+
+function sbSet(i,k,v){ if(sbFiles[i]){ sbFiles[i][k]=v; renderSbarList(); } }
+function sbRemove(i){ sbFiles.splice(i,1); renderSbarList(); }
+
+function renderSbarList(){
+  const el=document.getElementById('sbList');
+  const date=document.getElementById('sbDate').value;
+  const active=lines.filter(l=>!l.isCompleted);
+  if(!sbFiles.length){ el.innerHTML='<div class="sb-empty">아직 추가된 사진이 없습니다. 위 영역에 끌어다 놓으세요.</div>'; return; }
+  el.innerHTML = sbFiles.map((f,i)=>{
+    const lineOpts=active.map(l=>`<option value="${esc(l.id)}" ${l.id===f.lineId?'selected':''}>[${esc(l.patientId)}_${esc(l.type)}]</option>`).join('') || '<option value="">진행 중 라인 없음</option>';
+    const magOpts=ALL_MAGS.map(m=>`<option value="${m}" ${m===f.mag?'selected':''}>${m}</option>`).join('');
+    const line=lines.find(l=>l.id===f.lineId);
+    let preview='— (라인·날짜를 선택하세요)', barInfo='';
+    if(line&&date){
+      preview=buildMicroName(line,date,f.mag)+'.png';
+      const cal=SB_CAL[f.mag];
+      barInfo = cal? `바 ${Math.round(cal*(f.w/SB_REF_W))}px / 100µm` : '⚠ 배율 보정값 없음';
+    }
+    return `<div class="sb-row">
+      <img class="sb-thumb" src="${f.thumb}">
+      <div class="sb-mid">
+        <div class="sb-orig">${esc(f.fname)} · ${f.w}×${f.h}px</div>
+        <div class="sb-ctrls">
+          <select onchange="sbSet(${i},'lineId',this.value)">${lineOpts}</select>
+          <select onchange="sbSet(${i},'mag',this.value)">${magOpts}</select>
+          <span class="sb-bar">${barInfo}</span>
+        </div>
+        <div class="sb-prev">${esc(preview)}</div>
+      </div>
+      <button class="sb-x" title="제거" onclick="sbRemove(${i})">×</button>
+    </div>`;
+  }).join('');
+}
+
+function sbDrawBar(src, mag){
+  const W=src.width, H=src.height;
+  const out=document.createElement('canvas'); out.width=W; out.height=H;
+  const ctx=out.getContext('2d');
+  ctx.drawImage(src,0,0);
+  const cal=SB_CAL[mag];
+  if(cal){
+    const barLen=cal*(W/SB_REF_W);
+    const barH=Math.max(2,Math.round(W*0.005));
+    const margin=Math.round(W*0.04);
+    const x=W-margin-barLen, y=H-margin-barH;
+    const color=document.getElementById('sbColor').value;
+    // 대비용 외곽선
+    ctx.lineWidth=Math.max(1,Math.round(W*0.0013));
+    ctx.strokeStyle = (color==='#ffffff')?'rgba(0,0,0,.55)':'rgba(255,255,255,.65)';
+    ctx.strokeRect(x,y,barLen,barH);
+    ctx.fillStyle=color;
+    ctx.fillRect(x,y,barLen,barH);
+    if(document.getElementById('sbLabel').checked){
+      const fs=Math.max(11,Math.round(W*0.024));
+      ctx.font='bold '+fs+'px sans-serif';
+      ctx.textAlign='center'; ctx.textBaseline='alphabetic';
+      const tx=x+barLen/2, ty=y-Math.round(W*0.009);
+      ctx.lineWidth=Math.max(1.5,fs*0.14);
+      ctx.strokeStyle=(color==='#ffffff')?'rgba(0,0,0,.55)':'rgba(255,255,255,.65)';
+      ctx.strokeText('100 µm', tx, ty);
+      ctx.fillStyle=color;
+      ctx.fillText('100 µm', tx, ty);
+    }
+  }
+  return out;
+}
+
+async function sbarSaveAll(btn){
+  const date=document.getElementById('sbDate').value;
+  if(!date){ alert('촬영 날짜를 선택하세요.'); return; }
+  if(!sbFiles.length){ alert('사진을 먼저 추가하세요.'); return; }
+  for(const f of sbFiles){ if(!f.lineId){ alert('모든 사진의 라인을 선택하세요.'); return; } }
+
+  const useFS = !!window.showDirectoryPicker;
+  let dir=null;
+  if(useFS){
+    try{ dir=await window.showDirectoryPicker({mode:'readwrite'}); }
+    catch(e){ return; } // 사용자가 취소
+  }
+  const ot=btn.textContent; btn.disabled=true; btn.textContent='저장 중...';
+  const cnt={};
+  try{
+    for(const f of sbFiles){
+      const line=lines.find(l=>l.id===f.lineId); if(!line) continue;
+      let base=buildMicroName(line,date,f.mag);
+      if(cnt[base]==null){ cnt[base]=0; } else { cnt[base]++; base=base+'_'+cnt[base]; }
+      const fname=base+'.png';
+      const cv=sbDrawBar(f.srcCanvas,f.mag);
+      const blob=await new Promise(r=>cv.toBlob(r,'image/png'));
+      if(dir){
+        const fh=await dir.getFileHandle(fname,{create:true});
+        const w=await fh.createWritable(); await w.write(blob); await w.close();
+      } else {
+        const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=fname; a.click();
+        setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+        await new Promise(r=>setTimeout(r,200));
+      }
+    }
+    alert(sbFiles.length+'개 저장 완료'+(dir?' (선택한 폴더)':' (브라우저 다운로드 폴더)'));
+  }catch(e){
+    alert('저장 중 오류: '+e.message);
+  }finally{
+    btn.disabled=false; btn.textContent=ot;
+  }
+}
 </script>
+
+<div id="sbarModal" class="modal">
+  <div class="mbox" style="width:680px;">
+    <h2>현미경 사진 — 스케일바 + 이름 저장</h2>
+    <div class="mscroll">
+      <div style="display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:6px;padding:11px 13px;margin-bottom:12px;">
+        <div><label>촬영 날짜</label><input type="date" id="sbDate" onchange="renderSbarList()" style="height:32px;"></div>
+        <div><label>바 색상</label><select id="sbColor" onchange="renderSbarList()" style="height:32px;width:auto;"><option value="#ffffff">흰색</option><option value="#000000">검정</option></select></div>
+        <div style="padding-bottom:6px;"><label style="display:flex;align-items:center;gap:5px;cursor:pointer;margin:0;"><input type="checkbox" id="sbLabel" checked style="width:auto;"> 100µm 라벨 표시</label></div>
+      </div>
+      <div id="sbDrop" class="sb-drop">사진을 여기로 끌어다 놓거나 클릭해서 선택<br><span style="font-size:.72rem;color:#94A3B8;">PNG / JPG / TIFF 지원 · 배율별 스케일바 자동 적용</span>
+        <input type="file" id="sbInput" accept="image/*,.tif,.tiff" multiple style="display:none;">
+      </div>
+      <div style="font-size:.74rem;color:#94A3B8;margin:9px 0;line-height:1.5;">
+        · 사진마다 라인·배율을 고르면 날짜 기준 P / D 가 자동 계산되어 파일명이 만들어집니다.<br>
+        · 저장 시 배율에 맞는 100µm 스케일바가 사진에 그려져 저장됩니다. (4x·10x·20x 보정값 기준, 사진 해상도에 맞춰 자동 환산)
+      </div>
+      <div id="sbList"></div>
+    </div>
+    <div class="mfoot" style="display:flex;gap:8px;">
+      <button class="btn btn-out" style="flex:1;" onclick="closeSbarModal()">닫기</button>
+      <button class="btn btn-pri" style="flex:2;" onclick="sbarSaveAll(this)">폴더에 저장</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
