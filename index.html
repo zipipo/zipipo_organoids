@@ -29,17 +29,18 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--tx);ma
 
 /* STOCK BANNER */
 #stockBanner{margin-bottom:10px;}
-.sc-card{background:#FFF7ED;border:1px solid #FED7AA;border-radius:6px;padding:10px 14px;display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;}
-.sc-title{font-size:.79rem;font-weight:700;color:#9A3412;white-space:nowrap;padding-top:3px;}
-.sc-item{display:flex;flex-direction:column;gap:4px;background:#fff;border:1px solid #FED7AA;border-radius:5px;padding:7px 11px;min-width:175px;width:max-content;}
-.sc-head{white-space:nowrap;display:flex;align-items:baseline;gap:6px;}
+.sc-card{background:#FFF7ED;border:1px solid #FED7AA;border-radius:7px;padding:7px 11px;display:flex;align-items:center;gap:11px;flex-wrap:wrap;}
+.sc-title{font-size:.76rem;font-weight:700;color:#9A3412;white-space:nowrap;display:flex;align-items:center;gap:5px;}
+.sc-title::before{content:"💉";font-size:.9rem;}
+.sc-items{display:flex;flex-direction:column;gap:5px;flex:1;min-width:260px;}
+.sc-item{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #FED7AA;border-radius:6px;padding:4px 6px 4px 11px;flex-wrap:wrap;}
+.sc-head{display:flex;align-items:baseline;gap:7px;flex:1;min-width:150px;}
 .sc-lbl{font-size:.76rem;font-weight:700;color:#9A3412;}
-.sc-sub{font-size:.72rem;color:#B45309;}
-.sc-chk{display:flex;align-items:center;gap:5px;background:#fff;border:1px solid #FED7AA;border-radius:4px;
-        padding:3px 8px;font-size:.75rem;cursor:pointer;transition:.1s;user-select:none;white-space:nowrap;flex:none;}
+.sc-sub{font-size:.71rem;color:#B45309;white-space:nowrap;}
+.sc-chk{display:inline-flex;align-items:center;gap:4px;font-size:.73rem;color:#9A3412;font-weight:600;cursor:pointer;user-select:none;white-space:nowrap;padding:3px 8px;border-radius:5px;transition:.1s;}
 .sc-chk:hover{background:#FFF7ED;}
-.sc-chk.done{background:#F1F5F9;border-color:#E2E8F0;color:#94A3B8;text-decoration:line-through;}
-.sc-chk input{cursor:pointer;accent-color:#EA580C;}
+.sc-chk.done{color:#94A3B8;text-decoration:line-through;font-weight:500;}
+.sc-chk input{cursor:pointer;accent-color:#EA580C;width:14px;height:14px;margin:0;}
 
 /* ═══ DASHBOARD (well board) ═══ */
 #dash{margin-bottom:12px;}
@@ -90,11 +91,8 @@ textarea{resize:vertical;min-height:31px;line-height:1.45;}
 .prev-bar{padding:7px 12px;font-size:.82rem;color:var(--pri);font-weight:600;background:#fff;min-height:31px;border-bottom:1px solid var(--bd);}
 
 /* STOCK INLINE */
-#stockInline{display:none;background:#FFF7ED;border:1px solid #FED7AA;border-radius:4px;padding:7px 10px;}
-#stockInline>label{color:#9A3412;margin-bottom:5px;}
-.si-row{display:flex;gap:14px;flex-wrap:wrap;}
-.si-row label{font-size:.75rem;display:flex;align-items:center;gap:4px;color:#475569;font-weight:500;cursor:pointer;margin:0;white-space:nowrap;}
-.si-row input{width:auto;height:auto;}
+#stockInline{display:none;background:#FFF7ED;border:1px solid #FED7AA;border-radius:5px;padding:7px 11px;font-size:.75rem;line-height:1.5;color:#9A3412;}
+#stockInline b{color:#7C2D12;}
 
 /* SECTION TITLES */
 .sec{font-size:.95rem;font-weight:700;margin:18px 0 7px;}
@@ -265,11 +263,7 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
       <button class="btn btn-pri" onclick="saveDailyLog()">기록</button>
     </div>
     <div id="stockInline">
-      <label>Stock 후처리 예정 항목 (기록 후 배너에 표시)</label>
-      <div class="si-row">
-        <label><input type="checkbox" id="chkLN2"> LN2 tank 이동 (다음날)</label>
-        <label><input type="checkbox" id="chkDB"> DB 업데이트</label>
-      </div>
+      <span>💉 Stock(vial) 수를 입력하고 기록하면 <b>LN2 tank 이동 · DB 업데이트</b> 후처리 항목이 위 배너에 자동으로 뜹니다. (미리 체크할 필요 없음)</span>
     </div>
   </div>
   <div class="prev-bar" id="prevArea">라인을 선택하면 P/D 상태가 미리 계산됩니다.</div>
@@ -604,24 +598,17 @@ function fallbackCopy(txt,cb){
 function renderStockBanner(){
   const el=document.getElementById('stockBanner');
   const pend = stockChecks.filter(sc => {
-    if (sc.ln2Done && sc.dbDone) return false;
-    let line = lines.find(l => l.id === sc.lineId);
-    if(!line) line = lines.find(l => `${l.patientId}_${l.type}` === sc.lineLabel);
-    if (line && line.isCompleted) return false; 
+    if (sc.ln2Done && sc.dbDone) return false;   // LN2·DB 둘 다 체크했을 때만 사라짐 (배양 완료와 무관)
     return true;
   });
 
   if(!pend.length){el.innerHTML='';return;}
   const items=pend.map(sc=>`<div class="sc-item">
-    <div class="sc-head"><span class="sc-lbl">${esc(sc.lineLabel)}</span> <span class="sc-sub">${sc.date} · ${sc.stocks}vial</span></div>
-    <label class="sc-chk ${sc.ln2Done?'done':''}" onclick="toggleSC('${sc.id}','ln2')">
-      <input type="checkbox" ${sc.ln2Done?'checked':''} onclick="event.stopPropagation();toggleSC('${sc.id}','ln2')"> LN2 tank 이동
-    </label>
-    <label class="sc-chk ${sc.dbDone?'done':''}" onclick="toggleSC('${sc.id}','db')">
-      <input type="checkbox" ${sc.dbDone?'checked':''} onclick="event.stopPropagation();toggleSC('${sc.id}','db')"> DB 업데이트
-    </label>
+    <div class="sc-head"><span class="sc-lbl">${esc(sc.lineLabel)}</span><span class="sc-sub">${sc.date} · ${sc.stocks}vial</span></div>
+    <label class="sc-chk ${sc.ln2Done?'done':''}"><input type="checkbox" ${sc.ln2Done?'checked':''} onclick="toggleSC('${sc.id}','ln2')"> LN2 tank 이동</label>
+    <label class="sc-chk ${sc.dbDone?'done':''}"><input type="checkbox" ${sc.dbDone?'checked':''} onclick="toggleSC('${sc.id}','db')"> DB 업데이트</label>
   </div>`).join('');
-  el.innerHTML=`<div class="sc-card"><div class="sc-title">Stock 후처리 체크</div><div style="display:flex;flex-wrap:wrap;gap:7px;">${items}</div></div>`;
+  el.innerHTML=`<div class="sc-card"><div class="sc-title">Stock 후처리</div><div class="sc-items">${items}</div></div>`;
 }
 
 function toggleSC(id,field){
@@ -859,7 +846,7 @@ async function initBackup(){
 function onActChange(){
   const v=document.getElementById('logAction').value;
   document.getElementById('stockInline').style.display=
-    (v.includes('Stock')||v.includes('Split'))?'block':'none';
+    v.includes('Stock')?'block':'none';
 }
 
 let bulkDates=[];
@@ -1044,8 +1031,6 @@ function saveDailyLog(){
   bulkDates=[];renderBulkTags();
   bulkLines=[];renderBulkLineTags();
   ['logDet','logWells','logStocks','logMemo'].forEach(i=>document.getElementById(i).value='');
-  document.getElementById('chkLN2').checked=false;
-  document.getElementById('chkDB').checked=false;
   document.getElementById('stockInline').style.display='none';
   document.getElementById('logAction').value='Media Change';
   updateUI();previewDay();
@@ -1561,13 +1546,19 @@ function renderSbDir(){ const el=document.getElementById('sbDirInfo'); if(!el) r
 function renderSbarList(){
   const el=document.getElementById('sbList');
   const date=document.getElementById('sbDate').value;
-  const active=lines.filter(l=>!l.isCompleted);
+  // 촬영 날짜에 아직 진행 중이었던 라인은 선택 가능 (그 날짜엔 배양완료 전이었으면 완료된 라인도 포함)
+  const active=lines.filter(l=>{
+    if(!l.isCompleted) return true;
+    return !!(date && l.finishDate && date <= l.finishDate);
+  });
   if(!sbFiles.length){ el.innerHTML='<div class="sb-empty">아직 추가된 사진이 없습니다. 위 영역에 끌어다 놓으세요.</div>'; return; }
   const barOn = (document.getElementById('sbAddBar')||{}).checked!==false;
   const head=`<div class="sb-listhd"><span>추가된 사진 <b>${sbFiles.length}</b>장</span><button class="sb-clear" onclick="sbClearAll()">전체 삭제</button></div>`;
   el.innerHTML = head + sbFiles.map((f,i)=>{
-    const _opts=active.map(l=>`<option value="${esc(l.id)}" ${l.id===f.lineId?'selected':''}>[${esc(l.patientId)}_${esc(l.type)}]</option>`).join('');
-    const lineOpts=`<option value="" ${!f.lineId?'selected':''}>라인 선택…</option>`+(_opts||'<option value="" disabled>진행 중 라인 없음</option>');
+    const optLines=active.slice();
+    if(f.lineId && !optLines.some(l=>l.id===f.lineId)){ const sel=lines.find(l=>l.id===f.lineId); if(sel) optLines.push(sel); }
+    const _opts=optLines.map(l=>`<option value="${esc(l.id)}" ${l.id===f.lineId?'selected':''}>[${esc(l.patientId)}_${esc(l.type)}]${l.isCompleted?' (완료)':''}</option>`).join('');
+    const lineOpts=`<option value="" ${!f.lineId?'selected':''}>라인 선택…</option>`+(_opts||'<option value="" disabled>선택 가능한 라인 없음</option>');
     const magOpts=ALL_MAGS.map(m=>`<option value="${m}" ${m===f.mag?'selected':''}>${m}</option>`).join('');
     const line=lines.find(l=>l.id===f.lineId);
     let preview='—', barInfo='';
