@@ -294,6 +294,7 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
           <div><label>환자 번호 / 라인명</label><input type="text" id="elPid" placeholder="HCC26 (2nd, Big)"></div>
           <div><label>종류 (직접 입력)</label><input type="text" id="elType" placeholder="PHH-org, Tumor-org 등"></div>
         </div>
+        <div style="font-size:.7rem;color:#94A3B8;margin:-4px 0 9px;line-height:1.4;">※ 라인명·종류는 사진 파일명에 쓰여요. <b style="color:#B45309;">\ / : * ? " &lt; &gt; |</b> 는 사용할 수 없어요.</div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:9px;">
           <div><label>최초 시작 P</label><input type="number" id="elP" value="0" min="0"></div>
           <div><label>누적 d (base)</label><input type="number" id="elBase" value="0" min="0"></div>
@@ -1049,6 +1050,13 @@ function saveLine(){
   const start=document.getElementById('elStart').value;
   if(!pId||!type||!start) return alert('필수 정보를 입력하세요.');
 
+  // 파일명(사진 저장 시 사용)에 못 쓰는 문자 검사
+  const findBad = s => [...new Set((String(s).match(/[\/\\:*?"<>|]/g)||[]))];
+  const bad = [...new Set([...findBad(pId), ...findBad(type)])];
+  if(bad.length){
+    return alert('라인명 또는 종류에 파일 이름으로 쓸 수 없는 문자가 있어요:  '+bad.join('  ')+'\n\n사진을 저장할 때 파일 이름 ( 날짜_환자_타입_pX_dY_배율 ) 에 그대로 들어가서 오류가 나요.\n다음 문자는 빼주세요:   \\  /  :  *  ?  "  <  >  |');
+  }
+
   const dayStr = baseD>0 ? `d${baseD}+0` : 'd0';
 
   if(id){
@@ -1531,7 +1539,15 @@ function sbSet(i,k,v){ if(sbFiles[i]){ sbFiles[i][k]=v; renderSbarList(); } }
 function sbRemove(i){ sbFiles.splice(i,1); renderSbarList(); }
 function sbClearAll(){ if(sbFiles.length && confirm('추가한 사진 '+sbFiles.length+'장을 모두 지울까요?')){ sbFiles=[]; renderSbarList(); } }
 function sbNatCmp(a,b){ const k=x=>x.replace(/\d+/g,n=>n.padStart(10,'0')); return k(a).localeCompare(k(b)); }
-function sbFullName(line,date,f){ let n=buildMicroName(line,date,f.mag); if(f.note&&f.note.trim()) n+='_'+f.note.trim().replace(/[_\s\/]+/g,'-'); return n; }
+// 파일시스템 금지문자(/ \ : * ? " < > | 및 제어문자)를 - 로 치환, 앞뒤 점·공백 제거
+function safeFileName(s){
+  return String(s)
+    .replace(/[\/\\:*?"<>|\x00-\x1f]/g,'-')
+    .replace(/\s+/g,' ')
+    .replace(/^[.\s]+|[.\s]+$/g,'')
+    .trim() || 'untitled';
+}
+function sbFullName(line,date,f){ let n=buildMicroName(line,date,f.mag); if(f.note&&f.note.trim()) n+='_'+f.note.trim().replace(/[_\s\/]+/g,'-'); return safeFileName(n); }
 function sbSetNote(i,v){ if(!sbFiles[i])return; sbFiles[i].note=v; const f=sbFiles[i],date=document.getElementById('sbDate').value,line=lines.find(l=>l.id===f.lineId),p=document.getElementById('sbprev'+i); if(p) p.textContent=(line&&date)?sbFullName(line,date,f)+'.png':'—'; }
 let sbDirHandle=null;
 async function sbGetDir(){
@@ -1632,7 +1648,7 @@ async function sbarSaveAll(btn){
       const line=lines.find(l=>l.id===f.lineId); if(!line) continue;
       let base=sbFullName(line,date,f);
       if(cnt[base]==null){ cnt[base]=0; } else { cnt[base]++; base=base+'_'+cnt[base]; }
-      const fname=base+'.png';
+      const fname=safeFileName(base)+'.png';
       const cv=sbDrawBar(f.srcCanvas,f.mag);
       const blob=await new Promise(r=>cv.toBlob(r,'image/png'));
       if(dir){
