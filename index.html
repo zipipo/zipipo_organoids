@@ -1548,7 +1548,8 @@ function safeFileName(s){
     .trim() || 'untitled';
 }
 function sbFullName(line,date,f){ let n=buildMicroName(line,date,f.mag); if(f.note&&f.note.trim()) n+='_'+f.note.trim().replace(/[_\s\/]+/g,'-'); return safeFileName(n); }
-function sbSetNote(i,v){ if(!sbFiles[i])return; sbFiles[i].note=v; const f=sbFiles[i],date=document.getElementById('sbDate').value,line=lines.find(l=>l.id===f.lineId),p=document.getElementById('sbprev'+i); if(p) p.textContent=(line&&date)?sbFullName(line,date,f)+'.png':'—'; }
+function sbExt(){ return ((document.getElementById('sbFormat')||{}).value==='tiff')?'.tif':'.png'; }
+function sbSetNote(i,v){ if(!sbFiles[i])return; sbFiles[i].note=v; const f=sbFiles[i],date=document.getElementById('sbDate').value,line=lines.find(l=>l.id===f.lineId),p=document.getElementById('sbprev'+i); if(p) p.textContent=(line&&date)?sbFullName(line,date,f)+sbExt():'—'; }
 let sbDirHandle=null;
 async function sbGetDir(){
   if(sbDirHandle){
@@ -1579,7 +1580,7 @@ function renderSbarList(){
     const line=lines.find(l=>l.id===f.lineId);
     let preview='—', barInfo='';
     if(line&&date){
-      preview=sbFullName(line,date,f)+'.png';
+      preview=sbFullName(line,date,f)+sbExt();
       if(!barOn){ barInfo='스케일바 없음'; }
       else { const cal=SB_CAL[f.mag]; barInfo = cal? `바 ${Math.round(cal*(f.w/SB_REF_W))}px / 100µm` : '⚠ 배율 보정값 없음'; }
     }
@@ -1639,6 +1640,9 @@ async function sbarSaveAll(btn){
     dir = await sbGetDir();   // 기억된 폴더 우선, 없으면 선택
     if(!dir) return;          // 사용자가 취소
   }
+  const fmt = (document.getElementById('sbFormat')||{}).value || 'png';
+  if(fmt==='tiff' && typeof UTIF==='undefined'){ alert('TIFF 인코더(UTIF)가 로드되지 않았습니다. 인터넷 연결을 확인하거나 PNG로 저장해 주세요.'); return; }
+  const ext = fmt==='tiff' ? '.tif' : '.png';
   const ot=btn.textContent; btn.disabled=true; btn.textContent='저장 중...';
   try{ await document.fonts.load('600 24px Pretendard'); await document.fonts.ready; }catch(e){}
   sbLoading(true,'저장 중…'); let saved=0;
@@ -1648,9 +1652,16 @@ async function sbarSaveAll(btn){
       const line=lines.find(l=>l.id===f.lineId); if(!line) continue;
       let base=sbFullName(line,date,f);
       if(cnt[base]==null){ cnt[base]=0; } else { cnt[base]++; base=base+'_'+cnt[base]; }
-      const fname=safeFileName(base)+'.png';
+      const fname=safeFileName(base)+ext;
       const cv=sbDrawBar(f.srcCanvas,f.mag);
-      const blob=await new Promise(r=>cv.toBlob(r,'image/png'));
+      let blob;
+      if(fmt==='tiff'){
+        const id=cv.getContext('2d').getImageData(0,0,cv.width,cv.height);
+        const tiff=UTIF.encodeImage(id.data.buffer, cv.width, cv.height);
+        blob=new Blob([tiff],{type:'image/tiff'});
+      } else {
+        blob=await new Promise(r=>cv.toBlob(r,'image/png'));
+      }
       if(dir){
         const fh=await dir.getFileHandle(fname,{create:true});
         const w=await fh.createWritable(); await w.write(blob); await w.close();
@@ -1927,6 +1938,7 @@ async function pptBuild(items){
         <div><label>촬영 날짜</label><input type="date" id="sbDate" onchange="renderSbarList()" style="height:32px;"></div>
         <div style="padding-bottom:6px;"><label style="display:flex;align-items:center;gap:5px;cursor:pointer;margin:0;"><input type="checkbox" id="sbAddBar" checked onchange="renderSbarList()" style="width:auto;"> <b>스케일바 추가</b></label></div>
         <div><label>바 색상</label><select id="sbColor" onchange="renderSbarList()" style="height:32px;width:auto;"><option value="#000000" selected>검정</option><option value="#ffffff">흰색</option></select></div>
+        <div><label>저장 형식</label><select id="sbFormat" onchange="renderSbarList()" style="height:32px;width:auto;"><option value="png" selected>PNG</option><option value="tiff">TIFF (.tif)</option></select></div>
         <div style="padding-bottom:6px;"><label style="display:flex;align-items:center;gap:5px;cursor:pointer;margin:0;"><input type="checkbox" id="sbLabel" checked style="width:auto;"> 100µm 라벨 표시</label></div>
       </div>
       <div id="sbDrop" class="sb-drop">사진을 여기로 끌어다 놓거나 클릭해서 선택<br><span style="font-size:.72rem;color:#94A3B8;">PNG / JPG / TIFF 지원 · 배율별 스케일바 자동 적용</span>
