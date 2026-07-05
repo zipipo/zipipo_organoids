@@ -1563,8 +1563,10 @@ function safeFileName(s){
 function sbFullName(line,date,f){
   const st=microStateAtDate(line,date);
   const note=(f.note&&f.note.trim())?'_'+f.note.trim().replace(/[_\s\/]+/g,'-'):'';
-  // 특이사항을 배율(4x) 앞에 넣어, 같은 특이사항끼리 이름 정렬 시 모이게 함
-  const n=`${ymd6(date)}_${line.patientId}_${line.type}_p${st.passage}_${st.dayStr}${note}_${f.mag}`;
+  
+  // 특이사항(note)을 샘플 이름(type) 뒤, passage(p)와 day 앞에 배치
+  const n=`${ymd6(date)}_${line.patientId}_${line.type}${note}_p${st.passage}_${st.dayStr}_${f.mag}`;
+  
   return safeFileName(n);
 }
 function sbExt(){ return ((document.getElementById('sbFormat')||{}).value==='tiff')?'.tif':'.png'; }
