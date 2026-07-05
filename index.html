@@ -637,6 +637,19 @@ function renderTimelines(containerId,showDone){
   const filtered=lines.filter(l=>!!l.isCompleted===showDone && lineMatch(l));
   if(!filtered.length){el.innerHTML='<div style="color:#94A3B8;font-size:.81rem;padding:5px 0;">없음</div>';return;}
 
+  if(showDone){
+    // 완료된 기록: 샘플 이름 → 종류 오름차순, 겹치면 (최초 seeding) 날짜순
+    const firstDate=line=>{
+      const s=logs.filter(l=>l.lineId===line.id).sort((a,b)=>new Date(a.date)-new Date(b.date))[0];
+      return s?s.date:((line.startDate||'').split('T')[0]||'');
+    };
+    filtered.sort((a,b)=>
+      (a.patientId||'').localeCompare(b.patientId||'',undefined,{numeric:true,sensitivity:'base'})
+      || (a.type||'').localeCompare(b.type||'',undefined,{numeric:true,sensitivity:'base'})
+      || firstDate(a).localeCompare(firstDate(b))
+    );
+  }
+
   filtered.forEach(line=>{
     const lgs=logs.filter(lg=>lg.lineId===line.id).sort((a,b)=>{
       const af=isFin(a.action),bf=isFin(b.action);
@@ -1525,7 +1538,7 @@ async function handleSbarFiles(fileList){
     for(const f of arr){
       try{
         const {canvas,w,h}=await sbLoadImageFile(f);
-        sbFiles.push({id:'sb'+Date.now()+Math.random().toString(36).slice(2,6), fname:f.name, srcCanvas:canvas, w, h, thumb:sbMakeThumb(canvas), lineId:'', mag:'4x', note:''});
+        sbFiles.push({id:'sb'+Date.now()+Math.random().toString(36).slice(2,6), fname:f.name, srcCanvas:canvas, w, h, thumb:sbMakeThumb(canvas), lineId:'', mag:'4x', note:'', origFile:f, isTiff:(/\.(tif|tiff)$/i.test(f.name)||f.type==='image/tiff')});
       }catch(e){ failed.push(f.name+' ('+e.message+')'); }
       done++; sbLoading(true,`사진 불러오는 중… (${done}/${arr.length})`);
       await new Promise(r=>setTimeout(r,0));
@@ -1547,7 +1560,13 @@ function safeFileName(s){
     .replace(/^[.\s]+|[.\s]+$/g,'')
     .trim() || 'untitled';
 }
-function sbFullName(line,date,f){ let n=buildMicroName(line,date,f.mag); if(f.note&&f.note.trim()) n+='_'+f.note.trim().replace(/[_\s\/]+/g,'-'); return safeFileName(n); }
+function sbFullName(line,date,f){
+  const st=microStateAtDate(line,date);
+  const note=(f.note&&f.note.trim())?'_'+f.note.trim().replace(/[_\s\/]+/g,'-'):'';
+  // 특이사항을 배율(4x) 앞에 넣어, 같은 특이사항끼리 이름 정렬 시 모이게 함
+  const n=`${ymd6(date)}_${line.patientId}_${line.type}_p${st.passage}_${st.dayStr}${note}_${f.mag}`;
+  return safeFileName(n);
+}
 function sbExt(){ return ((document.getElementById('sbFormat')||{}).value==='tiff')?'.tif':'.png'; }
 function sbSetNote(i,v){ if(!sbFiles[i])return; sbFiles[i].note=v; const f=sbFiles[i],date=document.getElementById('sbDate').value,line=lines.find(l=>l.id===f.lineId),p=document.getElementById('sbprev'+i); if(p) p.textContent=(line&&date)?sbFullName(line,date,f)+sbExt():'—'; }
 let sbDirHandle=null;
@@ -1604,6 +1623,44 @@ function renderSbarList(){
 function sbBarOn(){ const t=document.getElementById('sbAddBar'); return !t || t.checked; }
 function sbLoading(on, txt){ const el=document.getElementById('sbLoading'); if(!el) return; if(txt!=null){ const t=document.getElementById('sbLoadTxt'); if(t) t.textContent=txt; } el.classList.toggle('on', !!on); }
 
+// 표준 baseline RGB(비압축) TIFF 인코더 — alpha 없이 만들어 현미경 SW / ImageJ 호환
+function encodeTiffRGB(rgba, w, h){
+  const nPix=w*h;
+  const pix=new Uint8Array(nPix*3);
+  for(let i=0;i<nPix;i++){ pix[i*3]=rgba[i*4]; pix[i*3+1]=rgba[i*4+1]; pix[i*3+2]=rgba[i*4+2]; }
+  const N=12;                       // IFD 엔트리 수
+  const ifdOff=8;
+  const ifdSize=2+N*12+4;
+  const oBps=ifdOff+ifdSize;        // BitsPerSample(3 SHORT=6B)
+  const oXR=oBps+6;                 // XResolution RATIONAL(8B)
+  const oYR=oXR+8;                  // YResolution RATIONAL(8B)
+  const oPix=oYR+8;
+  const buf=new ArrayBuffer(oPix+pix.length);
+  const dv=new DataView(buf);
+  dv.setUint16(0,0x4949,true); dv.setUint16(2,42,true); dv.setUint32(4,ifdOff,true); // II, 42, IFD offset
+  let o=ifdOff; dv.setUint16(o,N,true); o+=2;
+  const E=(tag,type,cnt,val)=>{ dv.setUint16(o,tag,true); dv.setUint16(o+2,type,true); dv.setUint32(o+4,cnt,true); dv.setUint32(o+8,val,true); o+=12; };
+  // type: 3=SHORT 4=LONG 5=RATIONAL  (태그 오름차순)
+  E(256,4,1,w);        // ImageWidth
+  E(257,4,1,h);        // ImageLength
+  E(258,3,3,oBps);     // BitsPerSample → 8,8,8
+  E(259,3,1,1);        // Compression = none
+  E(262,3,1,2);        // Photometric = RGB
+  E(273,4,1,oPix);     // StripOffsets
+  E(277,3,1,3);        // SamplesPerPixel = 3
+  E(278,4,1,h);        // RowsPerStrip
+  E(279,4,1,pix.length); // StripByteCounts
+  E(282,5,1,oXR);      // XResolution
+  E(283,5,1,oYR);      // YResolution
+  E(296,3,1,2);        // ResolutionUnit = inch
+  dv.setUint32(o,0,true);            // next IFD = 0
+  dv.setUint16(oBps,8,true); dv.setUint16(oBps+2,8,true); dv.setUint16(oBps+4,8,true);
+  dv.setUint32(oXR,72,true); dv.setUint32(oXR+4,1,true);
+  dv.setUint32(oYR,72,true); dv.setUint32(oYR+4,1,true);
+  new Uint8Array(buf).set(pix,oPix);
+  return buf;
+}
+
 function sbDrawBar(src, mag){
   const W=src.width, H=src.height;
   const out=document.createElement('canvas'); out.width=W; out.height=H;
@@ -1641,7 +1698,6 @@ async function sbarSaveAll(btn){
     if(!dir) return;          // 사용자가 취소
   }
   const fmt = (document.getElementById('sbFormat')||{}).value || 'png';
-  if(fmt==='tiff' && typeof UTIF==='undefined'){ alert('TIFF 인코더(UTIF)가 로드되지 않았습니다. 인터넷 연결을 확인하거나 PNG로 저장해 주세요.'); return; }
   const ext = fmt==='tiff' ? '.tif' : '.png';
   const ot=btn.textContent; btn.disabled=true; btn.textContent='저장 중...';
   try{ await document.fonts.load('600 24px Pretendard'); await document.fonts.ready; }catch(e){}
@@ -1653,13 +1709,19 @@ async function sbarSaveAll(btn){
       let base=sbFullName(line,date,f);
       if(cnt[base]==null){ cnt[base]=0; } else { cnt[base]++; base=base+'_'+cnt[base]; }
       const fname=safeFileName(base)+ext;
-      const cv=sbDrawBar(f.srcCanvas,f.mag);
       let blob;
       if(fmt==='tiff'){
-        const id=cv.getContext('2d').getImageData(0,0,cv.width,cv.height);
-        const tiff=UTIF.encodeImage(id.data.buffer, cv.width, cv.height);
-        blob=new Blob([tiff],{type:'image/tiff'});
+        if(!sbBarOn() && f.isTiff && f.origFile){
+          // 스케일바 없이 이름만 변경 → 원본 TIFF 바이트 그대로 (현미경 SW 100% 호환)
+          blob=new Blob([await f.origFile.arrayBuffer()],{type:'image/tiff'});
+        } else {
+          // 스케일바 그림(또는 원본이 TIFF 아님) → 표준 RGB baseline TIFF
+          const cv=sbDrawBar(f.srcCanvas,f.mag);
+          const id=cv.getContext('2d').getImageData(0,0,cv.width,cv.height);
+          blob=new Blob([encodeTiffRGB(id.data,cv.width,cv.height)],{type:'image/tiff'});
+        }
       } else {
+        const cv=sbDrawBar(f.srcCanvas,f.mag);
         blob=await new Promise(r=>cv.toBlob(r,'image/png'));
       }
       if(dir){
@@ -1946,7 +2008,8 @@ async function pptBuild(items){
       </div>
       <div style="font-size:.74rem;color:#94A3B8;margin:9px 0;line-height:1.5;">
         · 사진마다 라인·배율을 고르면 날짜 기준 P / D 가 자동 계산되어 파일명이 만들어집니다.<br>
-        · '스케일바 추가'를 켜면 배율에 맞는 100µm 스케일바가 사진에 그려져 저장됩니다. (끄면 이름만 바꿔 저장)
+        · '스케일바 추가'를 켜면 배율에 맞는 100µm 스케일바가 사진에 그려져 저장됩니다. (끄면 이름만 바꿔 저장)<br>
+        · <b>TIFF</b> 선택 시 — 스케일바를 <u>끄면</u> 원본 파일 그대로(이름만 변경) 저장돼 현미경에서 그대로 열립니다. 스케일바를 켜면 표준 RGB TIFF로 새로 저장됩니다.
       </div>
       <div id="sbList"></div>
       <div id="sbDirInfo" style="font-size:.74rem;color:#64748B;margin:11px 2px 2px;"></div>
