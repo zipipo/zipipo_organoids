@@ -377,16 +377,18 @@ const parseP = s => (s===null||s===undefined)?0:(parseInt(String(s).replace(/[^0
 function parseD(str){
   if(!str||str==='END'||str==='-') return null;
   const s=String(str).replace(/^d/i,'');
-  if(s.includes('+')){const[a,b]=s.split('+');return{base:parseInt(a)||0,diff:parseInt(b)||0};}
-  return{base:0,diff:parseInt(s)||0};
+  const parts=s.split('+').map(x=>parseInt(x)||0);
+  const diff=parts.pop();
+  return{segs:parts, base:parts.reduce((a,b)=>a+b,0), diff};
 }
 
 function calcDayStr(line,targetDate){
   if(line.isCompleted&&line.finishDate) return line.finishDayStr||'END';
   const start=new Date(line.startDate),tgt=targetDate?new Date(targetDate):new Date();
   start.setHours(0,0,0,0);tgt.setHours(0,0,0,0);
-  const diff=Math.floor((tgt-start)/86400000);
-  return line.baseDay>0?`d${line.baseDay}+${diff}`:`d${diff}`;
+  const diff=Math.max(0,Math.floor((tgt-start)/86400000));
+  const segs=line.daySegs||[];
+  return segs.length?`d${[...segs,diff].join('+')}`:`d${diff}`;
 }
 
 const pCls = n=>{const v=parseP(n);return 'p'+(((v%10)+10)%10);};
@@ -545,8 +547,7 @@ function microStateAtDate(line, targetDate){
   const anchor = lls.find(lg=>isSeed(lg.action)) || lls[0];
   let P=parseP(anchor.passage);
   const dObj=parseD(anchor.dayInfo);
-  let baseD=dObj?dObj.base:0;
-  let isResd=baseD>0;
+  let segs=dObj?dObj.segs.slice():[];
   let periodStart=new Date(anchor.date);
   if(dObj && dObj.diff>0) periodStart.setDate(periodStart.getDate()-dObj.diff);
   periodStart.setHours(0,0,0,0);
@@ -556,15 +557,15 @@ function microStateAtDate(line, targetDate){
     if(isSeed(lg.action)) return;
     const d=new Date(lg.date); d.setHours(0,0,0,0);
     if(d>=tgt) return;   // 촬영일 당일/이후의 Split·Reseeding 은 아직 미반영 (그날 찍은 사진은 처리 전 상태)
-    if(isPassageUp(lg.action)){ P++; baseD=0; isResd=false; periodStart=d; }
+    if(isPassageUp(lg.action)){ P++; segs=[]; periodStart=d; }
     else if(lg.action==='Reseeding'){
       const diff=Math.max(0,Math.floor((d-periodStart)/86400000));
-      baseD+=diff; isResd=true; periodStart=d;
+      segs=[...segs,diff]; periodStart=d;
     }
   });
 
   const diff=Math.max(0,Math.floor((tgt-periodStart)/86400000));
-  const dayStr=(baseD>0||isResd)?`d${baseD}+${diff}`:`d${diff}`;
+  const dayStr=segs.length?`d${[...segs,diff].join('+')}`:`d${diff}`;
   return { passage:P, dayStr };
 }
 
@@ -894,10 +895,9 @@ function syncLineState(line) {
   const last = rel[rel.length - 1];
   let curP = parseP(last.passage);
   const dObj = parseD(last.dayInfo);
-  let curBase = dObj ? dObj.base : 0;
-  let isResd = curBase > 0;
+  let curSegs = dObj ? dObj.segs.slice() : [];
   let curStartDt = new Date(last.date);
-  
+
   if (dObj && dObj.diff > 0) {
       curStartDt.setDate(curStartDt.getDate() - dObj.diff);
   }
@@ -905,18 +905,17 @@ function syncLineState(line) {
   // 액션 처리 '이후'의 상태를 미래를 위해 라인에 세팅
   if (isPassageUp(last.action)) {
       curP++;
-      curBase = 0;
-      isResd = false;
+      curSegs = [];
       curStartDt = new Date(last.date);
   } else if (last.action === 'Reseeding') {
-      if (dObj) curBase += dObj.diff;
-      isResd = true;
+      if (dObj) curSegs = [...curSegs, dObj.diff];
       curStartDt = new Date(last.date);
   }
 
   line.passage = curP;
-  line.baseDay = curBase;
-  line.isReseeded = isResd;
+  line.daySegs = curSegs;
+  line.baseDay = curSegs.reduce((a,b)=>a+b,0);
+  line.isReseeded = curSegs.length > 0;
   try { line.startDate = curStartDt.toISOString(); } 
   catch(e) { line.startDate = new Date(last.date).toISOString(); }
 }
@@ -935,8 +934,7 @@ function recalcLogsForLine(lineId) {
   if(!lls.length) return;
 
   let currentP = 0;
-  let currentBaseD = 0;
-  let isResd = false;
+  let currentSegs = [];
   let currentStartDt = new Date();
 
   // 1. 최초 기준점 잡기
@@ -945,16 +943,14 @@ function recalcLogsForLine(lineId) {
       currentP = parseP(seedLog.passage);
       currentStartDt = new Date(seedLog.date);
       const dObj = parseD(seedLog.dayInfo);
-      if (dObj && dObj.base > 0) {
-          currentBaseD = dObj.base;
-          isResd = true;
+      if (dObj) {
+          currentSegs = dObj.segs.slice();
       }
   } else {
       const first = lls.find(lg => !isFin(lg.action)) || lls[0];
       currentP = parseP(first.passage);
       const di = parseD(first.dayInfo);
-      currentBaseD = di ? di.base : 0;
-      isResd = currentBaseD > 0;
+      currentSegs = di ? di.segs.slice() : [];
       currentStartDt = new Date(first.date);
       if (di && di.diff > 0) {
           currentStartDt.setDate(currentStartDt.getDate() - di.diff);
@@ -976,18 +972,16 @@ function recalcLogsForLine(lineId) {
       const dt = new Date(lg.date);
       dt.setHours(0,0,0,0);
       const diff = Math.max(0, Math.floor((dt - currentStartDt) / 86400000));
-      lg.dayInfo = (currentBaseD > 0 || isResd) ? `d${currentBaseD}+${diff}` : `d${diff}`;
+      lg.dayInfo = currentSegs.length ? `d${[...currentSegs,diff].join('+')}` : `d${diff}`;
 
       // [상태 전진] 액션 완료 후, 다음 액션을 위해 상태를 진화시킴
       if (isPassageUp(lg.action)) {
           currentP++;
-          currentBaseD = 0;
-          isResd = false;
+          currentSegs = [];
           currentStartDt = new Date(lg.date);
           currentStartDt.setHours(0,0,0,0);
       } else if (lg.action === 'Reseeding') {
-          currentBaseD += diff;
-          isResd = true;
+          currentSegs = [...currentSegs, diff];
           currentStartDt = new Date(lg.date);
           currentStartDt.setHours(0,0,0,0);
       }
@@ -1024,13 +1018,16 @@ function saveDailyLog(){
     // (2) 그 액션이 상태를 바꾸는 액션(Split/Reseeding)이라면, '다음 추가될 로그'를 위해 라인의 정보를 진화시킴
     if (isPassageUp(action)) {
         line.passage++;
+        line.daySegs = [];
         line.baseDay = 0;
         line.isReseeded = false;
         line.startDate = isoD(date);
     } else if (action === 'Reseeding') {
         const s = new Date(line.startDate), ld = new Date(date);
         s.setHours(0,0,0,0); ld.setHours(0,0,0,0);
-        line.baseDay += Math.floor((ld - s) / 86400000);
+        const diff = Math.max(0, Math.floor((ld - s) / 86400000));
+        line.daySegs = [...(line.daySegs||[]), diff];
+        line.baseDay = line.daySegs.reduce((a,b)=>a+b,0);
         line.isReseeded = true;
         line.startDate = isoD(date);
     }
@@ -1090,7 +1087,7 @@ function saveLine(){
     }
     recalcLogsForLine(id);
   } else {
-    const nl={id:uid(),patientId:pId,type,passage:p,baseDay:baseD,
+    const nl={id:uid(),patientId:pId,type,passage:p,baseDay:baseD,daySegs:(baseD>0?[baseD]:[]),
       isReseeded:(baseD>0),startDate:isoD(start),initialWells:wells,isCompleted:false};
     lines.push(nl);
     
