@@ -198,6 +198,24 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
 .bk-warn{color:#DC2626;font-weight:700;}
 .bk-sub{color:#94A3B8;}
 .bk-mini{background:#FEE2E2;color:#DC2626;border:none;border-radius:4px;padding:2px 8px;font-size:.7rem;font-weight:700;cursor:pointer;}
+
+/* ═══ MOBILE ═══ */
+@media (max-width: 700px){
+  body{padding:8px 8px 20px;}
+  .hdr h1{font-size:1rem;}
+  .hdr-r{gap:5px;}
+  .btn{font-size:.74rem;padding:0 8px;height:34px;}
+  input,select{height:34px;}
+  .r1,.r2{grid-template-columns:1fr;}
+  .dgrp .btn{flex-shrink:0;}
+  .modal{padding:8px;}
+  .mbox{padding:13px;}
+  .tl-hdr{font-size:.79rem;}
+  .tl-body{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;}
+  table{table-layout:auto;min-width:640px;}
+  .sb-row{flex-wrap:wrap;}
+  .sb-mid{min-width:200px;}
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/utif@3.1.0/UTIF.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
