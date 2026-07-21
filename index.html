@@ -200,6 +200,9 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
 .bk-mini{background:#FEE2E2;color:#DC2626;border:none;border-radius:4px;padding:2px 8px;font-size:.7rem;font-weight:700;cursor:pointer;}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/utif@3.1.0/UTIF.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -208,6 +211,8 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
   <h1>Organoid & Cell Culture Log</h1>
   <div class="hdr-r">
     <input type="file" id="bkFile" style="display:none;" accept=".json,application/json" onchange="restoreBackup(event)">
+    <button class="btn btn-out" style="border-color:#BAE6FD;color:#0369A1;background:#F0F9FF;font-weight:700;" id="cloudBtn" onclick="cloudToggle()">Google 로그인</button>
+    <span id="cloudStatus" class="bk-status"></span>
     <button class="btn btn-out" style="border-color:#DDD6FE;color:#7C3AED;background:#F5F3FF;font-weight:700;" onclick="openLineModal()">Cell Line 관리</button>
     <button class="btn btn-out" onclick="openTrashModal()">휴지통<span id="trashCount"></span></button>
     <button class="btn btn-out" onclick="exportCSV()">CSV 저장</button>
@@ -399,6 +404,97 @@ const PLATE_OPTS_HTML = '<option value="">-</option>' + PLATE_TYPES.map(p=>`<opt
 
 document.getElementById('logDate').valueAsDate = new Date();
 document.getElementById('elStart').valueAsDate = new Date();
+
+// ══════════════════════════════════════════
+//  FIREBASE (Google 로그인 + 클라우드 동기화, 선택 사항 — 로그인 안 해도 기존처럼 로컬로 동작)
+// ══════════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyBeOMH5pjWCw_Q44KGGT5HKhzJ62qthIj0",
+  authDomain: "organoid-log.firebaseapp.com",
+  projectId: "organoid-log",
+  storageBucket: "organoid-log.firebasestorage.app",
+  messagingSenderId: "366767673358",
+  appId: "1:366767673358:web:24189d112482eadc2dac5f",
+  measurementId: "G-W7K7VG0HMS"
+};
+firebase.initializeApp(firebaseConfig);
+const fbAuth = firebase.auth();
+const fbDb   = firebase.firestore();
+fbDb.enablePersistence().catch(()=>{});   // 오프라인 캐시 (탭 여러 개 등으로 실패해도 무시)
+
+let cloudUid=null, cloudUnsub=null, cloudSyncing=false, cloudPushTimer=null;
+
+function cloudDocRef(uid){ return fbDb.collection('users').doc(uid).collection('data').doc('appData'); }
+
+function cloudToggle(){
+  if(cloudUid){
+    if(confirm('로그아웃하시겠습니까? 이 기기에는 마지막으로 동기화된 데이터가 그대로 남아있습니다.')) fbAuth.signOut();
+  } else {
+    fbAuth.signInWithPopup(new firebase.auth.GoogleAuthProvider())
+      .catch(e=>{ if(e.code!=='auth/popup-closed-by-user') alert('로그인 실패: '+e.message); });
+  }
+}
+
+function renderCloudStatus(user){
+  const b=document.getElementById('cloudBtn'), s=document.getElementById('cloudStatus');
+  if(!b) return;
+  if(user){ b.textContent='로그아웃 ('+(user.email||'계정')+')'; if(s) s.textContent='클라우드 동기화 켜짐'; }
+  else { b.textContent='Google 로그인'; if(s) s.textContent=''; }
+}
+
+function applyCloudData(d){
+  // 클라우드에서 받은 데이터를 반영하는 동안은 saveData()가 다시 클라우드로 되쏘지 않도록 잠금
+  cloudSyncing=true;
+  lines=d.lines||[]; logs=d.logs||[]; stockChecks=d.stockChecks||[];
+  trash=d.trash||[]; tlCollapsed=d.tlCollapsed||{};
+  localStorage.setItem('orgTrash', JSON.stringify(trash));
+  localStorage.setItem('orgTlCollapsed', JSON.stringify(tlCollapsed));
+  updateUI();
+  setTimeout(()=>{cloudSyncing=false;},300);
+}
+
+function cloudPush(){
+  if(!cloudUid) return Promise.resolve();
+  cloudSyncing=true;
+  return cloudDocRef(cloudUid).set({lines,logs,stockChecks,trash,tlCollapsed,updatedAt:new Date().toISOString()})
+    .catch(e=>console.error('클라우드 저장 실패', e))
+    .finally(()=>{ setTimeout(()=>{cloudSyncing=false;},400); });
+}
+function cloudPushDebounced(){
+  if(!cloudUid || cloudSyncing) return;
+  clearTimeout(cloudPushTimer);
+  cloudPushTimer=setTimeout(cloudPush, 800);
+}
+
+fbAuth.onAuthStateChanged(async user=>{
+  if(cloudUnsub){ cloudUnsub(); cloudUnsub=null; }
+  if(!user){ cloudUid=null; renderCloudStatus(null); return; }
+
+  cloudUid=user.uid;
+  renderCloudStatus(user);
+  const ref=cloudDocRef(user.uid);
+  const snap=await ref.get().catch(()=>null);
+
+  if(snap && snap.exists){
+    const d=snap.data();
+    const cloudHas=(d.lines&&d.lines.length)||(d.logs&&d.logs.length);
+    const localHas=lines.length||logs.length;
+    if(cloudHas && localHas){
+      if(!confirm('이 계정에 이미 클라우드에 저장된 데이터가 있습니다.\n클라우드 데이터를 불러와서 이 기기의 현재 데이터를 덮어쓸까요?\n(취소하면 로그인이 취소되고 이 기기 데이터는 그대로 유지됩니다)')){
+        await fbAuth.signOut();
+        return;
+      }
+    }
+    applyCloudData(d);
+  } else {
+    await cloudPush();   // 처음 로그인: 이 기기의 현재 데이터를 클라우드에 올림
+  }
+
+  cloudUnsub=ref.onSnapshot(doc=>{
+    if(cloudSyncing || !doc.exists) return;
+    applyCloudData(doc.data());
+  });
+});
 
 // ══════════════════════════════════════════
 //  HELPERS
@@ -759,6 +855,7 @@ function toggleTL(id,lineId){
   if(lineId){
     tlCollapsed[lineId]=!willOpen;
     localStorage.setItem('orgTlCollapsed', JSON.stringify(tlCollapsed));
+    cloudPushDebounced();
   }
 }
 
@@ -815,6 +912,7 @@ function saveData(){
   localStorage.setItem('orgLogsV2',   JSON.stringify(logs));
   localStorage.setItem('orgStockChks',JSON.stringify(stockChecks));
   maybeAutoBackup();
+  cloudPushDebounced();
 }
 
 // ══════════════════════════════════════════
@@ -1232,7 +1330,7 @@ function deleteLine(id){
 // ══════════════════════════════════════════
 //  휴지통 (TRASH)
 // ══════════════════════════════════════════
-function saveTrash(){ localStorage.setItem('orgTrash', JSON.stringify(trash)); }
+function saveTrash(){ localStorage.setItem('orgTrash', JSON.stringify(trash)); cloudPushDebounced(); }
 
 function updateTrashBadge(){
   const el=document.getElementById('trashCount');
