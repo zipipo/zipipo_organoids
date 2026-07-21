@@ -1497,6 +1497,20 @@ function previewDay(){
 }
 document.getElementById('logDate').addEventListener('change',previewDay);
 
+// 작업 날짜: 탭을 열어둔 채로 자정을 넘겨도 자동으로 오늘 날짜로 갱신 (사용자가 직접 다른 날짜로 바꿔둔 경우는 건드리지 않음)
+let _logDateBaseline=today();
+function refreshLogDateIfStale(){
+  const el=document.getElementById('logDate');
+  if(!el) return;
+  const t=today();
+  if(t===_logDateBaseline) return;
+  if(el.value===_logDateBaseline){ el.value=t; previewDay(); }
+  _logDateBaseline=t;
+}
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden) refreshLogDateIfStale(); });
+window.addEventListener('focus', refreshLogDateIfStale);
+setInterval(refreshLogDateIfStale, 60000);
+
 function selectLine(id){
   const sel=document.getElementById('lineSelect');
   if(![...sel.options].some(o=>o.value===id)) return;
