@@ -78,7 +78,7 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--tx);ma
 .eform{padding:12px;background:var(--psoft);display:flex;flex-direction:column;gap:9px;}
 .frow{display:grid;gap:9px;align-items:end;}
 .r1{grid-template-columns:1.6fr 1.6fr 1fr;}
-.r2{grid-template-columns:1fr .75fr .75fr 1.9fr 64px;}
+.r2{grid-template-columns:1fr .9fr .7fr .7fr 1.6fr 64px;}
 label{display:block;font-size:.72rem;color:#475569;margin-bottom:3px;font-weight:600;}
 input,select,textarea{width:100%;padding:4px 8px;border:1px solid #CBD5E1;border-radius:4px;font-family:inherit;font-size:.83rem;}
 input,select{height:31px;}
@@ -104,8 +104,10 @@ textarea{resize:vertical;min-height:31px;line-height:1.45;}
 
 /* TIMELINE */
 .tl-wrap{margin-bottom:9px;border:1px solid var(--bd);border-radius:5px;overflow:hidden;}
-.tl-hdr{padding:8px 12px;font-weight:700;font-size:.83rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;}
+.tl-hdr{padding:8px 12px;font-weight:700;font-size:.83rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;cursor:pointer;user-select:none;}
 .tl-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.tl-arr{font-size:.79rem;opacity:.6;transition:transform .2s;display:inline-block;}
+.tl-hdr.tl-open .tl-arr{transform:rotate(90deg);}
 .tl-body{overflow:hidden;transition:max-height .25s ease;}
 .tl-body.col{max-height:0!important;}
 
@@ -257,6 +259,7 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
     </div>
     <div class="frow r2">
       <div><label>과정/Ratio</label><input type="text" id="logDet" placeholder="1:4 등"></div>
+      <div><label>Plate 종류</label><select id="logPlate"></select></div>
       <div><label>최종 Well</label><input type="number" id="logWells" min="0"></div>
       <div><label>Stock (vial)</label><input type="number" id="logStocks" min="0"></div>
       <div><label>메모 (엔터=줄바꿈)</label><textarea id="logMemo" rows="1" placeholder="특이사항"></textarea></div>
@@ -300,7 +303,10 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
           <div><label>누적 d (base)</label><input type="number" id="elBase" value="0" min="0"></div>
           <div><label>초기 Well</label><input type="number" id="elWells" value="0" min="0"></div>
         </div>
-        <div><label style="color:#D97706;">기준 날짜 (최초 seeding일)</label><input type="date" id="elStart"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">
+          <div><label style="color:#D97706;">기준 날짜 (최초 seeding일)</label><input type="date" id="elStart"></div>
+          <div><label>Plate 종류</label><select id="elPlate"></select></div>
+        </div>
         <div style="display:flex;gap:7px;margin-top:13px;">
           <button class="btn btn-pri" style="flex:1;" onclick="saveLine()">저장 (이후 타임라인 자동 재계산)</button>
           <button class="btn btn-out" onclick="resetLineForm()">취소</button>
@@ -339,7 +345,8 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
         </div>
         <div style="height:1px;background:#E2E8F0;"></div>
         <div><label>과정/Ratio</label><input type="text" id="eDet"></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;">
+          <div><label>Plate 종류</label><select id="ePlate"></select></div>
           <div><label>최종 Well</label><input type="number" id="eWells"></div>
           <div><label>Stock 수 (vial)</label><input type="number" id="eStocks"></div>
         </div>
@@ -362,9 +369,13 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
 let lines       = JSON.parse(localStorage.getItem('orgLinesV2'))   || [];
 let logs        = JSON.parse(localStorage.getItem('orgLogsV2'))    || [];
 let stockChecks = JSON.parse(localStorage.getItem('orgStockChks')) || [];
+let tlCollapsed = JSON.parse(localStorage.getItem('orgTlCollapsed')) || {};   // 라인별 타임라인 접힘 상태 (로컬 저장)
 let archOpen    = false;
 
 const ALL_MAGS  = ['4x','10x','20x'];
+const PLATE_TYPES = ['100pi plate','6 well plate','12 well plate','24 well plate','48 well plate','96 well plate'];
+const PLATE_OPTS_HTML = '<option value="">-</option>' + PLATE_TYPES.map(p=>`<option value="${p}">${p}</option>`).join('');
+['elPlate','logPlate','ePlate'].forEach(id=>{const el=document.getElementById(id); if(el) el.innerHTML=PLATE_OPTS_HTML;});
 
 document.getElementById('logDate').valueAsDate = new Date();
 document.getElementById('elStart').valueAsDate = new Date();
@@ -442,7 +453,7 @@ const getC=(type,done)=>done?DONE:(tcm[type]||PAL[0]);
 // ══════════════════════════════════════════
 function mcDays(line){
   if(line.isCompleted) return null;
-  const rel=logs.filter(l=>l.lineId===line.id&&(l.action==='Media Change'||isPassageUp(l.action)))
+  const rel=logs.filter(l=>l.lineId===line.id&&(l.action==='Media Change'||isPassageUp(l.action)||l.action==='Reseeding'||isSeed(l.action)))
     .sort((a,b)=>new Date(b.date)-new Date(a.date));
   if(!rel.length) return null;
   const last=new Date(rel[0].date),now=new Date();
@@ -480,16 +491,17 @@ function renderDash(){
 
   const groups={};
   let totalLines=active.length;
-  let mcWarn=0, mcDue=0; 
+  let mcWarn=0, mcDue=0;
 
-  active.forEach(l=>{
+  const sortedActive=active.slice().sort((a,b)=>(a.patientId||'').localeCompare(b.patientId||'',undefined,{numeric:true,sensitivity:'base'}));
+  sortedActive.forEach(l=>{
     if(!groups[l.type]) groups[l.type]={count:0,wells:0,lines:[]};
     groups[l.type].count++;
     const w=parseInt(latestWell(l))||0;
     groups[l.type].wells+=w;
     const mc=mcDays(l);
     if(mc){ if(mc.cls==='mc-warn') mcWarn++; if(mc.cls==='mc-due') mcDue++; }
-    groups[l.type].lines.push({label:l.patientId,well:w,p:l.passage,day:calcDayStr(l),mc});
+    groups[l.type].lines.push({id:l.id,label:l.patientId,well:w,p:l.passage,day:calcDayStr(l),plate:l.plateType||'',mc});
   });
 
   let totals=`<div class="dt-pill"><span class="dt-num">${totalLines}</span><span class="dt-lbl">배양 라인</span></div>`;
@@ -497,12 +509,14 @@ function renderDash(){
   if(mcDue>0)  totals+=`<div class="dt-pill due"><span class="dt-num">${mcDue}</span><span class="dt-lbl">MC 지연(4일+)</span></div>`;
 
   let typeCards='';
-  Object.entries(groups).forEach(([type,d])=>{
+  Object.entries(groups)
+    .sort((a,b)=>a[0].localeCompare(b[0],undefined,{numeric:true,sensitivity:'base'}))
+    .forEach(([type,d])=>{
     const c=getC(type,false);
     const dlines=d.lines.map(ll=>{
       const mcTag = ll.mc ? `<span class="mc-tag ${ll.mc.cls}">MC+${ll.mc.days}d</span>` : `<span class="mc-tag mc-ok" style="opacity:.4;">-</span>`;
-      return `<div class="dline">
-        <div class="dline-name">${esc(ll.label)} <span class="dline-pd">P${ll.p} / ${ll.day}</span></div>
+      return `<div class="dline" style="cursor:pointer;" onclick="selectLine('${ll.id}')" title="라인 선택에 반영">
+        <div class="dline-name">${esc(ll.label)} <span class="dline-pd">P${ll.p} / ${ll.day}</span>${ll.plate?` <span class="pb p0" style="font-size:.7rem;">${esc(ll.plate)}</span>`:''}</div>
         <div class="dline-well">${ll.well} well</div>
         ${mcTag}
       </div>`;
@@ -632,24 +646,31 @@ function applyLineFilter(v){
   if(lineFilter){ dt.style.display='block'; }
   else { dt.style.display='none'; const ar=document.getElementById('archArr'); if(ar) ar.innerHTML='&#9654;'; }
 }
+const lineCmp=(a,b)=>
+  (a.patientId||'').localeCompare(b.patientId||'',undefined,{numeric:true,sensitivity:'base'})
+  || (a.type||'').localeCompare(b.type||'',undefined,{numeric:true,sensitivity:'base'});
+const typeCmp=(a,b)=>
+  (a.type||'').localeCompare(b.type||'',undefined,{numeric:true,sensitivity:'base'})
+  || (a.patientId||'').localeCompare(b.patientId||'',undefined,{numeric:true,sensitivity:'base'});
+
 function renderTimelines(containerId,showDone){
   const el=document.getElementById(containerId);
   el.innerHTML='';
   const filtered=lines.filter(l=>!!l.isCompleted===showDone && lineMatch(l));
   if(!filtered.length){el.innerHTML='<div style="color:#94A3B8;font-size:.81rem;padding:5px 0;">없음</div>';return;}
 
-  if(showDone){
-    // 완료된 기록: 샘플 이름 → 종류 오름차순, 겹치면 (최초 seeding) 날짜순
-    const firstDate=line=>{
-      const s=logs.filter(l=>l.lineId===line.id).sort((a,b)=>new Date(a.date)-new Date(b.date))[0];
-      return s?s.date:((line.startDate||'').split('T')[0]||'');
-    };
-    filtered.sort((a,b)=>
-      (a.patientId||'').localeCompare(b.patientId||'',undefined,{numeric:true,sensitivity:'base'})
-      || (a.type||'').localeCompare(b.type||'',undefined,{numeric:true,sensitivity:'base'})
-      || firstDate(a).localeCompare(firstDate(b))
-    );
-  }
+  // 사전식(가나다/숫자) 정렬: 진행 중 = 종류 → 환자ID, 완료 = 환자ID → 종류, 겹치면 (최초 seeding) 날짜순
+  const firstDate=line=>{
+    const s=logs.filter(l=>l.lineId===line.id).sort((a,b)=>new Date(a.date)-new Date(b.date))[0];
+    return s?s.date:((line.startDate||'').split('T')[0]||'');
+  };
+  const dateRange=line=>{
+    const ds=logs.filter(l=>l.lineId===line.id).map(l=>l.date).filter(Boolean).sort();
+    if(!ds.length) return '';
+    return ds[0]===ds[ds.length-1] ? ds[0] : `${ds[0]} ~ ${ds[ds.length-1]}`;
+  };
+  const cmp=showDone?lineCmp:typeCmp;
+  filtered.sort((a,b)=> cmp(a,b) || firstDate(a).localeCompare(firstDate(b)));
 
   filtered.forEach(line=>{
     const lgs=logs.filter(lg=>lg.lineId===line.id).sort((a,b)=>{
@@ -666,6 +687,7 @@ function renderTimelines(containerId,showDone){
         <td style="color:var(--sub)">${lg.date}</td>
         <td><span class="badge ${badgeCls(lg.action)}">${esc(lg.action)}</span></td>
         <td><span class="pb ${pCls(lg.passage)}">P${lg.passage}</span> <span style="color:var(--sub);font-size:.75rem;">/ ${lg.dayInfo||'-'}</span></td>
+        <td>${esc(lg.plate||'-')}</td>
         <td>${esc(lg.details||'-')}</td>
         <td style="color:#059669;font-weight:700">${lg.finalWells?lg.finalWells+' well':'-'}</td>
         <td style="color:#BE185D;font-weight:700">${lg.stocks?lg.stocks+' vial':'-'}</td>
@@ -674,42 +696,52 @@ function renderTimelines(containerId,showDone){
       </tr>`;
     });
     const table=`<table><thead><tr>
-      <th style="width:10%">Date</th><th style="width:12%">Action</th>
-      <th style="width:13%">P / D</th><th style="width:10%">Ratio</th>
-      <th style="width:7%">Well</th><th style="width:7%">Stock</th>
-      <th style="width:33%">Memo</th><th style="width:8%;text-align:center;">Edit</th>
+      <th style="width:9%">Date</th><th style="width:10%">Action</th>
+      <th style="width:11%">P / D</th><th style="width:9%">Plate</th><th style="width:9%">Ratio</th>
+      <th style="width:6%">Well</th><th style="width:6%">Stock</th>
+      <th style="width:27%">Memo</th><th style="width:8%;text-align:center;">Edit</th>
     </tr></thead><tbody>${rows}</tbody></table>`;
 
     const bid='tl_'+line.id;
-    const maxH=showDone?'0px':'9999px';
+    const collapsed = tlCollapsed.hasOwnProperty(line.id) ? tlCollapsed[line.id] : showDone;
+    const maxH=collapsed?'0px':'9999px';
 
     el.innerHTML+=`<div class="tl-wrap">
-      <div class="tl-hdr" style="background:${c.hbg};color:${c.ht};${showDone?'cursor:pointer;':''}"
-           ${showDone?`onclick="toggleTL('${bid}')"`:''}>
+      <div class="tl-hdr ${collapsed?'':'tl-open'}" style="background:${c.hbg};color:${c.ht};"
+           onclick="toggleTL('${bid}','${line.id}')">
         <div class="tl-meta">
-          ${showDone?'<span style="font-size:.79rem;opacity:.6;">&#9654;</span>':''}
+          <span class="tl-arr">&#9654;</span>
           <span style="font-size:.88rem;">[${esc(line.patientId)}_${esc(line.type)}]</span>
+          ${showDone?`<span style="font-size:.71rem;color:var(--sub);opacity:.65;font-weight:400;">${dateRange(line)}</span>`:''}
           <span class="pb ${pCls(line.passage)}">P${line.passage}</span>
           <span style="font-size:.8rem;">/ ${calcDayStr(line)}</span>
+          ${line.plateType?`<span class="pb p0">${esc(line.plateType)}</span>`:''}
         </div>
         <div style="display:flex;gap:5px;flex-wrap:wrap;" onclick="event.stopPropagation()">
           ${!showDone?`<button class="btn btn-fin" onclick="completeLine('${line.id}')">배양 완료</button>`:''}
           <button class="btn btn-edt" onclick="editLine('${line.id}')" style="${showDone?'height:26px;font-size:.74rem;':''}">라인 수정</button>
         </div>
       </div>
-      <div id="${bid}" class="tl-body ${showDone?'col':''}" style="max-height:${maxH};">${table}</div>
+      <div id="${bid}" class="tl-body ${collapsed?'col':''}" style="max-height:${maxH};">${table}</div>
     </div>`;
   });
 }
 
-function toggleTL(id){
+function toggleTL(id,lineId){
   const el=document.getElementById(id);if(!el) return;
-  if(el.classList.contains('col')){
+  const hdr=el.previousElementSibling;
+  const willOpen=el.classList.contains('col');
+  if(willOpen){
     el.classList.remove('col');el.style.maxHeight=el.scrollHeight+'px';
     el.addEventListener('transitionend',()=>{if(!el.classList.contains('col'))el.style.maxHeight='9999px';},{once:true});
   } else {
     el.style.maxHeight=el.scrollHeight+'px';
     requestAnimationFrame(()=>{el.classList.add('col');el.style.maxHeight='0px';});
+  }
+  if(hdr) hdr.classList.toggle('tl-open',willOpen);
+  if(lineId){
+    tlCollapsed[lineId]=!willOpen;
+    localStorage.setItem('orgTlCollapsed', JSON.stringify(tlCollapsed));
   }
 }
 
@@ -722,8 +754,8 @@ function toggleArch(){
 function renderLineList(){
   const el=document.getElementById('lineList');
   el.innerHTML='<div style="font-size:.85rem;font-weight:700;margin:10px 0 7px;">등록된 라인 목록</div>';
-  const active=lines.filter(l=>!l.isCompleted);
-  const done  =lines.filter(l=> l.isCompleted);
+  const active=lines.filter(l=>!l.isCompleted).sort(lineCmp);
+  const done  =lines.filter(l=> l.isCompleted).sort(lineCmp);
   [...active,...done].forEach(l=>{
     const c=getC(l.type,l.isCompleted);
     el.innerHTML+=`<div style="display:flex;justify-content:space-between;padding:6px 3px;border-bottom:1px solid #E2E8F0;align-items:center;gap:5px;flex-wrap:wrap;">
@@ -743,7 +775,7 @@ function updateUI(){
   const sel=document.getElementById('lineSelect');
   const prev=sel.value;
   sel.innerHTML='<option value="">-- 라인 선택 --</option>';
-  lines.filter(l=>!l.isCompleted).forEach(l=>{
+  lines.filter(l=>!l.isCompleted).sort(lineCmp).forEach(l=>{
     const o=document.createElement('option');
     o.value=l.id;o.textContent=`${l.patientId}_${l.type} (P${l.passage})`;
     sel.appendChild(o);
@@ -999,6 +1031,7 @@ function saveDailyLog(){
   const lineIds=bulkLines.length>0?[...bulkLines]:(selVal?[selVal]:[]);
   const action=document.getElementById('logAction').value;
   const det   =document.getElementById('logDet').value.trim();
+  const plate =document.getElementById('logPlate').value;
   const wells =document.getElementById('logWells').value;
   const stocks=document.getElementById('logStocks').value;
   const memo  =document.getElementById('logMemo').value;
@@ -1009,11 +1042,11 @@ function saveDailyLog(){
   dates.slice().sort().forEach(date=>{
     const line=lines.find(l=>l.id===lineId);
     if(!line) return;
-    
+
     // (1) 현재 라인의 상태를 긁어와서, 일단 그 상태 그대로 로그로 저장!
     const curP = line.passage;
     const curDStr = calcDayStr(line, date);
-    logs.push({id:uid(),seq:nextSeq(),lineId,date,action,passage:curP,dayInfo:curDStr,details:det,finalWells:wells,stocks,memo});
+    logs.push({id:uid(),seq:nextSeq(),lineId,date,action,passage:curP,dayInfo:curDStr,details:det,plate,finalWells:wells,stocks,memo});
 
     // (2) 그 액션이 상태를 바꾸는 액션(Split/Reseeding)이라면, '다음 추가될 로그'를 위해 라인의 정보를 진화시킴
     if (isPassageUp(action)) {
@@ -1058,6 +1091,7 @@ function saveLine(){
   const baseD=parseInt(document.getElementById('elBase').value)||0;
   const wells=document.getElementById('elWells').value;
   const start=document.getElementById('elStart').value;
+  const plateType=document.getElementById('elPlate').value;
   if(!pId||!type||!start) return alert('필수 정보를 입력하세요.');
 
   // 파일명(사진 저장 시 사용)에 못 쓰는 문자 검사
@@ -1074,7 +1108,8 @@ function saveLine(){
     lines[idx].patientId = pId;
     lines[idx].type = type;
     lines[idx].initialWells = wells;
-    
+    lines[idx].plateType = plateType;
+
     let seed=logs.find(l=>l.lineId===id&&isSeed(l.action));
     if(seed){
       seed.date=start;
@@ -1088,7 +1123,7 @@ function saveLine(){
     recalcLogsForLine(id);
   } else {
     const nl={id:uid(),patientId:pId,type,passage:p,baseDay:baseD,daySegs:(baseD>0?[baseD]:[]),
-      isReseeded:(baseD>0),startDate:isoD(start),initialWells:wells,isCompleted:false};
+      isReseeded:(baseD>0),startDate:isoD(start),initialWells:wells,plateType,isCompleted:false};
     lines.push(nl);
     
     logs.push({id:uid()+'_sd',seq:nextSeq(),lineId:nl.id,date:start,action:'Seeded',
@@ -1138,6 +1173,7 @@ function editLine(id){
   document.getElementById('elBase').value =startBase;
   document.getElementById('elWells').value=startWells;
   document.getElementById('elStart').value=startDt;
+  document.getElementById('elPlate').value=l.plateType||'';
   openLineModal();
 }
 
@@ -1153,7 +1189,9 @@ function completeLine(id){
 
 function deleteLine(id){
   if(!confirm('라인과 관련된 모든 로그가 삭제됩니다. 계속하시겠습니까?')) return;
-  lines=lines.filter(l=>l.id!==id);logs=logs.filter(l=>l.lineId!==id);updateUI();
+  lines=lines.filter(l=>l.id!==id);logs=logs.filter(l=>l.lineId!==id);
+  if(id in tlCollapsed){ delete tlCollapsed[id]; localStorage.setItem('orgTlCollapsed', JSON.stringify(tlCollapsed)); }
+  updateUI();
 }
 
 // ══════════════════════════════════════════
@@ -1170,6 +1208,7 @@ function openLogModal(id){
   document.getElementById('eP').value    =lg.passage;
   document.getElementById('eD').value    =lg.dayInfo||'';
   document.getElementById('eDet').value  =lg.details||'';
+  document.getElementById('ePlate').value=lg.plate||'';
   document.getElementById('eWells').value=lg.finalWells||'';
   document.getElementById('eStocks').value=lg.stocks||'';
   document.getElementById('eMemo').value =lg.memo||'';
@@ -1184,6 +1223,7 @@ function updateLog(doRecalc){
   logs[idx].passage   =parseP(document.getElementById('eP').value);
   logs[idx].dayInfo   =document.getElementById('eD').value;
   logs[idx].details   =document.getElementById('eDet').value;
+  logs[idx].plate     =document.getElementById('ePlate').value;
   logs[idx].finalWells=document.getElementById('eWells').value;
   logs[idx].stocks    =document.getElementById('eStocks').value;
   logs[idx].memo      =document.getElementById('eMemo').value;
@@ -1219,11 +1259,19 @@ function previewDay(){
 }
 document.getElementById('logDate').addEventListener('change',previewDay);
 
+function selectLine(id){
+  const sel=document.getElementById('lineSelect');
+  if(![...sel.options].some(o=>o.value===id)) return;
+  sel.value=id;
+  previewDay();
+  sel.scrollIntoView({behavior:'smooth',block:'center'});
+}
+
 function openLineModal(){updateUI();document.getElementById('lineModal').classList.add('open');}
 function closeLineModal(){document.getElementById('lineModal').classList.remove('open');resetLineForm();}
 function closeLogModal(){document.getElementById('logModal').classList.remove('open');}
 function resetLineForm(){
-  ['elId','elPid','elType'].forEach(i=>document.getElementById(i).value='');
+  ['elId','elPid','elType','elPlate'].forEach(i=>document.getElementById(i).value='');
   document.getElementById('elP').value=0;document.getElementById('elBase').value=0;
   document.getElementById('elWells').value=0;document.getElementById('elStart').valueAsDate=new Date();
 }
@@ -1237,13 +1285,13 @@ function resetLineForm(){
 //  CSV EXPORT
 // ══════════════════════════════════════════
 function exportCSV(){
-  let csv='\uFEFFDate,Patient,Type,Action,P,D,Details,Final Wells,Stocks,Memo\n';
+  let csv='\uFEFFDate,Patient,Type,Action,P,D,Plate,Details,Final Wells,Stocks,Memo\n';
   logs.sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(lg=>{
     const line=lines.find(l=>l.id===lg.lineId);
     const pid =line?line.patientId:'Unknown';
     const typ =line?line.type:'';
     const q=s=>`"${String(s||'').replace(/"/g,'""')}"`;
-    csv+=`${lg.date},${q(pid)},${q(typ)},${q(lg.action)},P${lg.passage},${lg.dayInfo||''},${q(lg.details)},${lg.finalWells||''},${lg.stocks||''},${q(lg.memo)}\n`;
+    csv+=`${lg.date},${q(pid)},${q(typ)},${q(lg.action)},P${lg.passage},${lg.dayInfo||''},${q(lg.plate)},${q(lg.details)},${lg.finalWells||''},${lg.stocks||''},${q(lg.memo)}\n`;
   });
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
@@ -1301,7 +1349,7 @@ function importCSV(event){
     let CI;
     if(hasSeparate){
       CI={date:idxOf('date'),patient:idxOf('patient'),type:idxOf('type'),
-          action:idxOf('action'),p:idxOf('p'),d:idxOf('d'),
+          action:idxOf('action'),p:idxOf('p'),d:idxOf('d'),plate:idxOf('plate'),
           details:idxOf('details'),wells:hdr.indexOf('final wells')>=0?hdr.indexOf('final wells'):idxOf('wells'),
           stocks:idxOf('stocks'),memo:idxOf('memo')};
     } else {
@@ -1314,7 +1362,7 @@ function importCSV(event){
     for(let i=1;i<rows.length;i++){
       let r=parseCSVRow(rows[i]);
       if(r.length<4) continue;
-      let dateVal,pId,type,action,pRaw,dRaw,details,wells,stocks,memo;
+      let dateVal,pId,type,action,pRaw,dRaw,plate,details,wells,stocks,memo;
 
       if(hasSeparate){
         dateVal=(r[CI.date]||'').trim();
@@ -1323,6 +1371,7 @@ function importCSV(event){
         action =(r[CI.action]||'').trim();
         pRaw   =(r[CI.p]||'').trim();
         dRaw   =(r[CI.d]||'').trim();
+        plate  =CI.plate>=0?(r[CI.plate]||'').trim():'';
         details=(r[CI.details]||'').trim();
         wells  =(r[CI.wells]||'').trim();
         stocks =(r[CI.stocks]||'').trim();
@@ -1348,7 +1397,7 @@ function importCSV(event){
       if(!dateVal||!pId||!type) continue;
       if(details==='라인 등록') details='';
       recs.push({date:dateVal,pId,type,action,passage:parseP(pRaw),
-        dayInfo:dRaw||'',details,wells,stocks,memo,_t:new Date(dateVal).getTime()});
+        dayInfo:dRaw||'',plate:plate||'',details,wells,stocks,memo,_t:new Date(dateVal).getTime()});
     }
 
     recs.sort((a,b)=>a._t-b._t);
@@ -1371,7 +1420,7 @@ function importCSV(event){
       const dup=logs.find(l=>l.lineId===line.id&&l.date===rec.date&&l.action===rec.action&&l.passage===rec.passage&&l.dayInfo===rec.dayInfo);
       if(!dup){
         logs.push({id:uid(),seq:nextSeq(),lineId:line.id,date:rec.date,action:rec.action,
-          passage:rec.passage,dayInfo:rec.dayInfo||'d0',
+          passage:rec.passage,dayInfo:rec.dayInfo||'d0',plate:rec.plate||'',
           details:rec.details,finalWells:rec.wells,stocks:rec.stocks,memo:rec.memo});
         
         if((rec.action||'').includes('Stock')&&rec.stocks&&parseInt(rec.stocks)>0){
