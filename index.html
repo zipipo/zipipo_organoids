@@ -666,9 +666,7 @@ function applyLineFilter(v){
   if(lineFilter){ dt.style.display='block'; }
   else { dt.style.display='none'; const ar=document.getElementById('archArr'); if(ar) ar.innerHTML='&#9654;'; }
 }
-const lineCmp=(a,b)=>
-  (a.patientId||'').localeCompare(b.patientId||'',undefined,{numeric:true,sensitivity:'base'})
-  || (a.type||'').localeCompare(b.type||'',undefined,{numeric:true,sensitivity:'base'});
+// 라인 정렬: 종류(대시보드 카드 순서와 동일) → 환자ID 순으로 항상 정렬
 const typeCmp=(a,b)=>
   (a.type||'').localeCompare(b.type||'',undefined,{numeric:true,sensitivity:'base'})
   || (a.patientId||'').localeCompare(b.patientId||'',undefined,{numeric:true,sensitivity:'base'});
@@ -679,7 +677,7 @@ function renderTimelines(containerId,showDone){
   const filtered=lines.filter(l=>!!l.isCompleted===showDone && lineMatch(l));
   if(!filtered.length){el.innerHTML='<div style="color:#94A3B8;font-size:.81rem;padding:5px 0;">없음</div>';return;}
 
-  // 사전식(가나다/숫자) 정렬: 진행 중 = 종류 → 환자ID, 완료 = 환자ID → 종류, 겹치면 (최초 seeding) 날짜순
+  // 사전식(가나다/숫자) 정렬: 종류(대시보드 순서) → 환자ID, 겹치면 (최초 seeding) 날짜순
   const firstDate=line=>{
     const s=logs.filter(l=>l.lineId===line.id).sort((a,b)=>new Date(a.date)-new Date(b.date))[0];
     return s?s.date:((line.startDate||'').split('T')[0]||'');
@@ -689,8 +687,7 @@ function renderTimelines(containerId,showDone){
     if(!ds.length) return '';
     return ds[0]===ds[ds.length-1] ? ds[0] : `${ds[0]} ~ ${ds[ds.length-1]}`;
   };
-  const cmp=showDone?lineCmp:typeCmp;
-  filtered.sort((a,b)=> cmp(a,b) || firstDate(a).localeCompare(firstDate(b)));
+  filtered.sort((a,b)=> typeCmp(a,b) || firstDate(a).localeCompare(firstDate(b)));
 
   filtered.forEach(line=>{
     const lgs=logs.filter(lg=>lg.lineId===line.id).sort((a,b)=>{
@@ -774,8 +771,8 @@ function toggleArch(){
 function renderLineList(){
   const el=document.getElementById('lineList');
   el.innerHTML='<div style="font-size:.85rem;font-weight:700;margin:10px 0 7px;">등록된 라인 목록</div>';
-  const active=lines.filter(l=>!l.isCompleted).sort(lineCmp);
-  const done  =lines.filter(l=> l.isCompleted).sort(lineCmp);
+  const active=lines.filter(l=>!l.isCompleted).sort(typeCmp);
+  const done  =lines.filter(l=> l.isCompleted).sort(typeCmp);
   [...active,...done].forEach(l=>{
     const c=getC(l.type,l.isCompleted);
     el.innerHTML+=`<div style="display:flex;justify-content:space-between;padding:6px 3px;border-bottom:1px solid #E2E8F0;align-items:center;gap:5px;flex-wrap:wrap;">
@@ -795,7 +792,7 @@ function updateUI(){
   const sel=document.getElementById('lineSelect');
   const prev=sel.value;
   sel.innerHTML='<option value="">-- 라인 선택 --</option>';
-  lines.filter(l=>!l.isCompleted).sort(lineCmp).forEach(l=>{
+  lines.filter(l=>!l.isCompleted).sort(typeCmp).forEach(l=>{
     const o=document.createElement('option');
     o.value=l.id;o.textContent=`${l.patientId}_${l.type} (P${l.passage})`;
     sel.appendChild(o);
@@ -1758,7 +1755,7 @@ function renderSbarList(){
   const active=lines.filter(l=>{
     if(!l.isCompleted) return true;
     return !!(date && l.finishDate && date <= l.finishDate);
-  }).sort(lineCmp);
+  }).sort(typeCmp);
   if(!sbFiles.length){ el.innerHTML='<div class="sb-empty">아직 추가된 사진이 없습니다. 위 영역에 끌어다 놓으세요.</div>'; return; }
   const barOn = (document.getElementById('sbAddBar')||{}).checked!==false;
   const head=`<div class="sb-listhd"><span>추가된 사진 <b>${sbFiles.length}</b>장</span><button class="sb-clear" onclick="sbClearAll()">전체 삭제</button></div>`;
