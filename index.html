@@ -209,6 +209,7 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
   <div class="hdr-r">
     <input type="file" id="bkFile" style="display:none;" accept=".json,application/json" onchange="restoreBackup(event)">
     <button class="btn btn-out" style="border-color:#DDD6FE;color:#7C3AED;background:#F5F3FF;font-weight:700;" onclick="openLineModal()">Cell Line 관리</button>
+    <button class="btn btn-out" onclick="openTrashModal()">휴지통<span id="trashCount"></span></button>
     <button class="btn btn-out" onclick="exportCSV()">CSV 저장</button>
     <button class="btn btn-out" id="bkBtn" onclick="setupBackupFolder()">자동백업 폴더 설정</button>
     <button class="btn btn-out" onclick="document.getElementById('bkFile').click()">백업 불러오기</button>
@@ -254,7 +255,9 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
           <option value="Observation">Observation</option>
           <option value="Fixation">Fixation</option>
           <option value="Harvest">Harvest</option>
+          <option value="__custom__">직접 입력...</option>
         </select>
+        <input type="text" id="logActionCustom" placeholder="액션명 입력" style="display:none;margin-top:6px;">
       </div>
     </div>
     <div class="frow r2">
@@ -329,11 +332,13 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">
           <div><label>날짜</label><input type="date" id="eDate"></div>
           <div><label>액션</label>
-            <select id="eAct">
+            <select id="eAct" onchange="onEActChange()">
               <option>Seeded</option><option>Media Change</option><option>Split</option>
               <option>Reseeding</option><option>Pellet (passage 유지)</option><option>Pellet (p+1)</option><option>Stock (passage 유지)</option><option>Stock (p+1)</option>
               <option>Observation</option><option>Fixation</option><option>Harvest</option><option>Finish (완료)</option>
+              <option value="__custom__">직접 입력...</option>
             </select>
+            <input type="text" id="eActCustom" placeholder="액션명 입력" style="display:none;margin-top:6px;">
           </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">
@@ -356,8 +361,22 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
     <div class="mfoot" style="display:flex;gap:7px;">
       <button class="btn btn-pri" style="flex:1;" onclick="updateLog(false)">수정 저장 (해당 로그만)</button>
       <button class="btn btn-out" style="flex:1; border-color:var(--pri); color:var(--pri);" onclick="updateLog(true)">저장 후 타임라인 전체 재계산</button>
-      <button class="btn btn-del" onclick="deleteLog()">삭제</button>
+      <button class="btn btn-del" onclick="deleteLog()">삭제 (휴지통으로)</button>
       <button class="btn btn-out" onclick="closeLogModal()">취소</button>
+    </div>
+  </div>
+</div>
+
+<div id="trashModal" class="modal">
+  <div class="mbox">
+    <h2>휴지통</h2>
+    <div class="mscroll">
+      <div style="font-size:.72rem;color:#94A3B8;margin-bottom:9px;line-height:1.4;">삭제한 라인·기록이 여기 보관돼요. 완전 삭제하기 전까지 언제든 복원할 수 있어요.</div>
+      <div id="trashList"></div>
+    </div>
+    <div class="mfoot" style="display:flex;gap:7px;">
+      <button class="btn btn-del" style="flex:1;" onclick="emptyTrash()">휴지통 비우기</button>
+      <button class="btn btn-out" style="flex:1;" onclick="closeTrashModal()">닫기</button>
     </div>
   </div>
 </div>
@@ -370,6 +389,7 @@ let lines       = JSON.parse(localStorage.getItem('orgLinesV2'))   || [];
 let logs        = JSON.parse(localStorage.getItem('orgLogsV2'))    || [];
 let stockChecks = JSON.parse(localStorage.getItem('orgStockChks')) || [];
 let tlCollapsed = JSON.parse(localStorage.getItem('orgTlCollapsed')) || {};   // 라인별 타임라인 접힘 상태 (로컬 저장)
+let trash       = JSON.parse(localStorage.getItem('orgTrash')) || [];         // 휴지통 (삭제한 라인/기록)
 let archOpen    = false;
 
 const ALL_MAGS  = ['4x','10x','20x'];
@@ -789,6 +809,7 @@ function updateUI(){
   renderStockBanner();
   const dc=lines.filter(l=>l.isCompleted).length;
   document.getElementById('archCount').textContent=dc?`(${dc}개)`:'';
+  updateTrashBadge();
   saveData();
 }
 
@@ -894,6 +915,12 @@ function onActChange(){
   const v=document.getElementById('logAction').value;
   document.getElementById('stockInline').style.display=
     v.includes('Stock')?'block':'none';
+  document.getElementById('logActionCustom').style.display=
+    v==='__custom__'?'block':'none';
+}
+function onEActChange(){
+  document.getElementById('eActCustom').style.display=
+    document.getElementById('eAct').value==='__custom__'?'block':'none';
 }
 
 let bulkDates=[];
@@ -1029,7 +1056,11 @@ function recalcLogsForLine(lineId) {
 function saveDailyLog(){
   const selVal=document.getElementById('lineSelect').value;
   const lineIds=bulkLines.length>0?[...bulkLines]:(selVal?[selVal]:[]);
-  const action=document.getElementById('logAction').value;
+  let action=document.getElementById('logAction').value;
+  if(action==='__custom__'){
+    action=document.getElementById('logActionCustom').value.trim();
+    if(!action) return alert('직접 입력할 액션명을 입력하세요.');
+  }
   const det   =document.getElementById('logDet').value.trim();
   const plate =document.getElementById('logPlate').value;
   const wells =document.getElementById('logWells').value;
@@ -1074,8 +1105,9 @@ function saveDailyLog(){
 
   bulkDates=[];renderBulkTags();
   bulkLines=[];renderBulkLineTags();
-  ['logDet','logWells','logStocks','logMemo'].forEach(i=>document.getElementById(i).value='');
+  ['logDet','logWells','logStocks','logMemo','logActionCustom'].forEach(i=>document.getElementById(i).value='');
   document.getElementById('stockInline').style.display='none';
+  document.getElementById('logActionCustom').style.display='none';
   document.getElementById('logAction').value='Media Change';
   updateUI();previewDay();
 }
@@ -1188,11 +1220,79 @@ function completeLine(id){
 }
 
 function deleteLine(id){
-  if(!confirm('라인과 관련된 모든 로그가 삭제됩니다. 계속하시겠습니까?')) return;
+  const line=lines.find(l=>l.id===id);
+  if(!line) return;
+  if(!confirm('라인과 관련된 모든 로그가 휴지통으로 이동합니다. 계속하시겠습니까?')) return;
+  const relLogs=logs.filter(l=>l.lineId===id);
+  trash.unshift({id:uid(),kind:'line',deletedAt:new Date().toISOString(),
+    label:`${line.patientId}_${line.type}`,line,logs:relLogs});
+  saveTrash();
   lines=lines.filter(l=>l.id!==id);logs=logs.filter(l=>l.lineId!==id);
   if(id in tlCollapsed){ delete tlCollapsed[id]; localStorage.setItem('orgTlCollapsed', JSON.stringify(tlCollapsed)); }
   updateUI();
 }
+
+// ══════════════════════════════════════════
+//  휴지통 (TRASH)
+// ══════════════════════════════════════════
+function saveTrash(){ localStorage.setItem('orgTrash', JSON.stringify(trash)); }
+
+function updateTrashBadge(){
+  const el=document.getElementById('trashCount');
+  if(el) el.textContent=trash.length?` (${trash.length})`:'';
+}
+
+function renderTrash(){
+  updateTrashBadge();
+  const el=document.getElementById('trashList');
+  if(!trash.length){ el.innerHTML='<div style="color:#94A3B8;font-size:.85rem;padding:10px 0;">휴지통이 비어 있습니다.</div>'; return; }
+  el.innerHTML=trash.map(t=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 4px;border-bottom:1px solid #E2E8F0;flex-wrap:wrap;">
+    <div>
+      <div style="font-size:.85rem;font-weight:600;">${esc(t.label)}</div>
+      <div style="font-size:.72rem;color:#94A3B8;">${t.kind==='line'?'라인 전체 (로그 '+t.logs.length+'건 포함)':'로그 1건'} · 삭제일 ${t.deletedAt.split('T')[0]}</div>
+    </div>
+    <div style="display:flex;gap:5px;">
+      <button class="btn btn-pri" style="height:28px;font-size:.74rem;" onclick="restoreTrash('${t.id}')">복원</button>
+      <button class="btn btn-del" style="height:28px;font-size:.74rem;" onclick="purgeTrash('${t.id}')">완전 삭제</button>
+    </div>
+  </div>`).join('');
+}
+
+function restoreTrash(tid){
+  const idx=trash.findIndex(t=>t.id===tid);if(idx<0) return;
+  const item=trash[idx];
+  if(item.kind==='line'){
+    if(lines.some(l=>l.id===item.line.id)){ alert('이미 같은 라인이 존재해서 복원할 수 없습니다.'); return; }
+    lines.push(item.line);
+    logs.push(...item.logs);
+    syncLineState(item.line);
+  } else {
+    const line=lines.find(l=>l.id===item.log.lineId);
+    if(!line){ alert('해당 라인이 삭제되어 있어 복원할 수 없습니다. 라인을 먼저 복원하세요.'); return; }
+    if(logs.some(l=>l.id===item.log.id)){ alert('이미 존재하는 기록입니다.'); return; }
+    logs.push(item.log);
+    syncLineState(line);
+  }
+  trash.splice(idx,1);
+  saveTrash();
+  updateUI();renderTrash();
+}
+
+function purgeTrash(tid){
+  if(!confirm('완전히 삭제하면 복구할 수 없습니다. 계속할까요?')) return;
+  trash=trash.filter(t=>t.id!==tid);
+  saveTrash();renderTrash();
+}
+
+function emptyTrash(){
+  if(!trash.length) return;
+  if(!confirm('휴지통을 완전히 비우면 복구할 수 없습니다. 계속할까요?')) return;
+  trash=[];
+  saveTrash();renderTrash();
+}
+
+function openTrashModal(){ renderTrash(); document.getElementById('trashModal').classList.add('open'); }
+function closeTrashModal(){ document.getElementById('trashModal').classList.remove('open'); }
 
 // ══════════════════════════════════════════
 //  LOG EDIT MODAL
@@ -1204,7 +1304,9 @@ function openLogModal(id){
   const sel=document.getElementById('eAct');
   if(![...sel.options].some(o=>o.value===lg.action)) sel.add(new Option(lg.action,lg.action));
   sel.value=lg.action;
-  
+  document.getElementById('eActCustom').value='';
+  onEActChange();
+
   document.getElementById('eP').value    =lg.passage;
   document.getElementById('eD').value    =lg.dayInfo||'';
   document.getElementById('eDet').value  =lg.details||'';
@@ -1218,8 +1320,13 @@ function openLogModal(id){
 function updateLog(doRecalc){
   const id =document.getElementById('eid').value;
   const idx=logs.findIndex(l=>l.id===id);
+  let eAction=document.getElementById('eAct').value;
+  if(eAction==='__custom__'){
+    eAction=document.getElementById('eActCustom').value.trim();
+    if(!eAction) return alert('직접 입력할 액션명을 입력하세요.');
+  }
   logs[idx].date      =document.getElementById('eDate').value;
-  logs[idx].action    =document.getElementById('eAct').value;
+  logs[idx].action    =eAction;
   logs[idx].passage   =parseP(document.getElementById('eP').value);
   logs[idx].dayInfo   =document.getElementById('eD').value;
   logs[idx].details   =document.getElementById('eDet').value;
@@ -1239,14 +1346,16 @@ function updateLog(doRecalc){
 }
 
 function deleteLog(){
-  if(!confirm('이 기록을 삭제하시겠습니까?')) return;
   const id=document.getElementById('eid').value;
-  const lineId=logs.find(l=>l.id===id)?.lineId;
+  const lg=logs.find(l=>l.id===id);
+  if(!lg) return;
+  if(!confirm('이 기록을 휴지통으로 이동하시겠습니까?')) return;
+  const line=lines.find(l=>l.id===lg.lineId);
+  trash.unshift({id:uid(),kind:'log',deletedAt:new Date().toISOString(),
+    label:`${line?line.patientId+'_'+line.type:'(삭제된 라인)'} · ${lg.date} · ${lg.action}`,log:lg});
+  saveTrash();
   logs=logs.filter(l=>l.id!==id);
-  if(lineId) {
-     const line = lines.find(l => l.id === lineId);
-     if (line) syncLineState(line);
-  }
+  if(line) syncLineState(line);
   closeLogModal();updateUI();
 }
 
@@ -1275,7 +1384,7 @@ function resetLineForm(){
   document.getElementById('elP').value=0;document.getElementById('elBase').value=0;
   document.getElementById('elWells').value=0;document.getElementById('elStart').valueAsDate=new Date();
 }
-['lineModal','logModal'].forEach(id=>{
+['lineModal','logModal','trashModal'].forEach(id=>{
   document.getElementById(id).addEventListener('click',e=>{
     if(e.target===document.getElementById(id)) document.getElementById(id).classList.remove('open');
   });
@@ -1594,7 +1703,22 @@ async function handleSbarFiles(fileList){
   if(failed.length) alert('일부 파일을 불러오지 못했습니다:\n'+failed.join('\n'));
 }
 
-function sbSet(i,k,v){ if(sbFiles[i]){ sbFiles[i][k]=v; renderSbarList(); } }
+function sbSet(i,k,v){
+  if(!sbFiles[i]) return;
+  sbFiles[i][k]=v;
+  if(k==='lineId' && v){
+    // 같은 샘플의 4x/10x/20x를 이어서 올린 경우: 바로 아래 미지정 사진들에 같은 라인 + 다음 배율을 자동으로 채움
+    let magIdx=ALL_MAGS.indexOf(sbFiles[i].mag);
+    for(let j=i+1;j<sbFiles.length && magIdx<ALL_MAGS.length-1;j++){
+      const nf=sbFiles[j];
+      if(nf.lineId) break;   // 이미 다른 라인이 지정된 사진을 만나면 중단
+      magIdx++;
+      nf.lineId=v;
+      nf.mag=ALL_MAGS[magIdx];
+    }
+  }
+  renderSbarList();
+}
 function sbRemove(i){ sbFiles.splice(i,1); renderSbarList(); }
 function sbClearAll(){ if(sbFiles.length && confirm('추가한 사진 '+sbFiles.length+'장을 모두 지울까요?')){ sbFiles=[]; renderSbarList(); } }
 function sbNatCmp(a,b){ const k=x=>x.replace(/\d+/g,n=>n.padStart(10,'0')); return k(a).localeCompare(k(b)); }
@@ -1634,7 +1758,7 @@ function renderSbarList(){
   const active=lines.filter(l=>{
     if(!l.isCompleted) return true;
     return !!(date && l.finishDate && date <= l.finishDate);
-  });
+  }).sort(lineCmp);
   if(!sbFiles.length){ el.innerHTML='<div class="sb-empty">아직 추가된 사진이 없습니다. 위 영역에 끌어다 놓으세요.</div>'; return; }
   const barOn = (document.getElementById('sbAddBar')||{}).checked!==false;
   const head=`<div class="sb-listhd"><span>추가된 사진 <b>${sbFiles.length}</b>장</span><button class="sb-clear" onclick="sbClearAll()">전체 삭제</button></div>`;
