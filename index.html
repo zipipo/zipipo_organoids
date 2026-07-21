@@ -288,7 +288,8 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
     </div>
     <div class="frow r2">
       <div><label>과정/Ratio</label><input type="text" id="logDet" placeholder="1:4 등"></div>
-      <div><label>Plate 종류</label><select id="logPlate"></select></div>
+      <div><label>Plate 종류</label><select id="logPlate" onchange="onPlateSelectChange('logPlate','logPlateCustom')"></select>
+        <input type="text" id="logPlateCustom" placeholder="Plate 종류 입력" style="display:none;margin-top:6px;"></div>
       <div><label>최종 Well</label><input type="number" id="logWells" min="0"></div>
       <div><label>Stock (vial)</label><input type="number" id="logStocks" min="0"></div>
       <div><label>메모 (엔터=줄바꿈)</label><textarea id="logMemo" rows="1" placeholder="특이사항"></textarea></div>
@@ -334,7 +335,8 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">
           <div><label style="color:#D97706;">기준 날짜 (최초 seeding일)</label><input type="date" id="elStart"></div>
-          <div><label>Plate 종류</label><select id="elPlate"></select></div>
+          <div><label>Plate 종류</label><select id="elPlate" onchange="onPlateSelectChange('elPlate','elPlateCustom')"></select>
+            <input type="text" id="elPlateCustom" placeholder="Plate 종류 입력" style="display:none;margin-top:6px;"></div>
         </div>
         <div style="display:flex;gap:7px;margin-top:13px;">
           <button class="btn btn-pri" style="flex:1;" onclick="saveLine()">저장 (이후 타임라인 자동 재계산)</button>
@@ -377,7 +379,8 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
         <div style="height:1px;background:#E2E8F0;"></div>
         <div><label>과정/Ratio</label><input type="text" id="eDet"></div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;">
-          <div><label>Plate 종류</label><select id="ePlate"></select></div>
+          <div><label>Plate 종류</label><select id="ePlate" onchange="onPlateSelectChange('ePlate','ePlateCustom')"></select>
+            <input type="text" id="ePlateCustom" placeholder="Plate 종류 입력" style="display:none;margin-top:6px;"></div>
           <div><label>최종 Well</label><input type="number" id="eWells"></div>
           <div><label>Stock 수 (vial)</label><input type="number" id="eStocks"></div>
         </div>
@@ -420,8 +423,26 @@ let archOpen    = false;
 
 const ALL_MAGS  = ['4x','10x','20x'];
 const PLATE_TYPES = ['100pi plate','6 well plate','12 well plate','24 well plate','48 well plate','96 well plate'];
-const PLATE_OPTS_HTML = '<option value="">-</option>' + PLATE_TYPES.map(p=>`<option value="${p}">${p}</option>`).join('');
+const PLATE_OPTS_HTML = '<option value="">-</option>' + PLATE_TYPES.map(p=>`<option value="${p}">${p}</option>`).join('') + '<option value="__custom__">직접 입력...</option>';
 ['elPlate','logPlate','ePlate'].forEach(id=>{const el=document.getElementById(id); if(el) el.innerHTML=PLATE_OPTS_HTML;});
+
+function onPlateSelectChange(selId,customId){
+  const sel=document.getElementById(selId), cust=document.getElementById(customId);
+  cust.style.display = sel.value==='__custom__' ? 'block' : 'none';
+}
+function setPlateSelectValue(selId,customId,val){
+  const sel=document.getElementById(selId), cust=document.getElementById(customId);
+  if(val && !PLATE_TYPES.includes(val)){
+    sel.value='__custom__'; cust.value=val; cust.style.display='block';
+  } else {
+    sel.value=val||''; cust.value=''; cust.style.display='none';
+  }
+}
+function getPlateSelectValue(selId,customId){
+  const sel=document.getElementById(selId);
+  if(sel.value==='__custom__') return document.getElementById(customId).value.trim();
+  return sel.value;
+}
 
 document.getElementById('logDate').valueAsDate = new Date();
 document.getElementById('elStart').valueAsDate = new Date();
@@ -446,6 +467,12 @@ fbDb.enablePersistence().catch(()=>{});   // 오프라인 캐시 (탭 여러 개
 let cloudUid=null, cloudUnsub=null, cloudSyncing=false, cloudPushTimer=null;
 
 function cloudDocRef(uid){ return fbDb.collection('users').doc(uid).collection('data').doc('appData'); }
+
+function dataSig(lines_,logs_,stockChecks_,trash_,tlCollapsed_){
+  const s=JSON.stringify({lines:lines_,logs:logs_,stockChecks:stockChecks_,trash:trash_,tlCollapsed:tlCollapsed_});
+  let h=0; for(let i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))|0;}
+  return s.length+':'+h;
+}
 
 function cloudToggle(){
   if(cloudUid){
@@ -509,15 +536,18 @@ fbAuth.onAuthStateChanged(async user=>{
 
   if(snap && snap.exists){
     const d=snap.data();
-    const cloudHas=(d.lines&&d.lines.length)||(d.logs&&d.logs.length);
-    const localHas=lines.length||logs.length;
-    if(cloudHas && localHas){
-      if(!confirm('이 계정에 이미 클라우드에 저장된 데이터가 있습니다.\n클라우드 데이터를 불러와서 이 기기의 현재 데이터를 덮어쓸까요?\n(취소하면 로그인이 취소되고 이 기기 데이터는 그대로 유지됩니다)')){
-        await fbAuth.signOut();
-        return;
+    // 로컬 데이터와 클라우드 데이터가 이미 똑같으면(=매번 새로고침할 때의 정상 상황) 아무것도 묻지 않고 넘어감
+    if(dataSig(lines,logs,stockChecks,trash,tlCollapsed) !== dataSig(d.lines||[],d.logs||[],d.stockChecks||[],d.trash||[],d.tlCollapsed||{})){
+      const cloudHas=(d.lines&&d.lines.length)||(d.logs&&d.logs.length);
+      const localHas=lines.length||logs.length;
+      if(cloudHas && localHas){
+        if(!confirm('이 계정에 이미 클라우드에 저장된 데이터가 있고, 이 기기의 데이터와 내용이 다릅니다.\n클라우드 데이터를 불러와서 이 기기의 현재 데이터를 덮어쓸까요?\n(취소하면 로그인이 취소되고 이 기기 데이터는 그대로 유지됩니다)')){
+          await fbAuth.signOut();
+          return;
+        }
       }
+      applyCloudData(d);
     }
-    applyCloudData(d);
   } else {
     await cloudPush();   // 처음 로그인: 이 기기의 현재 데이터를 클라우드에 올림
   }
@@ -1191,7 +1221,7 @@ function saveDailyLog(){
     if(!action) return alert('직접 입력할 액션명을 입력하세요.');
   }
   const det   =document.getElementById('logDet').value.trim();
-  const plate =document.getElementById('logPlate').value;
+  const plate =getPlateSelectValue('logPlate','logPlateCustom');
   const wells =document.getElementById('logWells').value;
   const stocks=document.getElementById('logStocks').value;
   const memo  =document.getElementById('logMemo').value;
@@ -1252,7 +1282,7 @@ function saveLine(){
   const baseD=parseInt(document.getElementById('elBase').value)||0;
   const wells=document.getElementById('elWells').value;
   const start=document.getElementById('elStart').value;
-  const plateType=document.getElementById('elPlate').value;
+  const plateType=getPlateSelectValue('elPlate','elPlateCustom');
   if(!pId||!type||!start) return alert('필수 정보를 입력하세요.');
 
   // 파일명(사진 저장 시 사용)에 못 쓰는 문자 검사
@@ -1334,7 +1364,7 @@ function editLine(id){
   document.getElementById('elBase').value =startBase;
   document.getElementById('elWells').value=startWells;
   document.getElementById('elStart').value=startDt;
-  document.getElementById('elPlate').value=l.plateType||'';
+  setPlateSelectValue('elPlate','elPlateCustom', l.plateType||'');
   openLineModal();
 }
 
@@ -1439,7 +1469,7 @@ function openLogModal(id){
   document.getElementById('eP').value    =lg.passage;
   document.getElementById('eD').value    =lg.dayInfo||'';
   document.getElementById('eDet').value  =lg.details||'';
-  document.getElementById('ePlate').value=lg.plate||'';
+  setPlateSelectValue('ePlate','ePlateCustom', lg.plate||'');
   document.getElementById('eWells').value=lg.finalWells||'';
   document.getElementById('eStocks').value=lg.stocks||'';
   document.getElementById('eMemo').value =lg.memo||'';
@@ -1533,7 +1563,8 @@ function openLineModal(){updateUI();document.getElementById('lineModal').classLi
 function closeLineModal(){document.getElementById('lineModal').classList.remove('open');resetLineForm();}
 function closeLogModal(){document.getElementById('logModal').classList.remove('open');}
 function resetLineForm(){
-  ['elId','elPid','elType','elPlate'].forEach(i=>document.getElementById(i).value='');
+  ['elId','elPid','elType'].forEach(i=>document.getElementById(i).value='');
+  setPlateSelectValue('elPlate','elPlateCustom','');
   document.getElementById('elP').value=0;document.getElementById('elBase').value=0;
   document.getElementById('elWells').value=0;document.getElementById('elStart').valueAsDate=new Date();
 }
