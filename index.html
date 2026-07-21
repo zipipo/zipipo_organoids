@@ -198,6 +198,9 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
 .bk-warn{color:#DC2626;font-weight:700;}
 .bk-sub{color:#94A3B8;}
 .bk-mini{background:#FEE2E2;color:#DC2626;border:none;border-radius:4px;padding:2px 8px;font-size:.7rem;font-weight:700;cursor:pointer;}
+.data-notice{font-size:.72rem;line-height:1.5;border-radius:5px;padding:6px 11px;margin-bottom:11px;}
+.data-notice.warn{color:#92400E;background:#FFFBEB;border:1px solid #FDE68A;}
+.data-notice.ok{color:#065F46;background:#ECFDF5;border:1px solid #A7F3D0;}
 
 /* ═══ MOBILE ═══ */
 @media (max-width: 700px){
@@ -240,7 +243,7 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
   </div>
 </div>
 
-<div style="font-size:.72rem;line-height:1.5;color:#92400E;background:#FFFBEB;border:1px solid #FDE68A;border-radius:5px;padding:6px 11px;margin-bottom:11px;">⚠ 데이터는 <b>이 브라우저에만</b> 저장돼요. 캐시·사이트 데이터를 지우면 기록도 사라지니, 주기적으로 <b>[CSV 저장]</b>하거나, <b>[자동백업 폴더 설정]</b>으로 폴더를 지정하면 하루 한 번 자동 저장돼요. (시크릿 창은 닫으면 사라져요)</div>
+<div id="dataNotice" class="data-notice warn">⚠ 로그인 안 하면 데이터는 <b>이 브라우저에만</b> 저장돼요. 캐시·사이트 데이터를 지우면 기록도 사라지니, 주기적으로 <b>[CSV 저장]</b>하거나 <b>[자동백업 폴더 설정]</b>을 해두세요. (또는 위의 <b>[Google 로그인]</b>으로 자동 백업)</div>
 
 <div id="stockBanner"></div>
 
@@ -455,9 +458,20 @@ function cloudToggle(){
 
 function renderCloudStatus(user){
   const b=document.getElementById('cloudBtn'), s=document.getElementById('cloudStatus');
-  if(!b) return;
-  if(user){ b.textContent='로그아웃 ('+(user.email||'계정')+')'; if(s) s.textContent='클라우드 동기화 켜짐'; }
-  else { b.textContent='Google 로그인'; if(s) s.textContent=''; }
+  if(b){
+    if(user){ b.textContent='로그아웃 ('+(user.email||'계정')+')'; if(s) s.textContent='클라우드 동기화 켜짐'; }
+    else { b.textContent='Google 로그인'; if(s) s.textContent=''; }
+  }
+  const notice=document.getElementById('dataNotice');
+  if(notice){
+    if(user){
+      notice.className='data-notice ok';
+      notice.innerHTML=`클라우드 동기화 켜짐 — <b>Google 계정(${esc(user.email||'')})</b>에 자동 저장돼요. 같은 계정으로 로그인하면 다른 기기에서도 똑같은 데이터가 보여요.`;
+    } else {
+      notice.className='data-notice warn';
+      notice.innerHTML=`⚠ 로그인 안 하면 데이터는 <b>이 브라우저에만</b> 저장돼요. 캐시·사이트 데이터를 지우면 기록도 사라지니, 주기적으로 <b>[CSV 저장]</b>하거나 <b>[자동백업 폴더 설정]</b>을 해두세요. (또는 위의 <b>[Google 로그인]</b>으로 자동 백업)`;
+    }
+  }
 }
 
 function applyCloudData(d){
@@ -648,7 +662,9 @@ function renderDash(){
     .forEach(([type,d])=>{
     const c=getC(type,false);
     const dlines=d.lines.map(ll=>{
-      const mcTag = ll.mc ? `<span class="mc-tag ${ll.mc.cls}">MC+${ll.mc.days}d</span>` : `<span class="mc-tag mc-ok" style="opacity:.4;">-</span>`;
+      const mcTag = ll.mc
+        ? `<span class="mc-tag ${ll.mc.cls}" style="cursor:pointer;" onclick="quickMediaChange('${ll.id}',event)" title="클릭하면 오늘 날짜로 Media Change 기록이 바로 추가돼요">MC+${ll.mc.days}d</span>`
+        : `<span class="mc-tag mc-ok" style="opacity:.4;cursor:pointer;" onclick="quickMediaChange('${ll.id}',event)" title="클릭하면 오늘 날짜로 Media Change 기록이 바로 추가돼요">-</span>`;
       return `<div class="dline" style="cursor:pointer;" onclick="selectLine('${ll.id}')" title="라인 선택에 반영">
         <div class="dline-name">${esc(ll.label)} <span class="dline-pd">P${ll.p} / ${ll.day}</span>${ll.plate?` <span class="pb p0" style="font-size:.7rem;">${esc(ll.plate)}</span>`:''}</div>
         <div class="dline-well">${ll.well} well</div>
@@ -1487,6 +1503,16 @@ function selectLine(id){
   sel.value=id;
   previewDay();
   sel.scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+function quickMediaChange(lineId,ev){
+  if(ev) ev.stopPropagation();
+  const line=lines.find(l=>l.id===lineId);
+  if(!line) return;
+  const date=today();
+  logs.push({id:uid(),seq:nextSeq(),lineId,date,action:'Media Change',passage:line.passage,
+    dayInfo:calcDayStr(line,date),details:'',plate:line.plateType||'',finalWells:'',stocks:'',memo:''});
+  updateUI();
 }
 
 function openLineModal(){updateUI();document.getElementById('lineModal').classList.add('open');}
