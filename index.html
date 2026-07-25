@@ -210,10 +210,17 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
 
 /* ═══ NOTEBOOK PRINT (실제 작업 기록 표를 그대로, 폭만 줄여서 인쇄) ═══ */
 #notePrintArea{display:none;}
-.note-group{page-break-inside:avoid;margin-bottom:12px;}
-.note-group-hd{font-weight:700;font-size:11pt;margin-bottom:3px;}
+.note-group{page-break-inside:avoid;margin-bottom:10px;}
+.note-group-hd{font-weight:700;font-size:10pt;margin-bottom:2px;}
 #notePrintArea table{table-layout:auto;}
-#notePrintArea th,#notePrintArea td{font-size:8pt;padding:3px 5px;}
+#notePrintArea th,#notePrintArea td{font-size:7pt;padding:2px 4px;line-height:1.25;}
+/* Date/Action/P·D/Plate/Well/Stock 은 짧은 값이라 한 줄에 딱 붙게, Ratio·Memo(자유 텍스트)만 줄바꿈 허용 */
+#notePrintArea th:nth-child(1),#notePrintArea td:nth-child(1),
+#notePrintArea th:nth-child(2),#notePrintArea td:nth-child(2),
+#notePrintArea th:nth-child(3),#notePrintArea td:nth-child(3),
+#notePrintArea th:nth-child(4),#notePrintArea td:nth-child(4),
+#notePrintArea th:nth-child(6),#notePrintArea td:nth-child(6),
+#notePrintArea th:nth-child(7),#notePrintArea td:nth-child(7){ white-space:nowrap; }
 @media print{
   body *{visibility:hidden;}
   #notePrintArea,#notePrintArea *{visibility:visible;}
@@ -452,7 +459,7 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
         <div><label>라인</label><select id="noteLine" onchange="renderNoteList()" style="height:32px;"></select></div>
         <div><label>시작일</label><input type="date" id="noteFrom" onchange="renderNoteList()" style="height:32px;"></div>
         <div><label>종료일</label><input type="date" id="noteTo" onchange="renderNoteList()" style="height:32px;"></div>
-        <div><label>붙일 폭 (cm)</label><input type="number" id="noteWidth" value="16" min="6" max="20" step="0.5" style="height:32px;width:70px;"></div>
+        <div><label>붙일 폭 (cm)</label><input type="number" id="noteWidth" value="17" min="6" max="20" step="0.5" style="height:32px;width:70px;"></div>
         <div style="padding-bottom:6px;"><label style="display:flex;align-items:center;gap:5px;cursor:pointer;margin:0;font-size:.78rem;"><input type="checkbox" id="noteOnlyUnprinted" checked onchange="renderNoteList()" style="width:auto;"> 미인쇄만 보기</label></div>
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
@@ -2037,7 +2044,7 @@ function renderSbarList(){
       // 이 사진 자신의 선택은 빼고, '다른' 사진에 이미 배정된 경우만 구분 표시
       const usedByOthers=(lineUsage[l.id]||0) - (l.id===f.lineId?1:0);
       const style=usedByOthers>0?' style="font-weight:700;background:#EEF2FF;color:#4338CA;"':'';
-      const tag=usedByOthers>0?` — 다른 사진에도 배정됨(${usedByOthers}장)`:'';
+      const tag=usedByOthers>0?` (Selected${usedByOthers>1?' ×'+usedByOthers:''})`:'';
       return `<option value="${esc(l.id)}" ${l.id===f.lineId?'selected':''}${style}>[${esc(l.patientId)}_${esc(l.type)}]${l.isCompleted?' (완료)':''}${tag}</option>`;
     });
     const lineOpts=`<option value="" ${!f.lineId?'selected':''}>라인 선택…</option>`+(_opts||'<option value="" disabled>선택 가능한 라인 없음</option>');
@@ -2503,7 +2510,7 @@ let _notePrintIds=null;
 function noteDoPrint(){
   const ids=[...document.querySelectorAll('.note-chk:checked')].map(c=>c.dataset.id);
   if(!ids.length){ alert('인쇄할 기록을 선택하세요.'); return; }
-  const widthCm=parseFloat(document.getElementById('noteWidth').value)||16;
+  const widthCm=parseFloat(document.getElementById('noteWidth').value)||17;
   const list=ids.map(id=>logs.find(l=>l.id===id)).filter(Boolean);
 
   // 실제 화면 타임라인과 같은 표(Date/Action/P·D/Plate/Ratio/Well/Stock/Memo)를 그대로, 라인별로 묶어서 출력
@@ -2607,13 +2614,25 @@ function buildHeatmap(){
   const max=Math.max(1,...Object.values(counts));
   const colorFor=c=>{ if(!c) return ANA_SEQ[0]; const idx=Math.min(ANA_SEQ.length-1, Math.max(1,Math.ceil((c/max)*(ANA_SEQ.length-1)))); return ANA_SEQ[idx]; };
 
-  let cells='', labels=''; let prevMonth=-1;
+  // 월 라벨이 바뀌는 주(열) 인덱스를 먼저 모아서, 다음 라벨 전까지 span으로 넓게 잡아준다
+  // (열 하나(12px)에 "7월" 글자를 그냥 넣으면 폭이 모자라 글자가 세로로 줄바꿈되어 보이던 문제)
+  const monthChanges=[]; let prevMonth=-1;
   weeks.forEach((col,ci)=>{
     const d0=col.find(c=>c);
     if(d0){
       const m=new Date(d0.date).getMonth();
-      if(m!==prevMonth){ labels+=`<div style="grid-column:${ci+1};grid-row:1;font-size:.65rem;color:var(--sub);">${m+1}월</div>`; prevMonth=m; }
+      if(m!==prevMonth){ monthChanges.push({ci,m}); prevMonth=m; }
     }
+  });
+  let labels='';
+  monthChanges.forEach((mc,idx)=>{
+    const nextCi = idx+1<monthChanges.length ? monthChanges[idx+1].ci : weeks.length;
+    const span = Math.max(1, nextCi - mc.ci);
+    labels+=`<div style="grid-column:${mc.ci+1} / span ${span};grid-row:1;font-size:.65rem;color:var(--sub);white-space:nowrap;">${mc.m+1}월</div>`;
+  });
+
+  let cells='';
+  weeks.forEach((col,ci)=>{
     col.forEach((cell,ri)=>{
       if(!cell) return;
       cells+=`<div onmouseenter="anaTipShow(event,'${cell.date} · ${cell.count}건')" onmousemove="anaTipMove(event)" onmouseleave="anaTipHide()"
@@ -2641,7 +2660,8 @@ function buildBarChart(buckets, take, fmtLabel, unit){
   const max=Math.max(1,...keys.map(k=>buckets[k]));
   const bars=keys.map(k=>{
     const v=buckets[k], h=Math.max(2,Math.round((v/max)*100));
-    return `<div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;min-width:22px;">
+    return `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;min-width:22px;">
+      <div style="font-size:.68rem;font-weight:700;color:var(--tx);">${v}</div>
       <div style="width:100%;max-width:26px;height:90px;display:flex;align-items:flex-end;">
         <div onmouseenter="anaTipShow(event,'${k} · ${v}${unit}')" onmousemove="anaTipMove(event)" onmouseleave="anaTipHide()"
              style="width:100%;height:${h}%;background:#3B82F6;border-radius:3px 3px 0 0;min-height:2px;"></div>
@@ -2692,6 +2712,44 @@ function buildPassageCycle(){
   }).join('');
 }
 
+function buildPassageCycleByLine(){
+  const byLine={};
+  logs.filter(lg=>isPassageUp(lg.action)).forEach(lg=>{
+    const line=lines.find(l=>l.id===lg.lineId); if(!line) return;
+    const d=parseD(lg.dayInfo); if(!d) return;
+    const total=d.base+d.diff; if(total<=0) return;
+    (byLine[lg.lineId]=byLine[lg.lineId]||[]).push({date:lg.date, total});
+  });
+  const lineIds=Object.keys(byLine);
+  if(!lineIds.length) return '';
+
+  const items=lineIds.map(lid=>{
+    const line=lines.find(l=>l.id===lid);
+    const seq=byLine[lid].sort((a,b)=>a.date.localeCompare(b.date)).map(x=>x.total);
+    return {patientId:line?line.patientId:'', label:line?`${line.patientId}_${line.type}`:'(삭제된 라인)', seq};
+  // 환자번호(샘플명) 기준 ABC 사전식 정렬
+  }).sort((a,b)=>(a.patientId||'').localeCompare(b.patientId||'',undefined,{numeric:true,sensitivity:'base'}));
+
+  const maxV=Math.max(...items.flatMap(it=>it.seq),1);
+  const rows=items.map(it=>{
+    const bars=it.seq.map((v,i)=>{
+      const h=Math.max(6,Math.round((v/maxV)*32));
+      return `<div onmouseenter="anaTipShow(event,'${jsEsc(esc(it.label))} · ${i+1}번째 계대 · ${v}일')" onmousemove="anaTipMove(event)" onmouseleave="anaTipHide()"
+        style="width:13px;height:${h}px;background:#93C5FD;border-radius:2px 2px 0 0;flex-shrink:0;"></div>`;
+    }).join('');
+    return `<div style="display:flex;align-items:center;gap:10px;padding:6px 2px;border-bottom:1px solid #F1F5F9;">
+      <div style="width:130px;flex-shrink:0;font-size:.76rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(it.label)}</div>
+      <div style="display:flex;align-items:flex-end;gap:4px;height:32px;overflow-x:auto;">${bars}</div>
+      <div style="font-size:.7rem;color:var(--sub);flex-shrink:0;">${it.seq.join(' → ')}일</div>
+    </div>`;
+  }).join('');
+
+  return `<div style="margin-top:14px;padding-top:11px;border-top:1px solid #E2E8F0;">
+    <div style="font-size:.78rem;font-weight:700;color:var(--tx);margin-bottom:7px;">샘플(환자번호)별 계대 간격 추이 — 막대 1개 = 계대 1회 간격(일), 왼쪽이 먼저</div>
+    ${rows}
+  </div>`;
+}
+
 function buildStockTrend(){
   const b={};
   logs.forEach(lg=>{
@@ -2721,6 +2779,7 @@ function renderAnalytics(){
     <div class="dash-card" style="margin-bottom:12px;">
       <div class="dash-ttl" style="margin-bottom:10px;">계대(Split) 주기 — 타입별 평균 간격</div>
       ${buildPassageCycle()}
+      ${buildPassageCycleByLine()}
     </div>
     <div class="dash-card">
       <div class="dash-ttl" style="margin-bottom:10px;">Stock(vial) 생산 추이 (월별)</div>
