@@ -202,6 +202,25 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
 .data-notice.warn{color:#92400E;background:#FFFBEB;border:1px solid #FDE68A;}
 .data-notice.ok{color:#065F46;background:#ECFDF5;border:1px solid #A7F3D0;}
 
+/* ═══ ANALYTICS PAGE ═══ */
+.apage{display:none;position:fixed;inset:0;background:var(--bg);z-index:250;overflow-y:auto;padding:15px;}
+.apage.open{display:block;}
+.ana-legend{display:flex;align-items:center;gap:4px;font-size:.68rem;color:var(--sub);margin-top:6px;}
+.ana-legend span.sw{width:11px;height:11px;border-radius:2px;display:inline-block;}
+
+/* ═══ NOTEBOOK PRINT (실제 작업 기록 표를 그대로, 폭만 줄여서 인쇄) ═══ */
+#notePrintArea{display:none;}
+.note-group{page-break-inside:avoid;margin-bottom:12px;}
+.note-group-hd{font-weight:700;font-size:11pt;margin-bottom:3px;}
+#notePrintArea table{table-layout:auto;}
+#notePrintArea th,#notePrintArea td{font-size:8pt;padding:3px 5px;}
+@media print{
+  body *{visibility:hidden;}
+  #notePrintArea,#notePrintArea *{visibility:visible;}
+  #notePrintArea{display:block !important;position:absolute;left:0;top:0;width:100%;}
+  @page{margin:8mm;}
+}
+
 /* ═══ MOBILE ═══ */
 @media (max-width: 700px){
   body{padding:8px 8px 20px;}
@@ -236,6 +255,8 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
     <span id="cloudStatus" class="bk-status"></span>
     <button class="btn btn-out" style="border-color:#DDD6FE;color:#7C3AED;background:#F5F3FF;font-weight:700;" onclick="openLineModal()">Cell Line 관리</button>
     <button class="btn btn-out" onclick="openTrashModal()">휴지통<span id="trashCount"></span></button>
+    <button class="btn btn-out" style="border-color:#BAE6FD;color:#0369A1;background:#F0F9FF;font-weight:700;" onclick="openAnalyticsPage()">분석 대시보드</button>
+    <button class="btn btn-out" style="border-color:#FED7AA;color:#C2410C;background:#FFF7ED;font-weight:700;" onclick="openNoteModal()">연구노트 프린트</button>
     <button class="btn btn-out" onclick="exportCSV()">CSV 저장</button>
     <button class="btn btn-out" id="bkBtn" onclick="setupBackupFolder()">자동백업 폴더 설정</button>
     <button class="btn btn-out" onclick="document.getElementById('bkFile').click()">백업 불러오기</button>
@@ -315,6 +336,16 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
 </div>
 <div id="doneTL" style="display:none;"></div>
 
+</div>
+
+<div id="analyticsPage" class="apage">
+  <div class="wrap">
+    <div class="hdr">
+      <h1>작업 분석</h1>
+      <div class="hdr-r"><button class="btn btn-out" onclick="closeAnalyticsPage()">&larr; 목록으로</button></div>
+    </div>
+    <div id="anaContent"></div>
+  </div>
 </div>
 
 <div id="lineModal" class="modal">
@@ -406,6 +437,36 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
     <div class="mfoot" style="display:flex;gap:7px;">
       <button class="btn btn-del" style="flex:1;" onclick="emptyTrash()">휴지통 비우기</button>
       <button class="btn btn-out" style="flex:1;" onclick="closeTrashModal()">닫기</button>
+    </div>
+  </div>
+</div>
+
+<div id="noteModal" class="modal">
+  <div class="mbox" style="width:700px;">
+    <h2>연구노트 프린트</h2>
+    <div class="mscroll">
+      <div style="font-size:.76rem;color:#94A3B8;margin-bottom:9px;line-height:1.5;">
+        선택한 작업 기록을 화면에 보이는 표 그대로(라인별 Date/Action/P·D/Plate/Ratio/Well/Stock/Memo), 실험노트에 오려 붙이기 좋게 폭만 줄여서 인쇄합니다. 인쇄(또는 PDF 저장) 후에는 자동으로 "인쇄됨"으로 표시되어, 다음번엔 아직 안 붙인 기록만 골라 이어서 뽑을 수 있어요.
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:6px;padding:11px 13px;margin-bottom:11px;">
+        <div><label>라인</label><select id="noteLine" onchange="renderNoteList()" style="height:32px;"></select></div>
+        <div><label>시작일</label><input type="date" id="noteFrom" onchange="renderNoteList()" style="height:32px;"></div>
+        <div><label>종료일</label><input type="date" id="noteTo" onchange="renderNoteList()" style="height:32px;"></div>
+        <div><label>붙일 폭 (cm)</label><input type="number" id="noteWidth" value="16" min="6" max="20" step="0.5" style="height:32px;width:70px;"></div>
+        <div style="padding-bottom:6px;"><label style="display:flex;align-items:center;gap:5px;cursor:pointer;margin:0;font-size:.78rem;"><input type="checkbox" id="noteOnlyUnprinted" checked onchange="renderNoteList()" style="width:auto;"> 미인쇄만 보기</label></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <span id="noteCount" style="font-size:.78rem;color:var(--sub);"></span>
+        <div style="display:flex;gap:6px;">
+          <button class="tbl-btn" onclick="noteSelectAll(true)">전체 선택</button>
+          <button class="tbl-btn" onclick="noteSelectAll(false)">전체 해제</button>
+        </div>
+      </div>
+      <div id="noteList"></div>
+    </div>
+    <div class="mfoot" style="display:flex;gap:8px;">
+      <button class="btn btn-out" style="flex:1;" onclick="closeNoteModal()">닫기</button>
+      <button class="btn btn-pri" style="flex:2;" onclick="noteDoPrint()">선택한 기록 인쇄 / PDF 저장</button>
     </div>
   </div>
 </div>
@@ -1236,7 +1297,7 @@ function saveDailyLog(){
     // (1) 현재 라인의 상태를 긁어와서, 일단 그 상태 그대로 로그로 저장!
     const curP = line.passage;
     const curDStr = calcDayStr(line, date);
-    logs.push({id:uid(),seq:nextSeq(),lineId,date,action,passage:curP,dayInfo:curDStr,details:det,plate,finalWells:wells,stocks,memo});
+    logs.push({id:uid(),seq:nextSeq(),lineId,date,action,passage:curP,dayInfo:curDStr,details:det,plate,finalWells:wells,stocks,memo,printedToNotebook:false});
 
     // (2) 그 액션이 상태를 바꾸는 액션(Split/Reseeding)이라면, '다음 추가될 로그'를 위해 라인의 정보를 진화시킴
     if (isPassageUp(action)) {
@@ -1261,6 +1322,10 @@ function saveDailyLog(){
     }
   });
   });
+
+  // (3) 라인 캐시 상태가 과거에 조금이라도 어긋나 있었다면, 방금 추가한 로그까지 포함해
+  //     전체 히스토리를 처음부터 다시 훑어서 P/D를 바로잡는다 (재계산 버튼과 동일한 엔진).
+  [...new Set(lineIds)].forEach(lineId=>recalcLogsForLine(lineId));
 
   bulkDates=[];renderBulkTags();
   bulkLines=[];renderBulkLineTags();
@@ -1309,7 +1374,7 @@ function saveLine(){
       seed.dayInfo=dayStr;
     } else {
       logs.push({id:uid()+'_sd',seq:nextSeq(),lineId:id,date:start,action:'Seeded',
-        passage:p,dayInfo:dayStr,details:'',finalWells:wells||'',stocks:'',memo:'수동 추가'});
+        passage:p,dayInfo:dayStr,details:'',finalWells:wells||'',stocks:'',memo:'수동 추가',printedToNotebook:false});
     }
     recalcLogsForLine(id);
   } else {
@@ -1318,7 +1383,7 @@ function saveLine(){
     lines.push(nl);
     
     logs.push({id:uid()+'_sd',seq:nextSeq(),lineId:nl.id,date:start,action:'Seeded',
-      passage:p,dayInfo:dayStr,details:'',finalWells:wells||'',stocks:'',memo:'최초 seeding'});
+      passage:p,dayInfo:dayStr,details:'',finalWells:wells||'',stocks:'',memo:'최초 seeding',printedToNotebook:false});
   }
   resetLineForm();updateUI();
 }
@@ -1374,7 +1439,7 @@ function completeLine(id){
   const t=today(),ds=calcDayStr(line,t);
   line.isCompleted=true;line.finishDate=t;line.finishDayStr=ds;
   logs.push({id:uid(),seq:nextSeq(),lineId:id,date:t,action:'Finish (완료)',passage:line.passage,
-    dayInfo:ds,details:'',finalWells:'',stocks:'',memo:m||'실험 종료'});
+    dayInfo:ds,details:'',finalWells:'',stocks:'',memo:m||'실험 종료',printedToNotebook:false});
   updateUI();
 }
 
@@ -1555,7 +1620,8 @@ function quickMediaChange(lineId,ev){
   if(!line) return;
   const date=today();
   logs.push({id:uid(),seq:nextSeq(),lineId,date,action:'Media Change',passage:line.passage,
-    dayInfo:calcDayStr(line,date),details:'',plate:line.plateType||'',finalWells:'',stocks:'',memo:''});
+    dayInfo:calcDayStr(line,date),details:'',plate:line.plateType||'',finalWells:'',stocks:'',memo:'',printedToNotebook:false});
+  recalcLogsForLine(lineId);
   updateUI();
 }
 
@@ -2346,6 +2412,299 @@ async function pptBuild(items){
   return await pptx.write({outputType:'blob'});
 }
 
+// ══════════════════════════════════════════
+//  연구노트 프린트 (선택 기록 → 오려붙이기용 스트립 인쇄)
+// ══════════════════════════════════════════
+function noteLineOptions(){
+  const sel=document.getElementById('noteLine');
+  const prev=sel.value;
+  sel.innerHTML='<option value="">전체 라인</option>' +
+    lines.slice().sort(typeCmp).map(l=>`<option value="${l.id}">${esc(l.patientId+'_'+l.type)}</option>`).join('');
+  sel.value=prev||'';
+}
+
+function noteFilteredLogs(){
+  const lineId=document.getElementById('noteLine').value;
+  const from=document.getElementById('noteFrom').value;
+  const to=document.getElementById('noteTo').value;
+  const onlyUn=document.getElementById('noteOnlyUnprinted').checked;
+  return logs.filter(lg=>{
+    if(lineId && lg.lineId!==lineId) return false;
+    if(from && lg.date<from) return false;
+    if(to && lg.date>to) return false;
+    if(onlyUn && lg.printedToNotebook) return false;
+    return true;
+  }).sort((a,b)=> a.date.localeCompare(b.date) || (a.seq||0)-(b.seq||0));
+}
+
+function renderNoteList(){
+  const list=noteFilteredLogs();
+  document.getElementById('noteCount').textContent=`${list.length}건`;
+  const el=document.getElementById('noteList');
+  if(!list.length){ el.innerHTML='<div style="color:#94A3B8;font-size:.85rem;padding:10px 0;">조건에 맞는 기록이 없습니다.</div>'; return; }
+  el.innerHTML=list.map(lg=>{
+    const line=lines.find(l=>l.id===lg.lineId);
+    const label=line?`${line.patientId}_${line.type}`:'(삭제된 라인)';
+    return `<div style="display:flex;align-items:center;gap:8px;padding:5px 4px;border-bottom:1px solid #F1F5F9;font-size:.78rem;flex-wrap:wrap;">
+      <input type="checkbox" class="note-chk" data-id="${lg.id}" style="width:auto;flex-shrink:0;" ${lg.printedToNotebook?'':'checked'}>
+      <span style="color:var(--sub);width:78px;flex-shrink:0;">${esc(lg.date)}</span>
+      <span style="font-weight:600;width:130px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(label)}</span>
+      <span class="pb ${pCls(lg.passage)}" style="flex-shrink:0;">P${lg.passage}</span>
+      <span style="color:var(--sub);width:50px;flex-shrink:0;">${esc(lg.dayInfo||'-')}</span>
+      <span class="badge ${badgeCls(lg.action)}" style="flex-shrink:0;">${esc(lg.action)}</span>
+      <span style="flex:1;min-width:60px;color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(lg.details||'')}</span>
+      ${lg.printedToNotebook?'<span style="font-size:.68rem;color:#16A34A;font-weight:700;flex-shrink:0;">인쇄됨</span>':''}
+      <button class="tbl-btn" style="flex-shrink:0;" onclick="noteToggleManual('${lg.id}')">${lg.printedToNotebook?'미인쇄로 표시':'인쇄됨으로 표시'}</button>
+    </div>`;
+  }).join('');
+}
+
+function noteSelectAll(checked){ document.querySelectorAll('.note-chk').forEach(c=>c.checked=checked); }
+
+function noteToggleManual(id){
+  const lg=logs.find(l=>l.id===id); if(!lg) return;
+  lg.printedToNotebook=!lg.printedToNotebook;
+  updateUI(); renderNoteList();
+}
+
+function openNoteModal(){
+  noteLineOptions();
+  renderNoteList();
+  document.getElementById('noteModal').classList.add('open');
+}
+function closeNoteModal(){ document.getElementById('noteModal').classList.remove('open'); }
+
+let _notePrintIds=null;
+function noteDoPrint(){
+  const ids=[...document.querySelectorAll('.note-chk:checked')].map(c=>c.dataset.id);
+  if(!ids.length){ alert('인쇄할 기록을 선택하세요.'); return; }
+  const widthCm=parseFloat(document.getElementById('noteWidth').value)||16;
+  const list=ids.map(id=>logs.find(l=>l.id===id)).filter(Boolean);
+
+  // 실제 화면 타임라인과 같은 표(Date/Action/P·D/Plate/Ratio/Well/Stock/Memo)를 그대로, 라인별로 묶어서 출력
+  const byLine={};
+  list.forEach(lg=>{ (byLine[lg.lineId]=byLine[lg.lineId]||[]).push(lg); });
+
+  const html=Object.keys(byLine).map(lineId=>{
+    const line=lines.find(l=>l.id===lineId);
+    const label=line?`${esc(line.patientId)}_${esc(line.type)}`:'(삭제된 라인)';
+    const rows=byLine[lineId].slice().sort((a,b)=>a.date.localeCompare(b.date) || (a.seq||0)-(b.seq||0)).map(lg=>`
+      <tr>
+        <td>${esc(lg.date)}</td>
+        <td>${esc(lg.action)}</td>
+        <td>P${lg.passage} / ${esc(lg.dayInfo||'-')}</td>
+        <td>${esc(lg.plate||'-')}</td>
+        <td>${esc(lg.details||'-')}</td>
+        <td>${lg.finalWells?esc(String(lg.finalWells))+' well':'-'}</td>
+        <td>${lg.stocks?esc(String(lg.stocks))+' vial':'-'}</td>
+        <td>${esc(lg.memo||'-')}</td>
+      </tr>`).join('');
+    return `<div class="note-group" style="width:${widthCm}cm;">
+      <div class="note-group-hd">${label}</div>
+      <table><thead><tr>
+        <th>Date</th><th>Action</th><th>P / D</th><th>Plate</th><th>Ratio</th><th>Well</th><th>Stock</th><th>Memo</th>
+      </tr></thead><tbody>${rows}</tbody></table>
+    </div>`;
+  }).join('');
+
+  document.getElementById('notePrintArea').innerHTML=html;
+  _notePrintIds=ids;
+  setTimeout(()=>window.print(),50);
+}
+window.addEventListener('afterprint',()=>{
+  if(_notePrintIds && _notePrintIds.length){
+    const n=_notePrintIds.length;
+    if(confirm(`선택한 ${n}건을 "인쇄됨"으로 표시할까요?\n(인쇄를 취소했다면 '취소'를 누르세요)`)){
+      _notePrintIds.forEach(id=>{ const lg=logs.find(l=>l.id===id); if(lg) lg.printedToNotebook=true; });
+      updateUI();
+      if(document.getElementById('noteModal').classList.contains('open')) renderNoteList();
+    }
+  }
+  _notePrintIds=null;
+});
+
+// ══════════════════════════════════════════
+//  분석 대시보드 (별도 화면)
+// ══════════════════════════════════════════
+// 인라인 onmouseenter 핸들러(작은따옴표 문자열) 안에 안전하게 끼워넣기 위한 이스케이프
+// (esc()는 HTML 텍스트용이라 따옴표/역슬래시는 그대로 통과시킴 — 타입명 등에 ' 가 들어가면 핸들러가 깨짐)
+function jsEsc(s){ return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+
+function anaTipShow(e,html){
+  let t=document.getElementById('anaTip');
+  if(!t){
+    t=document.createElement('div'); t.id='anaTip';
+    t.style.cssText='position:fixed;pointer-events:none;background:#1E293B;color:#fff;font-size:.72rem;padding:5px 8px;border-radius:5px;z-index:999;white-space:nowrap;box-shadow:0 4px 10px rgba(0,0,0,.15);';
+    document.body.appendChild(t);
+  }
+  t.innerHTML=html; t.style.display='block';
+  anaTipMove(e);
+}
+function anaTipMove(e){
+  const t=document.getElementById('anaTip'); if(!t) return;
+  t.style.left=(e.clientX+12)+'px'; t.style.top=(e.clientY+12)+'px';
+}
+function anaTipHide(){ const t=document.getElementById('anaTip'); if(t) t.style.display='none'; }
+
+function openAnalyticsPage(){ renderAnalytics(); document.getElementById('analyticsPage').classList.add('open'); }
+function closeAnalyticsPage(){ document.getElementById('analyticsPage').classList.remove('open'); anaTipHide(); }
+
+function weekKey(dateStr){
+  const d=new Date(dateStr); d.setHours(0,0,0,0);
+  const jan1=new Date(d.getFullYear(),0,1);
+  const days=Math.floor((d-jan1)/86400000);
+  const week=Math.ceil((days+jan1.getDay()+1)/7);
+  return d.getFullYear()+'-W'+String(week).padStart(2,'0');
+}
+
+const ANA_SEQ=['#F1F5F9','#BFDBFE','#93C5FD','#60A5FA','#3B82F6','#1D4ED8'];   // 단일(파랑) 시퀀셜 램프 — 0단계는 회색(값 없음)
+
+// toISOString()은 UTC 기준이라 KST(UTC+9) 자정~오전9시 사이엔 하루 밀려서 나옴 — 로컬 날짜 그대로 포맷
+function ymdLocal(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+
+function buildHeatmap(){
+  const counts={};
+  logs.forEach(lg=>{ if(!lg.date) return; counts[lg.date]=(counts[lg.date]||0)+1; });
+  const end=new Date(); end.setHours(0,0,0,0);
+  const start=new Date(end); start.setDate(start.getDate()-364);
+  start.setDate(start.getDate()-start.getDay());   // 일요일로 정렬
+
+  const weeks=[]; let cur=new Date(start);
+  while(cur<=end){
+    const col=[];
+    for(let d=0; d<7; d++){
+      const ds=ymdLocal(cur);
+      col.push(cur>end ? null : {date:ds, count:(counts[ds]||0)});
+      cur.setDate(cur.getDate()+1);
+    }
+    weeks.push(col);
+  }
+  const max=Math.max(1,...Object.values(counts));
+  const colorFor=c=>{ if(!c) return ANA_SEQ[0]; const idx=Math.min(ANA_SEQ.length-1, Math.max(1,Math.ceil((c/max)*(ANA_SEQ.length-1)))); return ANA_SEQ[idx]; };
+
+  let cells='', labels=''; let prevMonth=-1;
+  weeks.forEach((col,ci)=>{
+    const d0=col.find(c=>c);
+    if(d0){
+      const m=new Date(d0.date).getMonth();
+      if(m!==prevMonth){ labels+=`<div style="grid-column:${ci+1};grid-row:1;font-size:.65rem;color:var(--sub);">${m+1}월</div>`; prevMonth=m; }
+    }
+    col.forEach((cell,ri)=>{
+      if(!cell) return;
+      cells+=`<div onmouseenter="anaTipShow(event,'${cell.date} · ${cell.count}건')" onmousemove="anaTipMove(event)" onmouseleave="anaTipHide()"
+        style="grid-column:${ci+1};grid-row:${ri+2};width:11px;height:11px;border-radius:2px;background:${colorFor(cell.count)};cursor:default;"></div>`;
+    });
+  });
+  const legend=ANA_SEQ.map(c=>`<span class="sw" style="background:${c};"></span>`).join('');
+  return `<div style="display:grid;grid-auto-flow:column;grid-auto-columns:12px;grid-template-rows:14px repeat(7,12px);gap:3px;overflow-x:auto;padding-bottom:4px;">${labels}${cells}</div>
+    <div class="ana-legend">적음 ${legend} 많음 &nbsp;·&nbsp; 최근 1년, 날짜별 총 작업 건수</div>`;
+}
+
+function bucketCounts(mode){
+  const b={};
+  logs.forEach(lg=>{
+    if(!lg.date) return;
+    const key = mode==='week' ? weekKey(lg.date) : lg.date.slice(0,7);
+    b[key]=(b[key]||0)+1;
+  });
+  return b;
+}
+
+function buildBarChart(buckets, take, fmtLabel, unit){
+  const keys=Object.keys(buckets).sort().slice(-take);
+  if(!keys.length) return '<div style="color:#94A3B8;font-size:.82rem;">표시할 데이터가 없습니다.</div>';
+  const max=Math.max(1,...keys.map(k=>buckets[k]));
+  const bars=keys.map(k=>{
+    const v=buckets[k], h=Math.max(2,Math.round((v/max)*100));
+    return `<div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;min-width:22px;">
+      <div style="width:100%;max-width:26px;height:90px;display:flex;align-items:flex-end;">
+        <div onmouseenter="anaTipShow(event,'${k} · ${v}${unit}')" onmousemove="anaTipMove(event)" onmouseleave="anaTipHide()"
+             style="width:100%;height:${h}%;background:#3B82F6;border-radius:3px 3px 0 0;min-height:2px;"></div>
+      </div>
+      <div style="font-size:.65rem;color:var(--sub);white-space:nowrap;">${fmtLabel(k)}</div>
+    </div>`;
+  }).join('');
+  return `<div style="display:flex;align-items:flex-end;gap:4px;overflow-x:auto;padding:4px 2px;">${bars}</div>`;
+}
+
+let _volMode='month';
+function setVolMode(mode){
+  _volMode=mode;
+  const html = mode==='week'
+    ? buildBarChart(bucketCounts('week'), 26, k=>k.replace(/^\d{4}-W/,'W'), '건')
+    : buildBarChart(bucketCounts('month'), 12, k=>k.slice(2).replace('-','.'), '건');
+  document.getElementById('volChart').innerHTML=html;
+  const bm=document.getElementById('volBtnM'), bw=document.getElementById('volBtnW');
+  if(bm){ bm.style.background = mode==='month'?'#3B82F6':''; bm.style.color = mode==='month'?'#fff':''; bm.style.borderColor = mode==='month'?'#3B82F6':''; }
+  if(bw){ bw.style.background = mode==='week'?'#3B82F6':''; bw.style.color = mode==='week'?'#fff':''; bw.style.borderColor = mode==='week'?'#3B82F6':''; }
+}
+
+function buildPassageCycle(){
+  const byType={};
+  logs.filter(lg=>isPassageUp(lg.action)).forEach(lg=>{
+    const line=lines.find(l=>l.id===lg.lineId); if(!line) return;
+    const d=parseD(lg.dayInfo); if(!d) return;
+    const total=d.base+d.diff; if(total<=0) return;
+    (byType[line.type]=byType[line.type]||[]).push(total);
+  });
+  const types=Object.keys(byType);
+  if(!types.length) return '<div style="color:#94A3B8;font-size:.82rem;">아직 계대(Split) 기록이 충분하지 않습니다.</div>';
+  const stats=types.map(t=>{
+    const arr=byType[t], avg=arr.reduce((a,b)=>a+b,0)/arr.length;
+    return {type:t, avg, n:arr.length};
+  }).sort((a,b)=>b.avg-a.avg);
+  const max=Math.max(...stats.map(s=>s.avg),1);
+  return stats.map(s=>{
+    const w=Math.max(4,Math.round((s.avg/max)*100));
+    return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;">
+      <div style="width:120px;font-size:.78rem;font-weight:600;text-align:right;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.type)}</div>
+      <div style="flex:1;background:#F1F5F9;border-radius:4px;height:18px;position:relative;">
+        <div onmouseenter="anaTipShow(event,'${jsEsc(esc(s.type))} · 평균 ${s.avg.toFixed(1)}일 (n=${s.n})')" onmousemove="anaTipMove(event)" onmouseleave="anaTipHide()"
+             style="width:${w}%;height:100%;background:#3B82F6;border-radius:4px;"></div>
+      </div>
+      <div style="width:100px;font-size:.74rem;color:var(--sub);flex-shrink:0;">${s.avg.toFixed(1)}일 (n=${s.n})</div>
+    </div>`;
+  }).join('');
+}
+
+function buildStockTrend(){
+  const b={};
+  logs.forEach(lg=>{
+    const n=parseInt(lg.stocks); if(!n||n<=0) return;
+    const key=lg.date.slice(0,7);
+    b[key]=(b[key]||0)+n;
+  });
+  return buildBarChart(b, 12, k=>k.slice(2).replace('-','.'), 'vial');
+}
+
+function renderAnalytics(){
+  document.getElementById('anaContent').innerHTML=`
+    <div class="dash-card" style="margin-bottom:12px;">
+      <div class="dash-ttl" style="margin-bottom:10px;">작업 캘린더 (최근 1년)</div>
+      ${buildHeatmap()}
+    </div>
+    <div class="dash-card" style="margin-bottom:12px;">
+      <div class="dash-top" style="margin-bottom:2px;">
+        <div class="dash-ttl">작업량 추이</div>
+        <div style="display:flex;gap:5px;">
+          <button class="btn btn-out" id="volBtnM" onclick="setVolMode('month')" style="height:26px;font-size:.72rem;">월별</button>
+          <button class="btn btn-out" id="volBtnW" onclick="setVolMode('week')" style="height:26px;font-size:.72rem;">주별</button>
+        </div>
+      </div>
+      <div id="volChart"></div>
+    </div>
+    <div class="dash-card" style="margin-bottom:12px;">
+      <div class="dash-ttl" style="margin-bottom:10px;">계대(Split) 주기 — 타입별 평균 간격</div>
+      ${buildPassageCycle()}
+    </div>
+    <div class="dash-card">
+      <div class="dash-ttl" style="margin-bottom:10px;">Stock(vial) 생산 추이 (월별)</div>
+      ${buildStockTrend()}
+    </div>
+  `;
+  setVolMode(_volMode);
+}
+
 </script>
 
 <div id="sbarModal" class="modal">
@@ -2400,5 +2759,6 @@ async function pptBuild(items){
   </div>
 </div>
 <div id="sbLoading" class="sb-loading"><div class="sb-spin"></div><div class="sb-loadtxt" id="sbLoadTxt">처리 중…</div></div>
+<div id="notePrintArea"></div>
 </body>
 </html>
