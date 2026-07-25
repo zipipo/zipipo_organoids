@@ -892,6 +892,23 @@ const typeCmp=(a,b)=>
   (a.type||'').localeCompare(b.type||'',undefined,{numeric:true,sensitivity:'base'})
   || (a.patientId||'').localeCompare(b.patientId||'',undefined,{numeric:true,sensitivity:'base'});
 
+// 라인 <select> 옵션을 종류(type)별 <optgroup>으로 묶어서 만들어주는 헬퍼
+// (입력은 반드시 typeCmp로 정렬된 배열이어야 그룹이 흩어지지 않음)
+function lineOptGroupsHTML(sortedLines, optFn){
+  let html='', curType=null, open=false;
+  sortedLines.forEach(l=>{
+    if(l.type!==curType){
+      if(open) html+='</optgroup>';
+      curType=l.type;
+      html+=`<optgroup label="${esc(l.type||'(종류 없음)')}">`;
+      open=true;
+    }
+    html+=optFn(l);
+  });
+  if(open) html+='</optgroup>';
+  return html;
+}
+
 function renderTimelines(containerId,showDone){
   const el=document.getElementById(containerId);
   el.innerHTML='';
@@ -1013,12 +1030,9 @@ function updateUI(){
   rebuildColors();
   const sel=document.getElementById('lineSelect');
   const prev=sel.value;
-  sel.innerHTML='<option value="">-- 라인 선택 --</option>';
-  lines.filter(l=>!l.isCompleted).sort(typeCmp).forEach(l=>{
-    const o=document.createElement('option');
-    o.value=l.id;o.textContent=`${l.patientId}_${l.type} (P${l.passage})`;
-    sel.appendChild(o);
-  });
+  const activeLines=lines.filter(l=>!l.isCompleted).sort(typeCmp);
+  sel.innerHTML='<option value="">-- 라인 선택 --</option>' +
+    lineOptGroupsHTML(activeLines, l=>`<option value="${esc(l.id)}">${esc(l.patientId)}_${esc(l.type)} (P${l.passage})</option>`);
   if(prev) sel.value=prev;
   renderBulkLineTags();
   renderTimelines('activeTL',false);
@@ -2012,10 +2026,20 @@ function renderSbarList(){
   if(!sbFiles.length){ el.innerHTML='<div class="sb-empty">아직 추가된 사진이 없습니다. 위 영역에 끌어다 놓으세요.</div>'; return; }
   const barOn = (document.getElementById('sbAddBar')||{}).checked!==false;
   const head=`<div class="sb-listhd"><span>추가된 사진 <b>${sbFiles.length}</b>장</span><button class="sb-clear" onclick="sbClearAll()">전체 삭제</button></div>`;
+  // 이 배치 안에서 이미 다른 사진에 배정된 라인 수 (드롭다운에서 이미 고른 라인을 구분해 보여주기 위함)
+  const lineUsage={};
+  sbFiles.forEach(sf=>{ if(sf.lineId) lineUsage[sf.lineId]=(lineUsage[sf.lineId]||0)+1; });
   el.innerHTML = head + sbFiles.map((f,i)=>{
     const optLines=active.slice();
     if(f.lineId && !optLines.some(l=>l.id===f.lineId)){ const sel=lines.find(l=>l.id===f.lineId); if(sel) optLines.push(sel); }
-    const _opts=optLines.map(l=>`<option value="${esc(l.id)}" ${l.id===f.lineId?'selected':''}>[${esc(l.patientId)}_${esc(l.type)}]${l.isCompleted?' (완료)':''}</option>`).join('');
+    optLines.sort(typeCmp);   // 위에서 추가로 밀어넣은 라인이 있어도 종류별 그룹이 흐트러지지 않도록 재정렬
+    const _opts=lineOptGroupsHTML(optLines, l=>{
+      // 이 사진 자신의 선택은 빼고, '다른' 사진에 이미 배정된 경우만 구분 표시
+      const usedByOthers=(lineUsage[l.id]||0) - (l.id===f.lineId?1:0);
+      const style=usedByOthers>0?' style="font-weight:700;background:#EEF2FF;color:#4338CA;"':'';
+      const tag=usedByOthers>0?` — 다른 사진에도 배정됨(${usedByOthers}장)`:'';
+      return `<option value="${esc(l.id)}" ${l.id===f.lineId?'selected':''}${style}>[${esc(l.patientId)}_${esc(l.type)}]${l.isCompleted?' (완료)':''}${tag}</option>`;
+    });
     const lineOpts=`<option value="" ${!f.lineId?'selected':''}>라인 선택…</option>`+(_opts||'<option value="" disabled>선택 가능한 라인 없음</option>');
     const magOpts=ALL_MAGS.map(m=>`<option value="${m}" ${m===f.mag?'selected':''}>${m}</option>`).join('');
     const line=lines.find(l=>l.id===f.lineId);
@@ -2418,8 +2442,9 @@ async function pptBuild(items){
 function noteLineOptions(){
   const sel=document.getElementById('noteLine');
   const prev=sel.value;
+  const sorted=lines.slice().sort(typeCmp);
   sel.innerHTML='<option value="">전체 라인</option>' +
-    lines.slice().sort(typeCmp).map(l=>`<option value="${l.id}">${esc(l.patientId+'_'+l.type)}</option>`).join('');
+    lineOptGroupsHTML(sorted, l=>`<option value="${esc(l.id)}">${esc(l.patientId+'_'+l.type)}</option>`);
   sel.value=prev||'';
 }
 
