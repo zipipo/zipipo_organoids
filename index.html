@@ -597,7 +597,11 @@ function cloudPushDebounced(){
 
 fbAuth.onAuthStateChanged(async user=>{
   if(cloudUnsub){ cloudUnsub(); cloudUnsub=null; }
-  if(!user){ cloudUid=null; renderCloudStatus(null); return; }
+  if(!user){
+    cloudUid=null; renderCloudStatus(null);
+    alert('로그인이 되어 있지 않습니다. 데이터를 다른 기기와 동기화하려면 상단의 [Google 로그인] 버튼으로 먼저 로그인해 주세요.');
+    return;
+  }
 
   cloudUid=user.uid;
   renderCloudStatus(user);
