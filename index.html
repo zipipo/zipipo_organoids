@@ -538,8 +538,16 @@ let cloudUid=null, cloudUnsub=null, cloudSyncing=false, cloudPushTimer=null;
 
 function cloudDocRef(uid){ return fbDb.collection('users').doc(uid).collection('data').doc('appData'); }
 
+function stableStringify(obj){
+  if(obj===null || typeof obj!=='object') return JSON.stringify(obj);
+  if(Array.isArray(obj)) return '['+obj.map(stableStringify).join(',')+']';
+  return '{'+Object.keys(obj).sort().map(k=>JSON.stringify(k)+':'+stableStringify(obj[k])).join(',')+'}';
+}
+
 function dataSig(lines_,logs_,stockChecks_,trash_,tlCollapsed_){
-  const s=JSON.stringify({lines:lines_,logs:logs_,stockChecks:stockChecks_,trash:trash_,tlCollapsed:tlCollapsed_});
+  // Firestore는 저장 시 필드(키) 순서를 그대로 보존해 준다는 보장이 없어서,
+  // 키 순서에 영향받지 않도록 정렬 후 문자열화한다 (안 그러면 내용이 같아도 신호가 달라짐)
+  const s=stableStringify({lines:lines_,logs:logs_,stockChecks:stockChecks_,trash:trash_,tlCollapsed:tlCollapsed_});
   let h=0; for(let i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))|0;}
   return s.length+':'+h;
 }
