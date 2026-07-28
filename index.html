@@ -948,7 +948,19 @@ function renderTimelines(containerId,showDone){
   };
   filtered.sort((a,b)=> typeCmp(a,b) || firstDate(a).localeCompare(firstDate(b)));
 
+  // Archive(완료된 기록)는 종류별로 구분선을 넣어 한눈에 보이게 함
+  const typeCounts={};
+  if(showDone) filtered.forEach(l=>{typeCounts[l.type]=(typeCounts[l.type]||0)+1;});
+  let curType=null;
+
   filtered.forEach(line=>{
+    if(showDone && line.type!==curType){
+      curType=line.type;
+      const tc=tcm[line.type]||PAL[0];
+      el.innerHTML+=`<div class="dtype-hd" style="background:${tc.hbg};color:${tc.ht};border-radius:6px;margin:${el.innerHTML?'14px':'0'} 0 6px;">
+        <span>${esc(line.type||'(종류 없음)')}</span><span class="dh-r">${typeCounts[line.type]}개</span>
+      </div>`;
+    }
     const lgs=logs.filter(lg=>lg.lineId===line.id).sort((a,b)=>{
       const af=isFin(a.action),bf=isFin(b.action);
       if(af&&!bf) return -1;if(!af&&bf) return 1;
