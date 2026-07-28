@@ -302,6 +302,7 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
       <div><label>수행 액션</label>
         <select id="logAction" onchange="onActChange()">
           <option value="Media Change">Media Change</option>
+          <option value="Media Addition">Media Addition</option>
           <option value="Split">Split (P+1, d0)</option>
           <option value="Reseeding">Reseeding (d 누적)</option>
           <option value="Pellet (passage 유지)">Pellet (passage 유지)</option>
@@ -401,7 +402,7 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
           <div><label>날짜</label><input type="date" id="eDate"></div>
           <div><label>액션</label>
             <select id="eAct" onchange="onEActChange()">
-              <option>Seeded</option><option>Media Change</option><option>Split</option>
+              <option>Seeded</option><option>Media Change</option><option>Media Addition</option><option>Split</option>
               <option>Reseeding</option><option>Pellet (passage 유지)</option><option>Pellet (p+1)</option><option>Stock (passage 유지)</option><option>Stock (p+1)</option>
               <option>Observation</option><option>Fixation</option><option>Harvest</option><option>Finish (완료)</option>
               <option value="__custom__">직접 입력...</option>
@@ -492,7 +493,7 @@ let trash       = JSON.parse(localStorage.getItem('orgTrash')) || [];         //
 let archOpen    = false;
 
 const ALL_MAGS  = ['4x','10x','20x'];
-const PLATE_TYPES = ['100pi plate','6 well plate','12 well plate','24 well plate','48 well plate','96 well plate'];
+const PLATE_TYPES = ['100pi plate','6 well plate','12 well plate','24 well plate','48 well plate','96 well plate','T75 flask','T225 flask'];
 const PLATE_OPTS_HTML = '<option value="">-</option>' + PLATE_TYPES.map(p=>`<option value="${p}">${p}</option>`).join('') + '<option value="__custom__">직접 입력...</option>';
 ['elPlate','logPlate','ePlate'].forEach(id=>{const el=document.getElementById(id); if(el) el.innerHTML=PLATE_OPTS_HTML;});
 
@@ -682,6 +683,7 @@ function badgeCls(a){
 const isFin = a=>!!(a&&(a.includes('Finish')||a.includes('완료')));
 const isSeed= a=>!!(a&&(a==='Seeded'||a==='Initial Seeding'));
 const isPassageUp = a=>{ if(!a) return false; const l=a.toLowerCase(); return l.includes('split')||l.includes('p+1'); };
+const isMediaChange = a=>!!(a&&(a==='Media Change'||a==='Media Addition'));
 
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 const uid   = ()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
@@ -713,7 +715,7 @@ const getC=(type,done)=>done?DONE:(tcm[type]||PAL[0]);
 // ══════════════════════════════════════════
 function mcDays(line){
   if(line.isCompleted) return null;
-  const rel=logs.filter(l=>l.lineId===line.id&&(l.action==='Media Change'||isPassageUp(l.action)||l.action==='Reseeding'||isSeed(l.action)))
+  const rel=logs.filter(l=>l.lineId===line.id&&(isMediaChange(l.action)||isPassageUp(l.action)||l.action==='Reseeding'||isSeed(l.action)))
     .sort((a,b)=>new Date(b.date)-new Date(a.date));
   if(!rel.length) return null;
   const last=new Date(rel[0].date),now=new Date();
@@ -1601,7 +1603,7 @@ function updateLog(doRecalc){
   logs[idx].passage   =parseP(document.getElementById('eP').value);
   logs[idx].dayInfo   =document.getElementById('eD').value;
   logs[idx].details   =document.getElementById('eDet').value;
-  logs[idx].plate     =document.getElementById('ePlate').value;
+  logs[idx].plate     =getPlateSelectValue('ePlate','ePlateCustom');
   logs[idx].finalWells=document.getElementById('eWells').value;
   logs[idx].stocks    =document.getElementById('eStocks').value;
   logs[idx].memo      =document.getElementById('eMemo').value;
@@ -1732,7 +1734,7 @@ function splitPatientType(raw){
   return {pid:raw.substring(0,splitAt).trim(), type:raw.substring(splitAt+1).trim()};
 }
 
-const KNOWN_ACTIONS=['Media Change','Split','Reseeding','Pellet 제작','Stock 제작','Pellet (passage 유지)','Pellet (p+1)','Stock (passage 유지)','Stock (p+1)','Observation','Fixation','Harvest','Seeded','Initial Seeding','Finish (완료)','Finish'];
+const KNOWN_ACTIONS=['Media Change','Media Addition','Split','Reseeding','Pellet 제작','Stock 제작','Pellet (passage 유지)','Pellet (p+1)','Stock (passage 유지)','Stock (p+1)','Observation','Fixation','Harvest','Seeded','Initial Seeding','Finish (완료)','Finish'];
 
 function importCSV(event){
   const file=event.target.files[0];if(!file) return;
