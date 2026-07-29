@@ -2316,12 +2316,13 @@ async function pptBuildFromFiles(btn){
     }
     sbLoading(true,'PPT 만드는 중…');
     const blob=await pptBuild(items);
+    const fname=pptReportName(items);
     const a=document.createElement('a');
-    a.href=URL.createObjectURL(blob); a.download='report.pptx'; a.click();
+    a.href=URL.createObjectURL(blob); a.download=fname; a.click();
     setTimeout(()=>URL.revokeObjectURL(a.href),3000);
     sbLoading(false);
     const nn=items.filter(i=>i.meta.named).length;
-    alert(`완료! 사진 ${items.length}장 → report.pptx 다운로드됨\n(규칙 이름 ${nn}장 / 기타 ${items.length-nn}장)`);
+    alert(`완료! 사진 ${items.length}장 → ${fname} 다운로드됨\n(규칙 이름 ${nn}장 / 기타 ${items.length-nn}장)`);
     closePptModal();
   }catch(e){ sbLoading(false); alert('오류: '+e.message); }
   finally{ btn.disabled=false; btn.textContent=ot; }
@@ -2381,6 +2382,10 @@ function pptHeaderRuns(c){
   return runs;
 }
 function pptDateRange(items){ const ds=[...new Set(items.map(i=>i.meta.date).filter(Boolean))].sort(); if(!ds.length) return ''; return ds.length===1?pptFmtDate(ds[0]):`${pptFmtDate(ds[0])} – ${pptFmtDate(ds[ds.length-1])}`; }
+// 파일명용: 오늘 날짜(YYMMDD) + 사진 파일명들 중 가장 이른~가장 늦은 날짜
+function pptTodayStr(){ const d=new Date(); const p2=n=>String(n).padStart(2,'0'); return String(d.getFullYear()).slice(-2)+p2(d.getMonth()+1)+p2(d.getDate()); }
+function pptFileDateRange(items){ const ds=[...new Set(items.map(i=>i.meta.date).filter(Boolean))].sort(); if(!ds.length) return ''; return ds.length===1?ds[0]:`${ds[0]}-${ds[ds.length-1]}`; }
+function pptReportName(items){ const dr=pptFileDateRange(items); return `${pptTodayStr()} Cell images${dr?` (${dr})`:''}.pptx`; }
 function pptCmpArr(a,b){ for(let i=0;i<a.length;i++){ if(a[i]<b[i])return -1; if(a[i]>b[i])return 1; } return 0; }
 function pptNatCmp(a,b){ const k=x=>x.replace(/\d+/g,n=>n.padStart(10,'0')); return k(a).localeCompare(k(b)); }
 function pptDetectMag(stem){ const m=stem.match(/(?<![A-Za-z0-9])(\d{1,3})[xX](?![A-Za-z0-9])/); return m?m[1]+'x':''; }
@@ -2856,7 +2861,7 @@ function renderAnalytics(){
         · <b>규칙 이름</b> (<span style="font-family:'Pretendard',sans-serif;font-weight:600;background:#EEF2FF;color:#4338CA;padding:1px 6px;border-radius:4px;">날짜_환자_타입_pX_dY_배율</span>)<br>
         &nbsp;&nbsp;→ 세로 4x / 10x / 20x, 가로 날짜 그리드 (열 위에 날짜·P·day·well·조건 헤더, 슬라이드당 5세트)<br>
         · <b>그 외 이름</b> (Image_0001 등) → "기타 이미지" 슬라이드에 3행 × 5열로 정리<br>
-        결과는 <b>report.pptx</b> 파일로 다운로드됩니다.
+        결과는 <b>YYMMDD Cell images (YYMMDD-YYMMDD).pptx</b> (만든 날짜 - 사진 파일 날짜 범위) 파일로 다운로드됩니다.
         <span style="color:#94A3B8;">(PNG · JPG · TIFF 지원, 모든 브라우저)</span>
       </div>
       <div id="pptDrop" class="sb-drop">사진을 여기로 끌어다 놓거나 클릭해서 선택<br><span style="font-size:.72rem;color:#94A3B8;">여러 번 나눠서 계속 추가할 수 있어요</span>
