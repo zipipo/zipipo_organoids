@@ -97,6 +97,9 @@ textarea{resize:vertical;min-height:31px;line-height:1.45;}
 /* SECTION TITLES */
 .sec{font-size:.95rem;font-weight:700;margin:18px 0 7px;}
 .sec.dim{color:var(--sub);}
+.sec-tl{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
+.sec-tl-btns{display:flex;gap:5px;}
+.btn-tiny{height:23px;font-size:.68rem;padding:0 8px;font-weight:600;}
 .arch-row{display:flex;align-items:center;gap:7px;cursor:pointer;user-select:none;}
 .arch-arr{font-size:.82rem;transition:transform .2s;display:inline-block;}
 .arch-open .arch-arr{transform:rotate(90deg);}
@@ -334,7 +337,13 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
 </div>
 
 <div style="margin:4px 0 10px;"><input type="text" id="lineSearch" placeholder="라인 검색 (환자ID·타입 — 완료된 것도 포함)" oninput="applyLineFilter(this.value)" style="width:100%;max-width:360px;height:34px;padding:0 12px;border:1px solid #E2E8F0;border-radius:6px;font-size:.85rem;box-sizing:border-box;"></div>
-<div class="sec">진행 중인 배양 타임라인</div>
+<div class="sec sec-tl">
+  <span>진행 중인 배양 타임라인</span>
+  <span class="sec-tl-btns">
+    <button class="btn btn-out btn-tiny" onclick="expandAllTL()">모두 펼치기</button>
+    <button class="btn btn-out btn-tiny" onclick="collapseAllTL()">모두 접기</button>
+  </span>
+</div>
 <div id="activeTL"></div>
 
 <div class="sec dim">
@@ -1035,6 +1044,18 @@ function toggleTL(id,lineId){
     cloudPushDebounced();
   }
 }
+
+// 진행 중인 배양 타임라인 전체 접기/펼치기
+function setAllTL(open){
+  document.querySelectorAll('#activeTL .tl-body').forEach(body=>{
+    const currentlyOpen=!body.classList.contains('col');
+    if(currentlyOpen===open) return;
+    const lineId=body.id.startsWith('tl_')?body.id.slice(3):null;
+    toggleTL(body.id,lineId);
+  });
+}
+function expandAllTL(){ setAllTL(true); }
+function collapseAllTL(){ setAllTL(false); }
 
 function toggleArch(){
   archOpen=!archOpen;
