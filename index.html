@@ -916,16 +916,32 @@ function slDeleteSet(id){
   shotSets=shotSets.filter(x=>x.id!==id);
   saveShotSets(); renderShotSets();
 }
+// 사진을 실제로 저장할 때마다(=그날 그 순서로 진짜 촬영을 마쳤다는 뜻) 자동으로 목록에 기록해 둔다.
+// 파일이 자동으로 쌓이듯, 사용자가 따로 이름 붙여 저장하지 않아도 날짜(+오전/오후)별 기록이 쌓인다.
+// 같은 날짜·시간대에 다시 저장하면(사진을 더 추가해서 재저장 등) 새로 만들지 않고 그 기록을 갱신한다.
+function archiveShotOrderFromSbFiles(date){
+  if(!sbFiles.length) return;
+  const wd=['일','월','화','수','목','금','토'][new Date(date).getDay()];
+  const session=new Date().getHours()<12?'오전':'오후';
+  const autoKey=date+'_'+session;
+  const items=sbFiles.map(f=>({lineId:f.lineId, mag:f.mag, note:f.note||''}));
+  const name=`${date}(${wd}) ${session}`;
+  const existing=shotSets.find(s=>s.autoKey===autoKey);
+  if(existing){ existing.items=items; existing.name=name; existing.updatedTs=Date.now(); }
+  else { shotSets.push({id:uid(), name, items, autoKey, createdTs:Date.now(), updatedTs:Date.now()}); }
+  saveShotSets();
+}
 function renderShotSets(){
   const el=document.getElementById('slSets');
   if(!el) return;
-  if(!shotSets.length){ el.innerHTML='<div style="color:#94A3B8;font-size:.74rem;padding:4px 2px;">저장된 세트가 없습니다. 순서를 쌓은 뒤 "세트로 저장"을 눌러보세요.</div>'; return; }
+  if(!shotSets.length){ el.innerHTML='<div style="color:#94A3B8;font-size:.74rem;padding:4px 2px;">저장된 세트가 없습니다. 사진을 저장하면 그 날짜 순서가 자동으로 여기 쌓입니다. (또는 "세트로 저장"으로 직접 저장)</div>'; return; }
   el.innerHTML = shotSets.slice().sort((a,b)=>b.updatedTs-a.updatedTs).map(s=>{
     const labels=s.items.map(it=>{const l=lines.find(x=>x.id===it.lineId); return l?`${l.patientId}_${l.type}`:'(삭제된 라인)';});
     const uniq=[...new Set(labels)];
+    const tag=s.autoKey?'<span style="font-size:.62rem;background:#F1F5F9;color:#64748B;padding:1px 6px;border-radius:8px;font-weight:700;">자동 기록</span>':'';
     return `<div style="display:flex;align-items:center;gap:6px;padding:6px 8px;border:1px solid #E2E8F0;border-radius:6px;margin-bottom:6px;background:#fff;">
       <div style="flex:1;min-width:0;">
-        <div style="font-weight:700;font-size:.79rem;">${esc(s.name)}</div>
+        <div style="font-weight:700;font-size:.79rem;display:flex;align-items:center;gap:6px;">${esc(s.name)} ${tag}</div>
         <div style="font-size:.71rem;color:#94A3B8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.items.length}컷 · ${esc(uniq.join(', '))}</div>
       </div>
       <button class="tbl-btn" onclick="slLoadSet('${s.id}')">불러오기</button>
@@ -2481,6 +2497,7 @@ async function sbarSaveAll(btn){
       }
       saved++; sbLoading(true,`저장 중… (${saved}/${sbFiles.length})`);
     }
+    archiveShotOrderFromSbFiles(date);
     alert(sbFiles.length+'개 저장 완료'+(dir?' (선택한 폴더)':' (브라우저 다운로드 폴더)'));
   }catch(e){
     alert('저장 중 오류: '+e.message);
@@ -3158,7 +3175,7 @@ function renderAnalytics(){
       <div id="slList"></div>
 
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin:14px 0 6px;padding-top:10px;border-top:1px solid #E2E8F0;flex-wrap:wrap;">
-        <span style="font-size:.78rem;font-weight:700;color:#475569;">📁 저장된 촬영 순서 (날짜마다 반복되는 루틴을 저장해두고 불러 쓰세요)</span>
+        <span style="font-size:.78rem;font-weight:700;color:#475569;">📁 저장된 촬영 순서 — 사진을 저장할 때마다 그날 순서가 자동으로 쌓여요</span>
         <button class="tbl-btn" onclick="slSaveAsSet()">지금 순서 저장</button>
       </div>
       <div id="slSets"></div>
