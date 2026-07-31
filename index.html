@@ -882,6 +882,8 @@ function slAddSet(){
   saveShotLog(); renderShotLog(); slRenderRecent();
 }
 function slRemove(i){ shotLog.splice(i,1); saveShotLog(); renderShotLog(); }
+// 여러 인덱스(같은 줄에 묶인 컷들)를 한번에 지울 때, 인덱스가 앞에서부터 밀리지 않도록 큰 인덱스부터 제거
+function slRemoveGroup(idxs){ [...idxs].sort((a,b)=>b-a).forEach(i=>shotLog.splice(i,1)); saveShotLog(); renderShotLog(); }
 function slClear(){ if(shotLog.length && confirm('기록 '+shotLog.length+'개를 모두 지울까요?')){ shotLog=[]; saveShotLog(); renderShotLog(); } }
 
 // ── 촬영 순서 세트(재사용 템플릿) ──────────────────────────
@@ -969,10 +971,12 @@ function renderShotLog(){
     const timeStr=(today?'':(d.getMonth()+1)+'/'+d.getDate()+' ')+d.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
     const note=g.items.find(it=>it.note)?.note;
     const magsHtml=g.items.map(it=>`<span class="mc-tag" style="background:#FDF2F8;color:#DB2777;cursor:pointer;" title="클릭해서 이 컷만 삭제" onclick="slRemove(${it.idx})">${it.mag} ×</span>`).join(' ');
+    const groupIdxs=g.items.map(it=>it.idx).join(',');
     return `<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-bottom:1px solid #F1F5F9;font-size:.78rem;flex-wrap:wrap;">
       <span style="color:#94A3B8;min-width:64px;">${timeStr}</span>
       <span style="flex:1;font-weight:600;">${esc(label)}${note?' · '+esc(note):''}</span>
       <span style="display:flex;gap:4px;flex-wrap:wrap;">${magsHtml}</span>
+      <button type="button" title="이 줄(순서 중간 포함) 전체 삭제" onclick="slRemoveGroup([${groupIdxs}])" style="flex:none;background:#FEE2E2;color:#DC2626;border:none;border-radius:5px;width:24px;height:24px;font-size:.9rem;font-weight:700;cursor:pointer;">×</button>
     </div>`;
   }).join('');
 }
