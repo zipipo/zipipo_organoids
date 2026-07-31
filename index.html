@@ -985,11 +985,7 @@ function applyShotLog(){
   if(!shotLog.length) return alert('기록된 촬영 순서가 없습니다.');
   if(!sbFiles.length) return alert('먼저 사진을 추가하세요.');
   const n=Math.min(sbFiles.length, shotLog.length);
-  for(let i=0;i<n;i++){
-    sbFiles[i].lineId=shotLog[i].lineId;
-    sbFiles[i].mag=shotLog[i].mag;
-    if(shotLog[i].note) sbFiles[i].note=shotLog[i].note;
-  }
+  sbApplyQueueToAll();
   renderSbarList();
   if(sbFiles.length!==shotLog.length){
     alert(`사진 ${sbFiles.length}장 / 기록 ${shotLog.length}개 — 앞 ${n}장만 자동으로 채웠어요. 나머지는 직접 골라주세요.`);
@@ -2216,9 +2212,34 @@ function openSbarModal(){
     drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('drag'); if(e.dataTransfer&&e.dataTransfer.files) handleSbarFiles(e.dataTransfer.files);});
     window._sbWired=true;
   }
+  const auto=document.getElementById('sbAutoLink');
+  if(auto) auto.checked = localStorage.getItem('orgSbAutoLink')!=='0';
+  sbRenderSetPicker();
   renderSbarList();
   renderSbDir();
   document.getElementById('sbarModal').classList.add('open');
+}
+function sbAutoLinkOn(){ const el=document.getElementById('sbAutoLink'); return !el || el.checked; }
+function sbSaveAutoLinkPref(el){ localStorage.setItem('orgSbAutoLink', el.checked?'1':'0'); }
+
+// 사진을 추가하기 전에도, 저장해 둔 촬영 순서를 미리 골라 작업 큐에 넣어둘 수 있게 한다
+function sbRenderSetPicker(){
+  const el=document.getElementById('sbSetPicker');
+  if(!el) return;
+  if(!shotSets.length){ el.innerHTML='<option value="">저장된 순서 없음</option>'; el.disabled=true; return; }
+  el.disabled=false;
+  el.innerHTML='<option value="">저장된 순서 불러오기…</option>'+shotSets.slice().sort((a,b)=>b.updatedTs-a.updatedTs)
+    .map(s=>`<option value="${esc(s.id)}">${esc(s.name)} (${s.items.length}컷)</option>`).join('');
+}
+function sbLoadPickedSet(){
+  const id=document.getElementById('sbSetPicker').value;
+  if(!id) return alert('불러올 순서를 선택하세요.');
+  const s=shotSets.find(x=>x.id===id); if(!s) return;
+  if(shotLog.length && !confirm(`지금 쌓인 순서 ${shotLog.length}개를 "${s.name}"(으)로 교체할까요?`)) return;
+  shotLog = s.items.map(it=>({lineId:it.lineId, mag:it.mag, note:it.note||'', ts:Date.now()}));
+  saveShotLog();
+  if(sbFiles.length && sbAutoLinkOn()) sbApplyQueueToAll();
+  renderSbarList();
 }
 function closeSbarModal(){ document.getElementById('sbarModal').classList.remove('open'); }
 
@@ -2274,8 +2295,8 @@ async function handleSbarFiles(fileList){
     for(const f of arr){
       try{
         const {canvas,w,h}=await sbLoadImageFile(f);
-        // 기록해 둔 촬영 순서(shotLog)가 있으면, 사진이 추가되는 순서 그대로 라인·배율·메모를 자동으로 채운다
-        const auto=shotLog[sbFiles.length];
+        // '촬영 순서 자동 적용'이 켜져 있고 기록해 둔 순서(shotLog)가 있으면, 사진이 추가되는 순서 그대로 라인·배율·메모를 자동으로 채운다
+        const auto=sbAutoLinkOn() ? shotLog[sbFiles.length] : null;
         sbFiles.push({id:'sb'+Date.now()+Math.random().toString(36).slice(2,6), fname:f.name, srcCanvas:canvas, w, h, thumb:sbMakeThumb(canvas), lineId:auto?auto.lineId:'', mag:auto?auto.mag:'4x', note:auto?(auto.note||''):'', origFile:f, isTiff:(/\.(tif|tiff)$/i.test(f.name)||f.type==='image/tiff')});
       }catch(e){ failed.push(f.name+' ('+e.message+')'); }
       done++; sbLoading(true,`사진 불러오는 중… (${done}/${arr.length})`);
@@ -2302,7 +2323,22 @@ function sbSet(i,k,v){
   }
   renderSbarList();
 }
-function sbRemove(i){ sbFiles.splice(i,1); renderSbarList(); }
+// shotLog(촬영 순서 큐)를 지금 올라온 사진 전체에 '위치' 기준으로 다시 채운다.
+// 사진 개수와 순서 기록 개수가 안 맞을 때(중간 삭제 등) 뒤쪽 사진들을 앞으로 당겨 다시 맞추는 용도로도 쓴다.
+function sbApplyQueueToAll(){
+  const n=Math.min(sbFiles.length, shotLog.length);
+  for(let i=0;i<n;i++){
+    sbFiles[i].lineId=shotLog[i].lineId;
+    sbFiles[i].mag=shotLog[i].mag;
+    sbFiles[i].note=shotLog[i].note||'';
+  }
+}
+function sbRemove(i){
+  sbFiles.splice(i,1);
+  // '촬영 순서 자동 적용'이 켜져 있으면, 사진을 지운 만큼 뒤쪽 사진들의 라인·배율·메모가 앞으로 당겨진다
+  if(sbAutoLinkOn()) sbApplyQueueToAll();
+  renderSbarList();
+}
 function sbClearAll(){ if(sbFiles.length && confirm('추가한 사진 '+sbFiles.length+'장을 모두 지울까요?')){ sbFiles=[]; renderSbarList(); } }
 function sbNatCmp(a,b){ const k=x=>x.replace(/\d+/g,n=>n.padStart(10,'0')); return k(a).localeCompare(k(b)); }
 // 파일시스템 금지문자(/ \ : * ? " < > | 및 제어문자)를 - 로 치환, 앞뒤 점·공백 제거
@@ -3122,13 +3158,21 @@ function renderAnalytics(){
         <div><label>저장 형식</label><select id="sbFormat" onchange="renderSbarList()" style="height:32px;width:auto;"><option value="png" selected>PNG</option><option value="tiff">TIFF (.tif)</option></select></div>
         <div style="padding-bottom:6px;"><label style="display:flex;align-items:center;gap:5px;cursor:pointer;margin:0;"><input type="checkbox" id="sbLabel" checked style="width:auto;"> 100µm 라벨 표시</label></div>
       </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">
+        <select id="sbSetPicker" style="height:32px;flex:1;min-width:170px;"></select>
+        <button class="tbl-btn" onclick="sbLoadPickedSet()">사진 넣기 전에 순서 불러오기</button>
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:.76rem;color:#475569;white-space:nowrap;margin:0;">
+          <input type="checkbox" id="sbAutoLink" checked onchange="sbSaveAutoLinkPref(this)" style="width:auto;"> 촬영 순서 자동 적용
+        </label>
+      </div>
       <div id="sbDrop" class="sb-drop">사진을 여기로 끌어다 놓거나 클릭해서 선택<br><span style="font-size:.72rem;color:#94A3B8;">PNG / JPG / TIFF 지원 · 배율별 스케일바 자동 적용</span>
         <input type="file" id="sbInput" accept="image/*,.tif,.tiff" multiple style="display:none;">
       </div>
       <div style="font-size:.74rem;color:#94A3B8;margin:9px 0;line-height:1.5;">
         · 사진마다 라인·배율을 고르면 날짜 기준 P / D 가 자동 계산되어 파일명이 만들어집니다.<br>
         · '스케일바 추가'를 켜면 배율에 맞는 100µm 스케일바가 사진에 그려져 저장됩니다. (끄면 이름만 바꿔 저장)<br>
-        · <b>TIFF</b> 선택 시 — 스케일바를 <u>끄면</u> 원본 파일 그대로(이름만 변경) 저장돼 현미경에서 그대로 열립니다. 스케일바를 켜면 표준 RGB TIFF로 새로 저장됩니다.
+        · <b>TIFF</b> 선택 시 — 스케일바를 <u>끄면</u> 원본 파일 그대로(이름만 변경) 저장돼 현미경에서 그대로 열립니다. 스케일바를 켜면 표준 RGB TIFF로 새로 저장됩니다.<br>
+        · <b>촬영 순서 자동 적용</b>이 켜져 있으면 사진을 추가하는 순서대로 라인·배율이 자동으로 채워지고, 중간에 사진을 하나 지워도 뒤 사진들이 앞으로 당겨져 순서가 다시 맞춰집니다. 자동으로 채우고 싶지 않으면 꺼두세요.
       </div>
       <div id="sbList"></div>
       <div id="sbDirInfo" style="font-size:.74rem;color:#64748B;margin:11px 2px 2px;"></div>
