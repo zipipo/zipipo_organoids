@@ -981,6 +981,8 @@ function renderShotLog(){
   }).join('');
 }
 
+// 사진을 추가/삭제해서 사진 개수와 순서 기록 개수가 안 맞게 됐을 때, 이 버튼을 눌러야만
+// 순서를 다시 앞으로 당겨 채운다 (삭제한다고 자동으로 실행되지 않음 — 사용자가 원할 때만)
 function applyShotLog(){
   if(!shotLog.length) return alert('기록된 촬영 순서가 없습니다.');
   if(!sbFiles.length) return alert('먼저 사진을 추가하세요.');
@@ -988,10 +990,7 @@ function applyShotLog(){
   sbApplyQueueToAll();
   renderSbarList();
   if(sbFiles.length!==shotLog.length){
-    alert(`사진 ${sbFiles.length}장 / 기록 ${shotLog.length}개 — 앞 ${n}장만 자동으로 채웠어요. 나머지는 직접 골라주세요.`);
-  }
-  if(confirm('적용 완료. 사용한 순서 기록을 지울까요? (다음 촬영을 위해 비워두는 걸 추천)')){
-    shotLog=[]; saveShotLog();
+    alert(`사진 ${sbFiles.length}장 / 기록 ${shotLog.length}개 — 앞 ${n}장만 순서대로 다시 채웠어요. 나머지는 직접 골라주세요.`);
   }
 }
 
@@ -2334,9 +2333,9 @@ function sbApplyQueueToAll(){
   }
 }
 function sbRemove(i){
+  // 사진을 지워도 순서를 자동으로 다시 채우지 않는다 — 뒤로 밀린 사진들을 앞당기고 싶으면
+  // "저장된 순서 불러와서 채우기(순서 새로고침)" 버튼을 직접 눌러야 한다
   sbFiles.splice(i,1);
-  // '촬영 순서 자동 적용'이 켜져 있으면, 사진을 지운 만큼 뒤쪽 사진들의 라인·배율·메모가 앞으로 당겨진다
-  if(sbAutoLinkOn()) sbApplyQueueToAll();
   renderSbarList();
 }
 function sbClearAll(){ if(sbFiles.length && confirm('추가한 사진 '+sbFiles.length+'장을 모두 지울까요?')){ sbFiles=[]; renderSbarList(); } }
@@ -2381,7 +2380,7 @@ function renderSbarList(){
   if(!sbFiles.length){ el.innerHTML='<div class="sb-empty">아직 추가된 사진이 없습니다. 위 영역에 끌어다 놓으세요.</div>'; return; }
   const barOn = (document.getElementById('sbAddBar')||{}).checked!==false;
   const head=`<div class="sb-listhd"><span>추가된 사진 <b>${sbFiles.length}</b>장</span>
-    <button class="tbl-btn" onclick="applyShotLog()">저장된 순서 불러와서 채우기 (${shotLog.length})</button>
+    <button class="tbl-btn" title="사진을 지우거나 추가해서 순서가 밀렸을 때, 여기를 눌러야 순서가 다시 앞으로 맞춰집니다" onclick="applyShotLog()">↻ 순서 새로고침 (${shotLog.length})</button>
     <button class="sb-clear" onclick="sbClearAll()">전체 삭제</button></div>`;
   // 이 배치 안에서 이미 다른 사진에 배정된 라인 수 (드롭다운에서 이미 고른 라인을 구분해 보여주기 위함)
   const lineUsage={};
@@ -3172,7 +3171,8 @@ function renderAnalytics(){
         · 사진마다 라인·배율을 고르면 날짜 기준 P / D 가 자동 계산되어 파일명이 만들어집니다.<br>
         · '스케일바 추가'를 켜면 배율에 맞는 100µm 스케일바가 사진에 그려져 저장됩니다. (끄면 이름만 바꿔 저장)<br>
         · <b>TIFF</b> 선택 시 — 스케일바를 <u>끄면</u> 원본 파일 그대로(이름만 변경) 저장돼 현미경에서 그대로 열립니다. 스케일바를 켜면 표준 RGB TIFF로 새로 저장됩니다.<br>
-        · <b>촬영 순서 자동 적용</b>이 켜져 있으면 사진을 추가하는 순서대로 라인·배율이 자동으로 채워지고, 중간에 사진을 하나 지워도 뒤 사진들이 앞으로 당겨져 순서가 다시 맞춰집니다. 자동으로 채우고 싶지 않으면 꺼두세요.
+        · <b>촬영 순서 자동 적용</b>이 켜져 있으면 사진을 추가하는 순서대로 라인·배율이 자동으로 채워집니다. 자동으로 채우고 싶지 않으면 꺼두세요.<br>
+        · 사진을 지우거나 순서가 밀렸다면, 자동으로 다시 맞춰지지 <u>않습니다</u> — 아래 목록 위쪽의 <b>↻ 순서 새로고침</b> 버튼을 눌러야 남은 사진들이 순서에 맞게 다시 채워집니다.
       </div>
       <div id="sbList"></div>
       <div id="sbDirInfo" style="font-size:.74rem;color:#64748B;margin:11px 2px 2px;"></div>
