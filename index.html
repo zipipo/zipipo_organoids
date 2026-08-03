@@ -306,7 +306,7 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
       <div>
         <label>라인 선택 (다중 추가 가능)</label>
         <div class="dgrp">
-          <select id="lineSelect" onchange="previewDay()"></select>
+          <select id="lineSelect" onchange="resetLogPlate();previewDay()"></select>
           <button class="btn btn-out" onclick="addBulkLine()">라인 추가</button>
         </div>
         <div id="bulkLineTags"></div>
@@ -1933,6 +1933,9 @@ function deleteLog(){
   closeLogModal();updateUI();
 }
 
+function resetLogPlate(){
+  setPlateSelectValue('logPlate','logPlateCustom','');
+}
 function previewDay(){
   const lineId=document.getElementById('lineSelect').value;
   const pr=document.getElementById('prevArea');
@@ -1960,6 +1963,7 @@ function selectLine(id){
   const sel=document.getElementById('lineSelect');
   if(![...sel.options].some(o=>o.value===id)) return;
   sel.value=id;
+  resetLogPlate();
   previewDay();
   sel.scrollIntoView({behavior:'smooth',block:'center'});
 }
