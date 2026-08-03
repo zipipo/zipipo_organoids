@@ -837,15 +837,30 @@ function renderDash(){
 //  촬영 순서 기록 (Shot Log)
 // ══════════════════════════════════════════
 function openShotLogModal(){
-  const sel=document.getElementById('slLine');
-  const active=lines.filter(l=>!l.isCompleted).sort(typeCmp);
-  sel.innerHTML='<option value="">라인 선택…</option>'+lineOptGroupsHTML(active, l=>`<option value="${esc(l.id)}">[${esc(l.patientId)}_${esc(l.type)}]</option>`);
+  slRenderLineOptions();
   slRenderRecent();
   renderShotLog();
   renderShotSets();
   document.getElementById('shotLogModal').classList.add('open');
 }
 function closeShotLogModal(){ document.getElementById('shotLogModal').classList.remove('open'); }
+
+// 오늘 쌓은 순서(shotLog)에 이미 들어간 라인은 '사진 이름·스케일바' 도구의 라인 드롭다운과 동일하게
+// (Selected) 표시로 구분해준다 — 나중에 이어서 고를 때 뭘 이미 넣었는지 한눈에 보이도록.
+function slRenderLineOptions(){
+  const sel=document.getElementById('slLine');
+  const cur=sel.value;
+  const active=lines.filter(l=>!l.isCompleted).sort(typeCmp);
+  const usage={};
+  shotLog.forEach(s=>{ if(s.lineId) usage[s.lineId]=(usage[s.lineId]||0)+1; });
+  sel.innerHTML='<option value="">라인 선택…</option>'+lineOptGroupsHTML(active, l=>{
+    const n=usage[l.id]||0;
+    const style=n>0?' style="font-weight:700;background:#EEF2FF;color:#4338CA;"':'';
+    const tag=n>0?` (Selected${n>1?' ×'+n:''})`:'';
+    return `<option value="${esc(l.id)}"${style}>[${esc(l.patientId)}_${esc(l.type)}]${tag}</option>`;
+  });
+  sel.value=cur;
+}
 
 function slRenderRecent(){
   const el=document.getElementById('slRecent');
@@ -869,7 +884,7 @@ function slAdd(mag){
   shotLog.push({lineId, mag, note, ts:Date.now()});
   document.getElementById('slNote').value='';
   _slTouchRecent(lineId);
-  saveShotLog(); renderShotLog(); slRenderRecent();
+  saveShotLog(); renderShotLog(); slRenderRecent(); slRenderLineOptions();
 }
 function slAddSet(){
   const lineId=document.getElementById('slLine').value;
@@ -879,12 +894,12 @@ function slAddSet(){
   ALL_MAGS.forEach(m=>shotLog.push({lineId, mag:m, note, ts}));
   document.getElementById('slNote').value='';
   _slTouchRecent(lineId);
-  saveShotLog(); renderShotLog(); slRenderRecent();
+  saveShotLog(); renderShotLog(); slRenderRecent(); slRenderLineOptions();
 }
-function slRemove(i){ shotLog.splice(i,1); saveShotLog(); renderShotLog(); }
+function slRemove(i){ shotLog.splice(i,1); saveShotLog(); renderShotLog(); slRenderLineOptions(); }
 // 여러 인덱스(같은 줄에 묶인 컷들)를 한번에 지울 때, 인덱스가 앞에서부터 밀리지 않도록 큰 인덱스부터 제거
-function slRemoveGroup(idxs){ [...idxs].sort((a,b)=>b-a).forEach(i=>shotLog.splice(i,1)); saveShotLog(); renderShotLog(); }
-function slClear(){ if(shotLog.length && confirm('기록 '+shotLog.length+'개를 모두 지울까요?')){ shotLog=[]; saveShotLog(); renderShotLog(); } }
+function slRemoveGroup(idxs){ [...idxs].sort((a,b)=>b-a).forEach(i=>shotLog.splice(i,1)); saveShotLog(); renderShotLog(); slRenderLineOptions(); }
+function slClear(){ if(shotLog.length && confirm('기록 '+shotLog.length+'개를 모두 지울까요?')){ shotLog=[]; saveShotLog(); renderShotLog(); slRenderLineOptions(); } }
 
 // ── 촬영 순서 세트(재사용 템플릿) ──────────────────────────
 // 촬영 순서는 날짜마다 달라지지만, 자주 반복되는 순서(요일별 루틴 등)는
@@ -913,7 +928,7 @@ function slLoadSet(id){
     const ts=Date.now();
     const loaded=s.items.map(it=>({lineId:it.lineId, mag:it.mag, note:it.note||'', ts}));
     shotLog = replace ? loaded : [...shotLog, ...loaded];
-    saveShotLog(); renderShotLog(); slRenderRecent();
+    saveShotLog(); renderShotLog(); slRenderRecent(); slRenderLineOptions();
   };
   const replace = shotLog.length
     ? confirm(`지금 쌓아둔 순서 ${shotLog.length}개가 있습니다.\n[확인] = 세트로 교체 / [취소] = 세트를 뒤에 이어붙이기`)
