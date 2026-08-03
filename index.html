@@ -76,6 +76,8 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--tx);ma
 .plan-chips{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px;}
 .plan-chip{background:#EEF2FF;color:#4338CA;border-radius:10px;padding:3px 9px;font-size:.71rem;font-weight:600;cursor:pointer;}
 .plan-chip.late{background:#FEF2F2;color:#DC2626;}
+.plan-chip.today{background:#FFEDD5;color:#9A3412;font-size:.8rem;padding:5px 11px;}
+.plan-chip.today b{font-weight:800;}
 
 .mc-ok{background:#DCFCE7;color:#15803D;}
 .mc-warn{background:#FEF3C7;color:#B45309;}
@@ -1036,13 +1038,20 @@ function buildPlanStrip(){
     </div>`;
   }).join('');
 
+  // 라인의 종류(type)를 같이 보여줘야 어떤 라인인지 구분이 되므로 patientId 뒤에 종류를 붙인다
+  const nameOf=p=>p.lineIds.map(id=>{const l=lines.find(x=>x.id===id);return l?`${l.patientId}_${l.type}`:'?';}).join(', ');
+
   const overdue=plans.filter(p=>!p.done && p.date<days[0]);
-  const upcoming=plans.filter(p=>!p.done && days.includes(p.date)).sort((a,b)=>a.date.localeCompare(b.date));
-  const chips=[...overdue,...upcoming].map(p=>{
-    // 라인의 종류(type)를 같이 보여줘야 어떤 라인인지 구분이 되므로 patientId 뒤에 종류를 붙인다
-    const names=p.lineIds.map(id=>{const l=lines.find(x=>x.id===id);return l?`${l.patientId}_${l.type}`:'?';}).join(', ');
+  const todays=plans.filter(p=>!p.done && p.date===days[0]);
+  const upcoming=plans.filter(p=>!p.done && days.includes(p.date) && p.date!==days[0]).sort((a,b)=>a.date.localeCompare(b.date));
+
+  // 오늘 할 일은 "어떤 샘플인지"가 가장 중요하므로 샘플명을 굵게, 별도 줄로 크게 표시
+  const todayChips=todays.map(p=>
+    `<span class="plan-chip today" onclick="openPlanDetail('${p.id}')"><b>${esc(nameOf(p))}</b> · ${esc(p.action)}</span>`
+  ).join('');
+  const otherChips=[...overdue,...upcoming].map(p=>{
     const late=p.date<days[0];
-    return `<span class="plan-chip ${late?'late':''}" onclick="openPlanDetail('${p.id}')">${late?'⚠ ':''}${p.date.slice(5)} · ${esc(p.action)} · ${esc(names)}</span>`;
+    return `<span class="plan-chip ${late?'late':''}" onclick="openPlanDetail('${p.id}')">${late?'⚠ ':''}${p.date.slice(5)} · ${esc(p.action)} · ${esc(nameOf(p))}</span>`;
   }).join('');
 
   return `<div class="dash-card" style="margin-bottom:11px;padding:9px 12px;">
@@ -1051,7 +1060,8 @@ function buildPlanStrip(){
       <button class="tbl-btn" onclick="openPlanModal()">+ 추가</button>
       <div class="plan-days">${dayChips}</div>
     </div>
-    ${chips?`<div class="plan-chips">${chips}</div>`:''}
+    ${todayChips?`<div class="plan-chips">${todayChips}</div>`:''}
+    ${otherChips?`<div class="plan-chips">${otherChips}</div>`:''}
   </div>`;
 }
 
