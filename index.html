@@ -975,6 +975,7 @@ function renderShotSets(){
 }
 
 // 연속으로 같은 라인에 기록된 항목은 한 줄로 묶어서 보여줌 (세트로 넣었든 개별로 이어 넣었든 동일하게 묶임)
+// 단, 같은 라인 안에서 이미 나온 배율(예: 4x)이 특이사항을 달고 다시 나오면 — 같은 라인의 다른 샘플로 보고 새 세트로 끊는다
 function renderShotLog(){
   const el=document.getElementById('slList');
   if(!el) return;
@@ -982,7 +983,8 @@ function renderShotLog(){
   const groups=[];
   shotLog.forEach((s,i)=>{
     const last=groups[groups.length-1];
-    if(last && last.lineId===s.lineId) last.items.push({...s, idx:i});
+    const dupMagWithNote = last && s.note && last.items.some(it=>it.mag===s.mag);
+    if(last && last.lineId===s.lineId && !dupMagWithNote) last.items.push({...s, idx:i});
     else groups.push({lineId:s.lineId, items:[{...s, idx:i}]});
   });
   el.innerHTML=groups.map(g=>{
