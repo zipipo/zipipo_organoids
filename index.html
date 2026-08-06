@@ -879,10 +879,21 @@ function _slTouchRecent(lineId){
   localStorage.setItem('orgSlRecent', JSON.stringify(_slRecentIds));
 }
 
+// 파일명에 쓸 수 없는 문자( \ / : * ? " < > | 및 제어문자)가 특이사항에 들어있으면 저장 시 이름이
+// 임의로 바뀌게 되므로, 여기서 미리 걸러 경고하고 기록에 추가하지 않는다.
+const FNAME_BAD_RE=/[\/\\:*?"<>|\x00-\x1f]/;
+function slCheckNote(note){
+  if(FNAME_BAD_RE.test(note)){
+    alert('특이사항에 파일명으로 쓸 수 없는 문자(\\ / : * ? " < > |)가 있습니다. 지우고 다시 입력해주세요.');
+    return false;
+  }
+  return true;
+}
 function slAdd(mag){
   const lineId=document.getElementById('slLine').value;
   if(!lineId) return alert('라인을 먼저 선택하세요.');
   const note=document.getElementById('slNote').value.trim();
+  if(!slCheckNote(note)) return;
   shotLog.push({lineId, mag, note, ts:Date.now()});
   document.getElementById('slNote').value='';
   _slTouchRecent(lineId);
@@ -892,6 +903,7 @@ function slAddSet(){
   const lineId=document.getElementById('slLine').value;
   if(!lineId) return alert('라인을 먼저 선택하세요.');
   const note=document.getElementById('slNote').value.trim();
+  if(!slCheckNote(note)) return;
   const ts=Date.now();
   ALL_MAGS.forEach(m=>shotLog.push({lineId, mag:m, note, ts}));
   document.getElementById('slNote').value='';
@@ -923,6 +935,8 @@ function slSaveAsSet(){
   const items=shotLog.map(s=>({lineId:s.lineId, mag:s.mag, note:s.note||''}));
   shotSets.push({id:uid(), name:(name.trim()||defName), items, createdTs:Date.now(), updatedTs:Date.now()});
   saveShotSets(); renderShotSets();
+  // 세트로 저장했으니 오늘 쌓아둔 작업 큐는 비운다 (다음 촬영을 위해 새로 쌓기 시작)
+  shotLog=[]; saveShotLog(); renderShotLog(); slRenderLineOptions();
 }
 function slLoadSet(id){
   const s=shotSets.find(x=>x.id===id); if(!s) return;
@@ -1007,16 +1021,17 @@ function renderShotLog(){
   }).join('');
 }
 
-// 사진을 추가/삭제해서 사진 개수와 순서 기록 개수가 안 맞게 됐을 때, 이 버튼을 눌러야만
-// 순서를 다시 앞으로 당겨 채운다 (삭제한다고 자동으로 실행되지 않음 — 사용자가 원할 때만)
-function applyShotLog(){
-  if(!shotLog.length) return alert('기록된 촬영 순서가 없습니다.');
+// 사진을 넣기 전이든 후든, 순서를 몇 번을 다시 골랐든 상관없이 — 이 버튼 하나로
+// 지금의 shotLog(선택된 저장 순서 또는 촬영 순서 기록)를 지금 올라온 사진 전체에 순서대로 채운다.
+// 사진 개수를 수정하고 다시 맞추고 싶을 때도 그냥 이 버튼을 다시 누르면 된다.
+function sbApplyOrder(){
+  if(!shotLog.length) return alert('적용할 촬영 순서가 없습니다. 위 드롭다운에서 저장된 순서를 고르거나, "촬영 순서 기록"에서 순서를 먼저 쌓아주세요.');
   if(!sbFiles.length) return alert('먼저 사진을 추가하세요.');
   const n=Math.min(sbFiles.length, shotLog.length);
   sbApplyQueueToAll();
   renderSbarList();
   if(sbFiles.length!==shotLog.length){
-    alert(`사진 ${sbFiles.length}장 / 기록 ${shotLog.length}개 — 앞 ${n}장만 순서대로 다시 채웠어요. 나머지는 직접 골라주세요.`);
+    alert(`사진 ${sbFiles.length}장 / 순서 ${shotLog.length}개 — 앞 ${n}장만 순서대로 채웠어요. 나머지는 직접 골라주세요.`);
   }
 }
 
@@ -2249,16 +2264,11 @@ function openSbarModal(){
     drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('drag'); if(e.dataTransfer&&e.dataTransfer.files) handleSbarFiles(e.dataTransfer.files);});
     window._sbWired=true;
   }
-  const auto=document.getElementById('sbAutoLink');
-  if(auto) auto.checked = localStorage.getItem('orgSbAutoLink')!=='0';
   sbRenderSetPicker();
   renderSbarList();
   renderSbDir();
   document.getElementById('sbarModal').classList.add('open');
 }
-function sbAutoLinkOn(){ const el=document.getElementById('sbAutoLink'); return !el || el.checked; }
-function sbSaveAutoLinkPref(el){ localStorage.setItem('orgSbAutoLink', el.checked?'1':'0'); }
-
 // 사진을 추가하기 전에도, 저장해 둔 촬영 순서를 미리 골라 작업 큐에 넣어둘 수 있게 한다
 function sbRenderSetPicker(){
   const el=document.getElementById('sbSetPicker');
@@ -2268,14 +2278,16 @@ function sbRenderSetPicker(){
   el.innerHTML='<option value="">저장된 순서 불러오기…</option>'+shotSets.slice().sort((a,b)=>b.updatedTs-a.updatedTs)
     .map(s=>`<option value="${esc(s.id)}">${esc(s.name)} (${s.items.length}컷)</option>`).join('');
 }
-function sbLoadPickedSet(){
-  const id=document.getElementById('sbSetPicker').value;
-  if(!id) return alert('불러올 순서를 선택하세요.');
+// 드롭다운에서 저장된 순서를 고르기만 하면 바로 작업 큐(shotLog)에 들어간다 — 별도 버튼 불필요.
+// 사진에 실제로 채우려면 "촬영 순서 적용하기" 버튼을 눌러야 한다.
+function sbPickSet(){
+  const picker=document.getElementById('sbSetPicker');
+  const id=picker.value;
+  if(!id) return;
   const s=shotSets.find(x=>x.id===id); if(!s) return;
-  if(shotLog.length && !confirm(`지금 쌓인 순서 ${shotLog.length}개를 "${s.name}"(으)로 교체할까요?`)) return;
+  if(shotLog.length && !confirm(`지금 쌓인 순서 ${shotLog.length}개를 "${s.name}"(으)로 교체할까요?`)){ picker.value=''; return; }
   shotLog = s.items.map(it=>({lineId:it.lineId, mag:it.mag, note:it.note||'', ts:Date.now()}));
   saveShotLog();
-  if(sbFiles.length && sbAutoLinkOn()) sbApplyQueueToAll();
   renderSbarList();
 }
 function closeSbarModal(){ document.getElementById('sbarModal').classList.remove('open'); }
@@ -2332,9 +2344,8 @@ async function handleSbarFiles(fileList){
     for(const f of arr){
       try{
         const {canvas,w,h}=await sbLoadImageFile(f);
-        // '촬영 순서 자동 적용'이 켜져 있고 기록해 둔 순서(shotLog)가 있으면, 사진이 추가되는 순서 그대로 라인·배율·메모를 자동으로 채운다
-        const auto=sbAutoLinkOn() ? shotLog[sbFiles.length] : null;
-        sbFiles.push({id:'sb'+Date.now()+Math.random().toString(36).slice(2,6), fname:f.name, srcCanvas:canvas, w, h, thumb:sbMakeThumb(canvas), lineId:auto?auto.lineId:'', mag:auto?auto.mag:'4x', note:auto?(auto.note||''):'', origFile:f, isTiff:(/\.(tif|tiff)$/i.test(f.name)||f.type==='image/tiff')});
+        // 사진은 라인·배율 지정 없이 그냥 쌓인다 — 순서를 채우려면 "촬영 순서 적용하기" 버튼을 눌러야 한다
+        sbFiles.push({id:'sb'+Date.now()+Math.random().toString(36).slice(2,6), fname:f.name, srcCanvas:canvas, w, h, thumb:sbMakeThumb(canvas), lineId:'', mag:'4x', note:''});
       }catch(e){ failed.push(f.name+' ('+e.message+')'); }
       done++; sbLoading(true,`사진 불러오는 중… (${done}/${arr.length})`);
       await new Promise(r=>setTimeout(r,0));
@@ -2372,7 +2383,7 @@ function sbApplyQueueToAll(){
 }
 function sbRemove(i){
   // 사진을 지워도 순서를 자동으로 다시 채우지 않는다 — 뒤로 밀린 사진들을 앞당기고 싶으면
-  // "저장된 순서 불러와서 채우기(순서 새로고침)" 버튼을 직접 눌러야 한다
+  // "촬영 순서 적용하기" 버튼을 직접 눌러야 한다
   sbFiles.splice(i,1);
   renderSbarList();
 }
@@ -2395,7 +2406,7 @@ function sbFullName(line,date,f){
   
   return safeFileName(n);
 }
-function sbExt(){ return ((document.getElementById('sbFormat')||{}).value==='tiff')?'.tif':'.png'; }
+function sbExt(){ return '.png'; }
 function sbSetNote(i,v){ if(!sbFiles[i])return; sbFiles[i].note=v; const f=sbFiles[i],date=document.getElementById('sbDate').value,line=lines.find(l=>l.id===f.lineId),p=document.getElementById('sbprev'+i); if(p) p.textContent=(line&&date)?sbFullName(line,date,f)+sbExt():'—'; }
 let sbDirHandle=null;
 async function sbGetDir(){
@@ -2418,7 +2429,7 @@ function renderSbarList(){
   if(!sbFiles.length){ el.innerHTML='<div class="sb-empty">아직 추가된 사진이 없습니다. 위 영역에 끌어다 놓으세요.</div>'; return; }
   const barOn = (document.getElementById('sbAddBar')||{}).checked!==false;
   const head=`<div class="sb-listhd"><span>추가된 사진 <b>${sbFiles.length}</b>장</span>
-    <button class="tbl-btn" title="사진을 지우거나 추가해서 순서가 밀렸을 때, 여기를 눌러야 순서가 다시 앞으로 맞춰집니다" onclick="applyShotLog()">↻ 순서 새로고침 (${shotLog.length})</button>
+    <button class="tbl-btn" title="사진을 추가/삭제하거나 순서를 다시 골랐을 때, 여기를 눌러야 순서가 다시 채워집니다" onclick="sbApplyOrder()">촬영 순서 적용하기${shotLog.length?` (${shotLog.length})`:''}</button>
     <button class="sb-clear" onclick="sbClearAll()">전체 삭제</button></div>`;
   // 이 배치 안에서 이미 다른 사진에 배정된 라인 수 (드롭다운에서 이미 고른 라인을 구분해 보여주기 위함)
   const lineUsage={};
@@ -2463,44 +2474,6 @@ function renderSbarList(){
 function sbBarOn(){ const t=document.getElementById('sbAddBar'); return !t || t.checked; }
 function sbLoading(on, txt){ const el=document.getElementById('sbLoading'); if(!el) return; if(txt!=null){ const t=document.getElementById('sbLoadTxt'); if(t) t.textContent=txt; } el.classList.toggle('on', !!on); }
 
-// 표준 baseline RGB(비압축) TIFF 인코더 — alpha 없이 만들어 현미경 SW / ImageJ 호환
-function encodeTiffRGB(rgba, w, h){
-  const nPix=w*h;
-  const pix=new Uint8Array(nPix*3);
-  for(let i=0;i<nPix;i++){ pix[i*3]=rgba[i*4]; pix[i*3+1]=rgba[i*4+1]; pix[i*3+2]=rgba[i*4+2]; }
-  const N=12;                       // IFD 엔트리 수
-  const ifdOff=8;
-  const ifdSize=2+N*12+4;
-  const oBps=ifdOff+ifdSize;        // BitsPerSample(3 SHORT=6B)
-  const oXR=oBps+6;                 // XResolution RATIONAL(8B)
-  const oYR=oXR+8;                  // YResolution RATIONAL(8B)
-  const oPix=oYR+8;
-  const buf=new ArrayBuffer(oPix+pix.length);
-  const dv=new DataView(buf);
-  dv.setUint16(0,0x4949,true); dv.setUint16(2,42,true); dv.setUint32(4,ifdOff,true); // II, 42, IFD offset
-  let o=ifdOff; dv.setUint16(o,N,true); o+=2;
-  const E=(tag,type,cnt,val)=>{ dv.setUint16(o,tag,true); dv.setUint16(o+2,type,true); dv.setUint32(o+4,cnt,true); dv.setUint32(o+8,val,true); o+=12; };
-  // type: 3=SHORT 4=LONG 5=RATIONAL  (태그 오름차순)
-  E(256,4,1,w);        // ImageWidth
-  E(257,4,1,h);        // ImageLength
-  E(258,3,3,oBps);     // BitsPerSample → 8,8,8
-  E(259,3,1,1);        // Compression = none
-  E(262,3,1,2);        // Photometric = RGB
-  E(273,4,1,oPix);     // StripOffsets
-  E(277,3,1,3);        // SamplesPerPixel = 3
-  E(278,4,1,h);        // RowsPerStrip
-  E(279,4,1,pix.length); // StripByteCounts
-  E(282,5,1,oXR);      // XResolution
-  E(283,5,1,oYR);      // YResolution
-  E(296,3,1,2);        // ResolutionUnit = inch
-  dv.setUint32(o,0,true);            // next IFD = 0
-  dv.setUint16(oBps,8,true); dv.setUint16(oBps+2,8,true); dv.setUint16(oBps+4,8,true);
-  dv.setUint32(oXR,72,true); dv.setUint32(oXR+4,1,true);
-  dv.setUint32(oYR,72,true); dv.setUint32(oYR+4,1,true);
-  new Uint8Array(buf).set(pix,oPix);
-  return buf;
-}
-
 function sbDrawBar(src, mag){
   const W=src.width, H=src.height;
   const out=document.createElement('canvas'); out.width=W; out.height=H;
@@ -2537,8 +2510,7 @@ async function sbarSaveAll(btn){
     dir = await sbGetDir();   // 기억된 폴더 우선, 없으면 선택
     if(!dir) return;          // 사용자가 취소
   }
-  const fmt = (document.getElementById('sbFormat')||{}).value || 'png';
-  const ext = fmt==='tiff' ? '.tif' : '.png';
+  const ext='.png';
   const ot=btn.textContent; btn.disabled=true; btn.textContent='저장 중...';
   try{ await document.fonts.load('600 24px Pretendard'); await document.fonts.ready; }catch(e){}
   sbLoading(true,'저장 중…'); let saved=0;
@@ -2547,23 +2519,11 @@ async function sbarSaveAll(btn){
     for(const f of sbFiles){
       const line=lines.find(l=>l.id===f.lineId); if(!line) continue;
       let base=sbFullName(line,date,f);
-      if(cnt[base]==null){ cnt[base]=0; } else { cnt[base]++; base=base+'_'+cnt[base]; }
+      // 같은 샘플·배율로 또 촬영해 이름이 겹치면 뒤에 (1), (2)…를 붙여 저장 (덮어쓰기 방지)
+      if(cnt[base]==null){ cnt[base]=0; } else { cnt[base]++; base=base+' ('+cnt[base]+')'; }
       const fname=safeFileName(base)+ext;
-      let blob;
-      if(fmt==='tiff'){
-        if(!sbBarOn() && f.isTiff && f.origFile){
-          // 스케일바 없이 이름만 변경 → 원본 TIFF 바이트 그대로 (현미경 SW 100% 호환)
-          blob=new Blob([await f.origFile.arrayBuffer()],{type:'image/tiff'});
-        } else {
-          // 스케일바 그림(또는 원본이 TIFF 아님) → 표준 RGB baseline TIFF
-          const cv=sbDrawBar(f.srcCanvas,f.mag);
-          const id=cv.getContext('2d').getImageData(0,0,cv.width,cv.height);
-          blob=new Blob([encodeTiffRGB(id.data,cv.width,cv.height)],{type:'image/tiff'});
-        }
-      } else {
-        const cv=sbDrawBar(f.srcCanvas,f.mag);
-        blob=await new Promise(r=>cv.toBlob(r,'image/png'));
-      }
+      const cv=sbDrawBar(f.srcCanvas,f.mag);
+      const blob=await new Promise(r=>cv.toBlob(r,'image/png'));
       if(dir){
         const fh=await dir.getFileHandle(fname,{create:true});
         const w=await fh.createWritable(); await w.write(blob); await w.close();
@@ -3192,25 +3152,22 @@ function renderAnalytics(){
         <div><label>촬영 날짜</label><input type="date" id="sbDate" onchange="renderSbarList()" style="height:32px;"></div>
         <div style="padding-bottom:6px;"><label style="display:flex;align-items:center;gap:5px;cursor:pointer;margin:0;"><input type="checkbox" id="sbAddBar" checked onchange="renderSbarList()" style="width:auto;"> <b>스케일바 추가</b></label></div>
         <div><label>바 색상</label><select id="sbColor" onchange="renderSbarList()" style="height:32px;width:auto;"><option value="#000000" selected>검정</option><option value="#ffffff">흰색</option></select></div>
-        <div><label>저장 형식</label><select id="sbFormat" onchange="renderSbarList()" style="height:32px;width:auto;"><option value="png" selected>PNG</option><option value="tiff">TIFF (.tif)</option></select></div>
+        <div style="padding-bottom:6px;font-size:.76rem;color:#64748B;">저장 형식 <b>PNG</b></div>
         <div style="padding-bottom:6px;"><label style="display:flex;align-items:center;gap:5px;cursor:pointer;margin:0;"><input type="checkbox" id="sbLabel" checked style="width:auto;"> 100µm 라벨 표시</label></div>
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">
-        <select id="sbSetPicker" style="height:32px;flex:1;min-width:170px;"></select>
-        <button class="tbl-btn" onclick="sbLoadPickedSet()">사진 넣기 전에 순서 불러오기</button>
-        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:.76rem;color:#475569;white-space:nowrap;margin:0;">
-          <input type="checkbox" id="sbAutoLink" checked onchange="sbSaveAutoLinkPref(this)" style="width:auto;"> 촬영 순서 자동 적용
-        </label>
+        <select id="sbSetPicker" onchange="sbPickSet()" style="height:32px;flex:1;min-width:170px;"></select>
+        <button class="tbl-btn" style="font-weight:700;" onclick="sbApplyOrder()">촬영 순서 적용하기</button>
       </div>
       <div id="sbDrop" class="sb-drop">사진을 여기로 끌어다 놓거나 클릭해서 선택<br><span style="font-size:.72rem;color:#94A3B8;">PNG / JPG / TIFF 지원 · 배율별 스케일바 자동 적용</span>
         <input type="file" id="sbInput" accept="image/*,.tif,.tiff" multiple style="display:none;">
       </div>
       <div style="font-size:.74rem;color:#94A3B8;margin:9px 0;line-height:1.5;">
         · 사진마다 라인·배율을 고르면 날짜 기준 P / D 가 자동 계산되어 파일명이 만들어집니다.<br>
-        · '스케일바 추가'를 켜면 배율에 맞는 100µm 스케일바가 사진에 그려져 저장됩니다. (끄면 이름만 바꿔 저장)<br>
-        · <b>TIFF</b> 선택 시 — 스케일바를 <u>끄면</u> 원본 파일 그대로(이름만 변경) 저장돼 현미경에서 그대로 열립니다. 스케일바를 켜면 표준 RGB TIFF로 새로 저장됩니다.<br>
-        · <b>촬영 순서 자동 적용</b>이 켜져 있으면 사진을 추가하는 순서대로 라인·배율이 자동으로 채워집니다. 자동으로 채우고 싶지 않으면 꺼두세요.<br>
-        · 사진을 지우거나 순서가 밀렸다면, 자동으로 다시 맞춰지지 <u>않습니다</u> — 아래 목록 위쪽의 <b>↻ 순서 새로고침</b> 버튼을 눌러야 남은 사진들이 순서에 맞게 다시 채워집니다.
+        · '스케일바 추가'를 켜면 배율에 맞는 100µm 스케일바가 사진에 그려져 저장됩니다. (끄면 이름만 바꿔 저장) 저장은 항상 <b>PNG</b>입니다.<br>
+        · 위 드롭다운에서 저장된 촬영 순서를 고른 뒤 <b>촬영 순서 적용하기</b>를 누르면, 사진이 올라온 순서대로 라인·배율이 한 번에 채워집니다. 사진을 넣기 전에 골라도 되고, 넣은 뒤에 골라도 됩니다.<br>
+        · 사진을 추가/삭제하거나 순서를 다시 골랐다면 자동으로 채워지지 <u>않습니다</u> — <b>촬영 순서 적용하기</b>를 다시 누르면 남은 사진들이 순서에 맞게 다시 채워집니다.<br>
+        · 같은 샘플·배율로 또 촬영해 파일명이 겹치면 자동으로 <b>(1)</b>, <b>(2)</b>… 를 붙여 저장합니다.
       </div>
       <div id="sbList"></div>
       <div id="sbDirInfo" style="font-size:.74rem;color:#64748B;margin:11px 2px 2px;"></div>
@@ -3257,7 +3214,10 @@ function renderAnalytics(){
         <button class="btn btn-out" style="flex:1;" onclick="slAdd('20x')">+20x</button>
       </div>
       <input id="slNote" placeholder="특이사항(선택, 다음 클릭 1건에만 적용)" style="margin-bottom:10px;">
-      <div style="font-size:.76rem;font-weight:700;color:#475569;margin-bottom:4px;">오늘 쌓은 순서 — 사진 추가하면 이 순서대로 자동으로 이름·라인이 채워집니다</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px;">
+        <span style="font-size:.76rem;font-weight:700;color:#475569;">오늘 쌓은 순서 — 사진을 넣은 뒤 "촬영 순서 적용하기"를 누르면 이 순서대로 이름·라인이 채워집니다</span>
+        <button class="tbl-btn" style="flex:none;color:#DC2626;" onclick="slClear()">전체 초기화</button>
+      </div>
       <div id="slList"></div>
 
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin:14px 0 6px;padding-top:10px;border-top:1px solid #E2E8F0;flex-wrap:wrap;">
@@ -3267,7 +3227,6 @@ function renderAnalytics(){
       <div id="slSets"></div>
     </div>
     <div class="mfoot" style="display:flex;gap:8px;">
-      <button class="btn btn-del" style="flex:1;" onclick="slClear()">전체 초기화</button>
       <button class="btn btn-out" style="flex:1;" onclick="closeShotLogModal()">닫기</button>
     </div>
   </div>
