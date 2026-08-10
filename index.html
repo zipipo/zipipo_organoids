@@ -516,6 +516,7 @@ let shotLog     = JSON.parse(localStorage.getItem('orgShotLog')) || [];       //
 let shotSets    = JSON.parse(localStorage.getItem('orgShotSets')) || [];      // 저장해 둔 촬영 순서 세트(재사용 템플릿) { id, name, items:[{lineId,mag,note}], createdTs, updatedTs }
 let plans       = JSON.parse(localStorage.getItem('orgPlans')) || [];         // 예정 작업 { id, date, action, lineIds, note, done, createdTs }
 let _slRecentIds= JSON.parse(localStorage.getItem('orgSlRecent')||'[]');      // 촬영 순서 기록에서 최근 쓴 라인
+let _slRecentNotes=JSON.parse(localStorage.getItem('orgSlRecentNotes')||'[]'); // 촬영 순서 기록에서 최근 쓴 특이사항
 function saveShotLog(){ localStorage.setItem('orgShotLog', JSON.stringify(shotLog)); }
 function saveShotSets(){ localStorage.setItem('orgShotSets', JSON.stringify(shotSets)); cloudPushDebounced(); }
 function savePlans(){ localStorage.setItem('orgPlans', JSON.stringify(plans)); cloudPushDebounced(); }
@@ -863,6 +864,7 @@ function renderDash(){
 function openShotLogModal(){
   slRenderLineOptions();
   slRenderRecent();
+  slRenderRecentNotes();
   renderShotLog();
   renderShotSets();
   document.getElementById('shotLogModal').classList.add('open');
@@ -901,6 +903,27 @@ function _slTouchRecent(lineId){
   localStorage.setItem('orgSlRecent', JSON.stringify(_slRecentIds));
 }
 
+// 자주 똑같이 적는 특이사항(예: "재염색", "확인용")을 매번 다시 타이핑하지 않도록
+// 최근 쓴 특이사항을 칩으로 남겨두고, 클릭하면 입력칸에 채워준다.
+function slRenderRecentNotes(){
+  const el=document.getElementById('slRecentNotes');
+  if(!el) return;
+  el.innerHTML = _slRecentNotes.length ? _slRecentNotes.map((n,i)=>
+    `<button type="button" class="tbl-btn" title="클릭하면 특이사항 칸에 채워집니다" onclick="slPickRecentNote(${i})">${esc(n)}</button>`
+  ).join('') : '<span style="font-size:.72rem;color:#94A3B8;">최근 쓴 특이사항이 여기 칩으로 떠요</span>';
+}
+function slPickRecentNote(i){
+  const n=_slRecentNotes[i];
+  if(n==null) return;
+  document.getElementById('slNote').value=n;
+}
+function _slTouchRecentNote(note){
+  if(!note) return;
+  _slRecentNotes=[note, ..._slRecentNotes.filter(n=>n!==note)].slice(0,6);
+  localStorage.setItem('orgSlRecentNotes', JSON.stringify(_slRecentNotes));
+  slRenderRecentNotes();
+}
+
 // 파일명에 쓸 수 없는 문자( \ / : * ? " < > | 및 제어문자)가 특이사항에 들어있으면 저장 시 이름이
 // 임의로 바뀌게 되므로, 여기서 미리 걸러 경고하고 기록에 추가하지 않는다.
 const FNAME_BAD_RE=/[\/\\:*?"<>|\x00-\x1f]/;
@@ -919,6 +942,7 @@ function slAdd(mag){
   shotLog.push({lineId, mag, note, ts:Date.now()});
   document.getElementById('slNote').value='';
   _slTouchRecent(lineId);
+  _slTouchRecentNote(note);
   saveShotLog(); renderShotLog(); slRenderRecent(); slRenderLineOptions();
 }
 function slAddSet(){
@@ -930,6 +954,7 @@ function slAddSet(){
   ALL_MAGS.forEach(m=>shotLog.push({lineId, mag:m, note, ts}));
   document.getElementById('slNote').value='';
   _slTouchRecent(lineId);
+  _slTouchRecentNote(note);
   saveShotLog(); renderShotLog(); slRenderRecent(); slRenderLineOptions();
 }
 function slRemove(i){ shotLog.splice(i,1); saveShotLog(); renderShotLog(); slRenderLineOptions(); }
@@ -3236,6 +3261,7 @@ function renderAnalytics(){
         <button class="btn btn-out" style="flex:1;" onclick="slAdd('10x')">+10x</button>
         <button class="btn btn-out" style="flex:1;" onclick="slAdd('20x')">+20x</button>
       </div>
+      <div id="slRecentNotes" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px;"></div>
       <input id="slNote" placeholder="특이사항(선택, 다음 클릭 1건에만 적용)" style="margin-bottom:10px;">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px;">
         <span style="font-size:.76rem;font-weight:700;color:#475569;">오늘 쌓은 순서 — 사진을 넣은 뒤 "촬영 순서 적용하기"를 누르면 이 순서대로 이름·라인이 채워집니다</span>
