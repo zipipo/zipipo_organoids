@@ -392,7 +392,12 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
         <div style="font-size:.7rem;color:#94A3B8;margin:-4px 0 9px;line-height:1.4;">※ 라인명·종류는 사진 파일명에 쓰여요. <b style="color:#B45309;">\ / : * ? " &lt; &gt; |</b> 는 사용할 수 없어요.</div>
         <div style="margin-bottom:9px;">
           <label>종류 색상 (선택 — 이 종류의 라인 전체에 적용돼요)</label>
-          <div id="elColorPicker" style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;padding:7px 8px;background:#fff;border:1px solid #E2E8F0;border-radius:6px;"></div>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+            <button type="button" id="elColorAutoBtn" class="tbl-btn" onclick="elPickColor(null)">자동</button>
+            <button type="button" id="elColorPickBtn" class="tbl-btn" onclick="elToggleColorPicker()">색상 선택</button>
+            <span id="elColorPreview"></span>
+          </div>
+          <div id="elColorPicker" style="display:none;gap:5px;flex-wrap:wrap;align-items:center;padding:7px 8px;margin-top:6px;background:#fff;border:1px solid #E2E8F0;border-radius:6px;"></div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:9px;">
           <div><label>최초 시작 P</label><input type="number" id="elP" value="0" min="0"></div>
@@ -736,28 +741,28 @@ const isoD  = s => { try { return new Date(s).toISOString(); } catch(e) { return
 // ══════════════════════════════════════════
 //  COLOR MAP
 // ══════════════════════════════════════════
-// 사용자가 직접 고른 파스텔 캔디톤 20색(+ 색상환 빈 구간을 같은 느낌으로 채운 보강색) — 18°씩 떨어뜨려 배치
+// 채도·명도를 20색 전부 동일한 기준으로 맞춰 서로 튀지 않고 조화롭게(너무 진하지도, 너무 연하지도 않게) 구성
 const PAL=[
-  {bg:'#FF8C8C',tx:'#9C1111',bd:'#F25F5F',hbg:'#FFABAB',ht:'#6E0C0C'}, // 레드
-  {bg:'#FFD1B7',tx:'#9C4311',bd:'#F2945F',hbg:'#FFE5D6',ht:'#6E300C'}, // 오렌지
-  {bg:'#FAD59E',tx:'#9C6511',bd:'#F2B75F',hbg:'#FBE2BB',ht:'#6E470C'}, // 골드
-  {bg:'#FFE146',tx:'#9C8611',bd:'#F2DA5F',hbg:'#FFE665',ht:'#6E5E0C'}, // 옐로우
-  {bg:'#E8FA9E',tx:'#809C11',bd:'#D5F25F',hbg:'#EFFBBB',ht:'#5B6E0C'}, // 연두
-  {bg:'#C6FF70',tx:'#659C11',bd:'#B7F25F',hbg:'#D2FF8F',ht:'#476E0C'}, // 라임
-  {bg:'#B0FA9E',tx:'#2D9C11',bd:'#7CF25F',hbg:'#C8FBBB',ht:'#206E0C'}, // 그린
-  {bg:'#9EFAA7',tx:'#119C1F',bd:'#5FF26D',hbg:'#BBFBC2',ht:'#0C6E16'}, // 에메랄드
-  {bg:'#82F9B7',tx:'#119C4F',bd:'#5FF2A0',hbg:'#9FFAC8',ht:'#0C6E38'}, // 스프링그린
-  {bg:'#A5FFE4',tx:'#119C72',bd:'#5FF2C6',hbg:'#C4FFED',ht:'#0C6E51'}, // 민트
-  {bg:'#87F5F5',tx:'#119C9C',bd:'#5FF2F2',hbg:'#A3F7F7',ht:'#0C6E6E'}, // 시안
-  {bg:'#93DAFF',tx:'#116D9C',bd:'#5FC0F2',hbg:'#B2E4FF',ht:'#0C4D6E'}, // 스카이블루
-  {bg:'#9EC3FA',tx:'#11499C',bd:'#5F9AF2',hbg:'#BBD5FB',ht:'#0C336E'}, // 블루
-  {bg:'#AAB9FF',tx:'#112A9C',bd:'#5F79F2',hbg:'#C9D2FF',ht:'#0C1E6E'}, // 페리윙클
-  {bg:'#B09EFA',tx:'#2D119C',bd:'#7C5FF2',hbg:'#C8BBFB',ht:'#200C6E'}, // 인디고
-  {bg:'#CC9EFA',tx:'#57119C',bd:'#A85FF2',hbg:'#DBBBFB',ht:'#3D0C6E'}, // 바이올렛
-  {bg:'#E89EFA',tx:'#80119C',bd:'#D55FF2',hbg:'#EFBBFB',ht:'#5B0C6E'}, // 퍼플
-  {bg:'#FFD2FF',tx:'#9C119C',bd:'#F25FF2',hbg:'#FFF0FF',ht:'#6E0C6E'}, // 오키드
-  {bg:'#FA9ED5',tx:'#9C1165',bd:'#F25FB7',hbg:'#FBBBE2',ht:'#6E0C47'}, // 마젠타
-  {bg:'#FFDEE9',tx:'#9C1140',bd:'#F25F90',hbg:'#FFF0F5',ht:'#6E0C2D'}, // 핑크
+  {bg:'#F5B2B2',tx:'#952323',bd:'#E77E7E',hbg:'#F9D2D2',ht:'#6B1919'}, // 레드
+  {bg:'#F5C6B2',tx:'#954523',bd:'#E79E7E',hbg:'#F9DED2',ht:'#6B3219'}, // 오렌지
+  {bg:'#F5DAB2',tx:'#956723',bd:'#E7BD7E',hbg:'#F9E9D2',ht:'#6B4B19'}, // 골드
+  {bg:'#F5EFB2',tx:'#958923',bd:'#E7DC7E',hbg:'#F9F5D2',ht:'#6B6319'}, // 옐로우
+  {bg:'#E8F5B2',tx:'#7E9523',bd:'#D2E77E',hbg:'#F1F9D2',ht:'#5B6B19'}, // 연두
+  {bg:'#D4F5B2',tx:'#5C9523',bd:'#B3E77E',hbg:'#E6F9D2',ht:'#426B19'}, // 라임
+  {bg:'#BFF5B2',tx:'#3A9523',bd:'#93E77E',hbg:'#DAF9D2',ht:'#2A6B19'}, // 그린
+  {bg:'#B2F5B9',tx:'#23952E',bd:'#7EE789',hbg:'#D2F9D6',ht:'#196B21'}, // 에메랄드
+  {bg:'#B2F5CD',tx:'#239550',bd:'#7EE7A8',hbg:'#D2F9E2',ht:'#196B3A'}, // 스프링그린
+  {bg:'#B2F5E1',tx:'#239573',bd:'#7EE7C7',hbg:'#D2F9ED',ht:'#196B53'}, // 민트
+  {bg:'#B2F5F5',tx:'#239595',bd:'#7EE7E7',hbg:'#D2F9F9',ht:'#196B6B'}, // 시안
+  {bg:'#B2E1F5',tx:'#237395',bd:'#7EC7E7',hbg:'#D2EDF9',ht:'#19536B'}, // 스카이블루
+  {bg:'#B2CDF5',tx:'#235095',bd:'#7EA8E7',hbg:'#D2E2F9',ht:'#193A6B'}, // 블루
+  {bg:'#B2B9F5',tx:'#232E95',bd:'#7E89E7',hbg:'#D2D6F9',ht:'#19216B'}, // 페리윙클
+  {bg:'#BFB2F5',tx:'#3A2395',bd:'#937EE7',hbg:'#DAD2F9',ht:'#2A196B'}, // 인디고
+  {bg:'#D4B2F5',tx:'#5C2395',bd:'#B27EE7',hbg:'#E5D2F9',ht:'#42196B'}, // 바이올렛
+  {bg:'#E8B2F5',tx:'#7E2395',bd:'#D27EE7',hbg:'#F1D2F9',ht:'#5B196B'}, // 퍼플
+  {bg:'#F5B2EF',tx:'#952389',bd:'#E77EDC',hbg:'#F9D2F5',ht:'#6B1963'}, // 오키드
+  {bg:'#F5B2DA',tx:'#952367',bd:'#E77EBD',hbg:'#F9D2E9',ht:'#6B194B'}, // 마젠타
+  {bg:'#F5B2C6',tx:'#952345',bd:'#E77E9E',hbg:'#F9D2DE',ht:'#6B1932'}, // 핑크
 ];
 const DONE={bg:'#F1F5F9',tx:'#475569',bd:'#E2E8F0',hbg:'#F1F5F9',ht:'#475569'};
 let tcm={};
@@ -1432,7 +1437,7 @@ function renderLineList(){
   [...active,...done].forEach(l=>{
     const c=getC(l.type,l.isCompleted);
     el.innerHTML+=`<div style="display:flex;justify-content:space-between;padding:6px 3px;border-bottom:1px solid #E2E8F0;align-items:center;gap:5px;flex-wrap:wrap;">
-      <span style="background:${c.bg};color:${c.tx};border:1px solid ${c.bd};padding:2px 9px;border-radius:4px;font-size:.81rem;font-weight:600;">
+      <span style="background:${c.hbg};color:${c.ht};padding:2px 9px;border-radius:4px;font-size:.81rem;font-weight:600;">
         ${esc(l.patientId)}_${esc(l.type)}${l.isCompleted?' (완료)':''}
       </span>
       <div style="display:flex;gap:4px;">
@@ -1865,6 +1870,7 @@ function editLine(id){
   document.getElementById('elStart').value=startDt;
   setPlateSelectValue('elPlate','elPlateCustom', l.plateType||'');
   _elColorIdx = typeColors[l.type]!=null ? typeColors[l.type] : null;
+  _elColorPickerOpen=false;
   renderElColorPicker();
   openLineModal();
 }
@@ -2073,23 +2079,39 @@ function resetLineForm(){
   setPlateSelectValue('elPlate','elPlateCustom','');
   document.getElementById('elP').value=0;document.getElementById('elBase').value=0;
   document.getElementById('elWells').value=0;document.getElementById('elStart').valueAsDate=new Date();
-  _elColorIdx=null;renderElColorPicker();
+  _elColorIdx=null;_elColorPickerOpen=false;renderElColorPicker();
 }
 
 // 라인 등록/수정 폼에서 종류(type)에 색을 직접 골라 고정할 수 있는 팔레트.
 // null = 자동 순환 배정 그대로 사용, 숫자 = 그 PAL 색을 이 종류에 고정.
+// 스와치 20개를 항상 펼쳐두면 화면을 너무 많이 차지하므로, 평소엔 "자동"/"색상 선택" 버튼만 보이고
+// "색상 선택"을 눌러야 스와치 목록이 펼쳐진다.
 let _elColorIdx=null;
+let _elColorPickerOpen=false;
 function renderElColorPicker(){
-  const el=document.getElementById('elColorPicker');
-  if(!el) return;
-  let html=`<button type="button" class="tbl-btn" style="${_elColorIdx==null?'background:#EEF2FF;color:#4338CA;border-color:#C7D2FE;font-weight:700;':''}" onclick="elPickColor(null)">자동</button>`;
-  html+=PAL.map((c,i)=>{
+  const autoBtn=document.getElementById('elColorAutoBtn');
+  const pickBtn=document.getElementById('elColorPickBtn');
+  const preview=document.getElementById('elColorPreview');
+  const sw=document.getElementById('elColorPicker');
+  if(!autoBtn) return;
+  const autoSel=_elColorIdx==null;
+  autoBtn.style.cssText=autoSel?'background:#EEF2FF;color:#4338CA;border-color:#C7D2FE;font-weight:700;':'';
+  if(autoSel){
+    preview.innerHTML='';
+    pickBtn.textContent='색상 선택';
+  } else {
+    const c=PAL[_elColorIdx];
+    preview.innerHTML=`<span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:${c.bg};border:2px solid ${c.tx};vertical-align:middle;"></span>`;
+    pickBtn.textContent='색상 변경';
+  }
+  sw.style.display=_elColorPickerOpen?'flex':'none';
+  sw.innerHTML=PAL.map((c,i)=>{
     const sel=_elColorIdx===i;
     return `<button type="button" title="이 색으로 고정" onclick="elPickColor(${i})" style="width:24px;height:24px;border-radius:50%;padding:0;cursor:pointer;background:${c.bg};border:2px solid ${sel?'#1E293B':'#fff'};box-shadow:0 0 0 1px #CBD5E1${sel?', 0 0 0 3px #C7D2FE':''};"></button>`;
   }).join('');
-  el.innerHTML=html;
 }
-function elPickColor(i){ _elColorIdx=i; renderElColorPicker(); }
+function elToggleColorPicker(){ _elColorPickerOpen=!_elColorPickerOpen; renderElColorPicker(); }
+function elPickColor(i){ _elColorIdx=i; _elColorPickerOpen=false; renderElColorPicker(); }
 ['lineModal','logModal','trashModal'].forEach(id=>{
   document.getElementById(id).addEventListener('click',e=>{
     if(e.target===document.getElementById(id)) document.getElementById(id).classList.remove('open');
