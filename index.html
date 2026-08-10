@@ -388,9 +388,9 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:9px;">
           <div><label>환자 번호 / 라인명</label><input type="text" id="elPid" placeholder="HCC26"></div>
           <div><label>종류 (직접 입력)</label><input type="text" id="elType" placeholder="PHH-org, Tumor-org 등"></div>
-          <div><label>특이사항 (선택)</label><input type="text" id="elLineNote" placeholder="2nd, Big 등"></div>
+          <div><label>샘플 세부명 (선택, 고정)</label><input type="text" id="elLineDetail" placeholder="CAF for CM test 등"></div>
         </div>
-        <div style="font-size:.7rem;color:#94A3B8;margin:-4px 0 9px;line-height:1.4;">※ 라인명·종류·특이사항은 사진 파일명에 쓰여요. <b style="color:#B45309;">\ / : * ? " &lt; &gt; |</b> 는 사용할 수 없어요.</div>
+        <div style="font-size:.7rem;color:#94A3B8;margin:-4px 0 9px;line-height:1.4;">※ 샘플 세부명은 촬영할 때마다 넣는 특이사항과 달리, 이 라인의 이름 일부로 항상 고정돼서 붙어요. 라인명·종류·세부명은 사진 파일명에 쓰여요. <b style="color:#B45309;">\ / : * ? " &lt; &gt; |</b> 는 사용할 수 없어요.</div>
         <div style="margin-bottom:9px;">
           <label>종류 색상 (선택 — 이 종류의 라인 전체에 적용돼요)</label>
           <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
@@ -733,8 +733,9 @@ const isPassageUp = a=>{ if(!a) return false; const l=a.toLowerCase(); return l.
 const isMediaChange = a=>!!(a&&(a==='Media Change'||a==='Media Addition'));
 
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-// 라인을 어디서나 똑같은 형태로 표시하기 위한 이름표: 환자번호_종류 뒤에 특이사항이 있으면 괄호로 이어붙인다.
-function lineTag(l){ if(!l) return ''; return l.patientId+'_'+l.type+(l.note?` (${l.note})`:''); }
+// 라인을 어디서나 똑같은 형태로 표시하기 위한 이름표: 환자번호_종류 뒤에 샘플 세부명이 있으면 이어붙인다.
+// (촬영할 때마다 새로 적는 '특이사항'과 달리, 이건 그 라인의 고정된 이름 일부다.)
+function lineTag(l){ if(!l) return ''; return l.patientId+'_'+l.type+(l.detail?'_'+l.detail:''); }
 const uid   = ()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
 let _logSeq = 0;                       // 등록(기록) 순서 추적용 — 같은 날짜 안에서 차례 보존
 const nextSeq = ()=>++_logSeq;
@@ -911,22 +912,12 @@ function slRenderRecent(){
   el.innerHTML = ids.length ? ids.map(id=>{
     const l=lines.find(x=>x.id===id); if(!l) return '';
     const cur=document.getElementById('slLine').value===id;
-    return `<button class="tbl-btn" style="${cur?'background:#EEF2FF;color:#4338CA;border-color:#C7D2FE;':''}" onclick="document.getElementById('slLine').value='${l.id}';slOnLineChange();">${esc(lineTag(l))}</button>`;
+    return `<button class="tbl-btn" style="${cur?'background:#EEF2FF;color:#4338CA;border-color:#C7D2FE;':''}" onclick="document.getElementById('slLine').value='${l.id}';slRenderRecent();">${esc(lineTag(l))}</button>`;
   }).join('') : '<span style="font-size:.72rem;color:#94A3B8;">최근 쓴 라인이 여기 칩으로 떠요</span>';
 }
 function _slTouchRecent(lineId){
   _slRecentIds=[lineId, ..._slRecentIds.filter(id=>id!==lineId)].slice(0,6);
   localStorage.setItem('orgSlRecent', JSON.stringify(_slRecentIds));
-}
-// 라인을 고르면 최근 라인 칩을 새로고침하고, 그 라인 등록 시 적어둔 특이사항이 있으면
-// (특이사항 칸이 비어있을 때만) 기본값으로 채워준다 — 매번 같은 특이사항을 다시 타이핑하지 않도록.
-function slOnLineChange(){
-  slRenderRecent();
-  const lineId=document.getElementById('slLine').value;
-  const noteEl=document.getElementById('slNote');
-  if(!lineId || !noteEl || noteEl.value.trim()) return;
-  const ln=lines.find(l=>l.id===lineId);
-  if(ln && ln.note) noteEl.value=ln.note;
 }
 
 // 자주 똑같이 적는 특이사항(예: "재염색", "확인용")을 매번 다시 타이핑하지 않도록
@@ -1236,8 +1227,8 @@ function microStateAtDate(line, targetDate){
 
 function buildMicroName(line, dateStr, mag){
   const st=microStateAtDate(line,dateStr);
-  const note=line.note?'_'+line.note.trim().replace(/[_\s\/]+/g,'-'):'';
-  return `${ymd6(dateStr)}_${line.patientId}_${line.type}${note}_p${st.passage}_${st.dayStr}_${mag}`;
+  const detail=line.detail?'_'+line.detail.trim().replace(/[_\s\/]+/g,'-'):'';
+  return `${ymd6(dateStr)}_${line.patientId}_${line.type}${detail}_p${st.passage}_${st.dayStr}_${mag}`;
 }
 
 function copyText(txt, elm){
@@ -1290,7 +1281,7 @@ function toggleSC(id,field){
 //  RENDER TIMELINES
 // ══════════════════════════════════════════
 let lineFilter='';
-function lineMatch(l){ if(!lineFilter) return true; return (l.patientId+' '+l.type+' '+(l.note||'')+' p'+l.passage).toLowerCase().includes(lineFilter); }
+function lineMatch(l){ if(!lineFilter) return true; return (l.patientId+' '+l.type+' '+(l.detail||'')+' p'+l.passage).toLowerCase().includes(lineFilter); }
 function applyLineFilter(v){
   lineFilter=v.trim().toLowerCase();
   renderTimelines('activeTL',false); renderTimelines('doneTL',true);
@@ -1793,7 +1784,7 @@ function saveLine(){
   const id   =document.getElementById('elId').value;
   const pId  =document.getElementById('elPid').value.trim();
   const type =document.getElementById('elType').value.trim();
-  const note =document.getElementById('elLineNote').value.trim();
+  const detail=document.getElementById('elLineDetail').value.trim();
   const p    =parseInt(document.getElementById('elP').value)||0;
   const baseD=parseInt(document.getElementById('elBase').value)||0;
   const wells=document.getElementById('elWells').value;
@@ -1803,9 +1794,9 @@ function saveLine(){
 
   // 파일명(사진 저장 시 사용)에 못 쓰는 문자 검사
   const findBad = s => [...new Set((String(s).match(/[\/\\:*?"<>|]/g)||[]))];
-  const bad = [...new Set([...findBad(pId), ...findBad(type), ...findBad(note)])];
+  const bad = [...new Set([...findBad(pId), ...findBad(type), ...findBad(detail)])];
   if(bad.length){
-    return alert('라인명·종류·특이사항에 파일 이름으로 쓸 수 없는 문자가 있어요:  '+bad.join('  ')+'\n\n사진을 저장할 때 파일 이름 ( 날짜_환자_타입_특이사항_pX_dY_배율 ) 에 그대로 들어가서 오류가 나요.\n다음 문자는 빼주세요:   \\  /  :  *  ?  "  <  >  |');
+    return alert('라인명·종류·세부명에 파일 이름으로 쓸 수 없는 문자가 있어요:  '+bad.join('  ')+'\n\n사진을 저장할 때 파일 이름 ( 날짜_환자_타입_세부명_pX_dY_배율 ) 에 그대로 들어가서 오류가 나요.\n다음 문자는 빼주세요:   \\  /  :  *  ?  "  <  >  |');
   }
 
   const dayStr = baseD>0 ? `d${baseD}+0` : 'd0';
@@ -1817,7 +1808,7 @@ function saveLine(){
     const idx=lines.findIndex(l=>l.id===id);
     lines[idx].patientId = pId;
     lines[idx].type = type;
-    lines[idx].note = note;
+    lines[idx].detail = detail;
     lines[idx].initialWells = wells;
     lines[idx].plateType = plateType;
 
@@ -1833,7 +1824,7 @@ function saveLine(){
     }
     recalcLogsForLine(id);
   } else {
-    const nl={id:uid(),patientId:pId,type,note,passage:p,baseDay:baseD,daySegs:(baseD>0?[baseD]:[]),
+    const nl={id:uid(),patientId:pId,type,detail,passage:p,baseDay:baseD,daySegs:(baseD>0?[baseD]:[]),
       isReseeded:(baseD>0),startDate:isoD(start),initialWells:wells,plateType,isCompleted:false};
     lines.push(nl);
 
@@ -1880,7 +1871,7 @@ function editLine(id){
   document.getElementById('elId').value   =l.id;
   document.getElementById('elPid').value  =l.patientId;
   document.getElementById('elType').value =l.type;
-  document.getElementById('elLineNote').value=l.note||'';
+  document.getElementById('elLineDetail').value=l.detail||'';
   document.getElementById('elP').value    =startP;
   document.getElementById('elBase').value =startBase;
   document.getElementById('elWells').value=startWells;
@@ -2092,7 +2083,7 @@ function openLineModal(){updateUI();renderElColorPicker();document.getElementByI
 function closeLineModal(){document.getElementById('lineModal').classList.remove('open');resetLineForm();}
 function closeLogModal(){document.getElementById('logModal').classList.remove('open');}
 function resetLineForm(){
-  ['elId','elPid','elType','elLineNote'].forEach(i=>document.getElementById(i).value='');
+  ['elId','elPid','elType','elLineDetail'].forEach(i=>document.getElementById(i).value='');
   setPlateSelectValue('elPlate','elPlateCustom','');
   document.getElementById('elP').value=0;document.getElementById('elBase').value=0;
   document.getElementById('elWells').value=0;document.getElementById('elStart').valueAsDate=new Date();
@@ -2475,10 +2466,6 @@ function sbSet(i,k,v){
   if(!sbFiles[i]) return;
   sbFiles[i][k]=v;
   if(k==='lineId' && v){
-    // 라인 등록 시 적어둔 특이사항이 있으면, 아직 이 사진의 특이사항 칸이 비어있을 때 기본값으로 채워준다
-    // (직접 타이핑해서 채운 칸은 덮어쓰지 않음)
-    const ln=lines.find(l=>l.id===v);
-    if(ln && ln.note && !sbFiles[i].note) sbFiles[i].note=ln.note;
     // 같은 샘플의 4x/10x/20x를 이어서 올린 경우: 바로 아래 미지정 사진들에 같은 라인 + 다음 배율을 자동으로 채움
     let magIdx=ALL_MAGS.indexOf(sbFiles[i].mag);
     for(let j=i+1;j<sbFiles.length && magIdx<ALL_MAGS.length-1;j++){
@@ -2487,7 +2474,6 @@ function sbSet(i,k,v){
       magIdx++;
       nf.lineId=v;
       nf.mag=ALL_MAGS[magIdx];
-      if(ln && ln.note && !nf.note) nf.note=ln.note;
     }
   }
   renderSbarList();
@@ -2520,11 +2506,10 @@ function safeFileName(s){
 }
 function sbFullName(line,date,f){
   const st=microStateAtDate(line,date);
+  // 샘플 세부명(라인에 고정된 이름 일부)은 항상 붙고, 촬영 특이사항(사진마다 따로 적는 값)은 그 뒤에 별도로 붙는다.
+  const detail=line.detail?'_'+line.detail.trim().replace(/[_\s\/]+/g,'-'):'';
   const note=(f.note&&f.note.trim())?'_'+f.note.trim().replace(/[_\s\/]+/g,'-'):'';
-  
-  // 특이사항(note)을 샘플 이름(type) 뒤, passage(p)와 day 앞에 배치
-  const n=`${ymd6(date)}_${line.patientId}_${line.type}${note}_p${st.passage}_${st.dayStr}_${f.mag}`;
-  
+  const n=`${ymd6(date)}_${line.patientId}_${line.type}${detail}${note}_p${st.passage}_${st.dayStr}_${f.mag}`;
   return safeFileName(n);
 }
 function sbExt(){ return '.png'; }
@@ -3327,7 +3312,7 @@ function renderAnalytics(){
     <h2>촬영 순서 기록</h2>
     <div class="mscroll">
       <div id="slRecent" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;"></div>
-      <select id="slLine" style="height:38px;margin-bottom:8px;" onchange="slOnLineChange()"></select>
+      <select id="slLine" style="height:38px;margin-bottom:8px;" onchange="slRenderRecent()"></select>
       <button class="btn btn-fin" style="width:100%;height:46px;font-size:1rem;margin-bottom:8px;" onclick="slAddSet()">🔬 4x·10x·20x 세트 한번에 추가</button>
       <div style="display:flex;gap:8px;margin-bottom:10px;">
         <button class="btn btn-out" style="flex:1;" onclick="slAdd('4x')">+4x</button>
