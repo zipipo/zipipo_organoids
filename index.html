@@ -390,6 +390,10 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
           <div><label>종류 (직접 입력)</label><input type="text" id="elType" placeholder="PHH-org, Tumor-org 등"></div>
         </div>
         <div style="font-size:.7rem;color:#94A3B8;margin:-4px 0 9px;line-height:1.4;">※ 라인명·종류는 사진 파일명에 쓰여요. <b style="color:#B45309;">\ / : * ? " &lt; &gt; |</b> 는 사용할 수 없어요.</div>
+        <div style="margin-bottom:9px;">
+          <label>종류 색상 (선택 — 이 종류의 라인 전체에 적용돼요)</label>
+          <div id="elColorPicker" style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;padding:7px 8px;background:#fff;border:1px solid #E2E8F0;border-radius:6px;"></div>
+        </div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:9px;">
           <div><label>최초 시작 P</label><input type="number" id="elP" value="0" min="0"></div>
           <div><label>누적 d (base)</label><input type="number" id="elBase" value="0" min="0"></div>
@@ -517,6 +521,8 @@ let shotSets    = JSON.parse(localStorage.getItem('orgShotSets')) || [];      //
 let plans       = JSON.parse(localStorage.getItem('orgPlans')) || [];         // 예정 작업 { id, date, action, lineIds, note, done, createdTs }
 let _slRecentIds= JSON.parse(localStorage.getItem('orgSlRecent')||'[]');      // 촬영 순서 기록에서 최근 쓴 라인
 let _slRecentNotes=JSON.parse(localStorage.getItem('orgSlRecentNotes')||'[]'); // 촬영 순서 기록에서 최근 쓴 특이사항
+let typeColors  = JSON.parse(localStorage.getItem('orgTypeColors')) || {};    // 종류(type)별로 직접 고른 색상 { type: PAL 인덱스 }
+function saveTypeColors(){ localStorage.setItem('orgTypeColors', JSON.stringify(typeColors)); cloudPushDebounced(); }
 function saveShotLog(){ localStorage.setItem('orgShotLog', JSON.stringify(shotLog)); }
 function saveShotSets(){ localStorage.setItem('orgShotSets', JSON.stringify(shotSets)); cloudPushDebounced(); }
 function savePlans(){ localStorage.setItem('orgPlans', JSON.stringify(plans)); cloudPushDebounced(); }
@@ -616,10 +622,12 @@ function applyCloudData(d){
   cloudSyncing=true;
   lines=d.lines||[]; logs=d.logs||[]; stockChecks=d.stockChecks||[];
   trash=d.trash||[]; tlCollapsed=d.tlCollapsed||{}; plans=d.plans||[]; shotSets=d.shotSets||[];
+  typeColors=d.typeColors||{};
   localStorage.setItem('orgTrash', JSON.stringify(trash));
   localStorage.setItem('orgTlCollapsed', JSON.stringify(tlCollapsed));
   localStorage.setItem('orgPlans', JSON.stringify(plans));
   localStorage.setItem('orgShotSets', JSON.stringify(shotSets));
+  localStorage.setItem('orgTypeColors', JSON.stringify(typeColors));
   updateUI();
   setTimeout(()=>{cloudSyncing=false;},300);
 }
@@ -627,7 +635,7 @@ function applyCloudData(d){
 function cloudPush(){
   if(!cloudUid) return Promise.resolve();
   cloudSyncing=true;
-  return cloudDocRef(cloudUid).set({lines,logs,stockChecks,trash,tlCollapsed,plans,shotSets,updatedAt:new Date().toISOString()})
+  return cloudDocRef(cloudUid).set({lines,logs,stockChecks,trash,tlCollapsed,plans,shotSets,typeColors,updatedAt:new Date().toISOString()})
     .catch(e=>console.error('클라우드 저장 실패', e))
     .finally(()=>{ setTimeout(()=>{cloudSyncing=false;},400); });
 }
@@ -728,34 +736,34 @@ const isoD  = s => { try { return new Date(s).toISOString(); } catch(e) { return
 // ══════════════════════════════════════════
 //  COLOR MAP
 // ══════════════════════════════════════════
-// 색상환 20색을 '최대한 서로 멀리 떨어지도록' 재배열 (같은 계열이 연달아 배정되지 않게)
-// 무지개처럼 알록달록하게 채도·명도를 확 올린 비비드 팔레트
+// 사용자가 직접 고른 파스텔 캔디톤 20색(+ 색상환 빈 구간을 같은 느낌으로 채운 보강색) — 18°씩 떨어뜨려 배치
 const PAL=[
-  {bg:'#FBADAD',tx:'#B01111',bd:'#F17474',hbg:'#FCCFCF',ht:'#820D0D'}, // 레드
-  {bg:'#ADFBFB',tx:'#11B0B0',bd:'#74F1F1',hbg:'#CFFCFC',ht:'#0D8282'}, // 시안
-  {bg:'#D4FBAD',tx:'#61B011',bd:'#B3F174',hbg:'#E6FCCF',ht:'#47820D'}, // 라임
-  {bg:'#D4ADFB',tx:'#6111B0',bd:'#B274F1',hbg:'#E5CFFC',ht:'#470D82'}, // 퍼플
-  {bg:'#FBDBAD',tx:'#B07111',bd:'#F1BF74',hbg:'#FCEACF',ht:'#82530D'}, // 오렌지
-  {bg:'#ADFBB4',tx:'#11B021',bd:'#74F180',hbg:'#CFFCD3',ht:'#0D8219'}, // 에메랄드
-  {bg:'#ADCCFB',tx:'#1151B0',bd:'#74A6F1',hbg:'#CFE1FC',ht:'#0D3C82'}, // 블루
-  {bg:'#FBADF3',tx:'#B011A0',bd:'#F174E5',hbg:'#FCCFF8',ht:'#820D76'}, // 푸시아
-  {bg:'#FBC4AD',tx:'#B04111',bd:'#F19974',hbg:'#FCDCCF',ht:'#82300D'}, // 코랄
-  {bg:'#FBF3AD',tx:'#B0A011',bd:'#F1E574',hbg:'#FCF8CF',ht:'#82760D'}, // 옐로우
-  {bg:'#EBFBAD',tx:'#91B011',bd:'#D8F174',hbg:'#F3FCCF',ht:'#6B820D'}, // 연두
-  {bg:'#BCFBAD',tx:'#31B011',bd:'#8DF174',hbg:'#D8FCCF',ht:'#24820D'}, // 그린
-  {bg:'#ADFBCC',tx:'#11B051',bd:'#74F1A6',hbg:'#CFFCE1',ht:'#0D823C'}, // 스프링그린
-  {bg:'#ADFBE3',tx:'#11B081',bd:'#74F1CC',hbg:'#CFFCEF',ht:'#0D825F'}, // 터콰이즈
-  {bg:'#ADE3FB',tx:'#1181B0',bd:'#74CCF1',hbg:'#CFEFFC',ht:'#0D5F82'}, // 스카이블루
-  {bg:'#ADB4FB',tx:'#1121B0',bd:'#7480F1',hbg:'#CFD3FC',ht:'#0D1982'}, // 인디고
-  {bg:'#BCADFB',tx:'#3111B0',bd:'#8D74F1',hbg:'#D8CFFC',ht:'#240D82'}, // 바이올렛
-  {bg:'#EBADFB',tx:'#9111B0',bd:'#D874F1',hbg:'#F3CFFC',ht:'#6B0D82'}, // 오키드
-  {bg:'#FBADDB',tx:'#B01171',bd:'#F174BF',hbg:'#FCCFEA',ht:'#820D53'}, // 마젠타
-  {bg:'#FBADC4',tx:'#B01141',bd:'#F17499',hbg:'#FCCFDC',ht:'#820D30'}, // 로즈
+  {bg:'#FF8C8C',tx:'#9C1111',bd:'#F25F5F',hbg:'#FFABAB',ht:'#6E0C0C'}, // 레드
+  {bg:'#FFD1B7',tx:'#9C4311',bd:'#F2945F',hbg:'#FFE5D6',ht:'#6E300C'}, // 오렌지
+  {bg:'#FAD59E',tx:'#9C6511',bd:'#F2B75F',hbg:'#FBE2BB',ht:'#6E470C'}, // 골드
+  {bg:'#FFE146',tx:'#9C8611',bd:'#F2DA5F',hbg:'#FFE665',ht:'#6E5E0C'}, // 옐로우
+  {bg:'#E8FA9E',tx:'#809C11',bd:'#D5F25F',hbg:'#EFFBBB',ht:'#5B6E0C'}, // 연두
+  {bg:'#C6FF70',tx:'#659C11',bd:'#B7F25F',hbg:'#D2FF8F',ht:'#476E0C'}, // 라임
+  {bg:'#B0FA9E',tx:'#2D9C11',bd:'#7CF25F',hbg:'#C8FBBB',ht:'#206E0C'}, // 그린
+  {bg:'#9EFAA7',tx:'#119C1F',bd:'#5FF26D',hbg:'#BBFBC2',ht:'#0C6E16'}, // 에메랄드
+  {bg:'#82F9B7',tx:'#119C4F',bd:'#5FF2A0',hbg:'#9FFAC8',ht:'#0C6E38'}, // 스프링그린
+  {bg:'#A5FFE4',tx:'#119C72',bd:'#5FF2C6',hbg:'#C4FFED',ht:'#0C6E51'}, // 민트
+  {bg:'#87F5F5',tx:'#119C9C',bd:'#5FF2F2',hbg:'#A3F7F7',ht:'#0C6E6E'}, // 시안
+  {bg:'#93DAFF',tx:'#116D9C',bd:'#5FC0F2',hbg:'#B2E4FF',ht:'#0C4D6E'}, // 스카이블루
+  {bg:'#9EC3FA',tx:'#11499C',bd:'#5F9AF2',hbg:'#BBD5FB',ht:'#0C336E'}, // 블루
+  {bg:'#AAB9FF',tx:'#112A9C',bd:'#5F79F2',hbg:'#C9D2FF',ht:'#0C1E6E'}, // 페리윙클
+  {bg:'#B09EFA',tx:'#2D119C',bd:'#7C5FF2',hbg:'#C8BBFB',ht:'#200C6E'}, // 인디고
+  {bg:'#CC9EFA',tx:'#57119C',bd:'#A85FF2',hbg:'#DBBBFB',ht:'#3D0C6E'}, // 바이올렛
+  {bg:'#E89EFA',tx:'#80119C',bd:'#D55FF2',hbg:'#EFBBFB',ht:'#5B0C6E'}, // 퍼플
+  {bg:'#FFD2FF',tx:'#9C119C',bd:'#F25FF2',hbg:'#FFF0FF',ht:'#6E0C6E'}, // 오키드
+  {bg:'#FA9ED5',tx:'#9C1165',bd:'#F25FB7',hbg:'#FBBBE2',ht:'#6E0C47'}, // 마젠타
+  {bg:'#FFDEE9',tx:'#9C1140',bd:'#F25F90',hbg:'#FFF0F5',ht:'#6E0C2D'}, // 핑크
 ];
 const DONE={bg:'#F1F5F9',tx:'#475569',bd:'#E2E8F0',hbg:'#F1F5F9',ht:'#475569'};
 let tcm={};
 function rebuildColors(){tcm={};let i=0;lines.forEach(l=>{if(!(l.type in tcm)){tcm[l.type]=PAL[i%PAL.length];i++;}});}
-const getC=(type,done)=>done?DONE:(tcm[type]||PAL[0]);
+// 종류(type)별로 사용자가 직접 고른 색이 있으면 그 색을 우선 쓰고, 없으면 자동 순환 배정(tcm)을 쓴다.
+const getC=(type,done)=>done?DONE:(typeColors[type]!=null?PAL[typeColors[type]]:(tcm[type]||PAL[0]));
 
 // ══════════════════════════════════════════
 //  MC DAYS
@@ -1782,6 +1790,9 @@ function saveLine(){
 
   const dayStr = baseD>0 ? `d${baseD}+0` : 'd0';
 
+  if(_elColorIdx==null) delete typeColors[type]; else typeColors[type]=_elColorIdx;
+  saveTypeColors();
+
   if(id){
     const idx=lines.findIndex(l=>l.id===id);
     lines[idx].patientId = pId;
@@ -1853,6 +1864,8 @@ function editLine(id){
   document.getElementById('elWells').value=startWells;
   document.getElementById('elStart').value=startDt;
   setPlateSelectValue('elPlate','elPlateCustom', l.plateType||'');
+  _elColorIdx = typeColors[l.type]!=null ? typeColors[l.type] : null;
+  renderElColorPicker();
   openLineModal();
 }
 
@@ -2052,7 +2065,7 @@ function quickMediaChange(lineId,ev){
   updateUI();
 }
 
-function openLineModal(){updateUI();document.getElementById('lineModal').classList.add('open');}
+function openLineModal(){updateUI();renderElColorPicker();document.getElementById('lineModal').classList.add('open');}
 function closeLineModal(){document.getElementById('lineModal').classList.remove('open');resetLineForm();}
 function closeLogModal(){document.getElementById('logModal').classList.remove('open');}
 function resetLineForm(){
@@ -2060,7 +2073,23 @@ function resetLineForm(){
   setPlateSelectValue('elPlate','elPlateCustom','');
   document.getElementById('elP').value=0;document.getElementById('elBase').value=0;
   document.getElementById('elWells').value=0;document.getElementById('elStart').valueAsDate=new Date();
+  _elColorIdx=null;renderElColorPicker();
 }
+
+// 라인 등록/수정 폼에서 종류(type)에 색을 직접 골라 고정할 수 있는 팔레트.
+// null = 자동 순환 배정 그대로 사용, 숫자 = 그 PAL 색을 이 종류에 고정.
+let _elColorIdx=null;
+function renderElColorPicker(){
+  const el=document.getElementById('elColorPicker');
+  if(!el) return;
+  let html=`<button type="button" class="tbl-btn" style="${_elColorIdx==null?'background:#EEF2FF;color:#4338CA;border-color:#C7D2FE;font-weight:700;':''}" onclick="elPickColor(null)">자동</button>`;
+  html+=PAL.map((c,i)=>{
+    const sel=_elColorIdx===i;
+    return `<button type="button" title="이 색으로 고정" onclick="elPickColor(${i})" style="width:24px;height:24px;border-radius:50%;padding:0;cursor:pointer;background:${c.bg};border:2px solid ${sel?'#1E293B':'#fff'};box-shadow:0 0 0 1px #CBD5E1${sel?', 0 0 0 3px #C7D2FE':''};"></button>`;
+  }).join('');
+  el.innerHTML=html;
+}
+function elPickColor(i){ _elColorIdx=i; renderElColorPicker(); }
 ['lineModal','logModal','trashModal'].forEach(id=>{
   document.getElementById(id).addEventListener('click',e=>{
     if(e.target===document.getElementById(id)) document.getElementById(id).classList.remove('open');
