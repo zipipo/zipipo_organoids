@@ -385,11 +385,12 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
     <div class="mscroll">
       <div style="background:#F8FAFC;padding:13px;border-radius:6px;border:1px solid #E2E8F0;margin-bottom:13px;">
         <input type="hidden" id="elId">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px;">
-          <div><label>환자 번호 / 라인명</label><input type="text" id="elPid" placeholder="HCC26 (2nd, Big)"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:9px;">
+          <div><label>환자 번호 / 라인명</label><input type="text" id="elPid" placeholder="HCC26"></div>
           <div><label>종류 (직접 입력)</label><input type="text" id="elType" placeholder="PHH-org, Tumor-org 등"></div>
+          <div><label>특이사항 (선택)</label><input type="text" id="elLineNote" placeholder="2nd, Big 등"></div>
         </div>
-        <div style="font-size:.7rem;color:#94A3B8;margin:-4px 0 9px;line-height:1.4;">※ 라인명·종류는 사진 파일명에 쓰여요. <b style="color:#B45309;">\ / : * ? " &lt; &gt; |</b> 는 사용할 수 없어요.</div>
+        <div style="font-size:.7rem;color:#94A3B8;margin:-4px 0 9px;line-height:1.4;">※ 라인명·종류·특이사항은 사진 파일명에 쓰여요. <b style="color:#B45309;">\ / : * ? " &lt; &gt; |</b> 는 사용할 수 없어요.</div>
         <div style="margin-bottom:9px;">
           <label>종류 색상 (선택 — 이 종류의 라인 전체에 적용돼요)</label>
           <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
@@ -732,6 +733,8 @@ const isPassageUp = a=>{ if(!a) return false; const l=a.toLowerCase(); return l.
 const isMediaChange = a=>!!(a&&(a==='Media Change'||a==='Media Addition'));
 
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+// 라인을 어디서나 똑같은 형태로 표시하기 위한 이름표: 환자번호_종류 뒤에 특이사항이 있으면 괄호로 이어붙인다.
+function lineTag(l){ if(!l) return ''; return l.patientId+'_'+l.type+(l.note?` (${l.note})`:''); }
 const uid   = ()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
 let _logSeq = 0;                       // 등록(기록) 순서 추적용 — 같은 날짜 안에서 차례 보존
 const nextSeq = ()=>++_logSeq;
@@ -896,7 +899,7 @@ function slRenderLineOptions(){
     const n=usage[l.id]||0;
     const style=n>0?' style="font-weight:700;background:#EEF2FF;color:#4338CA;"':'';
     const tag=n>0?` (Selected${n>1?' ×'+n:''})`:'';
-    return `<option value="${esc(l.id)}"${style}>[${esc(l.patientId)}_${esc(l.type)}]${tag}</option>`;
+    return `<option value="${esc(l.id)}"${style}>[${esc(lineTag(l))}]${tag}</option>`;
   });
   sel.value=cur;
 }
@@ -908,12 +911,22 @@ function slRenderRecent(){
   el.innerHTML = ids.length ? ids.map(id=>{
     const l=lines.find(x=>x.id===id); if(!l) return '';
     const cur=document.getElementById('slLine').value===id;
-    return `<button class="tbl-btn" style="${cur?'background:#EEF2FF;color:#4338CA;border-color:#C7D2FE;':''}" onclick="document.getElementById('slLine').value='${l.id}';slRenderRecent();">${esc(l.patientId)}_${esc(l.type)}</button>`;
+    return `<button class="tbl-btn" style="${cur?'background:#EEF2FF;color:#4338CA;border-color:#C7D2FE;':''}" onclick="document.getElementById('slLine').value='${l.id}';slOnLineChange();">${esc(lineTag(l))}</button>`;
   }).join('') : '<span style="font-size:.72rem;color:#94A3B8;">최근 쓴 라인이 여기 칩으로 떠요</span>';
 }
 function _slTouchRecent(lineId){
   _slRecentIds=[lineId, ..._slRecentIds.filter(id=>id!==lineId)].slice(0,6);
   localStorage.setItem('orgSlRecent', JSON.stringify(_slRecentIds));
+}
+// 라인을 고르면 최근 라인 칩을 새로고침하고, 그 라인 등록 시 적어둔 특이사항이 있으면
+// (특이사항 칸이 비어있을 때만) 기본값으로 채워준다 — 매번 같은 특이사항을 다시 타이핑하지 않도록.
+function slOnLineChange(){
+  slRenderRecent();
+  const lineId=document.getElementById('slLine').value;
+  const noteEl=document.getElementById('slNote');
+  if(!lineId || !noteEl || noteEl.value.trim()) return;
+  const ln=lines.find(l=>l.id===lineId);
+  if(ln && ln.note) noteEl.value=ln.note;
 }
 
 // 자주 똑같이 적는 특이사항(예: "재염색", "확인용")을 매번 다시 타이핑하지 않도록
@@ -1036,7 +1049,7 @@ function renderShotSets(){
   if(!el) return;
   if(!shotSets.length){ el.innerHTML='<div style="color:#94A3B8;font-size:.74rem;padding:4px 2px;">저장된 세트가 없습니다. 사진을 저장하면 그 날짜 순서가 자동으로 여기 쌓입니다. (또는 "세트로 저장"으로 직접 저장)</div>'; return; }
   el.innerHTML = shotSets.slice().sort((a,b)=>b.updatedTs-a.updatedTs).map(s=>{
-    const labels=s.items.map(it=>{const l=lines.find(x=>x.id===it.lineId); return l?`${l.patientId}_${l.type}`:'(삭제된 라인)';});
+    const labels=s.items.map(it=>{const l=lines.find(x=>x.id===it.lineId); return l?lineTag(l):'(삭제된 라인)';});
     const uniq=[...new Set(labels)];
     const tag=s.autoKey?'<span style="font-size:.62rem;background:#F1F5F9;color:#64748B;padding:1px 6px;border-radius:8px;font-weight:700;">자동 기록</span>':'';
     return `<div style="display:flex;align-items:center;gap:6px;padding:6px 8px;border:1px solid #E2E8F0;border-radius:6px;margin-bottom:6px;background:#fff;">
@@ -1065,7 +1078,7 @@ function renderShotLog(){
   });
   el.innerHTML=groups.map(g=>{
     const line=lines.find(l=>l.id===g.lineId);
-    const label=line?`${esc(line.patientId)}_${esc(line.type)}`:'(삭제된 라인)';
+    const label=line?esc(lineTag(line)):'(삭제된 라인)';
     const first=g.items[0], d=new Date(first.ts);
     const today=ymdLocal(new Date())===ymdLocal(d);
     const timeStr=(today?'':(d.getMonth()+1)+'/'+d.getDate()+' ')+d.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
@@ -1114,7 +1127,7 @@ function buildPlanStrip(){
   }).join('');
 
   // 라인의 종류(type)를 같이 보여줘야 어떤 라인인지 구분이 되므로 patientId 뒤에 종류를 붙인다
-  const nameOf=p=>p.lineIds.map(id=>{const l=lines.find(x=>x.id===id);return l?`${l.patientId}_${l.type}`:'?';}).join(', ');
+  const nameOf=p=>p.lineIds.map(id=>{const l=lines.find(x=>x.id===id);return l?lineTag(l):'?';}).join(', ');
 
   const overdue=plans.filter(p=>!p.done && p.date<days[0]);
   const todays=plans.filter(p=>!p.done && p.date===days[0]);
@@ -1155,7 +1168,7 @@ function openPlanModal(date, preselectIds){
   document.getElementById('plLines').innerHTML = active.map(l=>
     `<label style="display:flex;align-items:center;gap:6px;padding:2px 0;font-size:.8rem;cursor:pointer;">
       <input type="checkbox" value="${l.id}" ${preselectIds&&preselectIds.includes(l.id)?'checked':''} style="width:auto;">
-      ${esc(l.patientId)}_${esc(l.type)}
+      ${esc(lineTag(l))}
     </label>`).join('');
   document.getElementById('planModal').classList.add('open');
 }
@@ -1171,7 +1184,7 @@ function savePlanModal(){
 }
 function openPlanDetail(id){
   const p=plans.find(x=>x.id===id); if(!p) return;
-  const names=p.lineIds.map(id=>{const l=lines.find(x=>x.id===id);return l?l.patientId+'_'+l.type:'?';}).join(', ');
+  const names=p.lineIds.map(id=>{const l=lines.find(x=>x.id===id);return l?lineTag(l):'?';}).join(', ');
   if(confirm(`${p.date} · ${p.action}\n${names}${p.note?'\n메모: '+p.note:''}\n\n완료 처리(목록에서 지울까요)?`)){
     plans=plans.filter(x=>x.id!==id); savePlans(); renderDash();
   }
@@ -1223,7 +1236,8 @@ function microStateAtDate(line, targetDate){
 
 function buildMicroName(line, dateStr, mag){
   const st=microStateAtDate(line,dateStr);
-  return `${ymd6(dateStr)}_${line.patientId}_${line.type}_p${st.passage}_${st.dayStr}_${mag}`;
+  const note=line.note?'_'+line.note.trim().replace(/[_\s\/]+/g,'-'):'';
+  return `${ymd6(dateStr)}_${line.patientId}_${line.type}${note}_p${st.passage}_${st.dayStr}_${mag}`;
 }
 
 function copyText(txt, elm){
@@ -1276,7 +1290,7 @@ function toggleSC(id,field){
 //  RENDER TIMELINES
 // ══════════════════════════════════════════
 let lineFilter='';
-function lineMatch(l){ if(!lineFilter) return true; return (l.patientId+' '+l.type+' p'+l.passage).toLowerCase().includes(lineFilter); }
+function lineMatch(l){ if(!lineFilter) return true; return (l.patientId+' '+l.type+' '+(l.note||'')+' p'+l.passage).toLowerCase().includes(lineFilter); }
 function applyLineFilter(v){
   lineFilter=v.trim().toLowerCase();
   renderTimelines('activeTL',false); renderTimelines('doneTL',true);
@@ -1376,7 +1390,7 @@ function renderTimelines(containerId,showDone){
            onclick="toggleTL('${bid}','${line.id}')">
         <div class="tl-meta">
           <span class="tl-arr">&#9654;</span>
-          <span style="font-size:.88rem;">[${esc(line.patientId)}_${esc(line.type)}]</span>
+          <span style="font-size:.88rem;">[${esc(lineTag(line))}]</span>
           ${showDone?`<span style="font-size:.71rem;color:var(--sub);opacity:.65;font-weight:400;">${dateRange(line)}</span>`:''}
           <span class="pb ${pCls(line.passage)}">P${line.passage}</span>
           <span style="font-size:.8rem;">/ ${calcDayStr(line)}</span>
@@ -1438,7 +1452,7 @@ function renderLineList(){
     const c=getC(l.type,l.isCompleted);
     el.innerHTML+=`<div style="display:flex;justify-content:space-between;padding:6px 3px;border-bottom:1px solid #E2E8F0;align-items:center;gap:5px;flex-wrap:wrap;">
       <span style="background:${c.hbg};color:${c.ht};padding:2px 9px;border-radius:4px;font-size:.81rem;font-weight:600;">
-        ${esc(l.patientId)}_${esc(l.type)}${l.isCompleted?' (완료)':''}
+        ${esc(lineTag(l))}${l.isCompleted?' (완료)':''}
       </span>
       <div style="display:flex;gap:4px;">
         <button class="btn btn-edt" style="height:27px;font-size:.74rem;" onclick="editLine('${l.id}')">수정</button>
@@ -1454,7 +1468,7 @@ function updateUI(){
   const prev=sel.value;
   const activeLines=lines.filter(l=>!l.isCompleted).sort(typeCmp);
   sel.innerHTML='<option value="">-- 라인 선택 --</option>' +
-    lineOptGroupsHTML(activeLines, l=>`<option value="${esc(l.id)}">${esc(l.patientId)}_${esc(l.type)} (P${l.passage})</option>`);
+    lineOptGroupsHTML(activeLines, l=>`<option value="${esc(l.id)}">${esc(lineTag(l))} (P${l.passage})</option>`);
   if(prev) sel.value=prev;
   renderBulkLineTags();
   renderTimelines('activeTL',false);
@@ -1594,7 +1608,7 @@ function renderBulkLineTags(){
   if(!el) return;
   el.innerHTML=bulkLines.map(id=>{
     const ln=lines.find(l=>l.id===id);
-    const label=ln?`${ln.patientId}_${ln.type}`:id;
+    const label=ln?lineTag(ln):id;
     return `<span class="dtag">${esc(label)}<span class="dtx" onclick="removeBulkLine('${id}')">x</span></span>`;
   }).join('');
 }
@@ -1754,7 +1768,7 @@ function saveDailyLog(){
     
     if(stocks&&parseInt(stocks)>0){
       const ln=lines.find(l=>l.id===lineId);
-      stockChecks.push({id:uid(),lineId:lineId, lineLabel:`${ln.patientId}_${ln.type}`,date,stocks,ln2Done:false,dbDone:false});
+      stockChecks.push({id:uid(),lineId:lineId, lineLabel:lineTag(ln),date,stocks,ln2Done:false,dbDone:false});
     }
   });
   });
@@ -1779,6 +1793,7 @@ function saveLine(){
   const id   =document.getElementById('elId').value;
   const pId  =document.getElementById('elPid').value.trim();
   const type =document.getElementById('elType').value.trim();
+  const note =document.getElementById('elLineNote').value.trim();
   const p    =parseInt(document.getElementById('elP').value)||0;
   const baseD=parseInt(document.getElementById('elBase').value)||0;
   const wells=document.getElementById('elWells').value;
@@ -1788,9 +1803,9 @@ function saveLine(){
 
   // 파일명(사진 저장 시 사용)에 못 쓰는 문자 검사
   const findBad = s => [...new Set((String(s).match(/[\/\\:*?"<>|]/g)||[]))];
-  const bad = [...new Set([...findBad(pId), ...findBad(type)])];
+  const bad = [...new Set([...findBad(pId), ...findBad(type), ...findBad(note)])];
   if(bad.length){
-    return alert('라인명 또는 종류에 파일 이름으로 쓸 수 없는 문자가 있어요:  '+bad.join('  ')+'\n\n사진을 저장할 때 파일 이름 ( 날짜_환자_타입_pX_dY_배율 ) 에 그대로 들어가서 오류가 나요.\n다음 문자는 빼주세요:   \\  /  :  *  ?  "  <  >  |');
+    return alert('라인명·종류·특이사항에 파일 이름으로 쓸 수 없는 문자가 있어요:  '+bad.join('  ')+'\n\n사진을 저장할 때 파일 이름 ( 날짜_환자_타입_특이사항_pX_dY_배율 ) 에 그대로 들어가서 오류가 나요.\n다음 문자는 빼주세요:   \\  /  :  *  ?  "  <  >  |');
   }
 
   const dayStr = baseD>0 ? `d${baseD}+0` : 'd0';
@@ -1802,6 +1817,7 @@ function saveLine(){
     const idx=lines.findIndex(l=>l.id===id);
     lines[idx].patientId = pId;
     lines[idx].type = type;
+    lines[idx].note = note;
     lines[idx].initialWells = wells;
     lines[idx].plateType = plateType;
 
@@ -1817,10 +1833,10 @@ function saveLine(){
     }
     recalcLogsForLine(id);
   } else {
-    const nl={id:uid(),patientId:pId,type,passage:p,baseDay:baseD,daySegs:(baseD>0?[baseD]:[]),
+    const nl={id:uid(),patientId:pId,type,note,passage:p,baseDay:baseD,daySegs:(baseD>0?[baseD]:[]),
       isReseeded:(baseD>0),startDate:isoD(start),initialWells:wells,plateType,isCompleted:false};
     lines.push(nl);
-    
+
     logs.push({id:uid()+'_sd',seq:nextSeq(),lineId:nl.id,date:start,action:'Seeded',
       passage:p,dayInfo:dayStr,details:'',finalWells:wells||'',stocks:'',memo:'최초 seeding',printedToNotebook:false});
   }
@@ -1864,6 +1880,7 @@ function editLine(id){
   document.getElementById('elId').value   =l.id;
   document.getElementById('elPid').value  =l.patientId;
   document.getElementById('elType').value =l.type;
+  document.getElementById('elLineNote').value=l.note||'';
   document.getElementById('elP').value    =startP;
   document.getElementById('elBase').value =startBase;
   document.getElementById('elWells').value=startWells;
@@ -1891,7 +1908,7 @@ function deleteLine(id){
   if(!confirm('라인과 관련된 모든 로그가 휴지통으로 이동합니다. 계속하시겠습니까?')) return;
   const relLogs=logs.filter(l=>l.lineId===id);
   trash.unshift({id:uid(),kind:'line',deletedAt:new Date().toISOString(),
-    label:`${line.patientId}_${line.type}`,line,logs:relLogs});
+    label:lineTag(line),line,logs:relLogs});
   saveTrash();
   lines=lines.filter(l=>l.id!==id);logs=logs.filter(l=>l.lineId!==id);
   if(id in tlCollapsed){ delete tlCollapsed[id]; localStorage.setItem('orgTlCollapsed', JSON.stringify(tlCollapsed)); }
@@ -2018,7 +2035,7 @@ function deleteLog(){
   if(!confirm('이 기록을 휴지통으로 이동하시겠습니까?')) return;
   const line=lines.find(l=>l.id===lg.lineId);
   trash.unshift({id:uid(),kind:'log',deletedAt:new Date().toISOString(),
-    label:`${line?line.patientId+'_'+line.type:'(삭제된 라인)'} · ${lg.date} · ${lg.action}`,log:lg});
+    label:`${line?lineTag(line):'(삭제된 라인)'} · ${lg.date} · ${lg.action}`,log:lg});
   saveTrash();
   logs=logs.filter(l=>l.id!==id);
   if(line) syncLineState(line);
@@ -2075,7 +2092,7 @@ function openLineModal(){updateUI();renderElColorPicker();document.getElementByI
 function closeLineModal(){document.getElementById('lineModal').classList.remove('open');resetLineForm();}
 function closeLogModal(){document.getElementById('logModal').classList.remove('open');}
 function resetLineForm(){
-  ['elId','elPid','elType'].forEach(i=>document.getElementById(i).value='');
+  ['elId','elPid','elType','elLineNote'].forEach(i=>document.getElementById(i).value='');
   setPlateSelectValue('elPlate','elPlateCustom','');
   document.getElementById('elP').value=0;document.getElementById('elBase').value=0;
   document.getElementById('elWells').value=0;document.getElementById('elStart').valueAsDate=new Date();
@@ -2458,6 +2475,10 @@ function sbSet(i,k,v){
   if(!sbFiles[i]) return;
   sbFiles[i][k]=v;
   if(k==='lineId' && v){
+    // 라인 등록 시 적어둔 특이사항이 있으면, 아직 이 사진의 특이사항 칸이 비어있을 때 기본값으로 채워준다
+    // (직접 타이핑해서 채운 칸은 덮어쓰지 않음)
+    const ln=lines.find(l=>l.id===v);
+    if(ln && ln.note && !sbFiles[i].note) sbFiles[i].note=ln.note;
     // 같은 샘플의 4x/10x/20x를 이어서 올린 경우: 바로 아래 미지정 사진들에 같은 라인 + 다음 배율을 자동으로 채움
     let magIdx=ALL_MAGS.indexOf(sbFiles[i].mag);
     for(let j=i+1;j<sbFiles.length && magIdx<ALL_MAGS.length-1;j++){
@@ -2466,6 +2487,7 @@ function sbSet(i,k,v){
       magIdx++;
       nf.lineId=v;
       nf.mag=ALL_MAGS[magIdx];
+      if(ln && ln.note && !nf.note) nf.note=ln.note;
     }
   }
   renderSbarList();
@@ -2542,7 +2564,7 @@ function renderSbarList(){
       const usedByOthers=(lineUsage[l.id]||0) - (l.id===f.lineId?1:0);
       const style=usedByOthers>0?' style="font-weight:700;background:#EEF2FF;color:#4338CA;"':'';
       const tag=usedByOthers>0?` (Selected${usedByOthers>1?' ×'+usedByOthers:''})`:'';
-      return `<option value="${esc(l.id)}" ${l.id===f.lineId?'selected':''}${style}>[${esc(l.patientId)}_${esc(l.type)}]${l.isCompleted?' (완료)':''}${tag}</option>`;
+      return `<option value="${esc(l.id)}" ${l.id===f.lineId?'selected':''}${style}>[${esc(lineTag(l))}]${l.isCompleted?' (완료)':''}${tag}</option>`;
     });
     const lineOpts=`<option value="" ${!f.lineId?'selected':''}>라인 선택…</option>`+(_opts||'<option value="" disabled>선택 가능한 라인 없음</option>');
     const magOpts=ALL_MAGS.map(m=>`<option value="${m}" ${m===f.mag?'selected':''}>${m}</option>`).join('');
@@ -2903,7 +2925,7 @@ function noteLineOptions(){
   const prev=sel.value;
   const sorted=lines.slice().sort(typeCmp);
   sel.innerHTML='<option value="">전체 라인</option>' +
-    lineOptGroupsHTML(sorted, l=>`<option value="${esc(l.id)}">${esc(l.patientId+'_'+l.type)}</option>`);
+    lineOptGroupsHTML(sorted, l=>`<option value="${esc(l.id)}">${esc(lineTag(l))}</option>`);
   sel.value=prev||'';
 }
 
@@ -2928,7 +2950,7 @@ function renderNoteList(){
   if(!list.length){ el.innerHTML='<div style="color:#94A3B8;font-size:.85rem;padding:10px 0;">조건에 맞는 기록이 없습니다.</div>'; return; }
   el.innerHTML=list.map(lg=>{
     const line=lines.find(l=>l.id===lg.lineId);
-    const label=line?`${line.patientId}_${line.type}`:'(삭제된 라인)';
+    const label=line?lineTag(line):'(삭제된 라인)';
     return `<div style="display:flex;align-items:center;gap:8px;padding:5px 4px;border-bottom:1px solid #F1F5F9;font-size:.78rem;flex-wrap:wrap;">
       <input type="checkbox" class="note-chk" data-id="${lg.id}" style="width:auto;flex-shrink:0;" ${lg.printedToNotebook?'':'checked'}>
       <span style="color:var(--sub);width:78px;flex-shrink:0;">${esc(lg.date)}</span>
@@ -2971,7 +2993,7 @@ function noteDoPrint(){
 
   const html=Object.keys(byLine).map(lineId=>{
     const line=lines.find(l=>l.id===lineId);
-    const label=line?`${esc(line.patientId)}_${esc(line.type)}`:'(삭제된 라인)';
+    const label=line?esc(lineTag(line)):'(삭제된 라인)';
     const rows=byLine[lineId].slice().sort((a,b)=>a.date.localeCompare(b.date) || (a.seq||0)-(b.seq||0)).map(lg=>`
       <tr>
         <td>${esc(lg.date)}</td>
@@ -3178,7 +3200,7 @@ function buildPassageCycleByLine(){
   const items=lineIds.map(lid=>{
     const line=lines.find(l=>l.id===lid);
     const seq=byLine[lid].sort((a,b)=>a.date.localeCompare(b.date)).map(x=>x.total);
-    return {patientId:line?line.patientId:'', label:line?`${line.patientId}_${line.type}`:'(삭제된 라인)', seq};
+    return {patientId:line?line.patientId:'', label:line?lineTag(line):'(삭제된 라인)', seq};
   // 환자번호(샘플명) 기준 ABC 사전식 정렬
   }).sort((a,b)=>(a.patientId||'').localeCompare(b.patientId||'',undefined,{numeric:true,sensitivity:'base'}));
 
@@ -3305,7 +3327,7 @@ function renderAnalytics(){
     <h2>촬영 순서 기록</h2>
     <div class="mscroll">
       <div id="slRecent" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;"></div>
-      <select id="slLine" style="height:38px;margin-bottom:8px;" onchange="slRenderRecent()"></select>
+      <select id="slLine" style="height:38px;margin-bottom:8px;" onchange="slOnLineChange()"></select>
       <button class="btn btn-fin" style="width:100%;height:46px;font-size:1rem;margin-bottom:8px;" onclick="slAddSet()">🔬 4x·10x·20x 세트 한번에 추가</button>
       <div style="display:flex;gap:8px;margin-bottom:10px;">
         <button class="btn btn-out" style="flex:1;" onclick="slAdd('4x')">+4x</button>
