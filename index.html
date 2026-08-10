@@ -727,17 +727,28 @@ const isoD  = s => { try { return new Date(s).toISOString(); } catch(e) { return
 // ══════════════════════════════════════════
 //  COLOR MAP
 // ══════════════════════════════════════════
+// 색상환을 18°씩 균등 분할해 만든 파스텔 팔레트 (흰끼 있는 밝은 톤, 채도는 억제해 '원색' 느낌 배제)
 const PAL=[
-  {bg:'#E0F2FE',tx:'#0369A1',bd:'#BAE6FD',hbg:'#DBEAFE',ht:'#1D4ED8'},
-  {bg:'#FFEDD5',tx:'#C2410C',bd:'#FED7AA',hbg:'#FFE4D2',ht:'#9A3412'},
-  {bg:'#F3E8FF',tx:'#7E22CE',bd:'#E9D5FF',hbg:'#EDE9FE',ht:'#6D28D9'},
-  {bg:'#D1FAE5',tx:'#047857',bd:'#A7F3D0',hbg:'#CCFBF1',ht:'#0F766E'},
-  {bg:'#FCE7F3',tx:'#BE185D',bd:'#FBCFE8',hbg:'#FCE7F3',ht:'#9D174D'},
-  {bg:'#FEF3C7',tx:'#A16207',bd:'#FDE68A',hbg:'#FEF9C3',ht:'#854D0E'},
-  {bg:'#E0E7FF',tx:'#4F46E5',bd:'#C7D2FE',hbg:'#E0E7FF',ht:'#3730A3'},
-  {bg:'#CFFAFE',tx:'#0E7490',bd:'#A5F3FC',hbg:'#CFFAFE',ht:'#155E75'},
-  {bg:'#ECFCCB',tx:'#4D7C0F',bd:'#D9F99D',hbg:'#ECFCCB',ht:'#3F6212'},
-  {bg:'#FAE8FF',tx:'#A21CAF',bd:'#F5D0FE',hbg:'#FAE8FF',ht:'#86198F'},
+  {bg:'#FCE3E3',tx:'#A32929',bd:'#F3BFBF',hbg:'#FEF1F1',ht:'#7A1F1F'}, // 레드
+  {bg:'#FCEBE3',tx:'#A34E29',bd:'#F3CEBF',hbg:'#FEF5F1',ht:'#7A3A1F'}, // 코랄
+  {bg:'#FCF2E3',tx:'#A37229',bd:'#F3DEBF',hbg:'#FEF9F1',ht:'#7A561F'}, // 살구
+  {bg:'#FCFAE3',tx:'#A39729',bd:'#F3EEBF',hbg:'#FEFDF1',ht:'#7A711F'}, // 골드옐로우
+  {bg:'#F7FCE3',tx:'#8BA329',bd:'#E8F3BF',hbg:'#FBFEF1',ht:'#687A1F'}, // 연두
+  {bg:'#F0FCE3',tx:'#66A329',bd:'#D9F3BF',hbg:'#F7FEF1',ht:'#4D7A1F'}, // 라임
+  {bg:'#E8FCE3',tx:'#41A329',bd:'#C9F3BF',hbg:'#F3FEF1',ht:'#317A1F'}, // 그린
+  {bg:'#E3FCE6',tx:'#29A335',bd:'#BFF3C4',hbg:'#F1FEF2',ht:'#1F7A28'}, // 에메랄드
+  {bg:'#E3FCED',tx:'#29A35A',bd:'#BFF3D4',hbg:'#F1FEF6',ht:'#1F7A43'}, // 스프링그린
+  {bg:'#E3FCF5',tx:'#29A37E',bd:'#BFF3E3',hbg:'#F1FEFA',ht:'#1F7A5F'}, // 민트틸
+  {bg:'#E3FCFC',tx:'#29A3A3',bd:'#BFF3F3',hbg:'#F1FEFE',ht:'#1F7A7A'}, // 시안
+  {bg:'#E3F5FC',tx:'#297EA3',bd:'#BFE3F3',hbg:'#F1FAFE',ht:'#1F5F7A'}, // 스카이블루
+  {bg:'#E3EDFC',tx:'#295AA3',bd:'#BFD4F3',hbg:'#F1F6FE',ht:'#1F437A'}, // 블루
+  {bg:'#E3E6FC',tx:'#2935A3',bd:'#BFC4F3',hbg:'#F1F2FE',ht:'#1F287A'}, // 인디고
+  {bg:'#E8E3FC',tx:'#4129A3',bd:'#C9BFF3',hbg:'#F3F1FE',ht:'#311F7A'}, // 바이올렛
+  {bg:'#F0E3FC',tx:'#6629A3',bd:'#D9BFF3',hbg:'#F7F1FE',ht:'#4C1F7A'}, // 퍼플
+  {bg:'#F7E3FC',tx:'#8B29A3',bd:'#E8BFF3',hbg:'#FBF1FE',ht:'#681F7A'}, // 오키드
+  {bg:'#FCE3FA',tx:'#A32997',bd:'#F3BFEE',hbg:'#FEF1FD',ht:'#7A1F71'}, // 푸시아
+  {bg:'#FCE3F2',tx:'#A32972',bd:'#F3BFDE',hbg:'#FEF1F9',ht:'#7A1F56'}, // 마젠타핑크
+  {bg:'#FCE3EB',tx:'#A3294E',bd:'#F3BFCE',hbg:'#FEF1F5',ht:'#7A1F3A'}, // 로즈
 ];
 const DONE={bg:'#F1F5F9',tx:'#475569',bd:'#E2E8F0',hbg:'#F1F5F9',ht:'#475569'};
 let tcm={};
