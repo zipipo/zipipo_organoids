@@ -57,6 +57,19 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--tx);ma
 .dt-pill.due .dt-num{color:#B91C1C;}
 .dt-pill.due .dt-lbl{color:#B91C1C;}
 
+.dash-card.cultstat{position:relative;padding-bottom:46px;}
+.dash-gear{position:absolute;right:12px;bottom:10px;width:30px;height:30px;border-radius:50%;background:#F8FAFC;border:1px solid #E2E8F0;color:#64748B;font-size:1.05rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;padding:0;}
+.dash-gear:hover{background:#EEF2FF;color:#4338CA;border-color:#C7D2FE;transform:rotate(20deg);}
+
+/* 종류별 색상 설정 모달 */
+.cc-row{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid #F1F5F9;}
+.cc-row:last-child{border-bottom:none;}
+.cc-name{flex:none;width:132px;padding:5px 9px;border-radius:5px;font-size:.76rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cc-swatches{flex:1;display:flex;flex-wrap:wrap;gap:5px;}
+.cc-sw{width:20px;height:20px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0;transition:.1s;}
+.cc-sw:hover{transform:scale(1.15);}
+.cc-sw.cc-sel{border-color:#1E293B;box-shadow:0 0 0 2px #fff inset;}
+
 /* type sections */
 .dash-types{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:10px;}
 .dtype{border:1px solid var(--bd);border-radius:7px;overflow:hidden;}
@@ -391,15 +404,6 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
           <div><label>샘플 세부명 (선택, 고정)</label><input type="text" id="elLineDetail" placeholder="CAF for CM test 등"></div>
         </div>
         <div style="font-size:.7rem;color:#94A3B8;margin:-4px 0 9px;line-height:1.4;">※ 샘플 세부명은 촬영할 때마다 넣는 특이사항과 달리, 이 라인의 이름 일부로 항상 고정돼서 붙어요. 라인명·종류·세부명은 사진 파일명에 쓰여요. <b style="color:#B45309;">\ / : * ? " &lt; &gt; |</b> 는 사용할 수 없어요.</div>
-        <div style="margin-bottom:9px;">
-          <label>종류 색상 (선택 — 이 종류의 라인 전체에 적용돼요)</label>
-          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
-            <button type="button" id="elColorAutoBtn" class="tbl-btn" onclick="elPickColor(null)">자동</button>
-            <button type="button" id="elColorPickBtn" class="tbl-btn" onclick="elToggleColorPicker()">색상 선택</button>
-            <span id="elColorPreview"></span>
-          </div>
-          <div id="elColorPicker" style="display:none;gap:5px;flex-wrap:wrap;align-items:center;padding:7px 8px;margin-top:6px;background:#fff;border:1px solid #E2E8F0;border-radius:6px;"></div>
-        </div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:9px;">
           <div><label>최초 시작 P</label><input type="number" id="elP" value="0" min="0"></div>
           <div><label>누적 d (base)</label><input type="number" id="elBase" value="0" min="0"></div>
@@ -508,6 +512,20 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
     <div class="mfoot" style="display:flex;gap:8px;">
       <button class="btn btn-out" style="flex:1;" onclick="closeNoteModal()">닫기</button>
       <button class="btn btn-pri" style="flex:2;" onclick="noteDoPrint()">선택한 기록 인쇄 / PDF 저장</button>
+    </div>
+  </div>
+</div>
+
+<div id="colorModal" class="modal">
+  <div class="mbox">
+    <h2>종류별 색상 설정</h2>
+    <div class="mscroll">
+      <div style="font-size:.72rem;color:#94A3B8;margin-bottom:9px;line-height:1.4;">배양 현황에 표시되는 종류별 색상을 여기서 바꿀 수 있어요. 새 종류를 등록하면 자동으로 랜덤 색상이 지정돼요.</div>
+      <div id="colorList"></div>
+    </div>
+    <div class="mfoot" style="display:flex;gap:7px;">
+      <button class="btn btn-out" style="flex:1;" onclick="randomizeAllTypeColors()">🎲 색 전체 랜덤 바꾸기</button>
+      <button class="btn btn-out" style="flex:1;" onclick="closeColorModal()">닫기</button>
     </div>
   </div>
 </div>
@@ -770,9 +788,67 @@ const PAL=[
 ];
 const DONE={bg:'#F1F5F9',tx:'#475569',bd:'#E2E8F0',hbg:'#F1F5F9',ht:'#475569'};
 let tcm={};
-function rebuildColors(){tcm={};let i=0;lines.forEach(l=>{if(!(l.type in tcm)){tcm[l.type]=PAL[i%PAL.length];i++;}});}
-// 종류(type)별로 사용자가 직접 고른 색이 있으면 그 색을 우선 쓰고, 없으면 자동 순환 배정(tcm)을 쓴다.
-const getC=(type,done)=>done?DONE:(typeColors[type]!=null?PAL[typeColors[type]]:(tcm[type]||PAL[0]));
+function randIdxAvoiding(exclude){
+  if(PAL.length<=1) return 0;
+  let i; do{ i=Math.floor(Math.random()*PAL.length); }while(i===exclude);
+  return i;
+}
+// 종류(type)마다 typeColors에 색이 고정 배정돼 있다. 새로 등장한 종류는 여기서 랜덤으로 배정하고 저장한다.
+// (⚙ 배양 현황의 "종류별 색상 설정"에서 수동으로 바꾸거나 다시 랜덤 돌릴 수 있다)
+function rebuildColors(){
+  tcm={};
+  let changed=false;
+  lines.forEach(l=>{
+    if(!l.type || (l.type in tcm)) return;
+    if(typeColors[l.type]==null){ typeColors[l.type]=randIdxAvoiding(-1); changed=true; }
+    tcm[l.type]=PAL[typeColors[l.type]];
+  });
+  if(changed) saveTypeColors();
+}
+const getC=(type,done)=>done?DONE:(tcm[type]||PAL[0]);
+function getAllTypes(){
+  return [...new Set(lines.map(l=>l.type).filter(Boolean))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true,sensitivity:'base'}));
+}
+function setTypeColor(type,idx){
+  typeColors[type]=idx;
+  saveTypeColors(); rebuildColors(); renderColorModal(); updateUI();
+}
+function randomizeTypeColor(type){
+  typeColors[type]=randIdxAvoiding(typeColors[type]);
+  saveTypeColors(); rebuildColors(); renderColorModal(); updateUI();
+}
+function randomizeAllTypeColors(){
+  const types=getAllTypes();
+  if(!types.length) return;
+  if(types.length<=PAL.length){
+    // 종류 수가 팔레트 색상 수 이하면 서로 겹치지 않도록 섞어서 배정
+    const idxs=PAL.map((_,i)=>i);
+    for(let i=idxs.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [idxs[i],idxs[j]]=[idxs[j],idxs[i]]; }
+    types.forEach((t,i)=>{ typeColors[t]=idxs[i]; });
+  } else {
+    types.forEach(t=>{ typeColors[t]=randIdxAvoiding(typeColors[t]); });
+  }
+  saveTypeColors(); rebuildColors(); renderColorModal(); updateUI();
+}
+function renderColorModal(){
+  rebuildColors();
+  const types=getAllTypes();
+  const el=document.getElementById('colorList');
+  if(!el) return;
+  if(!types.length){ el.innerHTML='<div style="color:#94A3B8;font-size:.82rem;padding:8px 2px;">등록된 종류가 없습니다. Cell Line을 추가하면 여기에 나타나요.</div>'; return; }
+  el.innerHTML=types.map(t=>{
+    const idx=typeColors[t]||0;
+    const c=PAL[idx];
+    const swatches=PAL.map((p,i)=>`<button class="cc-sw${i===idx?' cc-sel':''}" style="background:${p.hbg};" title="색상 ${i+1}" onclick="setTypeColor('${jsEsc(t)}',${i})"></button>`).join('');
+    return `<div class="cc-row">
+      <div class="cc-name" style="background:${c.hbg};color:${c.ht};">${esc(t)}</div>
+      <div class="cc-swatches">${swatches}</div>
+      <button class="tbl-btn" onclick="randomizeTypeColor('${jsEsc(t)}')" title="이 종류만 랜덤 색상">🎲</button>
+    </div>`;
+  }).join('');
+}
+function openColorModal(){ renderColorModal(); document.getElementById('colorModal').classList.add('open'); }
+function closeColorModal(){ document.getElementById('colorModal').classList.remove('open'); }
 
 // ══════════════════════════════════════════
 //  MC DAYS
@@ -813,12 +889,13 @@ function renderDash(){
   const shotLogBtn=`<button class="btn btn-out" style="border-color:#FBCFE8;color:#DB2777;background:#FDF2F8;font-weight:700;margin-left:6px;" onclick="openShotLogModal()">촬영 순서 기록${shotLog.length?` (${shotLog.length})`:''}</button>`;
 
   if(!active.length){
-    el.innerHTML=buildPlanStrip()+`<div class="dash-card">
+    el.innerHTML=buildPlanStrip()+`<div class="dash-card cultstat">
       <div class="dash-top">
         <div class="dash-ttl">현재 배양 현황</div>
         <div class="dash-totals">${sbarBtn}${pptBtn}${shotLogBtn}</div>
       </div>
       <div style="color:#94A3B8;font-size:.82rem;padding:4px 0;">현재 진행 중인 배양 라인이 없습니다.</div>
+      <button class="dash-gear" onclick="openColorModal()" title="종류별 색상 설정">⚙️</button>
     </div>`;
     return;
   }
@@ -866,12 +943,13 @@ function renderDash(){
     </div>`;
   });
 
-  el.innerHTML=buildPlanStrip()+`<div class="dash-card">
+  el.innerHTML=buildPlanStrip()+`<div class="dash-card cultstat">
     <div class="dash-top">
       <div class="dash-ttl">현재 배양 현황</div>
       <div class="dash-totals">${totals}${sbarBtn}${pptBtn}${shotLogBtn}</div>
     </div>
     <div class="dash-types">${typeCards}</div>
+    <button class="dash-gear" onclick="openColorModal()" title="종류별 색상 설정">⚙️</button>
   </div>`;
 }
 
@@ -1801,9 +1879,6 @@ function saveLine(){
 
   const dayStr = baseD>0 ? `d${baseD}+0` : 'd0';
 
-  if(_elColorIdx==null) delete typeColors[type]; else typeColors[type]=_elColorIdx;
-  saveTypeColors();
-
   if(id){
     const idx=lines.findIndex(l=>l.id===id);
     lines[idx].patientId = pId;
@@ -1877,9 +1952,6 @@ function editLine(id){
   document.getElementById('elWells').value=startWells;
   document.getElementById('elStart').value=startDt;
   setPlateSelectValue('elPlate','elPlateCustom', l.plateType||'');
-  _elColorIdx = typeColors[l.type]!=null ? typeColors[l.type] : null;
-  _elColorPickerOpen=false;
-  renderElColorPicker();
   openLineModal();
 }
 
@@ -2079,7 +2151,7 @@ function quickMediaChange(lineId,ev){
   updateUI();
 }
 
-function openLineModal(){updateUI();renderElColorPicker();document.getElementById('lineModal').classList.add('open');}
+function openLineModal(){updateUI();document.getElementById('lineModal').classList.add('open');}
 function closeLineModal(){document.getElementById('lineModal').classList.remove('open');resetLineForm();}
 function closeLogModal(){document.getElementById('logModal').classList.remove('open');}
 function resetLineForm(){
@@ -2087,39 +2159,7 @@ function resetLineForm(){
   setPlateSelectValue('elPlate','elPlateCustom','');
   document.getElementById('elP').value=0;document.getElementById('elBase').value=0;
   document.getElementById('elWells').value=0;document.getElementById('elStart').valueAsDate=new Date();
-  _elColorIdx=null;_elColorPickerOpen=false;renderElColorPicker();
 }
-
-// 라인 등록/수정 폼에서 종류(type)에 색을 직접 골라 고정할 수 있는 팔레트.
-// null = 자동 순환 배정 그대로 사용, 숫자 = 그 PAL 색을 이 종류에 고정.
-// 스와치 20개를 항상 펼쳐두면 화면을 너무 많이 차지하므로, 평소엔 "자동"/"색상 선택" 버튼만 보이고
-// "색상 선택"을 눌러야 스와치 목록이 펼쳐진다.
-let _elColorIdx=null;
-let _elColorPickerOpen=false;
-function renderElColorPicker(){
-  const autoBtn=document.getElementById('elColorAutoBtn');
-  const pickBtn=document.getElementById('elColorPickBtn');
-  const preview=document.getElementById('elColorPreview');
-  const sw=document.getElementById('elColorPicker');
-  if(!autoBtn) return;
-  const autoSel=_elColorIdx==null;
-  autoBtn.style.cssText=autoSel?'background:#EEF2FF;color:#4338CA;border-color:#C7D2FE;font-weight:700;':'';
-  if(autoSel){
-    preview.innerHTML='';
-    pickBtn.textContent='색상 선택';
-  } else {
-    const c=PAL[_elColorIdx];
-    preview.innerHTML=`<span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:${c.bg};border:2px solid ${c.tx};vertical-align:middle;"></span>`;
-    pickBtn.textContent='색상 변경';
-  }
-  sw.style.display=_elColorPickerOpen?'flex':'none';
-  sw.innerHTML=PAL.map((c,i)=>{
-    const sel=_elColorIdx===i;
-    return `<button type="button" title="이 색으로 고정" onclick="elPickColor(${i})" style="width:24px;height:24px;border-radius:50%;padding:0;cursor:pointer;background:${c.bg};border:2px solid ${sel?'#1E293B':'#fff'};box-shadow:0 0 0 1px #CBD5E1${sel?', 0 0 0 3px #C7D2FE':''};"></button>`;
-  }).join('');
-}
-function elToggleColorPicker(){ _elColorPickerOpen=!_elColorPickerOpen; renderElColorPicker(); }
-function elPickColor(i){ _elColorIdx=i; _elColorPickerOpen=false; renderElColorPicker(); }
 ['lineModal','logModal','trashModal'].forEach(id=>{
   document.getElementById(id).addEventListener('click',e=>{
     if(e.target===document.getElementById(id)) document.getElementById(id).classList.remove('open');
