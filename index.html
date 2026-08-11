@@ -760,53 +760,60 @@ const nextSeq = ()=>++_logSeq;
 const today = ()=>new Date().toISOString().split('T')[0];
 const isoD  = s => { try { return new Date(s).toISOString(); } catch(e) { return new Date().toISOString(); } };
 
-// ══════════════════════════════════════════
-//  COLOR MAP
-// ══════════════════════════════════════════
-// 색상환을 9°씩 40등분해서 서로 최대한 멀리 떨어지도록 배치.
-// 채도·명도를 40색 전부 동일한 기준으로 맞추되, 기존보다 명도를 올리고 채도를 살짝 낮춰
-// 더 밝고 흰끼 있는(화이트가 섞인 듯한) 파스텔톤으로 통일
+// 통일된 명도와 높아진 채도로 개선된 40색 무지개 팔레트
+// 코랄 빛 주황 + 풍성해진 노랑 + 구별이 확실한 고채도 톤
 const PAL=[
-  {bg:'#F7CFCF',tx:'#7E2525',bd:'#EAA4A4',hbg:'#FBE4E4',ht:'#651515'}, // 0°
-  {bg:'#F7D5CF',tx:'#7E3225',bd:'#EAAFA4',hbg:'#FBE8E4',ht:'#652115'}, // 9°
-  {bg:'#F7DBCF',tx:'#7E4025',bd:'#EAB9A4',hbg:'#FBEBE4',ht:'#652D15'}, // 18°
-  {bg:'#F7E1CF',tx:'#7E4D25',bd:'#EAC3A4',hbg:'#FBEFE4',ht:'#653915'}, // 27°
-  {bg:'#F7E7CF',tx:'#7E5B25',bd:'#EACEA4',hbg:'#FBF2E4',ht:'#654515'}, // 36°
-  {bg:'#F7EDCF',tx:'#7E6825',bd:'#EAD8A4',hbg:'#FBF5E4',ht:'#655115'}, // 45°
-  {bg:'#F7F3CF',tx:'#7E7625',bd:'#EAE3A4',hbg:'#FBF9E4',ht:'#655D15'}, // 54°
-  {bg:'#F5F7CF',tx:'#7A7E25',bd:'#E6EAA4',hbg:'#FAFBE4',ht:'#616515'}, // 63°
-  {bg:'#EFF7CF',tx:'#6D7E25',bd:'#DCEAA4',hbg:'#F7FBE4',ht:'#556515'}, // 72°
-  {bg:'#E9F7CF',tx:'#5F7E25',bd:'#D1EAA4',hbg:'#F3FBE4',ht:'#496515'}, // 81°
-  {bg:'#E3F7CF',tx:'#527E25',bd:'#C7EAA4',hbg:'#F0FBE4',ht:'#3D6515'}, // 90°
-  {bg:'#DDF7CF',tx:'#447E25',bd:'#BCEAA4',hbg:'#ECFBE4',ht:'#316515'}, // 99°
-  {bg:'#D7F7CF',tx:'#377E25',bd:'#B2EAA4',hbg:'#E9FBE4',ht:'#256515'}, // 108°
-  {bg:'#D1F7CF',tx:'#297E25',bd:'#A8EAA4',hbg:'#E5FBE4',ht:'#196515'}, // 117°
-  {bg:'#CFF7D3',tx:'#257E2E',bd:'#A4EAAB',hbg:'#E4FBE7',ht:'#15651D'}, // 126°
-  {bg:'#CFF7D9',tx:'#257E3B',bd:'#A4EAB6',hbg:'#E4FBEA',ht:'#156529'}, // 135°
-  {bg:'#CFF7DF',tx:'#257E49',bd:'#A4EAC0',hbg:'#E4FBED',ht:'#156535'}, // 144°
-  {bg:'#CFF7E5',tx:'#257E56',bd:'#A4EACA',hbg:'#E4FBF1',ht:'#156541'}, // 153°
-  {bg:'#CFF7EB',tx:'#257E64',bd:'#A4EAD5',hbg:'#E4FBF4',ht:'#15654D'}, // 162°
-  {bg:'#CFF7F1',tx:'#257E71',bd:'#A4EADF',hbg:'#E4FBF8',ht:'#156559'}, // 171°
-  {bg:'#CFF7F7',tx:'#257E7E',bd:'#A4EAEA',hbg:'#E4FBFB',ht:'#156565'}, // 180°
-  {bg:'#CFF1F7',tx:'#25717E',bd:'#A4DFEA',hbg:'#E4F8FB',ht:'#155965'}, // 189°
-  {bg:'#CFEBF7',tx:'#25647E',bd:'#A4D5EA',hbg:'#E4F4FB',ht:'#154D65'}, // 198°
-  {bg:'#CFE5F7',tx:'#25567E',bd:'#A4CAEA',hbg:'#E4F1FB',ht:'#154165'}, // 207°
-  {bg:'#CFDFF7',tx:'#25497E',bd:'#A4C0EA',hbg:'#E4EDFB',ht:'#153565'}, // 216°
-  {bg:'#CFD9F7',tx:'#253B7E',bd:'#A4B6EA',hbg:'#E4EAFB',ht:'#152965'}, // 225°
-  {bg:'#CFD3F7',tx:'#252E7E',bd:'#A4ABEA',hbg:'#E4E7FB',ht:'#151D65'}, // 234°
-  {bg:'#D1CFF7',tx:'#29257E',bd:'#A8A4EA',hbg:'#E5E4FB',ht:'#191565'}, // 243°
-  {bg:'#D7CFF7',tx:'#37257E',bd:'#B2A4EA',hbg:'#E9E4FB',ht:'#251565'}, // 252°
-  {bg:'#DDCFF7',tx:'#44257E',bd:'#BCA4EA',hbg:'#ECE4FB',ht:'#311565'}, // 261°
-  {bg:'#E3CFF7',tx:'#52257E',bd:'#C7A4EA',hbg:'#F0E4FB',ht:'#3D1565'}, // 270°
-  {bg:'#E9CFF7',tx:'#5F257E',bd:'#D1A4EA',hbg:'#F3E4FB',ht:'#491565'}, // 279°
-  {bg:'#EFCFF7',tx:'#6D257E',bd:'#DCA4EA',hbg:'#F7E4FB',ht:'#551565'}, // 288°
-  {bg:'#F5CFF7',tx:'#7A257E',bd:'#E6A4EA',hbg:'#FAE4FB',ht:'#611565'}, // 297°
-  {bg:'#F7CFF3',tx:'#7E2576',bd:'#EAA4E3',hbg:'#FBE4F9',ht:'#65155D'}, // 306°
-  {bg:'#F7CFED',tx:'#7E2568',bd:'#EAA4D8',hbg:'#FBE4F5',ht:'#651551'}, // 315°
-  {bg:'#F7CFE7',tx:'#7E255B',bd:'#EAA4CE',hbg:'#FBE4F2',ht:'#651545'}, // 324°
-  {bg:'#F7CFE1',tx:'#7E254D',bd:'#EAA4C3',hbg:'#FBE4EF',ht:'#651539'}, // 333°
-  {bg:'#F7CFDB',tx:'#7E2540',bd:'#EAA4B9',hbg:'#FBE4EB',ht:'#65152D'}, // 342°
-  {bg:'#F7CFD5',tx:'#7E2532',bd:'#EAA4AF',hbg:'#FBE4E8',ht:'#651521'}, // 351°
+  // 0° ~ 27°: 레드 & 예쁜 코랄/오렌지 (갈색 빛 제거)
+  {bg:'#FFD2D2',tx:'#7A0C0C',bd:'#FF9E9E',hbg:'#FFEAEA',ht:'#5C0505'}, // 0°  Red
+  {bg:'#FFD5C8',tx:'#7A190C',bd:'#FFA28B',hbg:'#FFECE5',ht:'#5C0D05'}, // 9°  Red-Coral
+  {bg:'#FFD9C0',tx:'#7A250C',bd:'#FFA87A',hbg:'#FFEFE0',ht:'#5C1505'}, // 18° Bright Coral
+  {bg:'#FFDEC0',tx:'#7A310C',bd:'#FFB17A',hbg:'#FFF2E0',ht:'#5C2005'}, // 27° Coral Orange
+
+  // 36° ~ 63°: 풍성해진 밝고 선명한 주황 & 노랑 계열
+  {bg:'#FFE4C0',tx:'#7A3F0C',bd:'#FFBB7A',hbg:'#FFF5E0',ht:'#5C2B05'}, // 36° Orange
+  {bg:'#FFECC0',tx:'#7A4F0C',bd:'#FFCC7A',hbg:'#FFF9E0',ht:'#5C3905'}, // 45° Warm Yellow-Orange
+  {bg:'#FFF2C0',tx:'#7A5D0C',bd:'#FFD97A',hbg:'#FFFCB8',ht:'#5C4505'}, // 54° Rich Yellow
+  {bg:'#FFF8BC',tx:'#776403',bd:'#FFE962',hbg:'#FFFFD0',ht:'#564700'}, // 63° Bright Yellow
+
+  // 72° ~ 117°: 라임 & 연두/초록 계열
+  {bg:'#F5FFBC',tx:'#5F6E03',bd:'#DCFF62',hbg:'#FAFFE0',ht:'#435000'}, // 72° Lime Yellow
+  {bg:'#EAFFBC',tx:'#486E03',bd:'#C8FF62',hbg:'#F4FFE0',ht:'#305000'}, // 81° Lime Green
+  {bg:'#DCFFBC',tx '#2F6E03',bd:'#B0FF62',hbg:'#EDFFE0',ht:'#1D5000'}, // 90° Bright Green
+  {bg:'#CFFFBC',tx:'#186E03',bd:'#97FF62',hbg:'#E5FFE0',ht:'#0B5000'}, // 99° Apple Green
+  {bg:'#BCFFC1',tx:'#036E0B',bd:'#62FF6B',hbg:'#E0FFE2',ht:'#005006'}, // 108° Green
+  {bg:'#BCFFCD',tx:'#036E1E',bd:'#62FF83',hbg:'#E0FFE7',ht:'#005011'}, // 117° Mint Green
+
+  // 126° ~ 171°: 에메랄드 & 청록(Cyan) 계열
+  {bg:'#BCFFDA',tx:'#036E32',bd:'#62FFA1',hbg:'#E0FFED',ht:'#005021'}, // 126° Spring Green
+  {bg:'#BCFFE7',tx:'#036E46',bd:'#62FFC0',hbg:'#E0FFF4',ht:'#005030'}, // 135° Emerald
+  {bg:'#BCFFF4',tx:'#036E5A',bd:'#62FFDE',hbg:'#E0FFFA',ht:'#005040'}, // 144° Sea Green
+  {bg:'#BCFCFF',tx:'#03626E',bd:'#62EFFF',hbg:'#E0FAFF',ht:'#004650'}, // 153° Ice Blue
+  {bg:'#BCEEFF',tx:'#03516E',bd:'#62D7FF',hbg:'#E0F6FF',ht:'#003750'}, // 162° Sky Blue
+  {bg:'#BCE0FF',tx:'#033F6E',bd:'#62BFFF',hbg:'#E0EFFF',ht:'#002950'}, // 171° Bright Cyan
+
+  // 180° ~ 234°: 블루 & 로열 블루 계열
+  {bg:'#BCCEFF',tx:'#032A6E',bd:'#629CFF',hbg:'#E0E7FF',ht:'#001850'}, // 180° Blue
+  {bg:'#BCBDFF',tx:'#08036E',bd:'#6267FF',hbg:'#E0E1FF',ht:'#030050'}, // 189° Royal Blue
+  {bg:'#C2BCFF',tx:'#16036E',bd:'#7062FF',hbg:'#E4E0FF',ht:'#0D0050'}, // 198° Deep Blue
+  {bg:'#CDBCFF',tx:'#25036E',bd:'#8262FF',hbg:'#E7E0FF',ht:'#180050'}, // 207° Indigo
+  {bg:'#D9BCFF',tx:'#35036E',bd:'#9962FF',hbg:'#EFE0FF',ht:'#230050'}, // 216° Blue Violet
+  {bg:'#E6BCFF',tx:'#46036E',bd:'#B262FF',hbg:'#F5E0FF',ht:'#300050'}, // 225° Violet
+  {bg:'#F2BCFF',tx:'#56036E',bd:'#CA62FF',hbg:'#FBE0FF',ht:'#3E0050'}, // 234° Purple
+
+  // 243° ~ 351°: 자주, 마젠타, 핫핑크 계열
+  {bg:'#FFBCFC',tx:'#6E036A',bd:'#FF62F9',hbg:'#FFE0FC',ht:'#50004C'}, // 243° Magenta
+  {bg:'#FFBCF0',tx:'#6E035A',bd:'#FF62E3',hbg:'#FFE0F8',ht:'#50003F'}, // 252° Orchid
+  {bg:'#FFBCE4',tx:'#6E034A',bd:'#FF62CC',hbg:'#FFE0F3',ht:'#500033'}, // 261° Deep Pink
+  {bg:'#FFBCD8',tx:'#6E0339',bd:'#FF62B4',hbg:'#FFE0ED',ht:'#500026'}, // 270° Hot Pink
+  {bg:'#FFBCCC',tx:'#6E0329',bd:'#FF629B',hbg:'#FFE0E8',ht:'#50001A'}, // 279° Rose Pink
+  {bg:'#FFBCC0',tx:'#6E031A',bd:'#FF6283',hbg:'#FFE0E3',ht:'#50000E'}, // 288° Rose
+  {bg:'#FFBCC4',tx:'#73051C',bd:'#FF6788',hbg:'#FFE2E6',ht:'#540211'}, // 297° Coral Red
+  {bg:'#FFBDC8',tx:'#76071E',bd:'#FF6B8D',hbg:'#FFE3E8',ht:'#570312'}, // 306° Crimson
+  {bg:'#FFBECC',tx:'#780A20',bd:'#FF6E91',hbg:'#FFE5EA',ht:'#590514'}, // 315° Carmine
+  {bg:'#FFC0CE',tx:'#790C21',bd:'#FF7294',hbg:'#FFE6EC',ht:'#5A0615'}, // 324° Ruby
+  {bg:'#FFC2D0',tx:'#7A0E22',bd:'#FF7596',hbg:'#FFE7ED',ht:'#5B0715'}, // 333° Coral Rose
+  {bg:'#FFC5D2',tx:'#7A0F22',bd:'#FF7998',hbg:'#FFE9EF',ht:'#5C0816'}, // 342° Soft Red
+  {bg:'#FFC8D3',tx:'#7A1022',bd:'#FF7C9A',hbg:'#FFEAEF',ht:'#5C0815'}  // 351° Red-Orange
 ];
 const DONE={bg:'#F1F5F9',tx:'#475569',bd:'#E2E8F0',hbg:'#F1F5F9',ht:'#475569'};
 let tcm={};
