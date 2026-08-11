@@ -763,28 +763,50 @@ const isoD  = s => { try { return new Date(s).toISOString(); } catch(e) { return
 // ══════════════════════════════════════════
 //  COLOR MAP
 // ══════════════════════════════════════════
-// 채도·명도를 20색 전부 동일한 기준으로 맞춰 서로 튀지 않고 조화롭게(너무 진하지도, 너무 연하지도 않게) 구성
+// 색상환을 9°씩 40등분해서 서로 최대한 멀리 떨어지도록 배치.
+// 채도·명도를 40색 전부 동일한 기준으로 맞추되, 기존보다 명도를 올리고 채도를 살짝 낮춰
+// 더 밝고 흰끼 있는(화이트가 섞인 듯한) 파스텔톤으로 통일
 const PAL=[
-  {bg:'#F5B2B2',tx:'#952323',bd:'#E77E7E',hbg:'#F9D2D2',ht:'#6B1919'}, // 레드
-  {bg:'#F5C6B2',tx:'#954523',bd:'#E79E7E',hbg:'#F9DED2',ht:'#6B3219'}, // 오렌지
-  {bg:'#F5DAB2',tx:'#956723',bd:'#E7BD7E',hbg:'#F9E9D2',ht:'#6B4B19'}, // 골드
-  {bg:'#F5EFB2',tx:'#958923',bd:'#E7DC7E',hbg:'#F9F5D2',ht:'#6B6319'}, // 옐로우
-  {bg:'#E8F5B2',tx:'#7E9523',bd:'#D2E77E',hbg:'#F1F9D2',ht:'#5B6B19'}, // 연두
-  {bg:'#D4F5B2',tx:'#5C9523',bd:'#B3E77E',hbg:'#E6F9D2',ht:'#426B19'}, // 라임
-  {bg:'#BFF5B2',tx:'#3A9523',bd:'#93E77E',hbg:'#DAF9D2',ht:'#2A6B19'}, // 그린
-  {bg:'#B2F5B9',tx:'#23952E',bd:'#7EE789',hbg:'#D2F9D6',ht:'#196B21'}, // 에메랄드
-  {bg:'#B2F5CD',tx:'#239550',bd:'#7EE7A8',hbg:'#D2F9E2',ht:'#196B3A'}, // 스프링그린
-  {bg:'#B2F5E1',tx:'#239573',bd:'#7EE7C7',hbg:'#D2F9ED',ht:'#196B53'}, // 민트
-  {bg:'#B2F5F5',tx:'#239595',bd:'#7EE7E7',hbg:'#D2F9F9',ht:'#196B6B'}, // 시안
-  {bg:'#B2E1F5',tx:'#237395',bd:'#7EC7E7',hbg:'#D2EDF9',ht:'#19536B'}, // 스카이블루
-  {bg:'#B2CDF5',tx:'#235095',bd:'#7EA8E7',hbg:'#D2E2F9',ht:'#193A6B'}, // 블루
-  {bg:'#B2B9F5',tx:'#232E95',bd:'#7E89E7',hbg:'#D2D6F9',ht:'#19216B'}, // 페리윙클
-  {bg:'#BFB2F5',tx:'#3A2395',bd:'#937EE7',hbg:'#DAD2F9',ht:'#2A196B'}, // 인디고
-  {bg:'#D4B2F5',tx:'#5C2395',bd:'#B27EE7',hbg:'#E5D2F9',ht:'#42196B'}, // 바이올렛
-  {bg:'#E8B2F5',tx:'#7E2395',bd:'#D27EE7',hbg:'#F1D2F9',ht:'#5B196B'}, // 퍼플
-  {bg:'#F5B2EF',tx:'#952389',bd:'#E77EDC',hbg:'#F9D2F5',ht:'#6B1963'}, // 오키드
-  {bg:'#F5B2DA',tx:'#952367',bd:'#E77EBD',hbg:'#F9D2E9',ht:'#6B194B'}, // 마젠타
-  {bg:'#F5B2C6',tx:'#952345',bd:'#E77E9E',hbg:'#F9D2DE',ht:'#6B1932'}, // 핑크
+  {bg:'#F7CFCF',tx:'#7E2525',bd:'#EAA4A4',hbg:'#FBE4E4',ht:'#651515'}, // 0°
+  {bg:'#F7D5CF',tx:'#7E3225',bd:'#EAAFA4',hbg:'#FBE8E4',ht:'#652115'}, // 9°
+  {bg:'#F7DBCF',tx:'#7E4025',bd:'#EAB9A4',hbg:'#FBEBE4',ht:'#652D15'}, // 18°
+  {bg:'#F7E1CF',tx:'#7E4D25',bd:'#EAC3A4',hbg:'#FBEFE4',ht:'#653915'}, // 27°
+  {bg:'#F7E7CF',tx:'#7E5B25',bd:'#EACEA4',hbg:'#FBF2E4',ht:'#654515'}, // 36°
+  {bg:'#F7EDCF',tx:'#7E6825',bd:'#EAD8A4',hbg:'#FBF5E4',ht:'#655115'}, // 45°
+  {bg:'#F7F3CF',tx:'#7E7625',bd:'#EAE3A4',hbg:'#FBF9E4',ht:'#655D15'}, // 54°
+  {bg:'#F5F7CF',tx:'#7A7E25',bd:'#E6EAA4',hbg:'#FAFBE4',ht:'#616515'}, // 63°
+  {bg:'#EFF7CF',tx:'#6D7E25',bd:'#DCEAA4',hbg:'#F7FBE4',ht:'#556515'}, // 72°
+  {bg:'#E9F7CF',tx:'#5F7E25',bd:'#D1EAA4',hbg:'#F3FBE4',ht:'#496515'}, // 81°
+  {bg:'#E3F7CF',tx:'#527E25',bd:'#C7EAA4',hbg:'#F0FBE4',ht:'#3D6515'}, // 90°
+  {bg:'#DDF7CF',tx:'#447E25',bd:'#BCEAA4',hbg:'#ECFBE4',ht:'#316515'}, // 99°
+  {bg:'#D7F7CF',tx:'#377E25',bd:'#B2EAA4',hbg:'#E9FBE4',ht:'#256515'}, // 108°
+  {bg:'#D1F7CF',tx:'#297E25',bd:'#A8EAA4',hbg:'#E5FBE4',ht:'#196515'}, // 117°
+  {bg:'#CFF7D3',tx:'#257E2E',bd:'#A4EAAB',hbg:'#E4FBE7',ht:'#15651D'}, // 126°
+  {bg:'#CFF7D9',tx:'#257E3B',bd:'#A4EAB6',hbg:'#E4FBEA',ht:'#156529'}, // 135°
+  {bg:'#CFF7DF',tx:'#257E49',bd:'#A4EAC0',hbg:'#E4FBED',ht:'#156535'}, // 144°
+  {bg:'#CFF7E5',tx:'#257E56',bd:'#A4EACA',hbg:'#E4FBF1',ht:'#156541'}, // 153°
+  {bg:'#CFF7EB',tx:'#257E64',bd:'#A4EAD5',hbg:'#E4FBF4',ht:'#15654D'}, // 162°
+  {bg:'#CFF7F1',tx:'#257E71',bd:'#A4EADF',hbg:'#E4FBF8',ht:'#156559'}, // 171°
+  {bg:'#CFF7F7',tx:'#257E7E',bd:'#A4EAEA',hbg:'#E4FBFB',ht:'#156565'}, // 180°
+  {bg:'#CFF1F7',tx:'#25717E',bd:'#A4DFEA',hbg:'#E4F8FB',ht:'#155965'}, // 189°
+  {bg:'#CFEBF7',tx:'#25647E',bd:'#A4D5EA',hbg:'#E4F4FB',ht:'#154D65'}, // 198°
+  {bg:'#CFE5F7',tx:'#25567E',bd:'#A4CAEA',hbg:'#E4F1FB',ht:'#154165'}, // 207°
+  {bg:'#CFDFF7',tx:'#25497E',bd:'#A4C0EA',hbg:'#E4EDFB',ht:'#153565'}, // 216°
+  {bg:'#CFD9F7',tx:'#253B7E',bd:'#A4B6EA',hbg:'#E4EAFB',ht:'#152965'}, // 225°
+  {bg:'#CFD3F7',tx:'#252E7E',bd:'#A4ABEA',hbg:'#E4E7FB',ht:'#151D65'}, // 234°
+  {bg:'#D1CFF7',tx:'#29257E',bd:'#A8A4EA',hbg:'#E5E4FB',ht:'#191565'}, // 243°
+  {bg:'#D7CFF7',tx:'#37257E',bd:'#B2A4EA',hbg:'#E9E4FB',ht:'#251565'}, // 252°
+  {bg:'#DDCFF7',tx:'#44257E',bd:'#BCA4EA',hbg:'#ECE4FB',ht:'#311565'}, // 261°
+  {bg:'#E3CFF7',tx:'#52257E',bd:'#C7A4EA',hbg:'#F0E4FB',ht:'#3D1565'}, // 270°
+  {bg:'#E9CFF7',tx:'#5F257E',bd:'#D1A4EA',hbg:'#F3E4FB',ht:'#491565'}, // 279°
+  {bg:'#EFCFF7',tx:'#6D257E',bd:'#DCA4EA',hbg:'#F7E4FB',ht:'#551565'}, // 288°
+  {bg:'#F5CFF7',tx:'#7A257E',bd:'#E6A4EA',hbg:'#FAE4FB',ht:'#611565'}, // 297°
+  {bg:'#F7CFF3',tx:'#7E2576',bd:'#EAA4E3',hbg:'#FBE4F9',ht:'#65155D'}, // 306°
+  {bg:'#F7CFED',tx:'#7E2568',bd:'#EAA4D8',hbg:'#FBE4F5',ht:'#651551'}, // 315°
+  {bg:'#F7CFE7',tx:'#7E255B',bd:'#EAA4CE',hbg:'#FBE4F2',ht:'#651545'}, // 324°
+  {bg:'#F7CFE1',tx:'#7E254D',bd:'#EAA4C3',hbg:'#FBE4EF',ht:'#651539'}, // 333°
+  {bg:'#F7CFDB',tx:'#7E2540',bd:'#EAA4B9',hbg:'#FBE4EB',ht:'#65152D'}, // 342°
+  {bg:'#F7CFD5',tx:'#7E2532',bd:'#EAA4AF',hbg:'#FBE4E8',ht:'#651521'}, // 351°
 ];
 const DONE={bg:'#F1F5F9',tx:'#475569',bd:'#E2E8F0',hbg:'#F1F5F9',ht:'#475569'};
 let tcm={};
