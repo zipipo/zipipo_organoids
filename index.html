@@ -2842,7 +2842,7 @@ function pptParse(name){
   const stem=name.replace(/\.[^.]+$/,'');
   const toks=stem.split('_');
   const RE_DATE=/^\d{6}$/, RE_PASS=/^p\d+$/i, RE_DAY=/^d\d.*$/i,
-        RE_WELL=/^(well|dish|plate|spot|insert|flask)\d+$/i, RE_MAG=/^(\d+)x(?:\((\d+)\))?$/i;
+        RE_WELL=/^(well|dish|plate|spot|insert|flask)\d+$/i, RE_MAG=/^(\d+)x(?:\s*\((\d+)\))?$/i;
   const o={date:'',group:stem.replace(/_/g,' ').trim(),passage:'',passageVal:0,day:'',
            well:'',wellVal:0,mag:'',magVal:9999,region:'',regionVal:0,extra:'',named:false};
   if(!toks.length||!RE_DATE.test(toks[0])) return o;
