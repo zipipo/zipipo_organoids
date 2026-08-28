@@ -130,6 +130,16 @@ textarea{resize:vertical;min-height:31px;line-height:1.45;}
 .arch-open .arch-arr{transform:rotate(90deg);}
 #archCount{font-size:.77rem;font-weight:500;color:#94A3B8;}
 
+/* ARCHIVE CARD GRID */
+.arch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px;}
+.arch-card{background:#fff;border:1px solid var(--bd);border-left:4px solid var(--bd);border-radius:6px;
+           padding:9px 11px;cursor:pointer;transition:.12s;}
+.arch-card:hover{border-color:#94A3B8;box-shadow:0 2px 8px rgba(0,0,0,.07);transform:translateY(-1px);}
+.arch-card-ttl{font-weight:700;font-size:.83rem;color:#0F172A;margin-bottom:6px;word-break:break-word;}
+.arch-card-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:5px;}
+.arch-card-range{font-size:.69rem;color:var(--sub);margin-bottom:2px;}
+.arch-card-cnt{font-size:.7rem;color:#94A3B8;}
+
 /* TIMELINE */
 .tl-wrap{margin-bottom:9px;border:1px solid var(--bd);border-radius:5px;overflow:hidden;}
 .tl-hdr{padding:8px 12px;font-weight:700;font-size:.83rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;cursor:pointer;user-select:none;}
@@ -468,6 +478,17 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
       <button class="btn btn-out" style="flex:1; border-color:var(--pri); color:var(--pri);" onclick="updateLog(true)">저장 후 타임라인 전체 재계산</button>
       <button class="btn btn-del" onclick="deleteLog()">삭제 (휴지통으로)</button>
       <button class="btn btn-out" onclick="closeLogModal()">취소</button>
+    </div>
+  </div>
+</div>
+
+<div id="archDetailModal" class="modal">
+  <div class="mbox" style="width:900px;">
+    <h2 id="archDetailTitle">완료된 기록</h2>
+    <div class="mscroll" id="archDetailBody"></div>
+    <div class="mfoot" style="display:flex;gap:7px;">
+      <button class="btn btn-edt" id="archDetailEdit">라인 수정</button>
+      <button class="btn btn-out" style="flex:1;" onclick="closeArchDetail()">닫기</button>
     </div>
   </div>
 </div>
@@ -1421,6 +1442,47 @@ function lineOptGroupsHTML(sortedLines, optFn){
   return html;
 }
 
+// 한 라인의 전체 로그를 테이블 HTML로 만든다 (진행 중 타임라인 인라인 + Archive 상세 모달 공용)
+function buildLogTable(line){
+  const lgs=logs.filter(lg=>lg.lineId===line.id).sort((a,b)=>{
+    const af=isFin(a.action),bf=isFin(b.action);
+    if(af&&!bf) return -1;if(!af&&bf) return 1;
+    const d=new Date(b.date)-new Date(a.date);
+    if(d) return d;
+    return (b.seq||0)-(a.seq||0);   // 같은 날짜: 나중에 기록한 게 위로 (등록 순서 보존)
+  });
+  let rows='';
+  lgs.forEach(lg=>{
+    rows+=`<tr>
+      <td style="color:var(--sub)">${lg.date}</td>
+      <td><span class="badge ${badgeCls(lg.action)}">${esc(lg.action)}</span></td>
+      <td><span class="pb ${pCls(lg.passage)}">P${lg.passage}</span> <span style="color:var(--sub);font-size:.75rem;">/ ${lg.dayInfo||'-'}</span></td>
+      <td>${esc(lg.plate||'-')}</td>
+      <td>${esc(lg.details||'-')}</td>
+      <td style="color:#059669;font-weight:700">${lg.finalWells?lg.finalWells+' well':'-'}</td>
+      <td style="color:#BE185D;font-weight:700">${lg.stocks?lg.stocks+' vial':'-'}</td>
+      <td><span class="mcell">${esc(lg.memo||'-')}</span></td>
+      <td style="text-align:center;"><button class="tbl-btn" onclick="openLogModal('${lg.id}')">수정</button></td>
+    </tr>`;
+  });
+  return `<table><thead><tr>
+    <th style="width:9%">Date</th><th style="width:10%">Action</th>
+    <th style="width:11%">P / D</th><th style="width:9%">Plate</th><th style="width:9%">Ratio</th>
+    <th style="width:6%">Well</th><th style="width:6%">Stock</th>
+    <th style="width:27%">Memo</th><th style="width:8%;text-align:center;">Edit</th>
+  </tr></thead><tbody>${rows}</tbody></table>`;
+}
+// 라인의 (최초기록일, 최초~최종 기록일 범위) — 정렬·카드 표시 공용
+function lineFirstDate(line){
+  const s=logs.filter(l=>l.lineId===line.id).sort((a,b)=>new Date(a.date)-new Date(b.date))[0];
+  return s?s.date:((line.startDate||'').split('T')[0]||'');
+}
+function lineDateRange(line){
+  const ds=logs.filter(l=>l.lineId===line.id).map(l=>l.date).filter(Boolean).sort();
+  if(!ds.length) return '';
+  return ds[0]===ds[ds.length-1] ? ds[0] : `${ds[0]} ~ ${ds[ds.length-1]}`;
+}
+
 function renderTimelines(containerId,showDone){
   const el=document.getElementById(containerId);
   el.innerHTML='';
@@ -1428,59 +1490,14 @@ function renderTimelines(containerId,showDone){
   if(!filtered.length){el.innerHTML='<div style="color:#94A3B8;font-size:.81rem;padding:5px 0;">없음</div>';return;}
 
   // 사전식(가나다/숫자) 정렬: 종류(대시보드 순서) → 환자ID, 겹치면 (최초 seeding) 날짜순
-  const firstDate=line=>{
-    const s=logs.filter(l=>l.lineId===line.id).sort((a,b)=>new Date(a.date)-new Date(b.date))[0];
-    return s?s.date:((line.startDate||'').split('T')[0]||'');
-  };
-  const dateRange=line=>{
-    const ds=logs.filter(l=>l.lineId===line.id).map(l=>l.date).filter(Boolean).sort();
-    if(!ds.length) return '';
-    return ds[0]===ds[ds.length-1] ? ds[0] : `${ds[0]} ~ ${ds[ds.length-1]}`;
-  };
-  filtered.sort((a,b)=> typeCmp(a,b) || firstDate(a).localeCompare(firstDate(b)));
+  filtered.sort((a,b)=> typeCmp(a,b) || lineFirstDate(a).localeCompare(lineFirstDate(b)));
 
-  // Archive(완료된 기록)는 종류별로 구분선을 넣어 한눈에 보이게 함
-  const typeCounts={};
-  if(showDone) filtered.forEach(l=>{typeCounts[l.type]=(typeCounts[l.type]||0)+1;});
-  let curType=null;
+  if(showDone){ renderArchiveGrid(el, filtered); return; }
 
   filtered.forEach(line=>{
-    if(showDone && line.type!==curType){
-      curType=line.type;
-      const tc=tcm[line.type]||PAL[0];
-      el.innerHTML+=`<div class="dtype-hd" style="background:${tc.hbg};color:${tc.ht};border-radius:6px;margin:${el.innerHTML?'14px':'0'} 0 6px;">
-        <span>${esc(line.type||'(종류 없음)')}</span><span class="dh-r">${typeCounts[line.type]}개</span>
-      </div>`;
-    }
-    const lgs=logs.filter(lg=>lg.lineId===line.id).sort((a,b)=>{
-      const af=isFin(a.action),bf=isFin(b.action);
-      if(af&&!bf) return -1;if(!af&&bf) return 1;
-      const d=new Date(b.date)-new Date(a.date);
-      if(d) return d;
-      return (b.seq||0)-(a.seq||0);   // 같은 날짜: 나중에 기록한 게 위로 (등록 순서 보존)
-    });
     const c=getC(line.type,line.isCompleted);
     const curPlate=latestPlate(line);
-    let rows='';
-    lgs.forEach(lg=>{
-      rows+=`<tr>
-        <td style="color:var(--sub)">${lg.date}</td>
-        <td><span class="badge ${badgeCls(lg.action)}">${esc(lg.action)}</span></td>
-        <td><span class="pb ${pCls(lg.passage)}">P${lg.passage}</span> <span style="color:var(--sub);font-size:.75rem;">/ ${lg.dayInfo||'-'}</span></td>
-        <td>${esc(lg.plate||'-')}</td>
-        <td>${esc(lg.details||'-')}</td>
-        <td style="color:#059669;font-weight:700">${lg.finalWells?lg.finalWells+' well':'-'}</td>
-        <td style="color:#BE185D;font-weight:700">${lg.stocks?lg.stocks+' vial':'-'}</td>
-        <td><span class="mcell">${esc(lg.memo||'-')}</span></td>
-        <td style="text-align:center;"><button class="tbl-btn" onclick="openLogModal('${lg.id}')">수정</button></td>
-      </tr>`;
-    });
-    const table=`<table><thead><tr>
-      <th style="width:9%">Date</th><th style="width:10%">Action</th>
-      <th style="width:11%">P / D</th><th style="width:9%">Plate</th><th style="width:9%">Ratio</th>
-      <th style="width:6%">Well</th><th style="width:6%">Stock</th>
-      <th style="width:27%">Memo</th><th style="width:8%;text-align:center;">Edit</th>
-    </tr></thead><tbody>${rows}</tbody></table>`;
+    const table=buildLogTable(line);
 
     const bid='tl_'+line.id;
     const collapsed = tlCollapsed.hasOwnProperty(line.id) ? tlCollapsed[line.id] : showDone;
@@ -1492,20 +1509,63 @@ function renderTimelines(containerId,showDone){
         <div class="tl-meta">
           <span class="tl-arr">&#9654;</span>
           <span style="font-size:.88rem;">[${esc(lineTag(line))}]</span>
-          ${showDone?`<span style="font-size:.71rem;color:var(--sub);opacity:.65;font-weight:400;">${dateRange(line)}</span>`:''}
           <span class="pb ${pCls(line.passage)}">P${line.passage}</span>
           <span style="font-size:.8rem;">/ ${calcDayStr(line)}</span>
           ${curPlate?`<span class="pb p0">${esc(curPlate)}</span>`:''}
         </div>
         <div style="display:flex;gap:5px;flex-wrap:wrap;" onclick="event.stopPropagation()">
-          ${!showDone?`<button class="btn btn-fin" onclick="completeLine('${line.id}')">배양 완료</button>`:''}
-          <button class="btn btn-edt" onclick="editLine('${line.id}')" style="${showDone?'height:26px;font-size:.74rem;':''}">라인 수정</button>
+          <button class="btn btn-fin" onclick="completeLine('${line.id}')">배양 완료</button>
+          <button class="btn btn-edt" onclick="editLine('${line.id}')">라인 수정</button>
         </div>
       </div>
       <div id="${bid}" class="tl-body ${collapsed?'col':''}" style="max-height:${maxH};">${table}</div>
     </div>`;
   });
 }
+
+// Archive(완료된 기록): 종류별 그룹 헤더 + 카드 그리드. 카드를 클릭하면 상세 모달로 전체 로그를 보여준다.
+function renderArchiveGrid(el, filtered){
+  const typeCounts={};
+  filtered.forEach(l=>{typeCounts[l.type]=(typeCounts[l.type]||0)+1;});
+  let curType=null, gridOpen=false, html='';
+
+  filtered.forEach(line=>{
+    if(line.type!==curType){
+      if(gridOpen) html+='</div>';
+      curType=line.type;
+      const tc=tcm[line.type]||PAL[0];
+      html+=`<div class="dtype-hd" style="background:${tc.hbg};color:${tc.ht};border-radius:6px;margin:${html?'14px':'0'} 0 6px;">
+        <span>${esc(line.type||'(종류 없음)')}</span><span class="dh-r">${typeCounts[line.type]}개</span>
+      </div><div class="arch-grid">`;
+      gridOpen=true;
+    }
+    const tc=tcm[line.type]||PAL[0];
+    const logCount=logs.filter(lg=>lg.lineId===line.id).length;
+    html+=`<div class="arch-card" style="border-left-color:${tc.bd};" onclick="openArchDetail('${line.id}')">
+      <div class="arch-card-ttl">${esc(lineTag(line))}</div>
+      <div class="arch-card-meta">
+        <span class="pb ${pCls(line.passage)}">P${line.passage}</span>
+        <span style="font-size:.74rem;color:var(--sub);">/ ${calcDayStr(line)}</span>
+      </div>
+      <div class="arch-card-range">${esc(lineDateRange(line))}</div>
+      <div class="arch-card-cnt">${logCount}건 기록</div>
+    </div>`;
+  });
+  if(gridOpen) html+='</div>';
+  el.innerHTML=html;
+}
+
+function openArchDetail(lineId){
+  const line=lines.find(l=>l.id===lineId); if(!line) return;
+  const c=getC(line.type,true);
+  document.getElementById('archDetailTitle').innerHTML=
+    `<span style="background:${c.hbg};color:${c.ht};padding:2px 9px;border-radius:4px;">${esc(lineTag(line))}</span>
+     <span style="font-size:.75rem;color:var(--sub);font-weight:400;margin-left:8px;">${esc(lineDateRange(line))}</span>`;
+  document.getElementById('archDetailBody').innerHTML=buildLogTable(line);
+  document.getElementById('archDetailEdit').onclick=()=>{ closeArchDetail(); editLine(line.id); };
+  document.getElementById('archDetailModal').classList.add('open');
+}
+function closeArchDetail(){document.getElementById('archDetailModal').classList.remove('open');}
 
 function toggleTL(id,lineId){
   const el=document.getElementById(id);if(!el) return;
@@ -2192,7 +2252,7 @@ function resetLineForm(){
   document.getElementById('elP').value=0;document.getElementById('elBase').value=0;
   document.getElementById('elWells').value=0;document.getElementById('elStart').valueAsDate=new Date();
 }
-['lineModal','logModal','trashModal'].forEach(id=>{
+['lineModal','logModal','trashModal','archDetailModal'].forEach(id=>{
   document.getElementById(id).addEventListener('click',e=>{
     if(e.target===document.getElementById(id)) document.getElementById(id).classList.remove('open');
   });
