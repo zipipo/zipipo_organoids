@@ -818,6 +818,15 @@ body[data-theme="mono"] .bd-color,body[data-theme="mono"] .pal-btn{display:none;
 body[data-theme="mono"] .toast{box-shadow:0 10px 30px rgba(0,0,0,.12),inset 3px 0 0 var(--ch);}
 body[data-theme="mono"] .toast button{background:var(--ch);color:#fff;}
 body[data-theme="mono"] input[type=checkbox]{accent-color:var(--ch);}
+/* 모노: 타임라인 카드 제목 줄도 차콜 바탕 + 흰 글씨 */
+body[data-theme="mono"] .tl-hdr{background:var(--ch)!important;color:#fff!important;}
+body[data-theme="mono"] .tl-hdr:hover{background:#34343A!important;filter:none;}
+body[data-theme="mono"] .tl-hdr .tl-name,body[data-theme="mono"] .tl-hdr .tl-pd,body[data-theme="mono"] .tl-hdr .tl-pd b{color:#fff;}
+body[data-theme="mono"] .tl-hdr .tl-plate,body[data-theme="mono"] .tl-hdr .tl-arr{color:#C8C8CE;}
+body[data-theme="mono"] .tl-hdr .tl-n{background:rgba(255,255,255,.14)!important;color:#E4E4E7;}
+body[data-theme="mono"] .tl-hdr .btn-ghost{color:#E4E4E7;}
+body[data-theme="mono"] .tl-hdr .btn-ghost:hover{background:rgba(255,255,255,.12);color:#fff;}
+body[data-theme="mono"] .tl-wrap::before{background:var(--ch);}
 body[data-theme="mono"] input:focus,body[data-theme="mono"] select:focus,body[data-theme="mono"] textarea:focus{border-color:#8E8E96;box-shadow:0 0 0 3px rgba(43,43,48,.12);}
 
 /* 모바일 전용 요소 (데스크톱에서는 숨김) */
