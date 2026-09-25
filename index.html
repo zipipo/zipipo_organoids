@@ -737,7 +737,7 @@ body[data-tab="ana"] .pane[data-pane="ana"]{display:block;animation:paneIn .28s 
 body[data-theme="dark"]{color-scheme:dark;
   --bg:#121214;--sur:#1B1B1F;--sur2:#202025;--hov:#26262C;--act:#2C2C33;--side:#16161A;--topbar:rgba(18,18,20,.86);--mtabs:rgba(22,22,26,.95);--ink:#D4D4D8;
   --tx:#EDEDEF;--sub:#A1A1AA;--mut:#6E6E78;--bd:#2E2E35;--bd2:#25252B;
-  --pri:#D9F957;--pri-h:#CCEE3E;--pri-bg:#D9F957;--pri-bgh:#CCEE3E;--pri-fg:#161A04;--psoft:#2A3112;
+  --pri:#D9F957;--pri-h:#CCEE3E;--pri-bg:#2B3314;--pri-bgh:#36401A;--pri-fg:#DDF86A;--psoft:#2A3112;
   --acc:#D9F957;--acc-bg:#2A2E17;--acc-bd:#434A1F;
   --ok:#86D8A8;--ok-bg:#15291E;--warn:#E9C865;--warn-bg:#2E2711;--due:#F2908B;--due-bg:#361A1A;}
 body[data-theme="dark"] [style*="--tf"]{--tf:var(--kf)!important;--ts:var(--kf)!important;--td:var(--kc)!important;--tt:var(--kt)!important;--tl:var(--kl)!important;}
@@ -769,6 +769,12 @@ body[data-theme="dark"] .cc-row{border-bottom-color:var(--bd2);}
 body[data-theme="dark"] .sb-row,body[data-theme="dark"] .sb-drop{border-color:var(--bd);}
 body[data-theme="dark"] kbd{background:var(--sur2);}
 body[data-theme="dark"] .mc-none{background:var(--hov);}
+/* 다크: 채운 버튼은 라임을 어둡게 비친 바탕 + 라임 글씨·테두리 (형광색이 혼자 튀지 않게) */
+body[data-theme="dark"] .btn-pri{background:var(--pri-bg);color:var(--pri-fg);border:1px solid #4E5E1F;box-shadow:none;}
+body[data-theme="dark"] .btn-pri:hover{background:var(--pri-bgh);border-color:#6B8024;}
+body[data-theme="dark"] .chip.on{background:var(--pri-bg);border-color:#4E5E1F;color:var(--pri-fg);}
+body[data-theme="dark"] .sel-fab{background:#2B3314;color:#DDF86A;box-shadow:0 8px 24px rgba(0,0,0,.5),inset 0 0 0 1px #4E5E1F;}
+body[data-theme="dark"] .sel-fab b{background:rgba(217,249,87,.14);}
 body[data-theme="dark"] [style*="background:#E2E8F0"]{background:var(--bd)!important;}
 body[data-theme="dark"] [style*="solid #E2E8F0"],body[data-theme="dark"] [style*="border:1px solid #E2E8F0"]{border-color:var(--bd)!important;}
 
