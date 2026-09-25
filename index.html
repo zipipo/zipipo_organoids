@@ -693,7 +693,7 @@ body[data-tab="ana"] .pane[data-pane="ana"]{display:block;animation:paneIn .28s 
 .a-line{display:inline-flex;align-items:center;gap:7px;font-weight:600;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
 .a-line .tdot{background:var(--tf);box-shadow:inset 0 0 0 1px var(--tl);}
 .a-bar{position:relative;height:8px;border-radius:4px;background:var(--hov);overflow:visible;display:block;}
-.a-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:#F0D957;}
+.a-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:#A5B1C6;}
 .a-bar i.over{background:#E8A3A0;}
 .a-pct{display:grid;grid-template-columns:1fr 36px;align-items:center;gap:8px;}
 .a-pct em{font-style:normal;font-size:.74rem;color:var(--sub);text-align:right;}
@@ -710,7 +710,7 @@ body[data-tab="ana"] .pane[data-pane="ana"]{display:block;animation:paneIn .28s 
 .wkbars{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;height:150px;align-items:end;}
 .wkb{display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;}
 .wkb-t{flex:1;width:100%;max-width:34px;display:flex;align-items:flex-end;background:var(--hov);border-radius:4px;overflow:hidden;}
-.wkb-t i{display:block;width:100%;background:#F0D957;border-radius:4px 4px 0 0;}
+.wkb-t i{display:block;width:100%;background:#A5B1C6;border-radius:4px 4px 0 0;}
 .wkb-n{font-size:.72rem;font-weight:600;color:var(--sub);}
 .wkb-l{font-size:.74rem;color:var(--sub);}
 @media (max-width: 1100px){ .ana-grid{grid-template-columns:1fr;} }
@@ -763,9 +763,10 @@ body[data-theme="dark"] .brand-mark{box-shadow:0 0 0 1px var(--bd);}
 body[data-theme="dark"] .demo-badge{background:var(--psoft);border-color:var(--acc-bd);color:var(--pri);}
 body[data-theme="dark"] .acct.on{color:var(--ok);}
 body[data-theme="dark"] .d-warn{background:#C9A63A;} body[data-theme="dark"] .d-due{background:#D66A65;}
-body[data-theme="dark"] .a-bar i,body[data-theme="dark"] .wkb-t i{background:#D9C24A;}
+body[data-theme="dark"] .a-bar i,body[data-theme="dark"] .wkb-t i{background:#7D8AA3;}
 body[data-theme="dark"] .a-bar i.over{background:#C86A66;}
-body[data-theme="dark"] #anaContent [style*="background:#F2F6E6"]{background:#26262C!important;}
+body[data-theme="dark"] #anaContent [style*="background:#F0F2F6"]{background:#26262C!important;}
+body[data-theme="dark"] #anaContent [style*="solid #F0F2F6"],body[data-theme="dark"] #anaContent [style*="solid #E7EEDA"]{border-color:var(--bd)!important;}
 body[data-theme="dark"] #anaContent [style*="color:#94A3B8"]{color:var(--mut)!important;}
 body[data-theme="dark"] .cc-row{border-bottom-color:var(--bd2);}
 body[data-theme="dark"] .sb-row,body[data-theme="dark"] .sb-drop{border-color:var(--bd);}
@@ -3661,6 +3662,7 @@ function setLineFilter(f,silent){
 function setTheme(t){
   if(!['dark','mono'].includes(t)) t='pastel';
   document.body.dataset.theme=t;
+  if(typeof curTab!=='undefined'&&curTab==='ana') renderAnalytics();   // 캘린더 색 순서가 테마마다 달라서 다시 그림
   document.querySelectorAll('#themeSw .seg').forEach(b=>b.classList.toggle('on',b.dataset.th===t));
   try{ localStorage.setItem('orgTheme',t); }catch(e){}
 }
@@ -4474,7 +4476,10 @@ function weekKey(dateStr){
   return d.getFullYear()+'-W'+String(week).padStart(2,'0');
 }
 
-const ANA_SEQ=['#F2F6E6','#FBF5D2','#F6EAA6','#F4DF61','#EBD24C','#A58A10'];   // 단일(파랑) 시퀀셜 램프 — 0단계는 회색(값 없음)
+const ANA_SEQ_LIGHT=['#F0F2F6','#DDE3EC','#C3CCDB','#A5B1C6','#8795AE','#5F6E8A'];
+// 다크 테마에서는 어두운 칸 → 밝은 칸 순서가 되어야 '많음'이 눈에 띈다
+const ANA_SEQ_DARK=['#26262C','#33384A','#44506A','#5A6B8C','#7A8CB0','#A3B2D2'];
+const anaSeq=()=>document.body.dataset.theme==='dark'?ANA_SEQ_DARK:ANA_SEQ_LIGHT;   // 단일(파랑) 시퀀셜 램프 — 0단계는 회색(값 없음)
 
 // toISOString()은 UTC 기준이라 KST(UTC+9) 자정~오전9시 사이엔 하루 밀려서 나옴 — 로컬 날짜 그대로 포맷
 function ymdLocal(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -4497,6 +4502,7 @@ function buildHeatmap(){
     weeks.push(col);
   }
   const max=Math.max(1,...Object.values(counts));
+  const ANA_SEQ=anaSeq();
   const colorFor=c=>{ if(!c) return ANA_SEQ[0]; const idx=Math.min(ANA_SEQ.length-1, Math.max(1,Math.ceil((c/max)*(ANA_SEQ.length-1)))); return ANA_SEQ[idx]; };
 
   // 월 라벨이 바뀌는 주(열) 인덱스를 먼저 모아서, 다음 라벨 전까지 span으로 넓게 잡아준다
@@ -4549,7 +4555,7 @@ function buildBarChart(buckets, take, fmtLabel, unit){
       <div style="font-size:.68rem;font-weight:700;color:var(--tx);">${v}</div>
       <div style="width:100%;max-width:26px;height:90px;display:flex;align-items:flex-end;">
         <div onmouseenter="anaTipShow(event,'${k} · ${v}${unit}')" onmousemove="anaTipMove(event)" onmouseleave="anaTipHide()"
-             style="width:100%;height:${h}%;background:#EBD24C;border-radius:3px 3px 0 0;min-height:2px;"></div>
+             style="width:100%;height:${h}%;background:#A5B1C6;border-radius:3px 3px 0 0;min-height:2px;"></div>
       </div>
       <div style="font-size:.65rem;color:var(--sub);white-space:nowrap;">${fmtLabel(k)}</div>
     </div>`;
@@ -4588,9 +4594,9 @@ function buildPassageCycle(){
     const w=Math.max(4,Math.round((s.avg/max)*100));
     return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;">
       <div style="width:120px;font-size:.78rem;font-weight:600;text-align:right;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.type)}</div>
-      <div style="flex:1;background:#F2F6E6;border-radius:4px;height:18px;position:relative;">
+      <div style="flex:1;background:#F0F2F6;border-radius:4px;height:18px;position:relative;">
         <div onmouseenter="anaTipShow(event,'${jsEsc(esc(s.type))} · 평균 ${s.avg.toFixed(1)}일 (n=${s.n})')" onmousemove="anaTipMove(event)" onmouseleave="anaTipHide()"
-             style="width:${w}%;height:100%;background:#EBD24C;border-radius:4px;"></div>
+             style="width:${w}%;height:100%;background:#A5B1C6;border-radius:4px;"></div>
       </div>
       <div style="width:100px;font-size:.74rem;color:var(--sub);flex-shrink:0;">${s.avg.toFixed(1)}일 (n=${s.n})</div>
     </div>`;
@@ -4620,9 +4626,9 @@ function buildPassageCycleByLine(){
     const bars=it.seq.map((v,i)=>{
       const h=Math.max(6,Math.round((v/maxV)*32));
       return `<div onmouseenter="anaTipShow(event,'${jsEsc(esc(it.label))} · ${i+1}번째 계대 · ${v}일')" onmousemove="anaTipMove(event)" onmouseleave="anaTipHide()"
-        style="width:13px;height:${h}px;background:#F6EAA6;border-radius:2px 2px 0 0;flex-shrink:0;"></div>`;
+        style="width:13px;height:${h}px;background:#C3CCDB;border-radius:2px 2px 0 0;flex-shrink:0;"></div>`;
     }).join('');
-    return `<div style="display:flex;align-items:center;gap:10px;padding:6px 2px;border-bottom:1px solid #F2F6E6;">
+    return `<div style="display:flex;align-items:center;gap:10px;padding:6px 2px;border-bottom:1px solid #F0F2F6;">
       <div style="width:130px;flex-shrink:0;font-size:.76rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(it.label)}</div>
       <div style="display:flex;align-items:flex-end;gap:4px;height:32px;overflow-x:auto;">${bars}</div>
       <div style="font-size:.7rem;color:var(--sub);flex-shrink:0;">${it.seq.join(' → ')}일</div>
