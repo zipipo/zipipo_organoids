@@ -732,63 +732,54 @@ body[data-tab="ana"] .pane[data-pane="ana"]{display:block;animation:paneIn .28s 
 /* ═══ 테마 전환 ═══ */
 .theme-sw{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:2px 4px 8px 10px;font-size:.76rem;color:var(--sub);font-weight:550;}
 .theme-sw .seg{height:24px;padding:0 9px;font-size:.72rem;}
-/* 모노: 색을 빼는 게 아니라 검정을 강조로 쓰는 흑백 디자인. 채워진 태그·선택 = 검정, 뱃지 = 흰 바탕 + 검정 테두리 */
-body[data-theme="mono"]{--bg:#F1F1F1;--sur2:#FAFAFA;--hov:#F2F2F2;--bd:#DEDEDE;--bd2:#ECECEC;--tx:#111;--sub:#5C5C5C;
-  --pri:#111;--pri-h:#333;--psoft:#F0F0F0;--acc:#111;--acc-bg:#F0F0F0;--acc-bd:#D6D6D6;}
-body[data-theme="mono"] [style*="--tf"]{--tf:#FAFAFA!important;--ts:#FAFAFA!important;--td:#111!important;--tl:#111!important;--tt:#fff!important;}
-body[data-theme="mono"] .type-chip{background:#111;color:#fff;}
-body[data-theme="mono"] .bd-row.sel{background:#F0F0F0;}
-body[data-theme="mono"] .bd-row.sel .cbx{background:#111;}
-body[data-theme="mono"] .bd-row.sel .bd-name,body[data-theme="mono"] .tl-name{color:#111;}
-body[data-theme="mono"] .dtag.ltag{background:#fff;border-color:#111;}
-body[data-theme="mono"] .dtag.ltag .tdot{background:#111;box-shadow:none;}
-body[data-theme="mono"] .a-line .tdot{background:#111;box-shadow:none;}
-body[data-theme="mono"] .badge{background:#fff!important;color:#111!important;border:1px solid #111!important;font-weight:600;}
-body[data-theme="mono"] .act{background:#fff!important;color:#222!important;border:1px solid #D0D0D0!important;opacity:1;}
-body[data-theme="mono"] .act:hover{border-color:#111!important;}
-body[data-theme="mono"] .act.on{background:#111!important;color:#fff!important;border-color:#111!important;box-shadow:none;}
+/* 모노: 검정 대신 차콜(--m1)·중간 회색(--m2)·연회색(--m3) 세 단계로 강조. 대비를 낮춰 오래 봐도 눈이 편하게 */
+body[data-theme="mono"]{--m1:#4A4A52;--m2:#A6A6AE;--m3:#E6E6E9;
+  --bg:#EFEFF0;--sur2:#F9F9FA;--hov:#F2F2F3;--bd:#DEDEE1;--bd2:#EBEBED;--tx:#2A2A30;--sub:#66666E;
+  --pri:#4A4A52;--pri-h:#3A3A41;--psoft:#EEEEF0;--acc:#4A4A52;--acc-bg:#EEEEF0;--acc-bd:#D6D6DA;}
+body[data-theme="mono"] [style*="--tf"]{--tf:#F9F9FA!important;--ts:#F9F9FA!important;--td:var(--m3)!important;--tl:var(--m2)!important;--tt:var(--m1)!important;}
+body[data-theme="mono"] .type-chip{background:var(--m3);color:var(--m1);}
+body[data-theme="mono"] .bd-row.sel{background:#F1F1F3;}
+body[data-theme="mono"] .bd-row.sel .cbx{background:var(--m1);}
+body[data-theme="mono"] .bd-row.sel .bd-name,body[data-theme="mono"] .tl-name{color:var(--tx);}
+body[data-theme="mono"] .dtag.ltag{background:#fff;border-color:var(--m2);}
+body[data-theme="mono"] .dtag.ltag .tdot,body[data-theme="mono"] .a-line .tdot{background:var(--m2);box-shadow:none;}
+body[data-theme="mono"] .badge{background:#fff!important;color:var(--m1)!important;border:1px solid var(--m2)!important;font-weight:600;}
+body[data-theme="mono"] .act{background:#fff!important;color:#3A3A41!important;border:1px solid var(--bd)!important;opacity:1;}
+body[data-theme="mono"] .act:hover{border-color:var(--m2)!important;}
+body[data-theme="mono"] .act.on{background:var(--m3)!important;color:var(--tx)!important;border-color:var(--m1)!important;box-shadow:inset 0 0 0 1px var(--m1);}
 body[data-theme="mono"] .act small{color:inherit;}
-body[data-theme="mono"] .chip.on,body[data-theme="mono"] .seg.on{background:#111;border-color:#111;color:#fff;box-shadow:none;}
-body[data-theme="mono"] .nav-i.on{background:#111;color:#fff;}
-body[data-theme="mono"] .nav-i.on .ic,body[data-theme="mono"] .nav-i.on em{color:#fff;}
+body[data-theme="mono"] .chip.on,body[data-theme="mono"] .seg.on{background:var(--m3);border-color:var(--m2);color:var(--tx);box-shadow:none;}
+body[data-theme="mono"] .nav-i.on{background:var(--m3);color:var(--tx);}
+body[data-theme="mono"] .nav-i.on .ic{color:var(--m1);}
 body[data-theme="mono"] .btn-pri{box-shadow:none;}
-body[data-theme="mono"] .mc-ok{background:#fff;color:#111;box-shadow:inset 0 0 0 1px #CFCFCF;}
-body[data-theme="mono"] .mc-warn{background:#fff;color:#111;box-shadow:inset 0 0 0 1.5px #111;}
-body[data-theme="mono"] .mc-due{background:#111;color:#fff;}
-body[data-theme="mono"] .d-warn{background:#fff;box-shadow:inset 0 0 0 1.5px #111;} body[data-theme="mono"] .d-due{background:#111;}
-body[data-theme="mono"] .chip-s.warn{background:#fff;color:#111;box-shadow:inset 0 0 0 1px #111;} body[data-theme="mono"] .chip-s.due{background:#111;color:#fff;}
-body[data-theme="mono"] .a-bar i,body[data-theme="mono"] .wkb-t i{background:#111;} body[data-theme="mono"] .a-bar i.over{background:#666;}
-body[data-theme="mono"] .hb-t i{background:#111;box-shadow:none;}
-body[data-theme="mono"] .t-due{color:#111;text-decoration:underline;}
-body[data-theme="mono"] #anaContent .pbody{filter:grayscale(1) contrast(1.15);}
+body[data-theme="mono"] .mc-ok{background:#fff;color:var(--sub);box-shadow:inset 0 0 0 1px var(--bd);}
+body[data-theme="mono"] .mc-warn{background:#fff;color:var(--m1);box-shadow:inset 0 0 0 1.5px var(--m2);}
+body[data-theme="mono"] .mc-due{background:var(--m3);color:var(--tx);box-shadow:inset 0 0 0 1.5px var(--m1);font-weight:700;}
+body[data-theme="mono"] .d-warn{background:#fff;box-shadow:inset 0 0 0 1.5px var(--m2);} body[data-theme="mono"] .d-due{background:var(--m1);}
+body[data-theme="mono"] .chip-s.warn{background:#fff;color:var(--m1);box-shadow:inset 0 0 0 1px var(--m2);} body[data-theme="mono"] .chip-s.due{background:var(--m3);color:var(--tx);box-shadow:inset 0 0 0 1px var(--m1);}
+body[data-theme="mono"] .a-bar i,body[data-theme="mono"] .wkb-t i,body[data-theme="mono"] .hb-t i{background:var(--m2);box-shadow:none;}
+body[data-theme="mono"] .a-bar i.over{background:var(--m1);}
+body[data-theme="mono"] .t-due{color:var(--tx);text-decoration:underline;}
+body[data-theme="mono"] #anaContent .pbody{filter:grayscale(1);}
 body[data-theme="mono"] .bd-color,body[data-theme="mono"] .pal-btn,body[data-theme="mono"] .dash-gear{display:none;}
-body[data-theme="mono"] .wk-c{background:#111;}
-body[data-theme="mono"] .wk-day.now{background:#111;} body[data-theme="mono"] .wk-day.now .wk-n,body[data-theme="mono"] .wk-day.now .wk-w{color:#fff;}
-body[data-theme="mono"] .wk-day.now .wk-c{background:#fff;}
-body[data-theme="mono"] .pl-row.now .pl-date,body[data-theme="mono"] .pv-after{color:#111;font-weight:700;}
-body[data-theme="mono"] .plan-tag{color:#fff;background:#111;}
-body[data-theme="mono"] .plan-link{background:#111;color:#fff;border-color:#111;}
-body[data-theme="mono"] .plan-link .btn-icon{color:#fff;}
-body[data-theme="mono"] .demo-badge{color:#fff;background:#111;border-color:#111;}
-body[data-theme="mono"] .acct.on{color:#111;} body[data-theme="mono"] .acct-dot{background:#111;}
-body[data-theme="mono"] .toast{box-shadow:0 10px 30px rgba(0,0,0,.14),inset 3px 0 0 #111;}
-body[data-theme="mono"] .toast button{background:#111;color:#fff;}
-body[data-theme="mono"] input[type=checkbox]{accent-color:#111;}
+body[data-theme="mono"] .wk-c{background:var(--m1);}
+body[data-theme="mono"] .wk-day.now{background:var(--m3);} body[data-theme="mono"] .wk-day.now .wk-n,body[data-theme="mono"] .wk-day.now .wk-w{color:var(--tx);}
+body[data-theme="mono"] .pl-row.now .pl-date,body[data-theme="mono"] .pv-after{color:var(--tx);font-weight:700;}
+body[data-theme="mono"] .plan-tag{color:var(--m1);background:var(--m3);}
+body[data-theme="mono"] .plan-link{background:var(--m3);color:var(--tx);border-color:var(--bd);}
+body[data-theme="mono"] .demo-badge{color:var(--m1);background:var(--m3);border-color:var(--bd);}
+body[data-theme="mono"] .acct.on{color:var(--tx);} body[data-theme="mono"] .acct-dot{background:var(--m1);}
+body[data-theme="mono"] .toast{box-shadow:0 10px 30px rgba(0,0,0,.1),inset 3px 0 0 var(--m2);}
+body[data-theme="mono"] .toast button{background:var(--m3);color:var(--tx);}
+body[data-theme="mono"] input[type=checkbox]{accent-color:var(--m1);}
 
-
-/* ═══ 오늘 작업 패널 구분: 패널마다 고유 색(제목 줄 바탕 + 위쪽 선 + 아이콘 배지) ═══ */
-.sec-stock{--sa:#5B9BD5;--sb:#EEF5FC;--si:#DCEBFA;}
-.sec-plan{--sa:#8B7FD9;--sb:#F3F1FC;--si:#E5E1FA;}
-.sec-board{--sa:#4FAE8C;--sb:#EDF8F3;--si:#D5F0E4;}
-.sec-today{--sa:#D2A93B;--sb:#FCF8EA;--si:#F6EBC4;}
-.panel.sec{border-top:3px solid var(--sa);}
-.panel.sec > .panel-hd{background:var(--sb);border-bottom-color:color-mix(in srgb,var(--sa) 18%,transparent);}
-.sec-ic{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:6px;background:var(--si);color:var(--sa);font-style:normal;}
-.sec-ic .ic{width:14px;height:14px;stroke-width:1.9;}
-.panel.sec > .panel-hd .panel-n{color:var(--sa);font-weight:600;}
-body[data-theme="mono"] .panel.sec{border-top-color:#111;}
-body[data-theme="mono"] .panel.sec > .panel-hd{background:#FAFAFA;border-bottom-color:var(--bd2);}
-body[data-theme="mono"] .sec-ic{background:#111;color:#fff;}
+/* ═══ 오늘 작업 패널 구분: 색은 하나(강조색)만 쓰고, 아이콘 모양과 제목 크기로 구분 ═══ */
+.panel.sec > .panel-hd{height:46px;background:var(--sur);font-size:.9rem;font-weight:700;letter-spacing:-.01em;}
+.sec-ic{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:7px;background:var(--psoft);color:var(--pri);font-style:normal;}
+.sec-ic .ic{width:15px;height:15px;stroke-width:1.8;}
+.panel.sec > .panel-hd .panel-n{color:var(--sub);font-weight:600;}
+#dash .panel,#stockBanner .panel{margin-bottom:16px;}
+body[data-theme="mono"] .sec-ic{background:var(--m3);color:var(--m1);}
 body[data-theme="mono"] .panel.sec > .panel-hd .panel-n{color:var(--sub);}
 
 /* 모바일 전용 요소 (데스크톱에서는 숨김) */
@@ -1711,7 +1702,7 @@ function renderDash(){
     <div class="panel-hd"><span><i class="sec-ic">${ic('flask')}</i>배양 현황</span>
       <span class="panel-act">
         ${bulkLines.length?`<button class="btn btn-ghost" onclick="clearBulkLines()">${bulkLines.length}개 선택 해제</button>`:''}
-        <button class="btn btn-ghost pal-btn" onclick="openColorModal()" title="종류별 색상 바꾸기">${ic('palette')}색상</button>
+        <button class="btn btn-icon pal-btn" onclick="openColorModal()" title="종류별 색상 바꾸기">${ic('palette')}</button>
       </span></div>
     ${active.length?`<div class="bd-head"><span></span><span>라인</span><span>P / D</span><span>Plate</span><span>Well</span><span>MC</span><span></span></div><div class="bd-blocks">${body}</div>`
       :'<div class="empty">진행 중인 라인이 없어요.</div>'}
