@@ -727,6 +727,24 @@ body[data-tab="ana"] .pane[data-pane="ana"]{display:block;animation:paneIn .28s 
   .tl-tools .btn-pri{margin-left:auto;}
 }
 
+
+/* ═══ 테마 전환 ═══ */
+.theme-sw{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:2px 4px 8px 10px;font-size:.76rem;color:var(--sub);font-weight:550;}
+.theme-sw .seg{height:24px;padding:0 9px;font-size:.72rem;}
+/* 모노: 강조색은 검정, 종류·액션 색은 회색으로. 상태(MC 3일차·지연)만 의미 전달용으로 옅게 남긴다 */
+body[data-theme="mono"]{--pri:#18181B;--pri-h:#2E2E33;--psoft:#F1F1F3;--acc:#18181B;--acc-bg:#F1F1F3;--acc-bd:#DCDCE0;}
+body[data-theme="mono"] [style*="--tf"]{--tf:#F4F4F6!important;--ts:#F8F8FA!important;--td:#E6E6EA!important;--tl:#B4B4BC!important;--tt:#27272A!important;}
+body[data-theme="mono"] .badge,body[data-theme="mono"] .act{background:#F1F1F3!important;color:#3F3F46!important;border-color:#E1E1E5!important;}
+body[data-theme="mono"] .act.on{background:#fff!important;color:#18181B!important;box-shadow:0 0 0 1.5px #18181B inset;}
+body[data-theme="mono"] .chip.on{background:#18181B;border-color:#18181B;color:#fff;}
+body[data-theme="mono"] .btn-pri{box-shadow:none;}
+body[data-theme="mono"] .bd-color,body[data-theme="mono"] .pal-btn,body[data-theme="mono"] .dash-gear{display:none;}
+body[data-theme="mono"] #anaContent .pbody,body[data-theme="mono"] .wk-c,body[data-theme="mono"] .cc-swatches{filter:grayscale(1);}
+body[data-theme="mono"] .plan-tag{color:#3F3F46;background:#F1F1F3;}
+body[data-theme="mono"] .wk-day.now .wk-n,body[data-theme="mono"] .wk-day.now .wk-w,body[data-theme="mono"] .pl-row.now .pl-date{color:var(--tx);}
+body[data-theme="mono"] .pv-after{color:var(--tx);}
+body[data-theme="mono"] .demo-badge{color:#3F3F46;background:#F1F1F3;border-color:#DCDCE0;}
+
 /* 모바일 전용 요소 (데스크톱에서는 숨김) */
 .mtabs,.sel-fab,.side-backdrop{display:none;}
 
@@ -850,6 +868,13 @@ body[data-tab="ana"] .pane[data-pane="ana"]{display:block;animation:paneIn .28s 
   </nav>
 
   <div class="side-foot">
+    <div class="theme-sw" title="화면 테마 (이 브라우저에 저장)">
+      <span>테마</span>
+      <div class="seg-group" id="themeSw">
+        <button class="seg" data-th="pastel" onclick="setTheme('pastel')">파스텔</button>
+        <button class="seg" data-th="mono" onclick="setTheme('mono')">모노</button>
+      </div>
+    </div>
     <input type="file" id="bkFile" style="display:none;" accept=".json,application/json" onchange="restoreBackup(event)">
     <div class="dd dd-up" id="dataDd">
       <button class="nav-i" onclick="toggleDd(event,'dataDd')"><svg class="ic"><use href="#i-db"/></svg><span>데이터</span><span id="bkDot" class="dd-dot" style="display:none;"></span><svg class="ic ic-sm" style="margin-left:auto;"><use href="#i-down"/></svg></button>
@@ -1641,7 +1666,7 @@ function renderDash(){
     <div class="panel-hd"><span>배양 현황</span>
       <span class="panel-act">
         ${bulkLines.length?`<button class="btn btn-ghost" onclick="clearBulkLines()">${bulkLines.length}개 선택 해제</button>`:''}
-        <button class="btn btn-ghost" onclick="openColorModal()" title="종류별 색상 바꾸기">${ic('palette')}색상</button>
+        <button class="btn btn-ghost pal-btn" onclick="openColorModal()" title="종류별 색상 바꾸기">${ic('palette')}색상</button>
       </span></div>
     ${active.length?`<div class="bd-head"><span></span><span>라인</span><span>P / D</span><span>Plate</span><span>Well</span><span>MC</span><span></span></div><div class="bd-blocks">${body}</div>`
       :'<div class="empty">진행 중인 라인이 없어요.</div>'}
@@ -3466,6 +3491,13 @@ function setLineFilter(f,silent){
   try{ localStorage.setItem('orgLnFilter',f); }catch(e){}
   if(!silent) renderFilterHint();
 }
+// 화면 테마: 파스텔(기본) / 모노(회색·검정). 데이터와 무관한 화면 설정이라 이 브라우저에만 저장
+function setTheme(t){
+  if(t!=='mono') t='pastel';
+  document.body.dataset.theme=t;
+  document.querySelectorAll('#themeSw .seg').forEach(b=>b.classList.toggle('on',b.dataset.th===t));
+  try{ localStorage.setItem('orgTheme',t); }catch(e){}
+}
 // 모바일: 사이드바를 서랍처럼 열고 닫기
 function openSide(){ document.body.classList.add('side-open'); }
 function closeSide(){ document.body.classList.remove('side-open'); }
@@ -3539,6 +3571,8 @@ if(DEMO){ document.getElementById('demoBadge').style.display=''; }
 renderCloudStatus(null);
 renderActChips(); applyActionFields();
 updateUI();
+let _theme='pastel'; try{ _theme=localStorage.getItem('orgTheme')||'pastel'; }catch(e){}
+setTheme(_theme);
 setLineFilter(lnFilter,true);
 setTab(curTab,true);
 previewDay();
