@@ -731,19 +731,48 @@ body[data-tab="ana"] .pane[data-pane="ana"]{display:block;animation:paneIn .28s 
 /* ═══ 테마 전환 ═══ */
 .theme-sw{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:2px 4px 8px 10px;font-size:.76rem;color:var(--sub);font-weight:550;}
 .theme-sw .seg{height:24px;padding:0 9px;font-size:.72rem;}
-/* 모노: 강조색은 검정, 종류·액션 색은 회색으로. 상태(MC 3일차·지연)만 의미 전달용으로 옅게 남긴다 */
-body[data-theme="mono"]{--pri:#18181B;--pri-h:#2E2E33;--psoft:#F1F1F3;--acc:#18181B;--acc-bg:#F1F1F3;--acc-bd:#DCDCE0;}
-body[data-theme="mono"] [style*="--tf"]{--tf:#F4F4F6!important;--ts:#F8F8FA!important;--td:#E6E6EA!important;--tl:#B4B4BC!important;--tt:#27272A!important;}
-body[data-theme="mono"] .badge,body[data-theme="mono"] .act{background:#F1F1F3!important;color:#3F3F46!important;border-color:#E1E1E5!important;}
-body[data-theme="mono"] .act.on{background:#fff!important;color:#18181B!important;box-shadow:0 0 0 1.5px #18181B inset;}
-body[data-theme="mono"] .chip.on{background:#18181B;border-color:#18181B;color:#fff;}
+/* 모노: 색을 빼는 게 아니라 검정을 강조로 쓰는 흑백 디자인. 채워진 태그·선택 = 검정, 뱃지 = 흰 바탕 + 검정 테두리 */
+body[data-theme="mono"]{--bg:#F1F1F1;--sur2:#FAFAFA;--hov:#F2F2F2;--bd:#DEDEDE;--bd2:#ECECEC;--tx:#111;--sub:#5C5C5C;
+  --pri:#111;--pri-h:#333;--psoft:#F0F0F0;--acc:#111;--acc-bg:#F0F0F0;--acc-bd:#D6D6D6;}
+body[data-theme="mono"] [style*="--tf"]{--tf:#FAFAFA!important;--ts:#FAFAFA!important;--td:#111!important;--tl:#111!important;--tt:#fff!important;}
+body[data-theme="mono"] .type-chip{background:#111;color:#fff;}
+body[data-theme="mono"] .bd-row.sel{background:#F0F0F0;}
+body[data-theme="mono"] .bd-row.sel .cbx{background:#111;}
+body[data-theme="mono"] .bd-row.sel .bd-name,body[data-theme="mono"] .tl-name{color:#111;}
+body[data-theme="mono"] .dtag.ltag{background:#fff;border-color:#111;}
+body[data-theme="mono"] .dtag.ltag .tdot{background:#111;box-shadow:none;}
+body[data-theme="mono"] .a-line .tdot{background:#111;box-shadow:none;}
+body[data-theme="mono"] .badge{background:#fff!important;color:#111!important;border:1px solid #111!important;font-weight:600;}
+body[data-theme="mono"] .act{background:#fff!important;color:#222!important;border:1px solid #D0D0D0!important;opacity:1;}
+body[data-theme="mono"] .act:hover{border-color:#111!important;}
+body[data-theme="mono"] .act.on{background:#111!important;color:#fff!important;border-color:#111!important;box-shadow:none;}
+body[data-theme="mono"] .act small{color:inherit;}
+body[data-theme="mono"] .chip.on,body[data-theme="mono"] .seg.on{background:#111;border-color:#111;color:#fff;box-shadow:none;}
+body[data-theme="mono"] .nav-i.on{background:#111;color:#fff;}
+body[data-theme="mono"] .nav-i.on .ic,body[data-theme="mono"] .nav-i.on em{color:#fff;}
 body[data-theme="mono"] .btn-pri{box-shadow:none;}
+body[data-theme="mono"] .mc-ok{background:#fff;color:#111;box-shadow:inset 0 0 0 1px #CFCFCF;}
+body[data-theme="mono"] .mc-warn{background:#fff;color:#111;box-shadow:inset 0 0 0 1.5px #111;}
+body[data-theme="mono"] .mc-due{background:#111;color:#fff;}
+body[data-theme="mono"] .d-warn{background:#fff;box-shadow:inset 0 0 0 1.5px #111;} body[data-theme="mono"] .d-due{background:#111;}
+body[data-theme="mono"] .chip-s.warn{background:#fff;color:#111;box-shadow:inset 0 0 0 1px #111;} body[data-theme="mono"] .chip-s.due{background:#111;color:#fff;}
+body[data-theme="mono"] .a-bar i,body[data-theme="mono"] .wkb-t i{background:#111;} body[data-theme="mono"] .a-bar i.over{background:#666;}
+body[data-theme="mono"] .hb-t i{background:#111;box-shadow:none;}
+body[data-theme="mono"] .t-due{color:#111;text-decoration:underline;}
+body[data-theme="mono"] #anaContent .pbody{filter:grayscale(1) contrast(1.15);}
 body[data-theme="mono"] .bd-color,body[data-theme="mono"] .pal-btn,body[data-theme="mono"] .dash-gear{display:none;}
-body[data-theme="mono"] #anaContent .pbody,body[data-theme="mono"] .wk-c,body[data-theme="mono"] .cc-swatches{filter:grayscale(1);}
-body[data-theme="mono"] .plan-tag{color:#3F3F46;background:#F1F1F3;}
-body[data-theme="mono"] .wk-day.now .wk-n,body[data-theme="mono"] .wk-day.now .wk-w,body[data-theme="mono"] .pl-row.now .pl-date{color:var(--tx);}
-body[data-theme="mono"] .pv-after{color:var(--tx);}
-body[data-theme="mono"] .demo-badge{color:#3F3F46;background:#F1F1F3;border-color:#DCDCE0;}
+body[data-theme="mono"] .wk-c{background:#111;}
+body[data-theme="mono"] .wk-day.now{background:#111;} body[data-theme="mono"] .wk-day.now .wk-n,body[data-theme="mono"] .wk-day.now .wk-w{color:#fff;}
+body[data-theme="mono"] .wk-day.now .wk-c{background:#fff;}
+body[data-theme="mono"] .pl-row.now .pl-date,body[data-theme="mono"] .pv-after{color:#111;font-weight:700;}
+body[data-theme="mono"] .plan-tag{color:#fff;background:#111;}
+body[data-theme="mono"] .plan-link{background:#111;color:#fff;border-color:#111;}
+body[data-theme="mono"] .plan-link .btn-icon{color:#fff;}
+body[data-theme="mono"] .demo-badge{color:#fff;background:#111;border-color:#111;}
+body[data-theme="mono"] .acct.on{color:#111;} body[data-theme="mono"] .acct-dot{background:#111;}
+body[data-theme="mono"] .toast{box-shadow:0 10px 30px rgba(0,0,0,.14),inset 3px 0 0 #111;}
+body[data-theme="mono"] .toast button{background:#111;color:#fff;}
+body[data-theme="mono"] input[type=checkbox]{accent-color:#111;}
 
 /* 모바일 전용 요소 (데스크톱에서는 숨김) */
 .mtabs,.sel-fab,.side-backdrop{display:none;}
@@ -1390,60 +1419,60 @@ const isoD  = s => { try { return new Date(s).toISOString(); } catch(e) { return
 // ══════════════════════════════════════════
 //  COLOR MAP
 // ══════════════════════════════════════════
-// OKLCH 색 공간에서 밝기·채도를 고정하고 색상만 9°씩 돌려 만든 40색 (0번 빨강 → 주황 → … → 분홍 순서는 예전과 같음)
-// + 차분한 톤 11색(40~50) + 회색(51). 사람 눈에 밝기·진하기가 고르게 보이도록 맞춘 값이다.
+// OKLCH 색 공간에서 만든 40색: 빨강 → 주황 → 노랑 → 초록 → 청록 → 파랑 → 보라 → 분홍 계열을 고르게 나눴다 (순서는 예전과 같음)
+// 노랑·주황은 밝고 진해야 제 색으로 보여서 그 구간만 밝기·진하기를 올렸다. + 차분한 톤 11색(40~50) + 회색(51)
 const PAL=[
-  {bg:'#FED4D0', tx:'#873F3B', bd:'#F8A49D', hbg:'#FFEBE9', ht:'#682E2B'}, // 25°
-  {bg:'#FFD5CA', tx:'#874131', bd:'#F7A693', hbg:'#FFEBE7', ht:'#682F22'}, // 34°
-  {bg:'#FFD5C5', tx:'#854326', bd:'#F5A98A', hbg:'#FEECE5', ht:'#67311A'}, // 43°
-  {bg:'#FFD6BE', tx:'#83461B', bd:'#F2AC81', hbg:'#FEECE2', ht:'#653310'}, // 52°
-  {bg:'#FED7B8', tx:'#7F490E', bd:'#EDAF7A', hbg:'#FFECDE', ht:'#623605'}, // 61°
-  {bg:'#FAD9B5', tx:'#7A4D04', bd:'#E7B375', hbg:'#FFEDDA', ht:'#5D3902'}, // 70°
-  {bg:'#F6DCB3', tx:'#745104', bd:'#E0B671', hbg:'#FCEED9', ht:'#583D03'}, // 79°
-  {bg:'#F0DEB3', tx:'#6E5400', bd:'#D9BA70', hbg:'#F9EFD8', ht:'#533F01'}, // 88°
-  {bg:'#EBE1B3', tx:'#675702', bd:'#D0BE71', hbg:'#F6F1D9', ht:'#4E4202'}, // 97°
-  {bg:'#E4E3B5', tx:'#605B00', bd:'#C6C274', hbg:'#F2F2DA', ht:'#484400'}, // 106°
-  {bg:'#DEE5B8', tx:'#575E0A', bd:'#BBC679', hbg:'#EFF3DB', ht:'#414702'}, // 115°
-  {bg:'#D7E7BC', tx:'#4C6118', bd:'#B0C980', hbg:'#EBF4DD', ht:'#394A0D'}, // 124°
-  {bg:'#D0E9C0', tx:'#416324', bd:'#A5CC89', hbg:'#E8F5DF', ht:'#304C18'}, // 133°
-  {bg:'#CAEAC6', tx:'#34662F', bd:'#99CE92', hbg:'#E5F6E2', ht:'#254D21'}, // 142°
-  {bg:'#C4ECCC', tx:'#24673A', bd:'#8DD09D', hbg:'#E1F7E5', ht:'#174F2A'}, // 151°
-  {bg:'#BEEDD2', tx:'#0C6944', bd:'#82D2A8', hbg:'#DFF7E9', ht:'#025032'}, // 160°
-  {bg:'#B9EDD9', tx:'#00684F', bd:'#77D3B3', hbg:'#DCF8EC', ht:'#024F3B'}, // 169°
-  {bg:'#B5EDE0', tx:'#026758', bd:'#6FD3BE', hbg:'#DBF8F0', ht:'#024E42'}, // 178°
-  {bg:'#B3EDE6', tx:'#01665F', bd:'#68D3C8', hbg:'#D9F8F4', ht:'#034D48'}, // 187°
-  {bg:'#B1EDED', tx:'#016566', bd:'#65D2D3', hbg:'#D9F7F7', ht:'#054D4D'}, // 196°
-  {bg:'#B1ECF3', tx:'#02646D', bd:'#65D0DC', hbg:'#D8F7FA', ht:'#054C52'}, // 205°
-  {bg:'#B2EBF8', tx:'#036373', bd:'#68CEE5', hbg:'#D9F6FD', ht:'#044B57'}, // 214°
-  {bg:'#B5E9FD', tx:'#06627A', bd:'#6FCCED', hbg:'#DDF5FE', ht:'#044A5D'}, // 223°
-  {bg:'#BBE7FF', tx:'#066082', bd:'#77C9F3', hbg:'#E0F4FF', ht:'#014964'}, // 232°
-  {bg:'#C3E5FE', tx:'#115E8A', bd:'#81C6F8', hbg:'#E4F2FE', ht:'#06476B'}, // 241°
-  {bg:'#C9E3FE', tx:'#265B8D', bd:'#8CC3FC', hbg:'#E5F2FF', ht:'#19446D'}, // 250°
-  {bg:'#CEE1FF', tx:'#34588F', bd:'#97BFFE', hbg:'#E8F1FE', ht:'#25426F'}, // 259°
-  {bg:'#D3DFFE', tx:'#405490', bd:'#A2BCFF', hbg:'#EAF0FE', ht:'#2F3F6F'}, // 268°
-  {bg:'#D7DEFF', tx:'#4B518F', bd:'#ADB8FE', hbg:'#ECEFFE', ht:'#373D6F'}, // 277°
-  {bg:'#DCDCFF', tx:'#544E8D', bd:'#B8B5FC', hbg:'#EEEEFF', ht:'#3F3A6D'}, // 286°
-  {bg:'#E1DAFE', tx:'#5D4B8A', bd:'#C2B1F8', hbg:'#F1EEFE', ht:'#46386A'}, // 295°
-  {bg:'#E7D7FF', tx:'#644885', bd:'#CCAEF2', hbg:'#F4ECFF', ht:'#4C3667'}, // 304°
-  {bg:'#EED5FD', tx:'#6B467F', bd:'#D4ABEC', hbg:'#F7EBFF', ht:'#523362'}, // 313°
-  {bg:'#F3D3F8', tx:'#724379', bd:'#DCA8E4', hbg:'#FBE9FD', ht:'#57325D'}, // 322°
-  {bg:'#F8D2F2', tx:'#774172', bd:'#E3A6DC', hbg:'#FEE9FA', ht:'#5C3057'}, // 331°
-  {bg:'#FCD1EC', tx:'#7C4069', bd:'#EAA4D2', hbg:'#FFE9F7', ht:'#5F2E50'}, // 340°
-  {bg:'#FFD1E6', tx:'#803E61', bd:'#EFA3C8', hbg:'#FFE9F3', ht:'#632D49'}, // 349°
-  {bg:'#FFD1DF', tx:'#833E58', bd:'#F3A3BD', hbg:'#FFEAF0', ht:'#652D42'}, // 358°
-  {bg:'#FED3DA', tx:'#853D4E', bd:'#F6A3B3', hbg:'#FEEAED', ht:'#672D3A'}, // 7°
-  {bg:'#FED3D5', tx:'#873E45', bd:'#F7A3A8', hbg:'#FFEBEB', ht:'#682D33'}, // 16°
-  {bg:'#F1D9D7', tx:'#6F4E4B', bd:'#D9B3AF', hbg:'#FAEDEB', ht:'#553B38'}, // muted · dusty rose
-  {bg:'#EFDBCF', tx:'#6C5240', bd:'#D5B7A3', hbg:'#F8EEE7', ht:'#533D2F'}, // muted · terracotta
-  {bg:'#E9DECC', tx:'#65553B', bd:'#CDBB9E', hbg:'#F5EFE6', ht:'#4D402B'}, // muted · sand
-  {bg:'#E2E1CD', tx:'#5C5A3C', bd:'#C2C09F', hbg:'#F1F1E6', ht:'#45442C'}, // muted · olive
-  {bg:'#D7E4D4', tx:'#4B5E46', bd:'#AFC5AA', hbg:'#EBF3EA', ht:'#384834'}, // muted · sage
-  {bg:'#CEE6DE', tx:'#3C6057', bd:'#A0C8BC', hbg:'#E7F3EF', ht:'#2C4941'}, // muted · teal gray
-  {bg:'#CDE5EB', tx:'#395F68', bd:'#9EC6D0', hbg:'#E6F3F6', ht:'#29484F'}, // muted · slate blue
-  {bg:'#D3E2F1', tx:'#455A71', bd:'#A8C1DA', hbg:'#E9F1FA', ht:'#334456'}, // muted · steel
-  {bg:'#DDDEF1', tx:'#555571', bd:'#BABADA', hbg:'#EFEFFA', ht:'#404056'}, // muted · lavender gray
-  {bg:'#E8DAEB', tx:'#635068', bd:'#CBB5D0', hbg:'#F5EDF6', ht:'#4C3C4F'}, // muted · mauve
-  {bg:'#EFD9E2', tx:'#6C4E5C', bd:'#D5B2C2', hbg:'#F8ECF1', ht:'#523A45'}, // muted · blush
+  {bg:'#FED4D0', tx:'#873F3B', bd:'#F8A49D', hbg:'#FFEBE9', ht:'#682E2B'}, // red
+  {bg:'#FED5CC', tx:'#874032', bd:'#F7A694', hbg:'#FFEBE7', ht:'#682F23'}, // scarlet
+  {bg:'#FED5C7', tx:'#86422A', bd:'#F6A88D', hbg:'#FEECE5', ht:'#67301D'}, // coral
+  {bg:'#FFD9C6', tx:'#854521', bd:'#FAAB83', hbg:'#FFEDE4', ht:'#673315'}, // salmon
+  {bg:'#FFDCC5', tx:'#834918', bd:'#FEB078', hbg:'#FEEFE5', ht:'#66360D'}, // orange
+  {bg:'#FEDDBF', tx:'#804C0C', bd:'#F8B371', hbg:'#FFEFE1', ht:'#633904'}, // tangerine
+  {bg:'#FEDCB5', tx:'#7C4D01', bd:'#EFB570', hbg:'#FFEEDC', ht:'#5F3A00'}, // apricot
+  {bg:'#FFDBAA', tx:'#775003', bd:'#E8B76E', hbg:'#FFEED8', ht:'#5B3C02'}, // honey
+  {bg:'#FFE0A9', tx:'#755401', bd:'#EBBD66', hbg:'#FFF1D7', ht:'#593F01'}, // amber
+  {bg:'#FFE5A6', tx:'#725701', bd:'#ECC45D', hbg:'#FFF3D6', ht:'#574202'}, // gold
+  {bg:'#FFE9A1', tx:'#6F5A03', bd:'#EBCA57', hbg:'#FFF5D3', ht:'#554503'}, // sunflower
+  {bg:'#FFED97', tx:'#6C5D02', bd:'#E9D051', hbg:'#FFF7CE', ht:'#534702'}, // yellow
+  {bg:'#F7EF96', tx:'#675F02', bd:'#DED258', hbg:'#FBF8CA', ht:'#4F4902'}, // lemon
+  {bg:'#E8EEA3', tx:'#5D600A', bd:'#CBD169', hbg:'#F4F8D1', ht:'#474903'}, // canary
+  {bg:'#DCECAE', tx:'#536114', bd:'#BACE78', hbg:'#EEF7D7', ht:'#3E4A0A'}, // chartreuse
+  {bg:'#D1E9BA', tx:'#456320', bd:'#A8CB86', hbg:'#E9F5DD', ht:'#334B14'}, // lime
+  {bg:'#C8EBC1', tx:'#37652D', bd:'#9BCE90', hbg:'#E5F6E1', ht:'#274D1F'}, // spring
+  {bg:'#C0EDC8', tx:'#266739', bd:'#8ED09C', hbg:'#E1F7E4', ht:'#194F29'}, // green
+  {bg:'#B9EED0', tx:'#0C6944', bd:'#82D2A8', hbg:'#DEF8E8', ht:'#025032'}, // emerald
+  {bg:'#B3EFD9', tx:'#046850', bd:'#76D3B4', hbg:'#DBF8ED', ht:'#014F3C'}, // mint
+  {bg:'#AFEFE0', tx:'#026758', bd:'#6FD3BE', hbg:'#D9F8F0', ht:'#024E42'}, // turquoise
+  {bg:'#ACEFE6', tx:'#03665F', bd:'#69D3C7', hbg:'#D8F8F3', ht:'#044D47'}, // teal
+  {bg:'#AAEEEE', tx:'#016566', bd:'#65D2D3', hbg:'#D7F8F8', ht:'#054D4D'}, // aqua
+  {bg:'#AAEDF6', tx:'#03646D', bd:'#65D0DD', hbg:'#D7F7FB', ht:'#004C53'}, // cyan
+  {bg:'#ADEBFE', tx:'#026376', bd:'#6BCDE9', hbg:'#D9F6FF', ht:'#034B5A'}, // sky
+  {bg:'#BAE7FE', tx:'#056180', bd:'#75CAF2', hbg:'#DFF4FF', ht:'#024962'}, // azure
+  {bg:'#C3E5FE', tx:'#0E5E8A', bd:'#80C7F8', hbg:'#E4F3FE', ht:'#04476B'}, // blue
+  {bg:'#C9E3FE', tx:'#265B8D', bd:'#8CC3FC', hbg:'#E5F2FF', ht:'#19446D'}, // royal
+  {bg:'#CEE1FF', tx:'#35578F', bd:'#98BFFE', hbg:'#E8F1FE', ht:'#26426F'}, // cornflower
+  {bg:'#D4DFFE', tx:'#425490', bd:'#A4BBFF', hbg:'#EBF0FE', ht:'#313F6F'}, // periwinkle
+  {bg:'#D9DDFF', tx:'#4E508E', bd:'#B1B7FD', hbg:'#EDEFFE', ht:'#3A3C6E'}, // indigo
+  {bg:'#DEDBFE', tx:'#584D8C', bd:'#BCB3FA', hbg:'#EFEEFE', ht:'#42396C'}, // violet
+  {bg:'#E5D8FF', tx:'#614A87', bd:'#C7AFF5', hbg:'#F2EDFE', ht:'#4A3768'}, // purple
+  {bg:'#ECD5FE', tx:'#694781', bd:'#D2ACEE', hbg:'#F6EBFF', ht:'#503464'}, // grape
+  {bg:'#F4D2FC', tx:'#70447A', bd:'#DBA9E6', hbg:'#FBE9FF', ht:'#56325E'}, // orchid
+  {bg:'#FAD0F5', tx:'#774272', bd:'#E3A6DD', hbg:'#FEE8FB', ht:'#5B3058'}, // magenta
+  {bg:'#FFCFEE', tx:'#7C4069', bd:'#EAA4D2', hbg:'#FFE9F7', ht:'#5F2E50'}, // fuchsia
+  {bg:'#FFD1E5', tx:'#803E60', bd:'#EFA3C7', hbg:'#FFE9F3', ht:'#632D49'}, // hot pink
+  {bg:'#FFD1DF', tx:'#833E58', bd:'#F3A3BD', hbg:'#FFEAF0', ht:'#652D42'}, // pink
+  {bg:'#FFD3D9', tx:'#863D4D', bd:'#F6A3B1', hbg:'#FEEAED', ht:'#672D3A'}, // rose
+  {bg:'#F6D8D4', tx:'#724D4A', bd:'#DCB2AE', hbg:'#FCECEA', ht:'#573A37'}, // muted · dusty rose
+  {bg:'#FADDCA', tx:'#70523F', bd:'#E2BAA1', hbg:'#FEEFE5', ht:'#563E2E'}, // muted · terracotta
+  {bg:'#F5E7C3', tx:'#675B3A', bd:'#DBC999', hbg:'#FBF4E0', ht:'#4F452B'}, // muted · butter
+  {bg:'#E4EAC8', tx:'#595E3D', bd:'#C5CC9E', hbg:'#F2F5E3', ht:'#44482D'}, // muted · olive
+  {bg:'#D2E6D2', tx:'#466047', bd:'#AAC7AA', hbg:'#E9F3E9', ht:'#344934'}, // muted · sage
+  {bg:'#C8E8E0', tx:'#376159', bd:'#9BC9BF', hbg:'#E5F4F0', ht:'#274A43'}, // muted · teal gray
+  {bg:'#C7E6EE', tx:'#355F6A', bd:'#9AC7D2', hbg:'#E4F3F7', ht:'#264851'}, // muted · slate blue
+  {bg:'#CFE2F6', tx:'#435A73', bd:'#A6C1DD', hbg:'#E8F1FB', ht:'#314458'}, // muted · steel
+  {bg:'#DDDDF6', tx:'#555473', bd:'#BABADD', hbg:'#EFEFFC', ht:'#403F58'}, // muted · lavender gray
+  {bg:'#EAD9EE', tx:'#654F6A', bd:'#CDB4D2', hbg:'#F5EDF7', ht:'#4D3B51'}, // muted · mauve
+  {bg:'#F2D7E3', tx:'#6E4D5C', bd:'#D8B1C2', hbg:'#FAECF2', ht:'#543946'}, // muted · blush
   {bg:'#DFDFDF', tx:'#585858', bd:'#BEBEBE', hbg:'#F0F0F0', ht:'#424242'}, // neutral gray
 ];
 const DONE={bg:'#F1F5F9',tx:'#475569',bd:'#E2E8F0',hbg:'#F1F5F9',ht:'#475569'};
@@ -1464,9 +1493,9 @@ function randIdxAvoiding(exclude){
 // 팔레트는 색상환 순서라서, 이미 쓰는 색들과 색상환 거리가 가장 먼 칸을 골라야 종류끼리 잘 구별된다
 // 팔레트 40색은 분홍·빨강 쪽에 몰려 있어서, 자동 배정은 눈으로 확실히 갈리는 12색 안에서 먼저 고른다
 // (빨강·주황·노랑·연두·초록·민트·청록·하늘·파랑·보라·자주·분홍 순서)
-const AUTO_PAL=[0,3,7,10,13,17,20,23,27,30,33,36];
+const AUTO_PAL=[0,4,11,15,17,21,23,26,30,32,35,38];
 // 차분한 톤(40~51)이 색상환에서 어느 기본색 자리에 해당하는지 (자동 배정 때 거리 계산용)
-const MUTED_AT=[0,3,6,9,13,17,21,25,29,33,36,0];
+const MUTED_AT=[0,4,9,13,17,21,24,27,31,34,37,0];
 function farIdx(used, exclude){
   const pick=(cands,pos)=>{
     const n=cands.length, dist=(a,b)=>{ const d=Math.abs(a-b)%n; return Math.min(d,n-d); };
