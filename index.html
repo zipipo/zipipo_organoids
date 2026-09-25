@@ -838,6 +838,22 @@ body[data-theme="mono"] .tl-hdr .btn-ghost:hover{background:rgba(255,255,255,.12
 body[data-theme="mono"] .tl-wrap::before{background:var(--ch);}
 body[data-theme="mono"] input:focus,body[data-theme="mono"] select:focus,body[data-theme="mono"] textarea:focus{border-color:#8E8E96;box-shadow:0 0 0 3px rgba(43,43,48,.12);}
 
+
+/* ═══ 글씨체별 보정 ═══ */
+html{font-size:calc(16px * var(--fscale,1));}
+body{font-size:calc(13.5px * var(--fscale,1));}
+/* 굵기가 400/700처럼 띄엄띄엄 있는 글씨체는 550~650 굵기가 전부 700으로 뭉개진다 →
+   본문·버튼·라벨은 보통(400/500), 제목·이름·숫자만 굵게(700) 두 단계로 정리 */
+html[data-font="nanumneo"] body,html[data-font="spoqa"] body{font-weight:400;}
+html[data-font="nanumneo"] :is(.btn,.nav-i,.act,.chip,.seg,label,th,.badge,.mc,.tbl-btn,.dd-menu button,.link-btn,.lbl-sub,.bd-pd,.bd-plate,.bm-pd,.tlog-d,.pl-date,.stat-l,.panel-n,.hint,.tl-plate,.tl-n,em,small),
+html[data-font="spoqa"] :is(.btn,.nav-i,.act,.chip,.seg,label,th,.badge,.mc,.tbl-btn,.dd-menu button,.link-btn,.lbl-sub,.bd-pd,.bd-plate,.bm-pd,.tlog-d,.pl-date,.stat-l,.panel-n,.hint,.tl-plate,.tl-n,em,small){font-weight:400;}
+html[data-font="spoqa"] :is(.btn-pri,.act.on,.nav-i.on,.chip.on,.seg.on){font-weight:500;}
+html[data-font="nanumneo"] :is(.btn-pri,.act.on,.nav-i.on,.chip.on,.seg.on){font-weight:700;}
+html[data-font="nanumneo"] :is(h1,h2,.panel-hd,.cp-hd,.bd-name,.tl-name,.tlog-name,.pv-name,.stat-n,.type-chip,.brand-tx,.sc-name,.a-line,.hb-l,.wk-n,b,strong),
+html[data-font="spoqa"] :is(h1,h2,.panel-hd,.cp-hd,.bd-name,.tl-name,.tlog-name,.pv-name,.stat-n,.type-chip,.brand-tx,.sc-name,.a-line,.hb-l,.wk-n,b,strong){font-weight:700;}
+html[data-font="nanumneo"] .brand-tx small,html[data-font="spoqa"] .brand-tx small{font-weight:700;}
+html[data-font="nanumneo"] body{letter-spacing:-.015em;}
+
 /* 모바일 전용 요소 (데스크톱에서는 숨김) */
 .mtabs,.sel-fab,.side-backdrop{display:none;}
 
@@ -846,7 +862,7 @@ body[data-theme="mono"] input:focus,body[data-theme="mono"] select:focus,body[da
   .composer{position:static;max-height:none;}
 }
 @media (max-width: 800px){
-  body{padding:0;font-size:14px;}
+  body{padding:0;font-size:calc(14px * var(--fscale,1));}
   .main{padding:0 14px 96px;}
   .side{position:fixed;left:0;top:0;bottom:0;z-index:500;transform:translateX(-102%);transition:transform .25s var(--ease);box-shadow:0 0 40px rgba(0,0,0,.12);}
   body.side-open .side{transform:none;}
@@ -3623,7 +3639,7 @@ const FONTS={
   wanted:{label:'Wanted Sans', family:"'Wanted Sans Variable','Wanted Sans'", css:'https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.3/packages/wanted-sans/fonts/webfonts/variable/split/WantedSansVariable.min.css'},
   spoqa:{label:'Spoqa Han Sans Neo', family:"'Spoqa Han Sans Neo'", css:'https://spoqa.github.io/spoqa-han-sans/css/SpoqaHanSansNeo.css'},
   plex:{label:'IBM Plex Sans KR', family:"'IBM Plex Sans KR'", css:'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap'},
-  nanumneo:{label:'나눔스퀘어 네오', family:"'NanumSquareNeo'", css:'https://hangeul.pstatic.net/hangeul_static/css/nanum-square-neo.css'},
+  nanumneo:{label:'나눔스퀘어 네오', family:"'NanumSquareNeo'", css:'https://hangeul.pstatic.net/hangeul_static/css/nanum-square-neo.css', scale:.92},
 };
 function setFont(k){
   if(!FONTS[k]) k='pretendard';
@@ -3632,6 +3648,9 @@ function setFont(k){
     const l=document.createElement('link'); l.id='font-'+k; l.rel='stylesheet'; l.href=f.css; document.head.appendChild(l);
   }
   document.documentElement.style.setProperty('--font',f.family);
+  // 글자 크기 보정(나눔스퀘어 네오처럼 크게 나오는 글씨체) + 글씨체별 굵기 규칙은 CSS의 data-font로
+  document.documentElement.style.setProperty('--fscale',f.scale||1);
+  document.documentElement.dataset.font=k;
   const sel=document.getElementById('fontSel'); if(sel) sel.value=k;
   try{ localStorage.setItem('orgFont',k); }catch(e){}
 }
