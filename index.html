@@ -782,8 +782,10 @@ body[data-theme="dark"] [style*="solid #E2E8F0"],body[data-theme="dark"] [style*
 
 /* ═══ 오늘 작업 패널 구분: 색은 하나(강조색)만 쓰고, 아이콘 모양과 제목 크기로 구분 ═══ */
 .panel.sec > .panel-hd{height:46px;background:var(--sur);font-size:.9rem;font-weight:700;letter-spacing:-.01em;}
-.sec-ic{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:7px;background:var(--psoft);color:var(--pri);font-style:normal;}
-.sec-ic .ic{width:15px;height:15px;stroke-width:1.8;}
+/* 패널 제목 아이콘: 바탕 없이 선 그림만, 제목 글씨와 같은 색 */
+.sec-ic{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;background:none;color:inherit;font-style:normal;}
+.sec-ic .ic{width:18px;height:18px;stroke-width:1.7;}
+.panel-hd .sec-ic .ic{color:inherit;}
 .panel.sec > .panel-hd .panel-n{color:var(--sub);font-weight:600;}
 #dash .panel,#stockBanner .panel{margin-bottom:16px;}
 
@@ -800,7 +802,6 @@ body[data-theme="mono"] .bd-row.sel{background:#F1F1F2;}
 body[data-theme="mono"] .bd-row.sel .cbx{background:var(--ch);}
 body[data-theme="mono"] .bd-row.sel .bd-name{color:var(--tx);}
 body[data-theme="mono"] .dtag.ltag{background:#fff;border-color:var(--ch);}
-body[data-theme="mono"] .sec-ic{background:var(--ch);color:#fff;}
 body[data-theme="mono"] .badge{background:#fff!important;color:#1F1F23!important;border:1px solid var(--ch)!important;}
 body[data-theme="mono"] .act{background:#fff!important;color:#1F1F23!important;border:1px solid #D4D4D8!important;opacity:1;}
 body[data-theme="mono"] .act:hover{border-color:var(--ch)!important;}
@@ -842,8 +843,7 @@ body[data-theme="mono"] .panel-hd .panel-n,body[data-theme="mono"] .panel-hd sma
 body[data-theme="mono"] .panel-hd .ic,body[data-theme="mono"] .panel-hd .btn-icon,body[data-theme="mono"] .panel-hd .btn-ghost,body[data-theme="mono"] .cp-hd kbd{color:#E4E4E7;}
 body[data-theme="mono"] .panel-hd .btn-icon:hover,body[data-theme="mono"] .panel-hd .btn-ghost:hover{background:rgba(255,255,255,.12);color:#fff;}
 body[data-theme="mono"] .cp-hd kbd{background:transparent;border-color:#5A5A62;}
-body[data-theme="mono"] .sec-ic{background:#fff;color:var(--ch);}
-body[data-theme="mono"] .panel-hd .sec-ic .ic{color:var(--ch);}
+body[data-theme="mono"] .panel-hd .sec-ic .ic{color:#fff;}
 body[data-theme="mono"] .panel-hd .seg-group{background:rgba(255,255,255,.1);}
 body[data-theme="mono"] .panel-hd .seg{color:#C8C8CE;} body[data-theme="mono"] .panel-hd .seg.on{background:#fff;color:var(--ch);}
 body[data-theme="mono"] .stats{background:var(--ch);border-color:var(--ch);}
