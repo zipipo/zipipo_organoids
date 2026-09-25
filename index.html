@@ -819,7 +819,8 @@ body[data-theme="mono"] .pl-row.now .pl-date,body[data-theme="mono"] .pv-after{c
 body[data-theme="mono"] .plan-tag,body[data-theme="mono"] .demo-badge{background:var(--ch);color:#fff;border-color:var(--ch);}
 body[data-theme="mono"] .plan-link{background:var(--ch);color:#fff;border-color:var(--ch);} body[data-theme="mono"] .plan-link .btn-icon{color:#fff;}
 body[data-theme="mono"] .acct.on{color:var(--tx);} body[data-theme="mono"] .acct-dot{background:var(--ch);}
-body[data-theme="mono"] #anaContent .pbody{filter:grayscale(1) contrast(1.1);}
+body[data-theme="mono"] #anaContent .pbody{filter:grayscale(1);}
+body[data-theme="mono"] .a-bar,body[data-theme="mono"] .hb-t,body[data-theme="mono"] .wkb-t{background:#E6E6E9;}
 body[data-theme="mono"] .a-bar i,body[data-theme="mono"] .wkb-t i,body[data-theme="mono"] .hb-t i{background:#6B6B73;box-shadow:none;} body[data-theme="mono"] .a-bar i.over{background:var(--ch);}
 body[data-theme="mono"] .t-due{color:var(--tx);text-decoration:underline;}
 body[data-theme="mono"] .bd-color,body[data-theme="mono"] .pal-btn{display:none;}
@@ -835,6 +836,23 @@ body[data-theme="mono"] .tl-hdr .tl-n{background:rgba(255,255,255,.14)!important
 body[data-theme="mono"] .tl-hdr .btn-ghost{color:#E4E4E7;}
 body[data-theme="mono"] .tl-hdr .btn-ghost:hover{background:rgba(255,255,255,.12);color:#fff;}
 body[data-theme="mono"] .tl-wrap::before{background:var(--ch);}
+/* 모노: 패널 제목 줄·요약 숫자·표 머리 줄도 차콜 바탕 + 흰 글씨로 (검정 면을 넓게 써서 흑백 디자인으로) */
+body[data-theme="mono"] .panel-hd,body[data-theme="mono"] .cp-hd{background:var(--ch)!important;color:#fff;border-bottom-color:var(--ch)!important;}
+body[data-theme="mono"] .panel-hd .panel-n,body[data-theme="mono"] .panel-hd small,body[data-theme="mono"] .panel-hd em{color:#C8C8CE!important;}
+body[data-theme="mono"] .panel-hd .ic,body[data-theme="mono"] .panel-hd .btn-icon,body[data-theme="mono"] .panel-hd .btn-ghost,body[data-theme="mono"] .cp-hd kbd{color:#E4E4E7;}
+body[data-theme="mono"] .panel-hd .btn-icon:hover,body[data-theme="mono"] .panel-hd .btn-ghost:hover{background:rgba(255,255,255,.12);color:#fff;}
+body[data-theme="mono"] .cp-hd kbd{background:transparent;border-color:#5A5A62;}
+body[data-theme="mono"] .sec-ic{background:#fff;color:var(--ch);}
+body[data-theme="mono"] .panel-hd .sec-ic .ic{color:var(--ch);}
+body[data-theme="mono"] .panel-hd .seg-group{background:rgba(255,255,255,.1);}
+body[data-theme="mono"] .panel-hd .seg{color:#C8C8CE;} body[data-theme="mono"] .panel-hd .seg.on{background:#fff;color:var(--ch);}
+body[data-theme="mono"] .stats{background:var(--ch);border-color:var(--ch);}
+body[data-theme="mono"] .stat{border-left-color:#44444B;}
+body[data-theme="mono"] .stat-l{color:#C8C8CE;} body[data-theme="mono"] .stat-n{color:#fff;}
+body[data-theme="mono"] .stat.click:hover{background:#34343A;}
+body[data-theme="mono"] .stats .d-warn{background:transparent;box-shadow:inset 0 0 0 1.5px #fff;} body[data-theme="mono"] .stats .d-due{background:#fff;}
+body[data-theme="mono"] .bd-head{background:#3A3A40;color:#D4D4D8;border-bottom-color:#3A3A40;}
+body[data-theme="mono"] .at-h{color:var(--sub);}
 body[data-theme="mono"] input:focus,body[data-theme="mono"] select:focus,body[data-theme="mono"] textarea:focus{border-color:#8E8E96;box-shadow:0 0 0 3px rgba(43,43,48,.12);}
 
 
