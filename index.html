@@ -293,8 +293,8 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
    얇은 선 · 작은 모서리 · 밝은 무채색 바탕 + 아주 옅은 색 포인트
    ═══════════════════════════════════════════════ */
 :root{
-  --bg:#FAFAFA; --sur:#FFFFFF; --sur2:#FCFCFD; --hov:#F5F5F6; --act:#F0F0F2;
-  --tx:#18181B; --sub:#6B6B74; --mut:#A1A1AA; --bd:#EBEBEE; --bd2:#F2F2F4;
+  --bg:#EDEEF1; --sur:#FFFFFF; --sur2:#F8F8FA; --hov:#F2F2F5; --act:#E3E4E8;
+  --tx:#1F1F24; --sub:#62626C; --mut:#9C9CA6; --bd:#E1E2E6; --bd2:#EEEFF2;
   --pri:#18181B; --psoft:#F4F4F5;
   --acc:#5B5BD6; --acc-bg:#F1F1FD; --acc-bd:#DCDCF7;
   --ok:#2F7D59; --ok-bg:#EDF8F2; --warn:#8C6D12; --warn-bg:#FBF6E4; --due:#B4413C; --due-bg:#FCEEEE;
@@ -312,7 +312,7 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.92em;bac
 /* 셸 */
 .app{display:flex;min-height:100vh;}
 .side{width:236px;flex:none;position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column;
-  background:var(--sur2);border-right:1px solid var(--bd);padding:14px 10px 12px;}
+  background:#F6F6F8;border-right:1px solid var(--bd);padding:14px 10px 12px;}
 .main{flex:1;min-width:0;padding:0 28px 60px;}
 
 .brand{display:flex;align-items:center;gap:10px;padding:4px 8px 16px;min-width:0;}
@@ -362,7 +362,7 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.92em;bac
 
 /* 상단 바 */
 .topbar{position:sticky;top:0;z-index:150;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
-  padding:16px 0 14px;margin-bottom:6px;background:rgba(250,250,250,.86);backdrop-filter:saturate(1.4) blur(10px);-webkit-backdrop-filter:saturate(1.4) blur(10px);border-bottom:1px solid transparent;}
+  padding:16px 0 14px;margin-bottom:6px;background:rgba(237,238,241,.88);backdrop-filter:saturate(1.4) blur(10px);-webkit-backdrop-filter:saturate(1.4) blur(10px);border-bottom:1px solid transparent;}
 .tb-l{display:flex;align-items:baseline;gap:10px;}
 .tb-l h1{margin:0;font-size:1.28rem;font-weight:700;letter-spacing:-.02em;}
 .tb-sub{font-size:.8rem;color:var(--mut);}
@@ -416,7 +416,9 @@ label{font-size:.74rem;font-weight:550;color:var(--sub);}
 
 /* 패널 */
 .panel{background:var(--sur);border:1px solid var(--bd);border-radius:8px;margin-bottom:14px;overflow:hidden;}
-.panel-hd{display:flex;align-items:center;justify-content:space-between;gap:8px;height:42px;padding:0 10px 0 14px;border-bottom:1px solid var(--bd2);font-size:.84rem;font-weight:650;}
+.panel-hd{display:flex;align-items:center;justify-content:space-between;gap:8px;height:42px;padding:0 10px 0 14px;border-bottom:1px solid var(--bd2);font-size:.84rem;font-weight:650;background:var(--sur2);}
+.panel-hd small{font-weight:500;color:var(--mut);font-size:.72rem;margin-left:4px;}
+.cp-hd{background:var(--sur2);}
 .panel-hd > span:first-child{display:flex;align-items:center;gap:8px;}
 .panel-hd .ic{color:var(--sub);}
 .panel-act{display:flex;align-items:center;gap:2px;}
@@ -458,9 +460,9 @@ label{font-size:.74rem;font-weight:550;color:var(--sub);}
 .pl-row:hover .pl-go{opacity:1;}
 
 /* 배양 현황 표 */
-.bd-head,.bd-row{display:grid;grid-template-columns:28px minmax(90px,1.4fr) 110px minmax(80px,1fr) 52px 64px;align-items:center;gap:8px;padding:0 12px 0 10px;}
+.bd-head,.bd-row{display:grid;grid-template-columns:28px minmax(90px,1.4fr) 110px minmax(80px,1fr) 52px 64px 24px;align-items:center;gap:8px;padding:0 8px 0 10px;}
 .bd-head{height:30px;font-size:.7rem;color:var(--mut);font-weight:550;border-bottom:1px solid var(--bd2);}
-.bd-head{padding:0 21px 0 19px;}
+.bd-head{padding:0 17px 0 19px;}
 .bd-blocks{display:flex;flex-direction:column;gap:10px;padding:8px;}
 .bd-block{border:1px solid var(--tl,var(--bd));border-radius:7px;overflow:hidden;background:var(--sur);}
 .bd-group{display:flex;align-items:center;gap:8px;height:36px;padding:0 12px 0 14px;font-size:.84rem;font-weight:700;color:var(--tt);background:var(--tf);cursor:pointer;letter-spacing:-.01em;}
@@ -635,6 +637,91 @@ td{vertical-align:middle;}
 .toast button{background:rgba(255,255,255,.1);color:#fff;border:none;border-radius:5px;padding:5px 10px;font:inherit;font-size:.76rem;font-weight:600;cursor:pointer;}
 .toast button:hover{background:rgba(255,255,255,.18);}
 
+
+/* 배양 현황: 라인별 최근 기록 펼치기 */
+.bd-exp{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border:none;border-radius:4px;background:none;color:var(--mut);cursor:pointer;transition:transform .2s var(--ease),background .12s;}
+.bd-exp:hover{background:rgba(0,0,0,.05);color:var(--tx);}
+.bd-row.open .bd-exp{transform:rotate(180deg);color:var(--tx);}
+.bd-mini{background:var(--ts);border-top:1px solid var(--bd2);padding:6px 10px 8px 46px;animation:tagIn .2s var(--ease);}
+.bm-row{display:grid;grid-template-columns:44px auto 90px 1fr;align-items:center;gap:10px;padding:4px 6px;border-radius:4px;font-size:.78rem;cursor:pointer;}
+.bm-row:hover{background:rgba(255,255,255,.7);}
+.bm-d{color:var(--sub);}
+.bm-pd{color:var(--sub);white-space:nowrap;} .bm-pd b{color:var(--tx);}
+.bm-x{color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.bm-all{margin:4px 6px 0;}
+
+/* 배양 라인 페이지 */
+.type-hd{display:flex;align-items:center;gap:8px;height:38px;padding:0 8px 0 14px;margin:18px 0 8px;border-radius:7px;background:var(--tf);color:var(--tt);
+  box-shadow:inset 0 0 0 1px var(--tl);font-size:.86rem;font-weight:700;}
+.type-hd:first-child{margin-top:0;}
+.type-hd em{font-style:normal;font-weight:600;font-size:.72rem;opacity:.65;}
+.type-hd .bd-color{margin-left:auto;}
+.sec-lbl{display:none;font-size:.78rem;font-weight:650;color:var(--sub);margin:26px 0 4px;}
+body[data-lnf="active"] #doneWrap{display:none;}
+body[data-lnf="done"] #activeTL{display:none;}
+body[data-lnf="all"] .sec-lbl{display:block;}
+#lnFilter .seg em{font-style:normal;color:var(--mut);font-size:.7rem;margin-left:2px;}
+.ln-form{padding:14px;}
+.ln-form > div[style*="grid"]{gap:10px!important;}
+#lineFormPanel.flash{animation:flash 1s var(--ease);}
+@keyframes flash{0%{box-shadow:0 0 0 3px rgba(91,91,214,.25);}100%{box-shadow:0 0 0 0 rgba(91,91,214,0);}}
+body[data-tab="ana"] .pane[data-pane="ana"]{display:block;animation:paneIn .28s var(--ease);}
+
+/* 작업 분석 */
+.ana-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;}
+.ana-grid .panel{margin:0;}
+.ana-full{grid-column:1 / -1;}
+.pbody{padding:12px 14px;}
+.pbody .empty{padding:6px 0;}
+.atbl{display:flex;flex-direction:column;}
+.at-h,.at-r{display:grid;align-items:center;gap:12px;padding:7px 2px;font-size:.8rem;}
+.at-h{font-size:.7rem;color:var(--mut);font-weight:550;border-bottom:1px solid var(--bd2);padding-top:0;}
+.at-r{border-bottom:1px solid var(--bd2);}
+.at-r:last-child{border-bottom:none;}
+.at-r small{color:var(--mut);font-size:.7rem;}
+.atbl-split .at-h,.atbl-split .at-r{grid-template-columns:minmax(140px,1.4fr) 90px 130px minmax(100px,1fr) 150px;}
+.atbl-mc .at-h,.atbl-mc .at-r{grid-template-columns:minmax(120px,1.3fr) 56px 52px minmax(90px,1fr);}
+.at-flat{grid-template-columns:minmax(120px,1fr) 1.4fr;}
+.a-line{display:inline-flex;align-items:center;gap:7px;font-weight:600;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.a-line .tdot{background:var(--tf);box-shadow:inset 0 0 0 1px var(--tl);}
+.a-bar{position:relative;height:8px;border-radius:4px;background:var(--hov);overflow:visible;display:block;}
+.a-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:#A7B4E8;}
+.a-bar i.over{background:#E8A3A0;}
+.a-pct{display:grid;grid-template-columns:1fr 36px;align-items:center;gap:8px;}
+.a-pct em{font-style:normal;font-size:.74rem;color:var(--sub);text-align:right;}
+.chip-s{display:inline-block;font-size:.7rem;font-weight:600;padding:1px 6px;border-radius:4px;background:var(--hov);color:var(--sub);margin-left:4px;}
+.chip-s.warn{background:var(--warn-bg);color:var(--warn);} .chip-s.due{background:var(--due-bg);color:var(--due);}
+.t-due{color:var(--due);font-weight:600;}
+.a-sub{font-size:.72rem;font-weight:600;color:var(--mut);margin:14px 0 4px;}
+.a-seq{color:var(--sub);font-size:.78rem;}
+.hbar{display:grid;grid-template-columns:minmax(90px,140px) 1fr auto;align-items:center;gap:10px;padding:5px 0;font-size:.8rem;}
+.hb-l{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.hb-t{height:14px;border-radius:4px;background:var(--hov);overflow:hidden;}
+.hb-t i{display:block;height:100%;background:var(--tf);box-shadow:inset 0 0 0 1px var(--tl);border-radius:4px;}
+.hb-v{font-weight:600;white-space:nowrap;} .hb-v small{font-weight:500;color:var(--mut);font-size:.7rem;margin-left:3px;}
+.wkbars{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;height:150px;align-items:end;}
+.wkb{display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;}
+.wkb-t{flex:1;width:100%;max-width:34px;display:flex;align-items:flex-end;background:var(--hov);border-radius:4px;overflow:hidden;}
+.wkb-t i{display:block;width:100%;background:#A7B4E8;border-radius:4px 4px 0 0;}
+.wkb-n{font-size:.72rem;font-weight:600;color:var(--sub);}
+.wkb-l{font-size:.74rem;color:var(--sub);}
+@media (max-width: 1100px){ .ana-grid{grid-template-columns:1fr;} }
+@media (max-width: 800px){
+  .bd-row{grid-template-columns:24px 1fr auto 60px 24px;}
+  .bd-mini{padding-left:12px;}
+  .bm-row{grid-template-columns:40px auto 1fr;} .bm-x{display:none;}
+  .tl-tools{flex-wrap:wrap;}
+  .atbl-split .at-h{display:none;}
+  .atbl-split .at-r{grid-template-columns:1fr auto;row-gap:4px;}
+  .atbl-split .at-r > span:nth-child(3),.atbl-split .at-r > .a-bar{display:none;}
+  .atbl-mc .at-h,.atbl-mc .at-r{grid-template-columns:minmax(0,1fr) 44px 36px 84px;gap:8px;}
+  .a-pct{grid-template-columns:1fr 30px;gap:4px;}
+  .tb-r{flex-wrap:wrap;}
+  body[data-tab="tl"] .search{flex:1 1 100%;}
+  .tl-tools{width:100%;}
+  .tl-tools .btn-pri{margin-left:auto;}
+}
+
 /* 모바일 전용 요소 (데스크톱에서는 숨김) */
 .mtabs,.sel-fab,.side-backdrop{display:none;}
 
@@ -740,16 +827,14 @@ td{vertical-align:middle;}
 
   <nav class="nav" id="tabs">
     <button class="nav-i tab" data-tab="today" onclick="setTab('today')"><svg class="ic"><use href="#i-today"/></svg><span>오늘 작업</span></button>
-    <button class="nav-i tab" data-tab="tl" onclick="setTab('tl')"><svg class="ic"><use href="#i-timeline"/></svg><span>배양 타임라인</span><em id="tlCount"></em></button>
-    <button class="nav-i tab" data-tab="arch" onclick="setTab('arch')"><svg class="ic"><use href="#i-archive"/></svg><span>완료된 배양</span><em id="archCount"></em></button>
+    <button class="nav-i tab" data-tab="tl" onclick="setTab('tl')"><svg class="ic"><use href="#i-flask"/></svg><span>배양 라인</span><em id="tlCount"></em></button>
+    <button class="nav-i tab" data-tab="ana" onclick="setTab('ana')"><svg class="ic"><use href="#i-chart"/></svg><span>작업 분석</span></button>
   </nav>
 
-  <div class="nav-sec">관리</div>
+  <div class="nav-sec">도구</div>
   <nav class="nav">
-    <button class="nav-i" onclick="openLineModal()"><svg class="ic"><use href="#i-flask"/></svg><span>라인 관리</span></button>
-    <button class="nav-i" onclick="openAnalyticsPage()"><svg class="ic"><use href="#i-chart"/></svg><span>작업 분석</span></button>
+    <button class="nav-i" onclick="openLineModal()"><svg class="ic"><use href="#i-plus"/></svg><span>새 라인 추가</span></button>
     <button class="nav-i" onclick="openNoteModal()"><svg class="ic"><use href="#i-print"/></svg><span>연구노트 인쇄</span></button>
-    <button class="nav-i" onclick="openColorModal()"><svg class="ic"><use href="#i-palette"/></svg><span>종류별 색상</span></button>
   </nav>
 
   <div class="nav-sec">현미경 사진</div>
@@ -790,8 +875,14 @@ td{vertical-align:middle;}
       <label class="search"><svg class="ic"><use href="#i-search"/></svg><input type="text" id="lineSearch" placeholder="라인 검색" oninput="applyLineFilter(this.value)"></label>
       <span id="filterHint" class="filter-hint"></span>
       <span class="tl-tools">
-        <button class="btn btn-ghost" onclick="expandAllTL()">전체 펼치기</button>
-        <button class="btn btn-ghost" onclick="collapseAllTL()">전체 접기</button>
+        <span class="seg-group" id="lnFilter">
+          <button class="seg" data-f="active" onclick="setLineFilter('active')">진행 중 <em id="fnA"></em></button>
+          <button class="seg" data-f="done" onclick="setLineFilter('done')">완료 <em id="fnD"></em></button>
+          <button class="seg" data-f="all" onclick="setLineFilter('all')">전체</button>
+        </span>
+        <button class="btn btn-icon" onclick="expandAllTL()" title="전체 펼치기"><svg class="ic" viewBox="0 0 24 24"><path d="m7 15 5 5 5-5M7 9l5-5 5 5"/></svg></button>
+        <button class="btn btn-icon" onclick="collapseAllTL()" title="전체 접기"><svg class="ic" viewBox="0 0 24 24"><path d="m7 20 5-5 5 5M7 4l5 5 5-5"/></svg></button>
+        <button class="btn btn-pri" onclick="openLineModal()"><svg class="ic"><use href="#i-plus"/></svg>새 라인</button>
       </span>
     </div>
   </header>
@@ -855,37 +946,11 @@ td{vertical-align:middle;}
     </div>
   </div>
 
-  <!-- 배양 타임라인 -->
-  <div class="pane" data-pane="tl"><div id="activeTL"></div></div>
-
-  <!-- 완료된 배양 -->
-  <div class="pane" data-pane="arch"><div id="doneTL"></div></div>
-</main>
-</div>
-<div class="side-backdrop" onclick="closeSide()"></div>
-<button id="selFab" class="sel-fab" onclick="document.getElementById('logCard').scrollIntoView({behavior:'smooth',block:'start'})"><span></span><b>기록하기</b></button>
-<nav class="mtabs">
-  <button class="tab" data-tab="today" onclick="setTab('today')"><svg class="ic"><use href="#i-today"/></svg>오늘</button>
-  <button class="tab" data-tab="tl" onclick="setTab('tl')"><svg class="ic"><use href="#i-timeline"/></svg>타임라인</button>
-  <button class="tab" data-tab="arch" onclick="setTab('arch')"><svg class="ic"><use href="#i-archive"/></svg>완료</button>
-  <button onclick="openSide()"><svg class="ic" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>메뉴</button>
-</nav>
-
-<div id="analyticsPage" class="apage">
-  <div class="wrap">
-    <div class="hdr">
-      <h1>작업 분석</h1>
-      <div class="hdr-r"><button class="btn btn-out" onclick="closeAnalyticsPage()">&larr; 목록으로</button></div>
-    </div>
-    <div id="anaContent"></div>
-  </div>
-</div>
-
-<div id="lineModal" class="modal">
-  <div class="mbox">
-    <h2>라인 관리</h2>
-    <div class="mscroll">
-      <div style="background:#F8FAFC;padding:13px;border-radius:6px;border:1px solid #E2E8F0;margin-bottom:13px;">
+  <!-- 배양 라인: 진행 중 타임라인 + 완료 카드 + 라인 추가/수정 폼 -->
+  <div class="pane" data-pane="tl">
+    <section class="panel" id="lineFormPanel" style="display:none;">
+      <div class="panel-hd"><span id="lineFormTitle">새 라인</span><span class="panel-act"><button class="btn btn-icon" onclick="closeLineModal()" title="닫기"><svg class="ic"><use href="#i-x"/></svg></button></span></div>
+      <div class="ln-form">
         <input type="hidden" id="elId">
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:9px;">
           <div><label>환자 번호 / 라인명</label><input type="text" id="elPid" placeholder="HCC26"></div>
@@ -904,20 +969,32 @@ td{vertical-align:middle;}
             <input type="text" id="elPlateCustom" placeholder="Plate 종류 입력" style="display:none;margin-top:6px;"></div>
         </div>
         <div style="display:flex;gap:7px;margin-top:13px;flex-wrap:wrap;">
+          <button class="btn btn-del" id="elDelBtn" style="display:none;" onclick="deleteLine(document.getElementById('elId').value)">휴지통으로</button>
           <button class="btn btn-fin" id="elFinishBtn" style="display:none;" onclick="completeLine(document.getElementById('elId').value)">배양 완료</button>
           <span style="flex:1;"></span>
-          <button class="btn btn-out" onclick="resetLineForm()">입력 취소</button>
+          <button class="btn btn-out" onclick="closeLineModal()">취소</button>
           <button class="btn btn-pri" style="min-width:120px;" onclick="saveLine()" id="elSaveBtn">라인 추가</button>
         </div>
 
       </div>
-      <div id="lineList"></div>
-    </div>
-    <div class="mfoot">
-      <button class="btn btn-out" style="width:100%;" onclick="closeLineModal()">닫기</button>
-    </div>
+    </section>
+    <div id="activeTL"></div>
+    <div id="doneWrap"><div class="sec-lbl" id="doneLbl">완료된 배양</div><div id="doneTL"></div></div>
   </div>
+
+  <!-- 작업 분석 -->
+  <div class="pane" data-pane="ana"><div id="anaContent"></div></div>
+</main>
 </div>
+<div class="side-backdrop" onclick="closeSide()"></div>
+<button id="selFab" class="sel-fab" onclick="document.getElementById('logCard').scrollIntoView({behavior:'smooth',block:'start'})"><span></span><b>기록하기</b></button>
+<nav class="mtabs">
+  <button class="tab" data-tab="today" onclick="setTab('today')"><svg class="ic"><use href="#i-today"/></svg>오늘</button>
+  <button class="tab" data-tab="tl" onclick="setTab('tl')"><svg class="ic"><use href="#i-flask"/></svg>라인</button>
+  <button class="tab" data-tab="ana" onclick="setTab('ana')"><svg class="ic"><use href="#i-chart"/></svg>분석</button>
+  <button onclick="openSide()"><svg class="ic" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>메뉴</button>
+</nav>
+
 
 <div id="logModal" class="modal">
   <div class="mbox" style="width:560px;">
@@ -1355,15 +1432,26 @@ function randIdxAvoiding(exclude){
   return i;
 }
 // 팔레트는 색상환 순서라서, 이미 쓰는 색들과 색상환 거리가 가장 먼 칸을 골라야 종류끼리 잘 구별된다
+// 팔레트 40색은 분홍·빨강 쪽에 몰려 있어서, 자동 배정은 눈으로 확실히 갈리는 12색 안에서 먼저 고른다
+// (빨강·주황·노랑·연두·초록·민트·청록·하늘·파랑·보라·자주·분홍 순서)
+const AUTO_PAL=[0,4,7,10,12,15,17,19,21,25,28,31];
 function farIdx(used, exclude){
-  const n=PAL.length, dist=(a,b)=>{ const d=Math.abs(a-b)%n; return Math.min(d,n-d); };
-  let best=[], bestD=-1;
-  for(let i=0;i<n;i++){
-    if(i===exclude) continue;
-    const d=used.length?Math.min(...used.map(u=>dist(i,u))):n;
-    if(d>bestD){ bestD=d; best=[i]; } else if(d===bestD) best.push(i);
-  }
-  return best[Math.floor(Math.random()*best.length)];
+  const pick=(cands,pos)=>{
+    const n=cands.length, dist=(a,b)=>{ const d=Math.abs(a-b)%n; return Math.min(d,n-d); };
+    const usedPos=used.map(pos).filter(p=>p>=0);
+    let best=[], bestD=-1;
+    cands.forEach((c,i)=>{
+      if(c===exclude||used.includes(c)) return;
+      const d=usedPos.length?Math.min(...usedPos.map(u=>dist(i,u))):n;
+      if(d>bestD){ bestD=d; best=[c]; } else if(d===bestD) best.push(c);
+    });
+    return best.length?best[Math.floor(Math.random()*best.length)]:null;
+  };
+  // 쓰는 색을 12색 위치로 옮겨서 거리 계산 (12색 밖의 색은 가장 가까운 12색 자리로 본다)
+  const nearAuto=u=>{ let bi=0,bd=99; AUTO_PAL.forEach((a,i)=>{ const d=Math.min(Math.abs(a-u),PAL.length-Math.abs(a-u)); if(d<bd){bd=d;bi=i;} }); return bi; };
+  const r=pick(AUTO_PAL,nearAuto);
+  if(r!=null) return r;
+  return pick(PAL.map((_,i)=>i),u=>u) ?? 0;
 }
 // 종류(type)마다 typeColors에 색이 고정 배정돼 있다. 새로 등장한 종류는 여기서 랜덤으로 배정하고 저장한다.
 // (⚙ 배양 현황의 "종류별 색상 설정"에서 수동으로 바꾸거나 다시 랜덤 돌릴 수 있다)
@@ -1399,8 +1487,9 @@ function randomizeAllTypeColors(){
   if(types.length<=PAL.length){
     // 종류 수가 팔레트 색상 수 이하면 서로 겹치지 않도록 섞어서 배정
     // 색상환을 종류 수만큼 균등하게 나눈 뒤 시작점과 배정 순서만 랜덤으로 → 서로 최대한 멀리 떨어진 색
-    const step=PAL.length/types.length, off=Math.floor(Math.random()*PAL.length);
-    const idxs=types.map((_,i)=>(off+Math.round(i*step))%PAL.length);
+    const base=types.length<=AUTO_PAL.length?AUTO_PAL:PAL.map((_,i)=>i);
+    const step=base.length/types.length, off=Math.floor(Math.random()*base.length);
+    const idxs=types.map((_,i)=>base[(off+Math.round(i*step))%base.length]);
     for(let i=idxs.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [idxs[i],idxs[j]]=[idxs[j],idxs[i]]; }
     types.forEach((t,i)=>{ typeColors[t]=idxs[i]; });
   } else {
@@ -1467,6 +1556,26 @@ function latestPlate(line){
 // ══════════════════════════════════════════
 const ic=(n,cls)=>`<svg class="ic${cls?' '+cls:''}"><use href="#i-${n}"/></svg>`;
 
+// 배양 현황에서 라인별 최근 기록을 바로 펼쳐본다 (저장 직후 확인하려고 다른 페이지로 갈 필요 없게)
+const _bdOpen=new Set();
+function toggleBdRow(id){ _bdOpen.has(id)?_bdOpen.delete(id):_bdOpen.add(id); renderDash(); }
+function buildMiniLog(id){
+  const lgs=logs.filter(l=>l.lineId===id).sort((a,b)=>b.date.localeCompare(a.date)||(b.seq||0)-(a.seq||0)).slice(0,5);
+  const n=logs.filter(l=>l.lineId===id).length;
+  return `<div class="bd-mini" onclick="event.stopPropagation()">${lgs.map(lg=>`<div class="bm-row" onclick="openLogModal('${lg.id}')">
+      <span class="bm-d">${lg.date.slice(5).replace('-','.')}</span><span class="badge ${badgeCls(lg.action)}">${esc(lg.action)}</span>
+      <span class="bm-pd"><b>P${lg.passage}</b> ${esc(lg.dayInfo||'')}</span>
+      <span class="bm-x">${esc([lg.details,lg.finalWells?lg.finalWells+' well':'',lg.stocks?lg.stocks+' vial':'',lg.memo].filter(Boolean).join(' · '))}</span></div>`).join('')}
+    <button class="link-btn bm-all" onclick="openLineTimeline('${id}')">전체 ${n}건 보기</button></div>`;
+}
+// 배양 라인 페이지로 가서 해당 라인 타임라인을 펼치고 그 위치로 스크롤
+function openLineTimeline(id){
+  setTab('tl'); setLineFilter(lines.find(l=>l.id===id&&l.isCompleted)?'done':'active');
+  const body=document.getElementById('tl_'+id);
+  if(body&&body.classList.contains('col')) toggleTL('tl_'+id,id);
+  setTimeout(()=>{ const w=body&&body.closest('.tl-wrap'); if(w) w.scrollIntoView({behavior:'smooth',block:'start'}); },60);
+}
+
 function renderDash(){
   const el=document.getElementById('dash');
   const active=lines.filter(l=>!l.isCompleted);
@@ -1505,14 +1614,16 @@ function renderDash(){
     body+=d.lines.map(ll=>{
       const mc=ll.mc;
       const mcTag=`<button class="mc ${mc?mc.cls:'mc-none'}" onclick="quickMediaChange('${ll.id}',event)" title="오늘 Media Change 바로 기록">${mc?'MC +'+mc.days+'d':'MC'}</button>`;
-      return `<div class="bd-row${bulkLines.includes(ll.id)?' sel':''}" data-line="${ll.id}" draggable="true" ondragstart="planDragStart(event,'${ll.id}')" onclick="selectLine('${ll.id}')">
+      const open=_bdOpen.has(ll.id);
+      return `<div class="bd-row${bulkLines.includes(ll.id)?' sel':''}${open?' open':''}" data-line="${ll.id}" draggable="true" ondragstart="planDragStart(event,'${ll.id}')" onclick="selectLine('${ll.id}')">
         <span class="cbx">${ic('check')}</span>
         <span class="bd-name">${esc(ll.label)}${ll.detail?`<small>${esc(ll.detail)}</small>`:''}</span>
         <span class="bd-pd"><b>P${ll.p}</b> ${ll.day}</span>
         <span class="bd-plate">${esc(ll.plate||'')}</span>
         <span class="bd-well">${ll.well||'-'}</span>
         ${mcTag}
-      </div>`;
+        <button class="bd-exp" onclick="event.stopPropagation();toggleBdRow('${ll.id}')" title="최근 기록 보기">${ic('down')}</button>
+      </div>${open?buildMiniLog(ll.id):''}`;
     }).join('')+'</div>';
   });
 
@@ -1522,7 +1633,7 @@ function renderDash(){
         ${bulkLines.length?`<button class="btn btn-ghost" onclick="clearBulkLines()">${bulkLines.length}개 선택 해제</button>`:''}
         <button class="btn btn-ghost" onclick="openColorModal()" title="종류별 색상 바꾸기">${ic('palette')}색상</button>
       </span></div>
-    ${active.length?`<div class="bd-head"><span></span><span>라인</span><span>P / D</span><span>Plate</span><span>Well</span><span>MC</span></div><div class="bd-blocks">${body}</div>`
+    ${active.length?`<div class="bd-head"><span></span><span>라인</span><span>P / D</span><span>Plate</span><span>Well</span><span>MC</span><span></span></div><div class="bd-blocks">${body}</div>`
       :'<div class="empty">진행 중인 라인이 없어요.</div>'}
   </section>`;
 }
@@ -1966,9 +2077,7 @@ function renderFilterHint(){
   const el=document.getElementById('filterHint'); if(!el) return;
   if(!lineFilter){ el.innerHTML=''; return; }
   const nA=lines.filter(l=>!l.isCompleted&&lineMatch(l)).length, nD=lines.filter(l=>l.isCompleted&&lineMatch(l)).length;
-  el.innerHTML = curTab==='arch'
-    ? `완료 ${nD}개 · <button class="link-btn" onclick="setTab('tl')">진행 중 ${nA}개 보기</button>`
-    : `진행 중 ${nA}개 · <button class="link-btn" onclick="setTab('arch')">완료 ${nD}개 보기</button>`;
+  el.innerHTML = `일치: 진행 중 ${nA} · 완료 ${nD}`+(lnFilter!=='all'&&(lnFilter==='active'?nD:nA)?` <button class="link-btn" onclick="setLineFilter('all')">전체 보기</button>`:'');
 }
 // 라인 정렬: 종류(대시보드 카드 순서와 동일) → 환자ID 순으로 항상 정렬
 const typeCmp=(a,b)=>
@@ -2036,15 +2145,23 @@ function renderTimelines(containerId,showDone){
   const el=document.getElementById(containerId);
   el.innerHTML='';
   const filtered=lines.filter(l=>!!l.isCompleted===showDone && lineMatch(l));
-  if(!filtered.length){el.innerHTML='<div style="color:#94A3B8;font-size:.81rem;padding:5px 0;">없음</div>';return;}
+  if(!filtered.length){el.innerHTML='<div class="empty">없음</div>';return;}
 
   // 사전식(가나다/숫자) 정렬: 종류(대시보드 순서) → 환자ID, 겹치면 (최초 seeding) 날짜순
   filtered.sort((a,b)=> typeCmp(a,b) || lineFirstDate(a).localeCompare(lineFirstDate(b)));
 
   if(showDone){ renderArchiveGrid(el, filtered); return; }
 
+  const typeN={}; filtered.forEach(l=>{typeN[l.type]=(typeN[l.type]||0)+1;});
+  let curType=null;
   filtered.forEach(line=>{
     const c=getC(line.type,line.isCompleted);
+    // 종류가 바뀌는 지점마다 종류 머리 줄 (오늘 작업의 배양 현황과 같은 모양, 색 바꾸기 버튼 포함)
+    if(line.type!==curType){
+      curType=line.type;
+      el.innerHTML+=`<div class="type-hd" style="${toneVars(c)}"><span>${esc(line.type||'(종류 없음)')}</span><em>${typeN[line.type]}라인</em>
+        <button class="bd-color" onclick="openColorModal('${jsEsc(line.type)}')" title="이 종류 색 바꾸기">${ic('palette')}</button></div>`;
+    }
     const curPlate=latestPlate(line);
     const table=buildLogTable(line);
 
@@ -2084,7 +2201,8 @@ function renderArchiveGrid(el, filtered){
       if(gridOpen) html+='</div>';
       curType=line.type;
       const tc=tcm[line.type]||PAL[0];
-      html+=`<div class="arch-hd" style="${toneVars(tc)}"><i class="tdot"></i><span>${esc(line.type||'(종류 없음)')}</span><em>${typeCounts[line.type]}</em></div><div class="arch-grid">`;
+      html+=`<div class="type-hd" style="${toneVars(tc)}"><span>${esc(line.type||'(종류 없음)')}</span><em>${typeCounts[line.type]}라인</em>
+        <button class="bd-color" onclick="openColorModal('${jsEsc(line.type)}')" title="이 종류 색 바꾸기">${ic('palette')}</button></div><div class="arch-grid">`;
       gridOpen=true;
     }
     const tc=tcm[line.type]||PAL[0];
@@ -2153,6 +2271,7 @@ function toggleArch(){
 
 function renderLineList(){
   const el=document.getElementById('lineList');
+  if(!el) return;   // 라인 목록은 이제 [배양 라인] 페이지가 대신한다
   el.innerHTML='<div style="font-size:.85rem;font-weight:700;margin:10px 0 7px;">등록된 라인 목록</div>';
   const active=lines.filter(l=>!l.isCompleted).sort(typeCmp);
   const done  =lines.filter(l=> l.isCompleted).sort(typeCmp);
@@ -2185,8 +2304,10 @@ function updateUI(){
   renderDash();
   renderStockBanner();
   const dc=lines.filter(l=>l.isCompleted).length;
-  document.getElementById('archCount').textContent=dc||'';
   document.getElementById('tlCount').textContent=activeLines.length||'';
+  document.getElementById('fnA').textContent=activeLines.length;
+  document.getElementById('fnD').textContent=dc;
+  if(curTab==='ana') renderAnalytics();
   renderPageSub(); renderSelFab();
   renderTodayLogs(); renderFilterHint(); renderPlanLinkBar();
   updateTrashBadge();
@@ -2331,7 +2452,7 @@ function renderActChips(){
   document.getElementById('actChips').innerHTML=ACTIONS.map(a=>{
     const on=a===def;
     const val=a.variants?a.variants[0]:a.key;
-    return `<button class="act ${badgeCls(a.key==='__custom__'?'':a.key)}${on?' on':''}" onclick="setAction('${jsEsc(on&&a.variants?cur:val)}')"><span>${esc(a.label||a.key)}</span>${a.sub?`<small>${a.sub}</small>`:''}</button>`;
+    return `<button class="act ${a.key==='__custom__'?'bf':badgeCls(a.key)}${on?' on':''}" onclick="setAction('${jsEsc(on&&a.variants?cur:val)}')"><span>${esc(a.label||a.key)}</span>${a.sub?`<small>${a.sub}</small>`:''}</button>`;
   }).join('');
   const vEl=document.getElementById('actVar');
   if(def.variants){
@@ -2700,7 +2821,9 @@ function saveLine(){
     logs.push({id:uid()+'_sd',seq:nextSeq(),lineId:nl.id,date:start,action:'Seeded',
       passage:p,dayInfo:dayStr,details:'',finalWells:wells||'',stocks:'',memo:'최초 seeding',printedToNotebook:false});
   }
-  resetLineForm();updateUI();
+  const wasEdit=!!id;
+  closeLineModal();updateUI();
+  toast(wasEdit?'라인을 수정했어요':'라인을 추가했어요');
 }
 
 function editLine(id){
@@ -2747,9 +2870,10 @@ function editLine(id){
   document.getElementById('elStart').value=startDt;
   setPlateSelectValue('elPlate','elPlateCustom', l.plateType||'');
   document.getElementById('elFinishBtn').style.display=l.isCompleted?'none':'';
+  document.getElementById('elDelBtn').style.display='';
   document.getElementById('elSaveBtn').textContent='수정 저장';
-  openLineModal();
-  document.querySelector('#lineModal .mscroll').scrollTop=0;
+  document.getElementById('lineFormTitle').textContent='라인 수정 · '+lineTag(l);
+  openLineModal(true);
 }
 
 // 배양 완료: prompt 대신 날짜·메모를 받는 작은 창 (완료 날짜를 오늘이 아닌 날로도 지정 가능)
@@ -2789,7 +2913,10 @@ function deleteLine(id){
   saveTrash();
   lines=lines.filter(l=>l.id!==id);logs=logs.filter(l=>l.lineId!==id);
   if(id in tlCollapsed){ delete tlCollapsed[id]; localStorage.setItem('orgTlCollapsed', JSON.stringify(tlCollapsed)); }
+  bulkLines=bulkLines.filter(x=>x!==id);
+  if(document.getElementById('elId').value===id) closeLineModal();
   updateUI();
+  toast('라인을 휴지통으로 옮겼어요');
 }
 
 // ══════════════════════════════════════════
@@ -3002,8 +3129,19 @@ function quickMediaChange(lineId,ev){
   toast(`${lineTag(line)} Media Change 기록했어요`,{undo:snap});
 }
 
-function openLineModal(){updateUI();document.getElementById('lineModal').classList.add('open');}
-function closeLineModal(){document.getElementById('lineModal').classList.remove('open');resetLineForm();}
+// 라인 추가/수정은 팝업 대신 [배양 라인] 페이지 맨 위 패널에서 한다
+function openLineModal(keep){
+  if(keep!==true) resetLineForm();
+  closeModalsAll();
+  setTab('tl');
+  const pnl=document.getElementById('lineFormPanel');
+  pnl.style.display='';
+  pnl.classList.remove('flash'); void pnl.offsetWidth; pnl.classList.add('flash');
+  window.scrollTo({top:0,behavior:'smooth'});
+  setTimeout(()=>document.getElementById('elPid').focus({preventScroll:true}),120);
+}
+function closeLineModal(){ document.getElementById('lineFormPanel').style.display='none'; resetLineForm(); }
+function closeModalsAll(){ document.querySelectorAll('.modal.open').forEach(m=>m.classList.remove('open')); }
 function closeLogModal(){document.getElementById('logModal').classList.remove('open');}
 function resetLineForm(){
   ['elId','elPid','elType','elLineDetail'].forEach(i=>document.getElementById(i).value='');
@@ -3011,13 +3149,15 @@ function resetLineForm(){
   document.getElementById('elP').value=0;document.getElementById('elBase').value=0;
   document.getElementById('elWells').value=0;document.getElementById('elStart').valueAsDate=new Date();
   document.getElementById('elFinishBtn').style.display='none';
+  document.getElementById('elDelBtn').style.display='none';
   document.getElementById('elSaveBtn').textContent='라인 추가';
+  document.getElementById('lineFormTitle').textContent='새 라인';
 }
 // 창 바깥(어두운 배경)을 누르면 닫기. 아래쪽에 선언된 창까지 포함되도록 문서 전체에서 한 번에 처리
 document.addEventListener('click',e=>{
   if(['planDetailModal','finishModal'].includes(e.target.id)) e.target.classList.remove('open');
 });
-['lineModal','logModal','trashModal','archDetailModal'].forEach(id=>{
+['logModal','trashModal','archDetailModal'].forEach(id=>{
   document.getElementById(id).addEventListener('click',e=>{
     if(e.target===document.getElementById(id)) document.getElementById(id).classList.remove('open');
   });
@@ -3285,12 +3425,14 @@ function toast(msg,opt){
 let curTab='today';
 try{ curTab=localStorage.getItem('orgTab')||'today'; }catch(e){}
 function setTab(t, instant){
-  if(!['today','tl','arch'].includes(t)) t='today';
+  if(t==='arch'){ t='tl'; setLineFilter('done',true); }   // 예전 [완료된 배양] 탭은 배양 라인의 '완료' 필터로
+  if(!['today','tl','ana'].includes(t)) t='today';
   const apply=()=>{
     curTab=t;
     document.body.dataset.tab=t;
     document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
-    document.getElementById('pageTitle').textContent={today:'오늘 작업',tl:'배양 타임라인',arch:'완료된 배양'}[t];
+    document.getElementById('pageTitle').textContent={today:'오늘 작업',tl:'배양 라인',ana:'작업 분석'}[t];
+    if(t==='ana') renderAnalytics(); else anaTipHide();
     renderPageSub();
     renderFilterHint();
     closeSide();
@@ -3303,7 +3445,17 @@ function renderPageSub(){
   const el=document.getElementById('pageSub'); if(!el) return;
   const wd=['일','월','화','수','목','금','토'], d=new Date();
   el.textContent = curTab==='today' ? `${d.getMonth()+1}월 ${d.getDate()}일 ${wd[d.getDay()]}요일`
-    : curTab==='tl' ? `${lines.filter(l=>!l.isCompleted).length}개 라인` : `${lines.filter(l=>l.isCompleted).length}개 라인`;
+    : curTab==='tl' ? `진행 중 ${lines.filter(l=>!l.isCompleted).length} · 완료 ${lines.filter(l=>l.isCompleted).length}` : '최근 1년 기록 기준';
+}
+// 배양 라인 페이지 필터: 진행 중 / 완료 / 전체
+let lnFilter='active';
+try{ lnFilter=localStorage.getItem('orgLnFilter')||'active'; }catch(e){}
+function setLineFilter(f,silent){
+  if(!['active','done','all'].includes(f)) f='active';
+  lnFilter=f; document.body.dataset.lnf=f;
+  document.querySelectorAll('#lnFilter .seg').forEach(b=>b.classList.toggle('on',b.dataset.f===f));
+  try{ localStorage.setItem('orgLnFilter',f); }catch(e){}
+  if(!silent) renderFilterHint();
 }
 // 모바일: 사이드바를 서랍처럼 열고 닫기
 function openSide(){ document.body.classList.add('side-open'); }
@@ -3329,8 +3481,8 @@ document.addEventListener('keydown',e=>{
     const open=[...document.querySelectorAll('.modal.open')];
     if(open.length){ open[open.length-1].classList.remove('open'); return; }
     if(document.body.classList.contains('side-open')){ closeSide(); return; }
-    const ap=document.getElementById('analyticsPage');
-    if(ap&&ap.classList.contains('open')){ closeAnalyticsPage(); return; }
+    const lf=document.getElementById('lineFormPanel');
+    if(lf&&lf.style.display!=='none'&&curTab==='tl'){ closeLineModal(); return; }
   }
   // Ctrl/Cmd+Enter: 기록 수정 창이 열려 있으면 그걸 저장, 아니면 오늘 작업의 기록 저장
   if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){
@@ -3374,6 +3526,7 @@ if(DEMO){ document.getElementById('demoBadge').style.display=''; }
 renderCloudStatus(null);
 renderActChips(); applyActionFields();
 updateUI();
+setLineFilter(lnFilter,true);
 setTab(curTab,true);
 previewDay();
 initBackup();
@@ -4063,8 +4216,8 @@ function anaTipMove(e){
 }
 function anaTipHide(){ const t=document.getElementById('anaTip'); if(t) t.style.display='none'; }
 
-function openAnalyticsPage(){ renderAnalytics(); document.getElementById('analyticsPage').classList.add('open'); }
-function closeAnalyticsPage(){ document.getElementById('analyticsPage').classList.remove('open'); anaTipHide(); }
+function openAnalyticsPage(){ setTab('ana'); }
+function closeAnalyticsPage(){ anaTipHide(); setTab('today'); }
 
 function weekKey(dateStr){
   const d=new Date(dateStr); d.setHours(0,0,0,0);
@@ -4165,8 +4318,8 @@ function setVolMode(mode){
     : buildBarChart(bucketCounts('month'), 12, k=>k.slice(2).replace('-','.'), '건');
   document.getElementById('volChart').innerHTML=html;
   const bm=document.getElementById('volBtnM'), bw=document.getElementById('volBtnW');
-  if(bm){ bm.style.background = mode==='month'?'#9D8FF5':''; bm.style.color = mode==='month'?'#fff':''; bm.style.borderColor = mode==='month'?'#9D8FF5':''; }
-  if(bw){ bw.style.background = mode==='week'?'#9D8FF5':''; bw.style.color = mode==='week'?'#fff':''; bw.style.borderColor = mode==='week'?'#9D8FF5':''; }
+  if(bm) bm.classList.toggle('on',mode==='month');
+  if(bw) bw.classList.toggle('on',mode==='week');
 }
 
 function buildPassageCycle(){
@@ -4245,32 +4398,124 @@ function buildStockTrend(){
   return buildBarChart(b, 12, k=>k.slice(2).replace('-','.'), 'vial');
 }
 
+// ══════════════════════════════════════════
+//  분석: 라인 단위로 "다음에 뭘 해야 하는지"를 알려주는 표들
+// ══════════════════════════════════════════
+const _dayDiff=(a,b)=>Math.round((new Date(b)-new Date(a))/86400000);
+const _dTotal=str=>{ const d=parseD(str); return d?d.base+d.diff:null; };
+const _anaEmpty=t=>`<div class="empty">${t}</div>`;
+function _lineCell(l){ const c=getC(l.type,false); return `<span class="a-line" style="${toneVars(c)}"><i class="tdot"></i>${esc(lineTag(l))}</span>`; }
+// 라인별 계대 간격(일) 목록: Split 시점의 누적 d
+function _splitGaps(){
+  const byLine={}, byType={};
+  logs.filter(lg=>isPassageUp(lg.action)).forEach(lg=>{
+    const l=lines.find(x=>x.id===lg.lineId); if(!l) return;
+    const t=_dTotal(lg.dayInfo); if(!t||t<=0) return;
+    (byLine[l.id]=byLine[l.id]||[]).push(t); (byType[l.type]=byType[l.type]||[]).push(t);
+  });
+  return {byLine,byType};
+}
+const _avg=a=>a.reduce((x,y)=>x+y,0)/a.length;
+
+// 1) 다음 Split 예상: 이 라인의 평균 계대 간격(없으면 같은 종류 평균)과 현재 d를 비교
+function buildNextSplit(){
+  const {byLine,byType}=_splitGaps();
+  const t0=today();
+  const rows=lines.filter(l=>!l.isCompleted).map(l=>{
+    const own=byLine[l.id], typ=byType[l.type];
+    const avg=own&&own.length?_avg(own):(typ&&typ.length?_avg(typ):null);
+    const src=own&&own.length?`본인 ${own.length}회`:(typ&&typ.length?`종류 평균`:'');
+    const cur=_dTotal(calcDayStr(l))||0;
+    const remain=avg!=null?Math.round(avg-cur):null;
+    let due=''; if(remain!=null){ const d=new Date(t0); d.setDate(d.getDate()+remain); due=ymdLocal(d); }
+    return {l,avg,src,cur,remain,due};
+  }).sort((a,b)=>(a.remain==null)-(b.remain==null)||(a.remain-b.remain));
+  if(!rows.length) return _anaEmpty('진행 중인 라인이 없어요.');
+  return `<div class="atbl atbl-split"><div class="at-h"><span>라인</span><span>현재</span><span>평균 주기</span><span>진행</span><span>예상일</span></div>`+rows.map(r=>{
+    const pct=r.avg?Math.min(100,Math.round(r.cur/r.avg*100)):0;
+    const st=r.remain==null?'<span class="chip-s">기록 부족</span>':r.remain<0?`<span class="chip-s due">${-r.remain}일 지남</span>`:r.remain<=2?`<span class="chip-s warn">${r.remain===0?'오늘':r.remain+'일 후'}</span>`:`<span class="chip-s">${r.remain}일 후</span>`;
+    return `<div class="at-r">${_lineCell(r.l)}<span><b>P${r.l.passage}</b> d${r.cur}</span>
+      <span>${r.avg?r.avg.toFixed(1)+'일':'-'} <small>${r.src}</small></span>
+      <span class="a-bar"><i style="width:${pct}%;" class="${r.remain!=null&&r.remain<0?'over':''}"></i></span>
+      <span>${r.due?r.due.slice(5).replace('-','.'):''} ${st}</span></div>`;
+  }).join('')+'</div>';
+}
+
+// 2) MC 간격 관리: 최근 60일 동안 배지 교체(MC·MA·Split·Reseeding) 사이 간격
+function buildMcGap(){
+  const t0=today(), from=new Date(); from.setDate(from.getDate()-60); const fromS=ymdLocal(from);
+  const rows=lines.filter(l=>!l.isCompleted).map(l=>{
+    const ds=[...new Set(logs.filter(lg=>lg.lineId===l.id&&(isMediaChange(lg.action)||isPassageUp(lg.action)||lg.action==='Reseeding'||isSeed(lg.action))).map(lg=>lg.date))].sort();
+    const inWin=ds.filter(d=>d>=fromS); if(!inWin.length) return null;
+    const pts=[...inWin,t0], gaps=[]; for(let i=1;i<pts.length;i++) gaps.push(_dayDiff(pts[i-1],pts[i]));
+    const done=gaps.slice(0,-1);   // 마지막(오늘까지)은 아직 진행 중인 간격
+    const over=gaps.filter(g=>g>3).length;
+    return {l,avg:done.length?_avg(done):null,max:Math.max(...gaps),over,n:gaps.length,now:gaps[gaps.length-1]};
+  }).filter(Boolean).sort((a,b)=>b.over/b.n-a.over/a.n||b.max-a.max);
+  if(!rows.length) return _anaEmpty('최근 60일 기록이 없어요.');
+  return `<div class="atbl atbl-mc"><div class="at-h"><span>라인</span><span>평균</span><span>최장</span><span>4일 이상 비율</span></div>`+rows.map(r=>{
+    const pct=Math.round(r.over/r.n*100);
+    return `<div class="at-r">${_lineCell(r.l)}<span>${r.avg!=null?r.avg.toFixed(1)+'일':'-'}</span><span class="${r.max>3?'t-due':''}">${r.max}일</span>
+      <span class="a-pct"><span class="a-bar"><i style="width:${pct}%;" class="${pct>=30?'over':''}"></i></span><em>${pct}%</em></span></div>`;
+  }).join('')+'</div>';
+}
+
+// 3) Split 확장 배율: Split 직후 Well 수 ÷ 직전 Well 수
+function buildExpansion(){
+  const byType={}, byLine={};
+  logs.filter(lg=>isPassageUp(lg.action)&&parseInt(lg.finalWells)>0).forEach(lg=>{
+    const l=lines.find(x=>x.id===lg.lineId); if(!l) return;
+    const prev=logs.filter(x=>x.lineId===lg.lineId&&x.id!==lg.id&&parseInt(x.finalWells)>0&&(x.date<lg.date||(x.date===lg.date&&(x.seq||0)<(lg.seq||0))))
+      .sort((a,b)=>b.date.localeCompare(a.date)||(b.seq||0)-(a.seq||0))[0];
+    const before=prev?parseInt(prev.finalWells):parseInt(l.initialWells)||0; if(!before) return;
+    const f=parseInt(lg.finalWells)/before;
+    (byType[l.type]=byType[l.type]||[]).push(f); (byLine[l.id]=byLine[l.id]||[]).push({f,date:lg.date});
+  });
+  const types=Object.keys(byType);
+  if(!types.length) return _anaEmpty('Well 수가 적힌 Split 기록이 필요해요.');
+  const max=Math.max(...types.map(t=>_avg(byType[t])),1);
+  const tRows=types.map(t=>({t,avg:_avg(byType[t]),n:byType[t].length})).sort((a,b)=>b.avg-a.avg).map(x=>{
+    const c=tcm[x.t]||PAL[0];
+    return `<div class="hbar" style="${toneVars(c)}"><span class="hb-l">${esc(x.t)}</span><span class="hb-t"><i style="width:${Math.round(x.avg/max*100)}%;"></i></span><span class="hb-v">×${x.avg.toFixed(1)} <small>n=${x.n}</small></span></div>`;
+  }).join('');
+  const lRows=Object.keys(byLine).map(id=>{ const l=lines.find(x=>x.id===id); const arr=byLine[id].sort((a,b)=>a.date.localeCompare(b.date)); return {l,seq:arr.map(a=>'×'+a.f.toFixed(1))}; })
+    .filter(x=>x.l).map(x=>`<div class="at-r at-flat">${_lineCell(x.l)}<span class="a-seq">${x.seq.join(' → ')}</span></div>`).join('');
+  return tRows+`<div class="a-sub">라인별 (왼쪽이 먼저)</div><div class="atbl">${lRows}</div>`;
+}
+
+// 4) 라인별 Stock 누적
+function buildStockByLine(){
+  const m={};
+  logs.forEach(lg=>{ const n=parseInt(lg.stocks); if(!n||n<=0) return; const o=m[lg.lineId]=m[lg.lineId]||{n:0,k:0,last:''}; o.n+=n; o.k++; if(lg.date>o.last) o.last=lg.date; });
+  const ids=Object.keys(m).filter(id=>lines.some(l=>l.id===id));
+  if(!ids.length) return _anaEmpty('Stock 기록이 없어요.');
+  const max=Math.max(...ids.map(id=>m[id].n));
+  return ids.sort((a,b)=>m[b].n-m[a].n).map(id=>{ const l=lines.find(x=>x.id===id), c=getC(l.type,false);
+    return `<div class="hbar" style="${toneVars(c)}"><span class="hb-l">${esc(lineTag(l))}</span><span class="hb-t"><i style="width:${Math.round(m[id].n/max*100)}%;"></i></span><span class="hb-v">${m[id].n} vial <small>${m[id].k}회 · ${m[id].last.slice(2).replace(/-/g,'.')}</small></span></div>`;
+  }).join('');
+}
+
+// 5) 요일별 작업량 (최근 180일, Seeded 제외)
+function buildWeekday(){
+  const from=new Date(); from.setDate(from.getDate()-180); const fromS=ymdLocal(from);
+  const cnt=[0,0,0,0,0,0,0];
+  logs.forEach(lg=>{ if(lg.date<fromS||isSeed(lg.action)) return; cnt[new Date(lg.date+'T00:00:00').getDay()]++; });
+  const order=[1,2,3,4,5,6,0], wd=['일','월','화','수','목','금','토'], max=Math.max(...cnt,1);
+  return `<div class="wkbars">`+order.map(i=>`<div class="wkb"><span class="wkb-n">${cnt[i]}</span><span class="wkb-t"><i style="height:${Math.round(cnt[i]/max*100)}%;"></i></span><span class="wkb-l">${wd[i]}</span></div>`).join('')+`</div>`;
+}
+
 function renderAnalytics(){
-  document.getElementById('anaContent').innerHTML=`
-    <div class="dash-card" style="margin-bottom:12px;">
-      <div class="dash-ttl" style="margin-bottom:10px;">작업 캘린더 (최근 1년)</div>
-      ${buildHeatmap()}
-    </div>
-    <div class="dash-card" style="margin-bottom:12px;">
-      <div class="dash-top" style="margin-bottom:2px;">
-        <div class="dash-ttl">작업량 추이</div>
-        <div style="display:flex;gap:5px;">
-          <button class="btn btn-out" id="volBtnM" onclick="setVolMode('month')" style="height:26px;font-size:.72rem;">월별</button>
-          <button class="btn btn-out" id="volBtnW" onclick="setVolMode('week')" style="height:26px;font-size:.72rem;">주별</button>
-        </div>
-      </div>
-      <div id="volChart"></div>
-    </div>
-    <div class="dash-card" style="margin-bottom:12px;">
-      <div class="dash-ttl" style="margin-bottom:10px;">계대(Split) 주기 — 타입별 평균 간격</div>
-      ${buildPassageCycle()}
-      ${buildPassageCycleByLine()}
-    </div>
-    <div class="dash-card">
-      <div class="dash-ttl" style="margin-bottom:10px;">Stock(vial) 생산 추이 (월별)</div>
-      ${buildStockTrend()}
-    </div>
-  `;
+  const P=(t,body,cls,act)=>`<section class="panel ${cls||''}"><div class="panel-hd"><span>${t}</span>${act?`<span class="panel-act">${act}</span>`:''}</div><div class="pbody">${body}</div></section>`;
+  document.getElementById('anaContent').innerHTML=`<div class="ana-grid">
+    ${P('다음 Split 예상',buildNextSplit(),'ana-full')}
+    ${P('MC 간격 <small>최근 60일</small>',buildMcGap())}
+    ${P('Split 확장 배율 <small>Well 기준</small>',buildExpansion())}
+    ${P('작업 캘린더 <small>최근 1년</small>',buildHeatmap(),'ana-full')}
+    ${P('작업량 추이','<div id="volChart"></div>','',`<span class="seg-group"><button class="seg" id="volBtnM" onclick="setVolMode('month')">월별</button><button class="seg" id="volBtnW" onclick="setVolMode('week')">주별</button></span>`)}
+    ${P('요일별 작업량 <small>최근 180일</small>',buildWeekday())}
+    ${P('계대 주기 <small>종류별 평균 · 라인별 추이</small>',buildPassageCycle()+buildPassageCycleByLine())}
+    ${P('Stock',buildStockTrend()+'<div class="a-sub">라인별 누적</div>'+buildStockByLine())}
+  </div>`;
   setVolMode(_volMode);
 }
 
