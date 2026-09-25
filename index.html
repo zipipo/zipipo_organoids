@@ -10,7 +10,7 @@
 <style>
 :root{--bg:#F8FAFC;--sur:#fff;--pri:#3B82F6;--psoft:#EFF6FF;--tx:#1E293B;--sub:#64748B;--bd:#E2E8F0;}
 *{box-sizing:border-box;}
-body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--tx);margin:0;padding:15px;line-height:1.3;}
+body{font-family:var(--font,'Pretendard'),'Pretendard',sans-serif;background:var(--bg);color:var(--tx);margin:0;padding:15px;line-height:1.3;}
 .wrap{max-width:1340px;margin:0 auto;}
      
 /* HEADER */
@@ -735,6 +735,7 @@ body[data-tab="ana"] .pane[data-pane="ana"]{display:block;animation:paneIn .28s 
 /* ═══ 테마 전환 ═══ */
 .theme-sw{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:2px 4px 8px 10px;font-size:.76rem;color:var(--sub);font-weight:550;}
 .theme-sw .seg{height:24px;padding:0 7px;font-size:.7rem;}
+.font-sw select{width:auto;max-width:132px;height:26px;padding:0 6px;font-size:.72rem;border-radius:5px;}
 /* ═══ 다크: 어두운 바탕 + 밝은 글자. 종류·액션 색은 어두운 바탕에 맞게 옅게 섞어서 살린다 ═══ */
 body[data-theme="dark"]{color-scheme:dark;
   --bg:#121214;--sur:#1B1B1F;--sur2:#202025;--hov:#26262C;--act:#2C2C33;--side:#16161A;--topbar:rgba(18,18,20,.86);--mtabs:rgba(22,22,26,.95);--ink:#D4D4D8;
@@ -966,6 +967,10 @@ body[data-theme="mono"] input:focus,body[data-theme="mono"] select:focus,body[da
         <button class="seg" data-th="dark" onclick="setTheme('dark')">다크</button>
         <button class="seg" data-th="mono" onclick="setTheme('mono')">모노</button>
       </div>
+    </div>
+    <div class="theme-sw font-sw" title="화면 글씨체 (이 브라우저에 저장, PPT는 항상 Pretendard)">
+      <span>글씨체</span>
+      <select id="fontSel" onchange="setFont(this.value)"></select>
     </div>
     <input type="file" id="bkFile" style="display:none;" accept=".json,application/json" onchange="restoreBackup(event)">
     <div class="dd dd-up" id="dataDd">
@@ -3610,6 +3615,30 @@ function setTheme(t){
   document.querySelectorAll('#themeSw .seg').forEach(b=>b.classList.toggle('on',b.dataset.th===t));
   try{ localStorage.setItem('orgTheme',t); }catch(e){}
 }
+// 화면 글씨체: 고른 것만 그때 불러온다. 불러오기에 실패해도 Pretendard로 자연스럽게 대체된다.
+// (PPT 만들기는 이 설정과 무관하게 항상 Pretendard)
+const FONTS={
+  pretendard:{label:'Pretendard', family:"'Pretendard'", css:null},
+  suit:{label:'SUIT', family:"'SUIT'", css:'https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/static/woff2/SUIT.css'},
+  wanted:{label:'Wanted Sans', family:"'Wanted Sans Variable','Wanted Sans'", css:'https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.3/packages/wanted-sans/fonts/webfonts/variable/split/WantedSansVariable.min.css'},
+  spoqa:{label:'Spoqa Han Sans Neo', family:"'Spoqa Han Sans Neo'", css:'https://spoqa.github.io/spoqa-han-sans/css/SpoqaHanSansNeo.css'},
+  plex:{label:'IBM Plex Sans KR', family:"'IBM Plex Sans KR'", css:'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap'},
+  nanumneo:{label:'나눔스퀘어 네오', family:"'NanumSquareNeo'", css:'https://hangeul.pstatic.net/hangeul_static/css/nanum-square-neo.css'},
+};
+function setFont(k){
+  if(!FONTS[k]) k='pretendard';
+  const f=FONTS[k];
+  if(f.css && !document.getElementById('font-'+k)){
+    const l=document.createElement('link'); l.id='font-'+k; l.rel='stylesheet'; l.href=f.css; document.head.appendChild(l);
+  }
+  document.documentElement.style.setProperty('--font',f.family);
+  const sel=document.getElementById('fontSel'); if(sel) sel.value=k;
+  try{ localStorage.setItem('orgFont',k); }catch(e){}
+}
+(function(){
+  const sel=document.getElementById('fontSel');
+  if(sel) sel.innerHTML=Object.entries(FONTS).map(([k,f])=>`<option value="${k}">${f.label}</option>`).join('');
+})();
 // 모바일: 사이드바를 서랍처럼 열고 닫기
 function openSide(){ document.body.classList.add('side-open'); }
 function closeSide(){ document.body.classList.remove('side-open'); }
@@ -3685,6 +3714,8 @@ renderActChips(); applyActionFields();
 updateUI();
 let _theme='pastel'; try{ _theme=localStorage.getItem('orgTheme')||'pastel'; }catch(e){}
 setTheme(_theme);
+let _font='pretendard'; try{ _font=localStorage.getItem('orgFont')||'pretendard'; }catch(e){}
+setFont(_font);
 setLineFilter(lnFilter,true);
 setTab(curTab,true);
 previewDay();
