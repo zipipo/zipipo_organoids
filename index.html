@@ -295,8 +295,8 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
 :root{
   --bg:#EDEEF1; --sur:#FFFFFF; --sur2:#F8F8FA; --hov:#F2F2F5; --act:#E3E4E8;
   --tx:#1F1F24; --sub:#62626C; --mut:#9C9CA6; --bd:#E1E2E6; --bd2:#EEEFF2;
-  --pri:#18181B; --psoft:#F4F4F5;
-  --acc:#5B5BD6; --acc-bg:#F1F1FD; --acc-bd:#DCDCF7;
+  --pri:#5E62D6; --pri-h:#5155C8; --psoft:#EEEFFD;
+  --acc:#5E62D6; --acc-bg:#EEEFFD; --acc-bd:#D9DAF8;
   --ok:#2F7D59; --ok-bg:#EDF8F2; --warn:#8C6D12; --warn-bg:#FBF6E4; --due:#B4413C; --due-bg:#FCEEEE;
   --r:6px; --r-sm:5px;
   --ease:cubic-bezier(.2,.8,.2,1);
@@ -329,8 +329,8 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.92em;bac
 .nav-i .ic{color:var(--mut);transition:color .12s;}
 .nav-i:hover{background:var(--hov);color:var(--tx);}
 .nav-i:hover .ic{color:var(--sub);}
-.nav-i.on{background:var(--act);color:var(--tx);font-weight:600;}
-.nav-i.on .ic{color:var(--tx);}
+.nav-i.on{background:var(--psoft);color:var(--pri);font-weight:650;}
+.nav-i.on .ic{color:var(--pri);}
 .nav-i em{margin-left:auto;font-style:normal;font-size:.72rem;color:var(--mut);font-weight:500;}
 .nav-i em:empty{display:none;}
 .step{width:16px;height:16px;flex:none;display:inline-flex;align-items:center;justify-content:center;font-style:normal;font-size:.62rem;font-weight:700;
@@ -389,8 +389,8 @@ body[data-tab="arch"] .pane[data-pane="arch"]{display:block;animation:paneIn .28
   transition:background .12s,border-color .12s,color .12s,box-shadow .12s;}
 .btn:hover{opacity:1;}
 .btn:active{transform:translateY(.5px);}
-.btn-pri{background:var(--pri);color:#fff;border:1px solid var(--pri);}
-.btn-pri:hover{background:#2E2E33;}
+.btn-pri{background:var(--pri);color:#fff;border:1px solid var(--pri);box-shadow:0 1px 2px rgba(94,98,214,.25);}
+.btn-pri:hover{background:var(--pri-h);border-color:var(--pri-h);}
 .btn-out,.btn-edt{background:var(--sur);border:1px solid var(--bd);color:#3F3F46;}
 .btn-out:hover,.btn-edt:hover{border-color:#D4D4D8;background:var(--sur2);}
 .btn-ghost{background:none;border:1px solid transparent;color:var(--sub);height:28px;padding:0 8px;}
@@ -411,7 +411,7 @@ kbd{font-family:inherit;font-size:.66rem;font-weight:600;color:var(--mut);border
 input,select,textarea{border:1px solid var(--bd);border-radius:var(--r-sm);background:var(--sur);color:var(--tx);font-size:.84rem;transition:border-color .12s,box-shadow .12s;}
 input:hover,select:hover,textarea:hover{border-color:#DCDCE0;}
 input:focus,select:focus,textarea:focus{outline:none;border-color:#A5A5F0;box-shadow:0 0 0 3px rgba(91,91,214,.12);}
-input[type=checkbox]{accent-color:var(--tx);}
+input[type=checkbox]{accent-color:var(--pri);}
 label{font-size:.74rem;font-weight:550;color:var(--sub);}
 
 /* 패널 */
@@ -460,22 +460,27 @@ label{font-size:.74rem;font-weight:550;color:var(--sub);}
 .pl-row:hover .pl-go{opacity:1;}
 
 /* 배양 현황 표 */
-.bd-head,.bd-row{display:grid;grid-template-columns:28px minmax(90px,1.4fr) 110px minmax(80px,1fr) 52px 64px 24px;align-items:center;gap:8px;padding:0 8px 0 10px;}
+.bd-head,.bd-row{display:grid;grid-template-columns:28px minmax(110px,1.4fr) 110px minmax(90px,1fr) 72px 68px 24px;align-items:center;gap:10px;padding:0 10px 0 14px;}
 .bd-head{height:30px;font-size:.7rem;color:var(--mut);font-weight:550;border-bottom:1px solid var(--bd2);}
-.bd-head{padding:0 17px 0 19px;}
-.bd-blocks{display:flex;flex-direction:column;gap:10px;padding:8px;}
-.bd-block{border:1px solid var(--tl,var(--bd));border-radius:7px;overflow:hidden;background:var(--sur);}
-.bd-group{display:flex;align-items:center;gap:8px;height:36px;padding:0 12px 0 14px;font-size:.84rem;font-weight:700;color:var(--tt);background:var(--tf);cursor:pointer;letter-spacing:-.01em;}
-.bd-group .tdot{background:var(--sur);box-shadow:inset 0 0 0 1.5px var(--tt);opacity:.55;width:9px;height:9px;}
-.bd-group em{font-style:normal;font-weight:600;font-size:.72rem;opacity:.65;}
-.bd-group:hover{filter:brightness(.98);}
-.bd-gw{margin-left:auto;font-weight:600;opacity:.7;font-size:.74rem;}
+.bd-head > span:nth-child(5){text-align:right;}
+.bd-head > span:nth-child(6){text-align:right;}
+.bd-blocks{display:flex;flex-direction:column;}
+.bd-block{position:relative;border-top:1px solid var(--bd);}
+.bd-block:first-child{border-top:none;}
+.bd-block::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--tl);}
+.bd-group{display:flex;align-items:center;gap:10px;height:40px;padding:0 10px 0 14px;background:var(--sur2);cursor:pointer;border-bottom:1px solid var(--bd2);}
+.bd-group:hover{background:var(--hov);}
+.bd-group em{font-style:normal;font-weight:500;font-size:.74rem;color:var(--sub);}
+.bd-group .bd-color{margin-left:auto;}
+.type-chip{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:5px;background:var(--td);color:var(--tt);font-size:.8rem;font-weight:700;letter-spacing:-.01em;white-space:nowrap;}
+.plan-tag{display:inline-flex;align-items:center;gap:3px;margin-left:8px;font-size:.68rem;font-weight:600;color:var(--pri);background:var(--acc-bg);border-radius:4px;padding:1px 6px;}
+.plan-tag .ic{width:11px;height:11px;}
 .bd-color{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border:none;border-radius:4px;background:transparent;color:inherit;cursor:pointer;opacity:.55;}
 .bd-color:hover{opacity:1;background:rgba(255,255,255,.6);}
 .bd-group .tdot{display:none;}
 .bd-row{height:40px;border-top:1px solid var(--bd2);cursor:pointer;font-size:.84rem;transition:background .1s;}
 .bd-row:hover{background:var(--ts);}
-.bd-row.sel{background:var(--ts);}
+.bd-row.sel{background:var(--tf);}
 .cbx{width:15px;height:15px;border:1.4px solid #CFCFD5;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#fff;margin-left:6px;transition:background .12s,border-color .12s;}
 .cbx .ic{width:11px;height:11px;stroke-width:2.6;opacity:0;transform:scale(.6);transition:opacity .12s,transform .18s var(--ease);}
 .bd-row:hover .cbx{border-color:#A1A1AA;}
@@ -547,7 +552,7 @@ label{font-size:.74rem;font-weight:550;color:var(--sub);}
   transition:opacity .12s,box-shadow .15s;}
 .act small{font-size:.62rem;font-weight:500;opacity:.75;}
 .act:hover{opacity:1;}
-.act.on{opacity:1;box-shadow:0 0 0 2px var(--sur),0 0 0 3.5px currentColor;}
+.act.on{opacity:1;box-shadow:0 0 0 2px var(--sur),0 0 0 3.5px currentColor;font-weight:700;}
 .ef-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .ef-f{animation:tagIn .2s var(--ease);min-width:0;}
 .ef-f.hide{display:none;}
@@ -556,7 +561,7 @@ label{font-size:.74rem;font-weight:550;color:var(--sub);}
 .ratio-chips:empty{display:none;}
 .chip{height:24px;padding:0 8px;border:1px solid var(--bd);border-radius:4px;background:var(--sur);font:inherit;font-size:.74rem;font-weight:550;color:var(--sub);cursor:pointer;transition:all .12s;}
 .chip:hover{color:var(--tx);border-color:#D4D4D8;}
-.chip.on{background:var(--tx);border-color:var(--tx);color:#fff;}
+.chip.on{background:var(--psoft);border-color:#C9CBF6;color:var(--pri);}
 .chip.last{border-style:dashed;}
 #showAllFields{align-self:flex-start;}
 .prev-bar{padding:10px 14px;border-top:1px solid var(--bd2);background:var(--sur2);font-size:.78rem;color:var(--tx);min-height:0;flex:none;}
@@ -573,13 +578,14 @@ label{font-size:.74rem;font-weight:550;color:var(--sub);}
 .tl-wrap{background:var(--sur);border:1px solid var(--bd);border-radius:8px;margin-bottom:8px;overflow:hidden;}
 .tl-hdr{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 8px 0 10px;min-height:46px;background:var(--tf,var(--sur))!important;color:var(--tx)!important;font-weight:500;font-size:.84rem;}
 .tl-hdr:hover{filter:brightness(.985);}
-.tl-wrap{border-color:var(--tl,var(--bd));}
+.tl-wrap{position:relative;}
+.tl-wrap::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--tl,transparent);z-index:1;}
 .tl-meta{display:flex;align-items:center;gap:10px;min-width:0;}
 .tl-arr{display:inline-flex;color:var(--mut);opacity:1;transition:transform .2s var(--ease);}
 .tl-hdr.tl-open .tl-arr{transform:rotate(90deg);}
-.tl-name{font-weight:700;font-size:.9rem;color:var(--tt,var(--tx));}
+.tl-name{font-weight:700;font-size:.9rem;color:var(--tx);}
 .tl-hdr .tdot{display:none;}
-.tl-n{background:rgba(255,255,255,.6)!important;}
+.tl-n{background:rgba(255,255,255,.7)!important;}
 .tl-hdr .btn-ghost{color:#3F3F46;}
 .tl-hdr .btn-ghost:hover{background:rgba(255,255,255,.65);}
 .tl-plate{color:var(--sub);font-size:.76rem;}
@@ -603,7 +609,7 @@ td{vertical-align:middle;}
 .arch-hd:first-child{margin-top:0;}
 .arch-hd em{font-style:normal;font-weight:600;opacity:.65;font-size:.74rem;}
 .arch-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;}
-.arch-card{background:var(--sur);border:1px solid var(--bd);border-top:3px solid var(--td,var(--bd));border-radius:8px;padding:12px 14px;transition:border-color .12s,box-shadow .12s;}
+.arch-card{background:var(--sur);border:1px solid var(--bd);border-top:3px solid var(--tl,var(--bd));border-radius:8px;padding:12px 14px;transition:border-color .12s,box-shadow .12s;}
 .arch-card:hover{border-color:#D4D4D8;box-shadow:0 2px 8px rgba(0,0,0,.04);transform:none;}
 .arch-card-ttl{font-size:.84rem;font-weight:650;margin-bottom:6px;}
 .arch-card-range{font-size:.72rem;color:var(--mut);}
@@ -629,13 +635,13 @@ td{vertical-align:middle;}
 
 /* 알림 */
 .toast-wrap{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:1000;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;}
-.toast{pointer-events:auto;display:flex;align-items:center;gap:12px;background:#18181B;color:#FAFAFA;padding:8px 8px 8px 14px;border-radius:8px;font-size:.8rem;font-weight:500;
-  box-shadow:0 8px 28px rgba(0,0,0,.2);opacity:0;transform:translateY(8px);transition:opacity .2s var(--ease),transform .25s var(--ease);}
+.toast{pointer-events:auto;display:flex;align-items:center;gap:12px;background:var(--sur);color:var(--tx);padding:8px 8px 8px 14px;border-radius:8px;font-size:.8rem;font-weight:550;
+  border:1px solid var(--bd);box-shadow:0 10px 30px rgba(40,40,80,.14),inset 3px 0 0 var(--pri);opacity:0;transform:translateY(8px);transition:opacity .2s var(--ease),transform .25s var(--ease);}
 .toast.in{opacity:1;transform:none;}
 .toast.out{opacity:0;transform:translateY(4px);}
-.toast.warn{background:#18181B;box-shadow:0 8px 28px rgba(0,0,0,.2),inset 3px 0 0 #E27370;}
-.toast button{background:rgba(255,255,255,.1);color:#fff;border:none;border-radius:5px;padding:5px 10px;font:inherit;font-size:.76rem;font-weight:600;cursor:pointer;}
-.toast button:hover{background:rgba(255,255,255,.18);}
+.toast.warn{box-shadow:0 10px 30px rgba(40,40,80,.14),inset 3px 0 0 #E27370;}
+.toast button{background:var(--psoft);color:var(--pri);border:none;border-radius:5px;padding:5px 10px;font:inherit;font-size:.76rem;font-weight:650;cursor:pointer;}
+.toast button:hover{background:#E1E2FB;}
 
 
 /* 배양 현황: 라인별 최근 기록 펼치기 */
@@ -651,10 +657,9 @@ td{vertical-align:middle;}
 .bm-all{margin:4px 6px 0;}
 
 /* 배양 라인 페이지 */
-.type-hd{display:flex;align-items:center;gap:8px;height:38px;padding:0 8px 0 14px;margin:18px 0 8px;border-radius:7px;background:var(--tf);color:var(--tt);
-  box-shadow:inset 0 0 0 1px var(--tl);font-size:.86rem;font-weight:700;}
+.type-hd{display:flex;align-items:center;gap:10px;height:36px;padding:0 4px;margin:22px 0 6px;border-bottom:1px solid var(--bd);}
 .type-hd:first-child{margin-top:0;}
-.type-hd em{font-style:normal;font-weight:600;font-size:.72rem;opacity:.65;}
+.type-hd em{font-style:normal;font-weight:500;font-size:.74rem;color:var(--sub);}
 .type-hd .bd-color{margin-left:auto;}
 .sec-lbl{display:none;font-size:.78rem;font-weight:650;color:var(--sub);margin:26px 0 4px;}
 body[data-lnf="active"] #doneWrap{display:none;}
@@ -759,9 +764,9 @@ body[data-tab="ana"] .pane[data-pane="ana"]{display:block;animation:paneIn .28s 
     border-top:1px solid var(--bd);padding:6px 6px calc(6px + env(safe-area-inset-bottom));}
   .mtabs button{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;font:inherit;font-size:.66rem;font-weight:550;color:var(--mut);padding:4px 0;cursor:pointer;}
   .mtabs button .ic{width:20px;height:20px;}
-  .mtabs button.on{color:var(--tx);}
+  .mtabs button.on{color:var(--pri);}
   .sel-fab{display:flex;align-items:center;gap:10px;position:fixed;left:50%;bottom:74px;z-index:310;transform:translate(-50%,20px);opacity:0;pointer-events:none;
-    background:var(--tx);color:#fff;border:none;border-radius:8px;padding:10px 12px 10px 14px;font:inherit;font-size:.82rem;box-shadow:0 8px 24px rgba(0,0,0,.2);transition:opacity .2s,transform .25s var(--ease);}
+    background:var(--pri);color:#fff;border:none;border-radius:8px;padding:10px 12px 10px 14px;font:inherit;font-size:.82rem;box-shadow:0 8px 24px rgba(0,0,0,.2);transition:opacity .2s,transform .25s var(--ease);}
   .sel-fab b{background:rgba(255,255,255,.14);border-radius:5px;padding:3px 9px;font-weight:600;}
   .sel-fab.on{opacity:1;transform:translate(-50%,0);pointer-events:auto;}
   .toast-wrap{bottom:130px;}
@@ -872,7 +877,7 @@ body[data-tab="ana"] .pane[data-pane="ana"]{display:block;animation:paneIn .28s 
       <span id="pageSub" class="tb-sub"></span>
     </div>
     <div class="tb-r">
-      <label class="search"><svg class="ic"><use href="#i-search"/></svg><input type="text" id="lineSearch" placeholder="라인 검색" oninput="applyLineFilter(this.value)"></label>
+      <label class="search"><svg class="ic"><use href="#i-search"/></svg><input type="text" id="lineSearch" placeholder="라인 검색  /" oninput="applyLineFilter(this.value)"></label>
       <span id="filterHint" class="filter-hint"></span>
       <span class="tl-tools">
         <span class="seg-group" id="lnFilter">
@@ -970,7 +975,6 @@ body[data-tab="ana"] .pane[data-pane="ana"]{display:block;animation:paneIn .28s 
         </div>
         <div style="display:flex;gap:7px;margin-top:13px;flex-wrap:wrap;">
           <button class="btn btn-del" id="elDelBtn" style="display:none;" onclick="deleteLine(document.getElementById('elId').value)">휴지통으로</button>
-          <button class="btn btn-fin" id="elFinishBtn" style="display:none;" onclick="completeLine(document.getElementById('elId').value)">배양 완료</button>
           <span style="flex:1;"></span>
           <button class="btn btn-out" onclick="closeLineModal()">취소</button>
           <button class="btn btn-pri" style="min-width:120px;" onclick="saveLine()" id="elSaveBtn">라인 추가</button>
@@ -1361,60 +1365,61 @@ const isoD  = s => { try { return new Date(s).toISOString(); } catch(e) { return
 // ══════════════════════════════════════════
 //  COLOR MAP
 // ══════════════════════════════════════════
-// 통일된 명도와 높은 채도로 개선된 40색 무지개 팔레트
-// 코랄 빛 주황 + 풍성해진 노랑 + 구별이 확실한 고채도 톤
+// OKLCH 색 공간에서 밝기·채도를 고정하고 색상만 9°씩 돌려 만든 40색 (0번 빨강 → 주황 → … → 분홍 순서는 예전과 같음)
+// + 차분한 톤 11색(40~50) + 회색(51). 사람 눈에 밝기·진하기가 고르게 보이도록 맞춘 값이다.
 const PAL=[
-  // 0° ~ 27°: 레드 & 예쁜 코랄/오렌지
-  {bg:'#FFD2D2', tx:'#7A0C0C', bd:'#FF9E9E', hbg:'#FFEAEA', ht:'#5C0505'}, // 0° Red
-  {bg:'#FFD5C8', tx:'#7A190C', bd:'#FFA28B', hbg:'#FFECE5', ht:'#5C0D05'}, // 9° Red-Coral
-  {bg:'#FFD9C0', tx:'#7A250C', bd:'#FFA87A', hbg:'#FFEFE0', ht:'#5C1505'}, // 18° Bright Coral
-  {bg:'#FFDEC0', tx:'#7A310C', bd:'#FFB17A', hbg:'#FFF2E0', ht:'#5C2005'}, // 27° Coral Orange
-
-  // 36° ~ 63°: 풍성하고 밝은 주황 & 노랑 계열
-  {bg:'#FFE4C0', tx:'#7A3F0C', bd:'#FFBB7A', hbg:'#FFF5E0', ht:'#5C2B05'}, // 36° Orange
-  {bg:'#FFECC0', tx:'#7A4F0C', bd:'#FFCC7A', hbg:'#FFF9E0', ht:'#5C3905'}, // 45° Warm Yellow-Orange
-  {bg:'#FFF2C0', tx:'#7A5D0C', bd:'#FFD97A', hbg:'#FFFCB8', ht:'#5C4505'}, // 54° Rich Yellow
-  {bg:'#FFF8BC', tx:'#776403', bd:'#FFE962', hbg:'#FFFFD0', ht:'#564700'}, // 63° Bright Yellow
-
-  // 72° ~ 117°: 라임 & 연두/초록 계열
-  {bg:'#F5FFBC', tx:'#5F6E03', bd:'#DCFF62', hbg:'#FAFFE0', ht:'#435000'}, // 72° Lime Yellow
-  {bg:'#EAFFBC', tx:'#486E03', bd:'#C8FF62', hbg:'#F4FFE0', ht:'#305000'}, // 81° Lime Green
-  {bg:'#DCFFBC', tx:'#2F6E03', bd:'#B0FF62', hbg:'#EDFFE0', ht:'#1D5000'}, // 90° Bright Green
-  {bg:'#CFFFBC', tx:'#186E03', bd:'#97FF62', hbg:'#E5FFE0', ht:'#0B5000'}, // 99° Apple Green
-  {bg:'#BCFFC1', tx:'#036E0B', bd:'#62FF6B', hbg:'#E0FFE2', ht:'#005006'}, // 108° Green
-  {bg:'#BCFFCD', tx:'#036E1E', bd:'#62FF83', hbg:'#E0FFE7', ht:'#005011'}, // 117° Mint Green
-
-  // 126° ~ 171°: 에메랄드 & 청록(Cyan) 계열
-  {bg:'#BCFFDA', tx:'#036E32', bd:'#62FFA1', hbg:'#E0FFED', ht:'#005021'}, // 126° Spring Green
-  {bg:'#BCFFE7', tx:'#036E46', bd:'#62FFC0', hbg:'#E0FFF4', ht:'#005030'}, // 135° Emerald
-  {bg:'#BCFFF4', tx:'#036E5A', bd:'#62FFDE', hbg:'#E0FFFA', ht:'#005040'}, // 144° Sea Green
-  {bg:'#BCFCFF', tx:'#03626E', bd:'#62EFFF', hbg:'#E0FAFF', ht:'#004650'}, // 153° Ice Blue
-  {bg:'#BCEEFF', tx:'#03516E', bd:'#62D7FF', hbg:'#E0F6FF', ht:'#003750'}, // 162° Sky Blue
-  {bg:'#BCE0FF', tx:'#033F6E', bd:'#62BFFF', hbg:'#E0EFFF', ht:'#002950'}, // 171° Bright Cyan
-
-  // 180° ~ 234°: 블루 & 로열 블루 계열
-  {bg:'#BCCEFF', tx:'#032A6E', bd:'#629CFF', hbg:'#E0E7FF', ht:'#001850'}, // 180° Blue
-  {bg:'#BCBDFF', tx:'#08036E', bd:'#6267FF', hbg:'#E0E1FF', ht:'#030050'}, // 189° Royal Blue
-  {bg:'#C2BCFF', tx:'#16036E', bd:'#7062FF', hbg:'#E4E0FF', ht:'#0D0050'}, // 198° Deep Blue
-  {bg:'#CDBCFF', tx:'#25036E', bd:'#8262FF', hbg:'#E7E0FF', ht:'#180050'}, // 207° Indigo
-  {bg:'#D9BCFF', tx:'#35036E', bd:'#9962FF', hbg:'#EFE0FF', ht:'#230050'}, // 216° Blue Violet
-  {bg:'#E6BCFF', tx:'#46036E', bd:'#B262FF', hbg:'#F5E0FF', ht:'#300050'}, // 225° Violet
-  {bg:'#F2BCFF', tx:'#56036E', bd:'#CA62FF', hbg:'#FBE0FF', ht:'#3E0050'}, // 234° Purple
-
-  // 243° ~ 351°: 자주, 마젠타, 핫핑크 계열
-  {bg:'#FFBCFC', tx:'#6E036A', bd:'#FF62F9', hbg:'#FFE0FC', ht:'#50004C'}, // 243° Magenta
-  {bg:'#FFBCF0', tx:'#6E035A', bd:'#FF62E3', hbg:'#FFE0F8', ht:'#50003F'}, // 252° Orchid
-  {bg:'#FFBCE4', tx:'#6E034A', bd:'#FF62CC', hbg:'#FFE0F3', ht:'#500033'}, // 261° Deep Pink
-  {bg:'#FFBCD8', tx:'#6E0339', bd:'#FF62B4', hbg:'#FFE0ED', ht:'#500026'}, // 270° Hot Pink
-  {bg:'#FFBCCC', tx:'#6E0329', bd:'#FF629B', hbg:'#FFE0E8', ht:'#50001A'}, // 279° Rose Pink
-  {bg:'#FFBCC0', tx:'#6E031A', bd:'#FF6283', hbg:'#FFE0E3', ht:'#50000E'}, // 288° Rose
-  {bg:'#FFBCC4', tx:'#73051C', bd:'#FF6788', hbg:'#FFE2E6', ht:'#540211'}, // 297° Coral Red
-  {bg:'#FFBDC8', tx:'#76071E', bd:'#FF6B8D', hbg:'#FFE3E8', ht:'#570312'}, // 306° Crimson
-  {bg:'#FFBECC', tx:'#780A20', bd:'#FF6E91', hbg:'#FFE5EA', ht:'#590514'}, // 315° Carmine
-  {bg:'#FFC0CE', tx:'#790C21', bd:'#FF7294', hbg:'#FFE6EC', ht:'#5A0615'}, // 324° Ruby
-  {bg:'#FFC2D0', tx:'#7A0E22', bd:'#FF7596', hbg:'#FFE7ED', ht:'#5B0715'}, // 333° Coral Rose
-  {bg:'#FFC5D2', tx:'#7A0F22', bd:'#FF7998', hbg:'#FFE9EF', ht:'#5C0816'}, // 342° Soft Red
-  {bg:'#FFC8D3', tx:'#7A1022', bd:'#FF7C9A', hbg:'#FFEAEF', ht:'#5C0815'}  // 351° Red-Orange
+  {bg:'#FED4D0', tx:'#873F3B', bd:'#F8A49D', hbg:'#FFEBE9', ht:'#682E2B'}, // 25°
+  {bg:'#FFD5CA', tx:'#874131', bd:'#F7A693', hbg:'#FFEBE7', ht:'#682F22'}, // 34°
+  {bg:'#FFD5C5', tx:'#854326', bd:'#F5A98A', hbg:'#FEECE5', ht:'#67311A'}, // 43°
+  {bg:'#FFD6BE', tx:'#83461B', bd:'#F2AC81', hbg:'#FEECE2', ht:'#653310'}, // 52°
+  {bg:'#FED7B8', tx:'#7F490E', bd:'#EDAF7A', hbg:'#FFECDE', ht:'#623605'}, // 61°
+  {bg:'#FAD9B5', tx:'#7A4D04', bd:'#E7B375', hbg:'#FFEDDA', ht:'#5D3902'}, // 70°
+  {bg:'#F6DCB3', tx:'#745104', bd:'#E0B671', hbg:'#FCEED9', ht:'#583D03'}, // 79°
+  {bg:'#F0DEB3', tx:'#6E5400', bd:'#D9BA70', hbg:'#F9EFD8', ht:'#533F01'}, // 88°
+  {bg:'#EBE1B3', tx:'#675702', bd:'#D0BE71', hbg:'#F6F1D9', ht:'#4E4202'}, // 97°
+  {bg:'#E4E3B5', tx:'#605B00', bd:'#C6C274', hbg:'#F2F2DA', ht:'#484400'}, // 106°
+  {bg:'#DEE5B8', tx:'#575E0A', bd:'#BBC679', hbg:'#EFF3DB', ht:'#414702'}, // 115°
+  {bg:'#D7E7BC', tx:'#4C6118', bd:'#B0C980', hbg:'#EBF4DD', ht:'#394A0D'}, // 124°
+  {bg:'#D0E9C0', tx:'#416324', bd:'#A5CC89', hbg:'#E8F5DF', ht:'#304C18'}, // 133°
+  {bg:'#CAEAC6', tx:'#34662F', bd:'#99CE92', hbg:'#E5F6E2', ht:'#254D21'}, // 142°
+  {bg:'#C4ECCC', tx:'#24673A', bd:'#8DD09D', hbg:'#E1F7E5', ht:'#174F2A'}, // 151°
+  {bg:'#BEEDD2', tx:'#0C6944', bd:'#82D2A8', hbg:'#DFF7E9', ht:'#025032'}, // 160°
+  {bg:'#B9EDD9', tx:'#00684F', bd:'#77D3B3', hbg:'#DCF8EC', ht:'#024F3B'}, // 169°
+  {bg:'#B5EDE0', tx:'#026758', bd:'#6FD3BE', hbg:'#DBF8F0', ht:'#024E42'}, // 178°
+  {bg:'#B3EDE6', tx:'#01665F', bd:'#68D3C8', hbg:'#D9F8F4', ht:'#034D48'}, // 187°
+  {bg:'#B1EDED', tx:'#016566', bd:'#65D2D3', hbg:'#D9F7F7', ht:'#054D4D'}, // 196°
+  {bg:'#B1ECF3', tx:'#02646D', bd:'#65D0DC', hbg:'#D8F7FA', ht:'#054C52'}, // 205°
+  {bg:'#B2EBF8', tx:'#036373', bd:'#68CEE5', hbg:'#D9F6FD', ht:'#044B57'}, // 214°
+  {bg:'#B5E9FD', tx:'#06627A', bd:'#6FCCED', hbg:'#DDF5FE', ht:'#044A5D'}, // 223°
+  {bg:'#BBE7FF', tx:'#066082', bd:'#77C9F3', hbg:'#E0F4FF', ht:'#014964'}, // 232°
+  {bg:'#C3E5FE', tx:'#115E8A', bd:'#81C6F8', hbg:'#E4F2FE', ht:'#06476B'}, // 241°
+  {bg:'#C9E3FE', tx:'#265B8D', bd:'#8CC3FC', hbg:'#E5F2FF', ht:'#19446D'}, // 250°
+  {bg:'#CEE1FF', tx:'#34588F', bd:'#97BFFE', hbg:'#E8F1FE', ht:'#25426F'}, // 259°
+  {bg:'#D3DFFE', tx:'#405490', bd:'#A2BCFF', hbg:'#EAF0FE', ht:'#2F3F6F'}, // 268°
+  {bg:'#D7DEFF', tx:'#4B518F', bd:'#ADB8FE', hbg:'#ECEFFE', ht:'#373D6F'}, // 277°
+  {bg:'#DCDCFF', tx:'#544E8D', bd:'#B8B5FC', hbg:'#EEEEFF', ht:'#3F3A6D'}, // 286°
+  {bg:'#E1DAFE', tx:'#5D4B8A', bd:'#C2B1F8', hbg:'#F1EEFE', ht:'#46386A'}, // 295°
+  {bg:'#E7D7FF', tx:'#644885', bd:'#CCAEF2', hbg:'#F4ECFF', ht:'#4C3667'}, // 304°
+  {bg:'#EED5FD', tx:'#6B467F', bd:'#D4ABEC', hbg:'#F7EBFF', ht:'#523362'}, // 313°
+  {bg:'#F3D3F8', tx:'#724379', bd:'#DCA8E4', hbg:'#FBE9FD', ht:'#57325D'}, // 322°
+  {bg:'#F8D2F2', tx:'#774172', bd:'#E3A6DC', hbg:'#FEE9FA', ht:'#5C3057'}, // 331°
+  {bg:'#FCD1EC', tx:'#7C4069', bd:'#EAA4D2', hbg:'#FFE9F7', ht:'#5F2E50'}, // 340°
+  {bg:'#FFD1E6', tx:'#803E61', bd:'#EFA3C8', hbg:'#FFE9F3', ht:'#632D49'}, // 349°
+  {bg:'#FFD1DF', tx:'#833E58', bd:'#F3A3BD', hbg:'#FFEAF0', ht:'#652D42'}, // 358°
+  {bg:'#FED3DA', tx:'#853D4E', bd:'#F6A3B3', hbg:'#FEEAED', ht:'#672D3A'}, // 7°
+  {bg:'#FED3D5', tx:'#873E45', bd:'#F7A3A8', hbg:'#FFEBEB', ht:'#682D33'}, // 16°
+  {bg:'#F1D9D7', tx:'#6F4E4B', bd:'#D9B3AF', hbg:'#FAEDEB', ht:'#553B38'}, // muted · dusty rose
+  {bg:'#EFDBCF', tx:'#6C5240', bd:'#D5B7A3', hbg:'#F8EEE7', ht:'#533D2F'}, // muted · terracotta
+  {bg:'#E9DECC', tx:'#65553B', bd:'#CDBB9E', hbg:'#F5EFE6', ht:'#4D402B'}, // muted · sand
+  {bg:'#E2E1CD', tx:'#5C5A3C', bd:'#C2C09F', hbg:'#F1F1E6', ht:'#45442C'}, // muted · olive
+  {bg:'#D7E4D4', tx:'#4B5E46', bd:'#AFC5AA', hbg:'#EBF3EA', ht:'#384834'}, // muted · sage
+  {bg:'#CEE6DE', tx:'#3C6057', bd:'#A0C8BC', hbg:'#E7F3EF', ht:'#2C4941'}, // muted · teal gray
+  {bg:'#CDE5EB', tx:'#395F68', bd:'#9EC6D0', hbg:'#E6F3F6', ht:'#29484F'}, // muted · slate blue
+  {bg:'#D3E2F1', tx:'#455A71', bd:'#A8C1DA', hbg:'#E9F1FA', ht:'#334456'}, // muted · steel
+  {bg:'#DDDEF1', tx:'#555571', bd:'#BABADA', hbg:'#EFEFFA', ht:'#404056'}, // muted · lavender gray
+  {bg:'#E8DAEB', tx:'#635068', bd:'#CBB5D0', hbg:'#F5EDF6', ht:'#4C3C4F'}, // muted · mauve
+  {bg:'#EFD9E2', tx:'#6C4E5C', bd:'#D5B2C2', hbg:'#F8ECF1', ht:'#523A45'}, // muted · blush
+  {bg:'#DFDFDF', tx:'#585858', bd:'#BEBEBE', hbg:'#F0F0F0', ht:'#424242'}, // neutral gray
 ];
 const DONE={bg:'#F1F5F9',tx:'#475569',bd:'#E2E8F0',hbg:'#F1F5F9',ht:'#475569'};
 // 종류 색(팔레트 원래 값)을 화면 곳곳에 쓰는 이름으로 풀어 둔다: fill=헤더 바탕, soft=옅은 바탕, dot=색 표시, text=진한 글자
@@ -1422,8 +1427,8 @@ function _mix(hex,to,t){ const a=parseInt(hex.slice(1),16), b=parseInt(to.slice(
   const ch=(x,y)=>Math.round(x+(y-x)*t);
   const r=ch(a>>16,b>>16), g=ch((a>>8)&255,(b>>8)&255), bl=ch(a&255,b&255);
   return '#'+((1<<24)|(r<<16)|(g<<8)|bl).toString(16).slice(1); }
-// 테두리(line)는 원래 색 진하기에 상관없이 대비가 같도록 바탕색을 같은 비율로만 어둡게 만든다
-function tone(c){ return {fill:c.hbg, soft:_mix(c.hbg,'#FFFFFF',.5), dot:c.bg, line:_mix(c.hbg,'#3F3F46',.16), text:c.ht}; }
+// 팔레트 자체가 밝기·채도를 고르게 맞춘 값이라, 그대로 써도 종류끼리 진하기 차이가 없다
+function tone(c){ return {fill:c.hbg, soft:_mix(c.hbg,'#FFFFFF',.35), dot:c.bg, line:c.bd, text:c.ht}; }
 const toneVars=c=>{ const t=tone(c); return `--tf:${t.fill};--ts:${t.soft};--td:${t.dot};--tl:${t.line};--tt:${t.text};`; };
 let tcm={};
 function randIdxAvoiding(exclude){
@@ -1434,7 +1439,9 @@ function randIdxAvoiding(exclude){
 // 팔레트는 색상환 순서라서, 이미 쓰는 색들과 색상환 거리가 가장 먼 칸을 골라야 종류끼리 잘 구별된다
 // 팔레트 40색은 분홍·빨강 쪽에 몰려 있어서, 자동 배정은 눈으로 확실히 갈리는 12색 안에서 먼저 고른다
 // (빨강·주황·노랑·연두·초록·민트·청록·하늘·파랑·보라·자주·분홍 순서)
-const AUTO_PAL=[0,4,7,10,12,15,17,19,21,25,28,31];
+const AUTO_PAL=[0,3,7,10,13,17,20,23,27,30,33,36];
+// 차분한 톤(40~51)이 색상환에서 어느 기본색 자리에 해당하는지 (자동 배정 때 거리 계산용)
+const MUTED_AT=[0,3,6,9,13,17,21,25,29,33,36,0];
 function farIdx(used, exclude){
   const pick=(cands,pos)=>{
     const n=cands.length, dist=(a,b)=>{ const d=Math.abs(a-b)%n; return Math.min(d,n-d); };
@@ -1448,7 +1455,7 @@ function farIdx(used, exclude){
     return best.length?best[Math.floor(Math.random()*best.length)]:null;
   };
   // 쓰는 색을 12색 위치로 옮겨서 거리 계산 (12색 밖의 색은 가장 가까운 12색 자리로 본다)
-  const nearAuto=u=>{ let bi=0,bd=99; AUTO_PAL.forEach((a,i)=>{ const d=Math.min(Math.abs(a-u),PAL.length-Math.abs(a-u)); if(d<bd){bd=d;bi=i;} }); return bi; };
+  const nearAuto=u=>{ if(u>=40) u=MUTED_AT[u-40]??0; let bi=0,bd=99; AUTO_PAL.forEach((a,i)=>{ const d=Math.min(Math.abs(a-u),40-Math.abs(a-u)); if(d<bd){bd=d;bi=i;} }); return bi; };
   const r=pick(AUTO_PAL,nearAuto);
   if(r!=null) return r;
   return pick(PAL.map((_,i)=>i),u=>u) ?? 0;
@@ -1506,9 +1513,9 @@ function renderColorModal(){
   el.innerHTML=types.map(t=>{
     const idx=typeColors[t]||0;
     const c=PAL[idx];
-    const swatches=PAL.map((p,i)=>`<button class="cc-sw${i===idx?' cc-sel':''}" style="background:${p.hbg};" title="색상 ${i+1}" onclick="setTypeColor('${jsEsc(t)}',${i})"></button>`).join('');
+    const swatches=PAL.map((p,i)=>`<button class="cc-sw${i===idx?' cc-sel':''}" style="background:${p.bg};" title="색상 ${i+1}" onclick="setTypeColor('${jsEsc(t)}',${i})"></button>`).join('');
     return `<div class="cc-row${t===_ccFocus?' cc-focus':''}" data-type="${esc(t)}">
-      <div class="cc-name" style="background:${c.hbg};color:${c.ht};">${esc(t)}</div>
+      <div class="cc-name" style="background:${c.bg};color:${c.ht};">${esc(t)}</div>
       <div class="cc-swatches">${swatches}</div>
       <button class="tbl-btn" onclick="randomizeTypeColor('${jsEsc(t)}')" title="이 종류만 랜덤 색상"><svg class="ic"><use href="#i-shuffle"/></svg></button>
     </div>`;
@@ -1603,13 +1610,16 @@ function renderDash(){
     <div class="stat${mcDue?' click':''}" ${mcDue?'onclick="selectMcNeeded()" title="MC 필요 라인 전체 선택"':''}><span class="stat-l"><i class="dot d-due"></i>MC 지연</span><span class="stat-n">${mcDue}</span></div>
     <div class="stat"><span class="stat-l">오늘 예정</span><span class="stat-n">${todayPlans}</span></div>`;
 
+  // 오늘(또는 밀린) 예정 작업이 있는 라인은 이름 옆에 작게 표시
+  const planToday={};
+  plans.filter(p=>!p.done&&p.date<=t).forEach(p=>p.lineIds.forEach(id=>{ if(!planToday[id]) planToday[id]=p.action; }));
   let body='';
   Object.entries(groups)
     .sort((a,b)=>a[0].localeCompare(b[0],undefined,{numeric:true,sensitivity:'base'}))
     .forEach(([type,d])=>{
     const c=getC(type,false);
     body+=`<div class="bd-block" style="${toneVars(c)}"><div class="bd-group" onclick="selectType('${jsEsc(type)}')" title="이 종류 전체 선택">
-      <i class="tdot"></i><span>${esc(type)}</span><em>${d.count}라인</em><span class="bd-gw">${d.wells} well</span>
+      <span class="type-chip">${esc(type)}</span><em>라인 ${d.count}개 · 총 ${d.wells} well</em>
       <button class="bd-color" onclick="event.stopPropagation();openColorModal('${jsEsc(type)}')" title="이 종류 색 바꾸기">${ic('palette')}</button></div>`;
     body+=d.lines.map(ll=>{
       const mc=ll.mc;
@@ -1617,10 +1627,10 @@ function renderDash(){
       const open=_bdOpen.has(ll.id);
       return `<div class="bd-row${bulkLines.includes(ll.id)?' sel':''}${open?' open':''}" data-line="${ll.id}" draggable="true" ondragstart="planDragStart(event,'${ll.id}')" onclick="selectLine('${ll.id}')">
         <span class="cbx">${ic('check')}</span>
-        <span class="bd-name">${esc(ll.label)}${ll.detail?`<small>${esc(ll.detail)}</small>`:''}</span>
+        <span class="bd-name">${esc(ll.label)}${ll.detail?`<small>${esc(ll.detail)}</small>`:''}${planToday[ll.id]?`<span class="plan-tag" title="오늘 예정">${ic('pin','ic-sm')}${esc(planToday[ll.id])}</span>`:''}</span>
         <span class="bd-pd"><b>P${ll.p}</b> ${ll.day}</span>
         <span class="bd-plate">${esc(ll.plate||'')}</span>
-        <span class="bd-well">${ll.well||'-'}</span>
+        <span class="bd-well">${ll.well?ll.well+' well':'<span class="nil">-</span>'}</span>
         ${mcTag}
         <button class="bd-exp" onclick="event.stopPropagation();toggleBdRow('${ll.id}')" title="최근 기록 보기">${ic('down')}</button>
       </div>${open?buildMiniLog(ll.id):''}`;
@@ -1945,7 +1955,7 @@ function openPlanDetail(id){
 function closePlanDetail(){ document.getElementById('planDetailModal').classList.remove('open'); }
 
 // 예전 예정 작업(Freeze/Check)은 지금 액션 이름으로 바꿔서 채운다
-const PLAN_ACTION_MAP={'Freeze':'Stock (passage 유지)','Check':'Observation'};
+const PLAN_ACTION_MAP={'Freeze':'Stock (p+1)','Check':'Observation','Stock':'Stock (p+1)'};
 let _planForLog=null;
 function startLogFromPlan(id){
   const p=plans.find(x=>x.id===id); if(!p) return;
@@ -2159,7 +2169,7 @@ function renderTimelines(containerId,showDone){
     // 종류가 바뀌는 지점마다 종류 머리 줄 (오늘 작업의 배양 현황과 같은 모양, 색 바꾸기 버튼 포함)
     if(line.type!==curType){
       curType=line.type;
-      el.innerHTML+=`<div class="type-hd" style="${toneVars(c)}"><span>${esc(line.type||'(종류 없음)')}</span><em>${typeN[line.type]}라인</em>
+      el.innerHTML+=`<div class="type-hd" style="${toneVars(c)}"><span class="type-chip">${esc(line.type||'(종류 없음)')}</span><em>라인 ${typeN[line.type]}개</em>
         <button class="bd-color" onclick="openColorModal('${jsEsc(line.type)}')" title="이 종류 색 바꾸기">${ic('palette')}</button></div>`;
     }
     const curPlate=latestPlate(line);
@@ -2178,11 +2188,12 @@ function renderTimelines(containerId,showDone){
           <span class="tl-name">${esc(lineTag(line))}</span>
           <span class="tl-pd"><b>P${line.passage}</b> ${calcDayStr(line)}</span>
           ${curPlate?`<span class="tl-plate">${esc(curPlate)}</span>`:''}
-          <span class="tl-n">${nLogs}</span>
+          <span class="tl-n" title="이 라인의 기록 수">기록 ${nLogs}건</span>
         </div>
         <div class="tl-act" onclick="event.stopPropagation()">
           <button class="btn btn-ghost" onclick="startLogForLine('${line.id}')">${ic('plus')}기록</button>
           <button class="btn btn-ghost" onclick="editLine('${line.id}')">${ic('edit')}수정</button>
+          <button class="btn btn-ghost" onclick="completeLine('${line.id}')">${ic('flag')}배양 완료</button>
         </div>
       </div>
       <div id="${bid}" class="tl-body ${collapsed?'col':''}" style="max-height:${maxH};">${table}</div>
@@ -2201,7 +2212,7 @@ function renderArchiveGrid(el, filtered){
       if(gridOpen) html+='</div>';
       curType=line.type;
       const tc=tcm[line.type]||PAL[0];
-      html+=`<div class="type-hd" style="${toneVars(tc)}"><span>${esc(line.type||'(종류 없음)')}</span><em>${typeCounts[line.type]}라인</em>
+      html+=`<div class="type-hd" style="${toneVars(tc)}"><span class="type-chip">${esc(line.type||'(종류 없음)')}</span><em>라인 ${typeCounts[line.type]}개</em>
         <button class="bd-color" onclick="openColorModal('${jsEsc(line.type)}')" title="이 종류 색 바꾸기">${ic('palette')}</button></div><div class="arch-grid">`;
       gridOpen=true;
     }
@@ -2435,7 +2446,7 @@ const ACTIONS=[
   {key:'Media Addition', fields:['memo']},
   {key:'Split',          sub:'P+1 · d0',  fields:['det','plate','wells','memo']},
   {key:'Reseeding',      sub:'d 누적',     fields:['det','plate','wells','memo']},
-  {key:'Stock',  variants:['Stock (passage 유지)','Stock (p+1)'],   fields:['stocks','det','plate','wells','memo']},
+  {key:'Stock',  variants:['Stock (p+1)','Stock (passage 유지)'],   fields:['stocks','det','plate','wells','memo']},   // Stock은 P+1이 기본
   {key:'Pellet', variants:['Pellet (passage 유지)','Pellet (p+1)'], fields:['det','plate','wells','memo']},
   {key:'Observation',    fields:['memo']},
   {key:'Fixation',       fields:['wells','memo']},
@@ -2869,7 +2880,6 @@ function editLine(id){
   document.getElementById('elWells').value=startWells;
   document.getElementById('elStart').value=startDt;
   setPlateSelectValue('elPlate','elPlateCustom', l.plateType||'');
-  document.getElementById('elFinishBtn').style.display=l.isCompleted?'none':'';
   document.getElementById('elDelBtn').style.display='';
   document.getElementById('elSaveBtn').textContent='수정 저장';
   document.getElementById('lineFormTitle').textContent='라인 수정 · '+lineTag(l);
@@ -3148,7 +3158,6 @@ function resetLineForm(){
   setPlateSelectValue('elPlate','elPlateCustom','');
   document.getElementById('elP').value=0;document.getElementById('elBase').value=0;
   document.getElementById('elWells').value=0;document.getElementById('elStart').valueAsDate=new Date();
-  document.getElementById('elFinishBtn').style.display='none';
   document.getElementById('elDelBtn').style.display='none';
   document.getElementById('elSaveBtn').textContent='라인 추가';
   document.getElementById('lineFormTitle').textContent='새 라인';
@@ -3483,6 +3492,10 @@ document.addEventListener('keydown',e=>{
     if(document.body.classList.contains('side-open')){ closeSide(); return; }
     const lf=document.getElementById('lineFormPanel');
     if(lf&&lf.style.display!=='none'&&curTab==='tl'){ closeLineModal(); return; }
+  }
+  // '/': 배양 라인 페이지에서 검색 칸으로 바로 이동
+  if(e.key==='/'&&!e.ctrlKey&&!e.metaKey&&curTab==='tl'&&!/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)){
+    e.preventDefault(); document.getElementById('lineSearch').focus(); return;
   }
   // Ctrl/Cmd+Enter: 기록 수정 창이 열려 있으면 그걸 저장, 아니면 오늘 작업의 기록 저장
   if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){
@@ -4227,7 +4240,7 @@ function weekKey(dateStr){
   return d.getFullYear()+'-W'+String(week).padStart(2,'0');
 }
 
-const ANA_SEQ=['#F3F0FB','#E2DCFD','#CFC6FA','#B4A8F8','#9D8FF5','#6D5DE0'];   // 단일(파랑) 시퀀셜 램프 — 0단계는 회색(값 없음)
+const ANA_SEQ=['#F0F0F7','#E3E4FB','#C9CBF6','#A9ACF1','#8C90EC','#5E62D6'];   // 단일(파랑) 시퀀셜 램프 — 0단계는 회색(값 없음)
 
 // toISOString()은 UTC 기준이라 KST(UTC+9) 자정~오전9시 사이엔 하루 밀려서 나옴 — 로컬 날짜 그대로 포맷
 function ymdLocal(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -4302,7 +4315,7 @@ function buildBarChart(buckets, take, fmtLabel, unit){
       <div style="font-size:.68rem;font-weight:700;color:var(--tx);">${v}</div>
       <div style="width:100%;max-width:26px;height:90px;display:flex;align-items:flex-end;">
         <div onmouseenter="anaTipShow(event,'${k} · ${v}${unit}')" onmousemove="anaTipMove(event)" onmouseleave="anaTipHide()"
-             style="width:100%;height:${h}%;background:#9D8FF5;border-radius:3px 3px 0 0;min-height:2px;"></div>
+             style="width:100%;height:${h}%;background:#8C90EC;border-radius:3px 3px 0 0;min-height:2px;"></div>
       </div>
       <div style="font-size:.65rem;color:var(--sub);white-space:nowrap;">${fmtLabel(k)}</div>
     </div>`;
@@ -4341,9 +4354,9 @@ function buildPassageCycle(){
     const w=Math.max(4,Math.round((s.avg/max)*100));
     return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;">
       <div style="width:120px;font-size:.78rem;font-weight:600;text-align:right;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.type)}</div>
-      <div style="flex:1;background:#F3F0FB;border-radius:4px;height:18px;position:relative;">
+      <div style="flex:1;background:#F0F0F7;border-radius:4px;height:18px;position:relative;">
         <div onmouseenter="anaTipShow(event,'${jsEsc(esc(s.type))} · 평균 ${s.avg.toFixed(1)}일 (n=${s.n})')" onmousemove="anaTipMove(event)" onmouseleave="anaTipHide()"
-             style="width:${w}%;height:100%;background:#9D8FF5;border-radius:4px;"></div>
+             style="width:${w}%;height:100%;background:#8C90EC;border-radius:4px;"></div>
       </div>
       <div style="width:100px;font-size:.74rem;color:var(--sub);flex-shrink:0;">${s.avg.toFixed(1)}일 (n=${s.n})</div>
     </div>`;
@@ -4373,16 +4386,16 @@ function buildPassageCycleByLine(){
     const bars=it.seq.map((v,i)=>{
       const h=Math.max(6,Math.round((v/maxV)*32));
       return `<div onmouseenter="anaTipShow(event,'${jsEsc(esc(it.label))} · ${i+1}번째 계대 · ${v}일')" onmousemove="anaTipMove(event)" onmouseleave="anaTipHide()"
-        style="width:13px;height:${h}px;background:#CFC6FA;border-radius:2px 2px 0 0;flex-shrink:0;"></div>`;
+        style="width:13px;height:${h}px;background:#C9CBF6;border-radius:2px 2px 0 0;flex-shrink:0;"></div>`;
     }).join('');
-    return `<div style="display:flex;align-items:center;gap:10px;padding:6px 2px;border-bottom:1px solid #F3F0FB;">
+    return `<div style="display:flex;align-items:center;gap:10px;padding:6px 2px;border-bottom:1px solid #F0F0F7;">
       <div style="width:130px;flex-shrink:0;font-size:.76rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(it.label)}</div>
       <div style="display:flex;align-items:flex-end;gap:4px;height:32px;overflow-x:auto;">${bars}</div>
       <div style="font-size:.7rem;color:var(--sub);flex-shrink:0;">${it.seq.join(' → ')}일</div>
     </div>`;
   }).join('');
 
-  return `<div style="margin-top:14px;padding-top:11px;border-top:1px solid #ECE8F5;">
+  return `<div style="margin-top:14px;padding-top:11px;border-top:1px solid #E8E8F0;">
     <div style="font-size:.78rem;font-weight:700;color:var(--tx);margin-bottom:7px;">샘플(환자번호)별 계대 간격 추이 — 막대 1개 = 계대 1회 간격(일), 왼쪽이 먼저</div>
     ${rows}
   </div>`;
@@ -4603,7 +4616,7 @@ function renderAnalytics(){
       <label>날짜</label><input type="date" id="plDate" style="margin-bottom:8px;">
       <label>작업</label>
       <select id="plAction" style="margin-bottom:8px;">
-        <option>Media Change</option><option>Split</option><option>Reseeding</option><option>Stock (passage 유지)</option><option>Stock (p+1)</option>
+        <option>Media Change</option><option>Split</option><option>Reseeding</option><option>Stock (p+1)</option><option>Stock (passage 유지)</option>
         <option>Pellet (passage 유지)</option><option>Pellet (p+1)</option><option>Observation</option><option>Fixation</option><option>Harvest</option>
       </select>
       <label>대상 라인 (여러 개 선택 가능)</label>
