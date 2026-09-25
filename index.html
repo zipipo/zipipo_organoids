@@ -295,7 +295,7 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
 :root{
   --bg:#EDEEF1; --sur:#FFFFFF; --sur2:#F8F8FA; --hov:#F2F2F5; --act:#E3E4E8;
   --tx:#1F1F24; --sub:#62626C; --mut:#9C9CA6; --bd:#E1E2E6; --bd2:#EEEFF2;
-  --pri:#8A6D00; --pri-h:#735A00; --pri-bg:#F4DF61; --pri-bgh:#EDD444; --pri-fg:#1F1A04; --psoft:#FDF7D6;
+  --pri:#8A6D00; --pri-h:#735A00; --pri-bg:#F4DF61; --pri-bgh:#EDD444; --pri-fg:#FFFFFF; --psoft:#FDF7D6;
   --side:#F6F6F8; --topbar:rgba(237,238,241,.88); --ink:#3F3F46;
   --acc:#8A6D00; --acc-bg:#FDF8DE; --acc-bd:#F2E7AE;
   --ok:#2F7D59; --ok-bg:#EDF8F2; --warn:#8C6D12; --warn-bg:#FBF6E4; --due:#B4413C; --due-bg:#FCEEEE;
@@ -392,6 +392,8 @@ body[data-tab="arch"] .pane[data-pane="arch"]{display:block;animation:paneIn .28
 .btn:active{transform:translateY(.5px);}
 .btn-pri{background:var(--pri-bg);color:var(--pri-fg);border:1px solid var(--pri-bgh);box-shadow:0 1px 2px rgba(160,130,20,.18);font-weight:650;}
 .btn-pri:hover{background:var(--pri-bgh);border-color:#E2C530;}
+/* 밝은 노랑 위 흰 글씨는 대비가 낮아서, 굵게 + 옅은 그림자로 글자 윤곽을 살린다 */
+body[data-theme="pastel"] .btn-pri,body[data-theme="pastel"] .chip.on,body[data-theme="pastel"] .sel-fab{font-weight:700;text-shadow:0 1px 1.5px rgba(120,90,0,.45);}
 .btn-out,.btn-edt{background:var(--sur);border:1px solid var(--bd);color:var(--ink);}
 .btn-out:hover,.btn-edt:hover{border-color:#D4D4D8;background:var(--sur2);}
 .btn-ghost{background:none;border:1px solid transparent;color:var(--sub);height:28px;padding:0 8px;}
