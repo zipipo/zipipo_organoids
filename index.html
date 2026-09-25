@@ -68,6 +68,8 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--tx);ma
 .cc-swatches{flex:1;display:flex;flex-wrap:wrap;gap:5px;}
 .cc-sw{width:20px;height:20px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0;transition:.1s;}
 .cc-sw:hover{transform:scale(1.15);}
+.cc-sw{box-shadow:inset 0 0 0 1px rgba(0,0,0,.06);}
+.cc-row.cc-focus{background:var(--acc-bg,#F1F1FD);border-radius:6px;padding-left:6px;padding-right:6px;}
 .cc-sw.cc-sel{border-color:#1E293B;box-shadow:0 0 0 2px #fff inset;}
 
 /* type sections */
@@ -314,8 +316,8 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.92em;bac
 .main{flex:1;min-width:0;padding:0 28px 60px;}
 
 .brand{display:flex;align-items:center;gap:10px;padding:4px 8px 16px;min-width:0;}
-.brand-mark{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;background:var(--tx);color:#fff;}
-.brand-mark .ic{width:15px;height:15px;}
+.brand-mark{width:34px;height:34px;flex:none;border-radius:50%;overflow:hidden;box-shadow:0 0 0 1px var(--bd),0 1px 3px rgba(0,0,0,.08);background:#F4D03F;}
+.brand-mark img{width:100%;height:100%;object-fit:cover;display:block;}
 .brand-tx{display:flex;flex-direction:column;gap:2px;font-weight:700;font-size:.88rem;line-height:1.1;white-space:nowrap;min-width:0;letter-spacing:-.015em;}
 .brand-tx small{font-weight:700;font-size:.6rem;letter-spacing:.12em;color:var(--mut);}
 .demo-badge{margin-left:auto;flex:none;line-height:1.2;font-size:.6rem;font-weight:700;letter-spacing:.06em;color:var(--acc);background:var(--acc-bg);border:1px solid var(--acc-bd);border-radius:4px;padding:2px 5px;}
@@ -466,13 +468,17 @@ label{font-size:.74rem;font-weight:550;color:var(--sub);}
 .bd-group em{font-style:normal;font-weight:600;font-size:.72rem;opacity:.65;}
 .bd-group:hover{filter:brightness(.98);}
 .bd-gw{margin-left:auto;font-weight:600;opacity:.7;font-size:.74rem;}
+.bd-color{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border:none;border-radius:4px;background:transparent;color:inherit;cursor:pointer;opacity:.55;}
+.bd-color:hover{opacity:1;background:rgba(255,255,255,.6);}
+.bd-group .tdot{display:none;}
 .bd-row{height:40px;border-top:1px solid var(--bd2);cursor:pointer;font-size:.84rem;transition:background .1s;}
 .bd-row:hover{background:var(--ts);}
-.bd-row.sel{background:var(--acc-bg);}
+.bd-row.sel{background:var(--ts);}
 .cbx{width:15px;height:15px;border:1.4px solid #CFCFD5;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#fff;margin-left:6px;transition:background .12s,border-color .12s;}
 .cbx .ic{width:11px;height:11px;stroke-width:2.6;opacity:0;transform:scale(.6);transition:opacity .12s,transform .18s var(--ease);}
 .bd-row:hover .cbx{border-color:#A1A1AA;}
-.bd-row.sel .cbx{background:var(--acc);border-color:var(--acc);}
+.bd-row.sel .cbx{background:color-mix(in srgb,var(--tt) 78%,var(--tf));border-color:transparent;}
+.bd-row.sel .bd-name{color:var(--tt);}
 .bd-row.sel .cbx .ic{opacity:1;transform:none;}
 .bd-name{font-weight:650;display:flex;align-items:baseline;gap:6px;min-width:0;overflow:hidden;white-space:nowrap;}
 .bd-name small{font-weight:500;color:var(--mut);font-size:.72rem;overflow:hidden;text-overflow:ellipsis;}
@@ -503,11 +509,8 @@ label{font-size:.74rem;font-weight:550;color:var(--sub);}
 .tlog-name{font-weight:600;min-width:150px;display:flex;align-items:center;gap:7px;}
 .tlog-x{color:var(--mut);font-size:.76rem;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
-/* 액션 뱃지: 옅은 바탕 + 색 점 */
-.badge{display:inline-flex;align-items:center;gap:5px;background:var(--hov);color:#3F3F46;border:none;border-radius:4px;padding:2px 7px 2px 6px;font-size:.72rem;font-weight:550;}
-.badge::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--c,#A1A1AA);}
-.bm{--c:#7AA7E0;} .bsp{--c:#E59A6B;} .br{--c:#62B98F;} .bpl{--c:#A88BDB;} .bst{--c:#DB86A9;}
-.bf{--c:#A1A1AA;} .bo{--c:#D6B94E;} .bsd{--c:#57B7B0;} .bfx{--c:#8C8FE0;} .bhv{--c:#E27D86;}
+/* 액션 뱃지: 원래 색 그대로, 모양만 정돈 */
+.badge{border-radius:4px;padding:2px 7px;font-size:.72rem;font-weight:600;}
 .pb{background:none!important;border:none!important;padding:0;font-weight:650;color:var(--tx)!important;font-size:.8rem;}
 
 /* 기록 입력 패널 */
@@ -538,12 +541,11 @@ label{font-size:.74rem;font-weight:550;color:var(--sub);}
 #logActionCustom{margin-top:8px;}
 .act-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;}
 .act{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:1px;height:44px;padding:0 4px;
-  border:1px solid var(--bd);border-radius:var(--r-sm);background:var(--sur);font:inherit;font-size:.76rem;font-weight:550;color:#3F3F46;cursor:pointer;line-height:1.2;
-  transition:background .12s,border-color .12s,color .12s,box-shadow .15s;}
-.act small{font-size:.62rem;font-weight:500;color:var(--mut);}
-.act::before{content:"";position:absolute;top:6px;left:6px;width:5px;height:5px;border-radius:50%;background:var(--c,#D4D4D8);opacity:.9;}
-.act:hover{background:var(--sur2);border-color:#DCDCE0;}
-.act.on{border-color:var(--tx);color:var(--tx);box-shadow:0 0 0 1px var(--tx) inset;background:var(--sur);}
+  border:1px solid transparent;border-radius:var(--r-sm);font:inherit;font-size:.76rem;font-weight:600;cursor:pointer;line-height:1.2;opacity:.72;
+  transition:opacity .12s,box-shadow .15s;}
+.act small{font-size:.62rem;font-weight:500;opacity:.75;}
+.act:hover{opacity:1;}
+.act.on{opacity:1;box-shadow:0 0 0 2px var(--sur),0 0 0 3.5px currentColor;}
 .ef-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .ef-f{animation:tagIn .2s var(--ease);min-width:0;}
 .ef-f.hide{display:none;}
@@ -711,6 +713,7 @@ td{vertical-align:middle;}
   <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
   <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 17v5"/><path d="M9 10.8V4h6v6.8l3 3.2v2H6v-2z"/></symbol>
   <symbol id="i-vial" viewBox="0 0 24 24"><path d="M12 2v20M4.9 4.9l14.2 14.2M2 12h20M4.9 19.1 19.1 4.9"/><path d="m9 4 3 3 3-3M9 20l3-3 3 3M4 9l3 3-3 3M20 9l-3 3 3 3"/></symbol>
+  <symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 22a10 10 0 1 1 10-10c0 2.8-2.2 4-4 4h-2a2 2 0 0 0-1.5 3.3A1.6 1.6 0 0 1 12 22z"/><circle cx="7.5" cy="10.5" r="1.2"/><circle cx="12" cy="7" r="1.2"/><circle cx="16.5" cy="10.5" r="1.2"/></symbol>
   <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
   <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
@@ -730,7 +733,7 @@ td{vertical-align:middle;}
 <div class="app">
 <aside class="side" id="side">
   <div class="brand">
-    <span class="brand-mark"><svg class="ic"><use href="#i-flask"/></svg></span>
+    <span class="brand-mark"><img src="data:image/jpeg;base64,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" alt=""></span>
     <span class="brand-tx"><small>STAR LAB</small>Cell Culture Log</span>
     <span id="demoBadge" class="demo-badge" style="display:none;" title="예시 데이터로 보는 중이에요. 저장되지 않아요.">DEMO</span>
   </div>
@@ -746,6 +749,7 @@ td{vertical-align:middle;}
     <button class="nav-i" onclick="openLineModal()"><svg class="ic"><use href="#i-flask"/></svg><span>라인 관리</span></button>
     <button class="nav-i" onclick="openAnalyticsPage()"><svg class="ic"><use href="#i-chart"/></svg><span>작업 분석</span></button>
     <button class="nav-i" onclick="openNoteModal()"><svg class="ic"><use href="#i-print"/></svg><span>연구노트 인쇄</span></button>
+    <button class="nav-i" onclick="openColorModal()"><svg class="ic"><use href="#i-palette"/></svg><span>종류별 색상</span></button>
   </nav>
 
   <div class="nav-sec">현미경 사진</div>
@@ -1018,7 +1022,6 @@ td{vertical-align:middle;}
   <div class="mbox">
     <h2>종류별 색상 설정</h2>
     <div class="mscroll">
-      <div style="font-size:.72rem;color:#94A3B8;margin-bottom:9px;line-height:1.4;">배양 현황에 표시되는 종류별 색상을 여기서 바꿀 수 있어요. 새 종류를 등록하면 자동으로 랜덤 색상이 지정돼요.</div>
       <div id="colorList"></div>
     </div>
     <div class="mfoot" style="display:flex;gap:7px;">
@@ -1337,12 +1340,13 @@ const PAL=[
   {bg:'#FFC8D3', tx:'#7A1022', bd:'#FF7C9A', hbg:'#FFEAEF', ht:'#5C0815'}  // 351° Red-Orange
 ];
 const DONE={bg:'#F1F5F9',tx:'#475569',bd:'#E2E8F0',hbg:'#F1F5F9',ht:'#475569'};
-// 종류 색을 화면용 파스텔 톤으로 풀어 쓴다: fill=헤더 바탕, soft=옅은 바탕, dot=색 표시, text=진한 글자
+// 종류 색(팔레트 원래 값)을 화면 곳곳에 쓰는 이름으로 풀어 둔다: fill=헤더 바탕, soft=옅은 바탕, dot=색 표시, text=진한 글자
 function _mix(hex,to,t){ const a=parseInt(hex.slice(1),16), b=parseInt(to.slice(1),16);
   const ch=(x,y)=>Math.round(x+(y-x)*t);
   const r=ch(a>>16,b>>16), g=ch((a>>8)&255,(b>>8)&255), bl=ch(a&255,b&255);
   return '#'+((1<<24)|(r<<16)|(g<<8)|bl).toString(16).slice(1); }
-function tone(c){ return {fill:_mix(c.bg,'#FFFFFF',.55), soft:_mix(c.bg,'#FFFFFF',.82), dot:_mix(c.bd,'#FFFFFF',.45), line:_mix(c.bd,'#FFFFFF',.55), text:c.ht}; }
+// 테두리(line)는 원래 색 진하기에 상관없이 대비가 같도록 바탕색을 같은 비율로만 어둡게 만든다
+function tone(c){ return {fill:c.hbg, soft:_mix(c.hbg,'#FFFFFF',.5), dot:c.bg, line:_mix(c.hbg,'#3F3F46',.16), text:c.ht}; }
 const toneVars=c=>{ const t=tone(c); return `--tf:${t.fill};--ts:${t.soft};--td:${t.dot};--tl:${t.line};--tt:${t.text};`; };
 let tcm={};
 function randIdxAvoiding(exclude){
@@ -1414,14 +1418,20 @@ function renderColorModal(){
     const idx=typeColors[t]||0;
     const c=PAL[idx];
     const swatches=PAL.map((p,i)=>`<button class="cc-sw${i===idx?' cc-sel':''}" style="background:${p.hbg};" title="색상 ${i+1}" onclick="setTypeColor('${jsEsc(t)}',${i})"></button>`).join('');
-    return `<div class="cc-row">
+    return `<div class="cc-row${t===_ccFocus?' cc-focus':''}" data-type="${esc(t)}">
       <div class="cc-name" style="background:${c.hbg};color:${c.ht};">${esc(t)}</div>
       <div class="cc-swatches">${swatches}</div>
       <button class="tbl-btn" onclick="randomizeTypeColor('${jsEsc(t)}')" title="이 종류만 랜덤 색상"><svg class="ic"><use href="#i-shuffle"/></svg></button>
     </div>`;
   }).join('');
 }
-function openColorModal(){ renderColorModal(); document.getElementById('colorModal').classList.add('open'); }
+// 특정 종류에서 열면 그 줄을 강조하고 보이는 위치로 스크롤
+let _ccFocus=null;
+function openColorModal(type){
+  _ccFocus=typeof type==='string'?type:null;
+  renderColorModal(); document.getElementById('colorModal').classList.add('open');
+  if(_ccFocus){ const r=[...document.querySelectorAll('#colorList .cc-row')].find(x=>x.dataset.type===_ccFocus); if(r) r.scrollIntoView({block:'center'}); }
+}
 function closeColorModal(){ document.getElementById('colorModal').classList.remove('open'); }
 
 // ══════════════════════════════════════════
@@ -1490,7 +1500,8 @@ function renderDash(){
     .forEach(([type,d])=>{
     const c=getC(type,false);
     body+=`<div class="bd-block" style="${toneVars(c)}"><div class="bd-group" onclick="selectType('${jsEsc(type)}')" title="이 종류 전체 선택">
-      <i class="tdot"></i><span>${esc(type)}</span><em>${d.count}라인</em><span class="bd-gw">${d.wells} well</span></div>`;
+      <i class="tdot"></i><span>${esc(type)}</span><em>${d.count}라인</em><span class="bd-gw">${d.wells} well</span>
+      <button class="bd-color" onclick="event.stopPropagation();openColorModal('${jsEsc(type)}')" title="이 종류 색 바꾸기">${ic('palette')}</button></div>`;
     body+=d.lines.map(ll=>{
       const mc=ll.mc;
       const mcTag=`<button class="mc ${mc?mc.cls:'mc-none'}" onclick="quickMediaChange('${ll.id}',event)" title="오늘 Media Change 바로 기록">${mc?'MC +'+mc.days+'d':'MC'}</button>`;
@@ -1509,7 +1520,7 @@ function renderDash(){
     <div class="panel-hd"><span>배양 현황</span>
       <span class="panel-act">
         ${bulkLines.length?`<button class="btn btn-ghost" onclick="clearBulkLines()">${bulkLines.length}개 선택 해제</button>`:''}
-        <button class="btn btn-icon" onclick="openColorModal()" title="종류별 색상">${ic('sliders')}</button>
+        <button class="btn btn-ghost" onclick="openColorModal()" title="종류별 색상 바꾸기">${ic('palette')}색상</button>
       </span></div>
     ${active.length?`<div class="bd-head"><span></span><span>라인</span><span>P / D</span><span>Plate</span><span>Well</span><span>MC</span></div><div class="bd-blocks">${body}</div>`
       :'<div class="empty">진행 중인 라인이 없어요.</div>'}
