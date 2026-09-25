@@ -626,7 +626,8 @@ td{vertical-align:middle;}
 .mfoot{border-top-color:var(--bd2);}
 .recalc-box{display:flex;gap:8px;align-items:center;border:1px solid var(--bd);border-radius:var(--r-sm);padding:8px 10px;font-size:.76rem;color:#3F3F46;font-weight:500;cursor:pointer;margin:0;background:var(--sur);}
 .recalc-box input{width:14px;height:14px;margin:0;flex:none;}
-#eRecalcHint{color:var(--mut);font-weight:450;}
+.recalc-note{display:flex;align-items:center;flex-wrap:wrap;gap:6px;font-size:.76rem;color:var(--pri);background:var(--psoft);border-radius:var(--r-sm);padding:7px 10px;}
+.recalc-note .link-btn{margin-left:auto;}
 .sb-drop{border:1px dashed #D4D4D8;border-radius:8px;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--sub);}
 .sb-drop .ic{width:22px;height:22px;color:var(--mut);margin-bottom:4px;}
 .sb-drop:hover,.sb-drop.drag{border-color:var(--acc);background:var(--acc-bg);color:var(--acc);}
@@ -1076,8 +1077,7 @@ body[data-theme="mono"] input[type=checkbox]{accent-color:#111;}
           <div><label>P</label><input type="number" id="eP" min="0"></div>
           <div><label>D</label><input type="text" id="eD" placeholder="d5 또는 d10+3"></div>
         </div>
-        <label class="recalc-box"><input type="checkbox" id="eRecalc">
-          <span><b>이 라인 P/D 다시 계산</b> <span id="eRecalcHint"></span></span></label>
+        <div class="recalc-note" id="eRecalcNote"></div>
         <div style="height:1px;background:#E2E8F0;"></div>
         <div><label>Ratio / 과정</label><input type="text" id="eDet"></div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;">
@@ -1093,7 +1093,7 @@ body[data-theme="mono"] input[type=checkbox]{accent-color:#111;}
       <button class="btn btn-del" onclick="deleteLog()">휴지통으로</button>
       <span style="flex:1;"></span>
       <button class="btn btn-out" onclick="closeLogModal()">취소</button>
-      <button class="btn btn-pri" style="min-width:110px;" onclick="updateLog(document.getElementById('eRecalc').checked)">저장</button>
+      <button class="btn btn-pri" style="min-width:110px;" onclick="updateLog()">저장</button>
     </div>
   </div>
 </div>
@@ -2700,6 +2700,18 @@ function recalcLogsForLine(lineId) {
           return;
       }
 
+      // 사용자가 직접 고친 P/D(pinP/pinD)는 그 값을 기준점으로 삼고, 이후 기록은 여기서부터 이어서 계산
+      if (lg.pinP) currentP = parseP(lg.passage);
+      if (lg.pinD) {
+          const pd = parseD(lg.dayInfo);
+          if (pd) {
+              currentSegs = pd.segs.slice();
+              currentStartDt = new Date(lg.date);
+              currentStartDt.setDate(currentStartDt.getDate() - pd.diff);
+              currentStartDt.setHours(0,0,0,0);
+          }
+      }
+
       // [핵심] 현재까지 누적된 상태를 해당 로그에 먼저 부여함! (Split 이면 쪼개기 직전의 P/D가 찍힘)
       lg.passage = currentP;
       const dt = new Date(lg.date);
@@ -3016,13 +3028,13 @@ function restoreTrash(tid){
     if(lines.some(l=>l.id===item.line.id)){ alert('이미 같은 라인이 존재해서 복원할 수 없습니다.'); return; }
     lines.push(item.line);
     logs.push(...item.logs);
-    syncLineState(item.line);
+    recalcLogsForLine(item.line.id);
   } else {
     const line=lines.find(l=>l.id===item.log.lineId);
     if(!line){ alert('해당 라인이 삭제되어 있어 복원할 수 없습니다. 라인을 먼저 복원하세요.'); return; }
     if(logs.some(l=>l.id===item.log.id)){ alert('이미 존재하는 기록입니다.'); return; }
     logs.push(item.log);
-    syncLineState(line);
+    recalcLogsForLine(line.id);
   }
   trash.splice(idx,1);
   saveTrash();
@@ -3065,29 +3077,34 @@ function openLogModal(id){
   document.getElementById('eWells').value=lg.finalWells||'';
   document.getElementById('eStocks').value=lg.stocks||'';
   document.getElementById('eMemo').value =lg.memo||'';
-  _eOrig={date:lg.date,action:lg.action,p:String(lg.passage),d:lg.dayInfo||''};
-  document.getElementById('eRecalc').checked=false;
+  _eOrig={date:lg.date,action:lg.action,p:String(lg.passage),d:lg.dayInfo||'',pinned:!!(lg.pinP||lg.pinD),seed:isSeed(lg.action)};
+  _eUnpin=false;
+  eAutoRecalc();
   document.getElementById('logModal').classList.add('open');
 }
-// 수정 창의 [재계산] 체크박스를 상황에 맞게 자동으로 켜고 끈다:
-//  날짜·액션이 바뀌면 이후 P/D가 달라지므로 켜고, P/D를 직접 고쳤으면 그 값을 지키도록 끈다.
-let _eOrig=null;
+// 기록을 저장하면 항상 이 라인 전체 P/D를 다시 계산한다 (Split 날짜를 옮기거나 액션을 바꾸면 이후 기록이 자동으로 맞춰짐).
+// P/D를 직접 고친 기록은 그 값을 기준점으로 고정해서, 이후 기록이 거기서부터 이어서 계산된다.
+let _eOrig=null, _eUnpin=false;
 function eAutoRecalc(){
   if(!_eOrig) return;
+  const el=document.getElementById('eRecalcNote');
   const act=document.getElementById('eAct').value==='__custom__'?document.getElementById('eActCustom').value.trim():document.getElementById('eAct').value;
   const pdChanged=document.getElementById('eP').value!==_eOrig.p||document.getElementById('eD').value!==_eOrig.d;
   const flowChanged=document.getElementById('eDate').value!==_eOrig.date||act!==_eOrig.action;
-  const cb=document.getElementById('eRecalc'), hint=document.getElementById('eRecalcHint');
-  if(pdChanged){ cb.checked=false; hint.textContent='· 직접 고친 값 유지'; }
-  else if(flowChanged){ cb.checked=true; hint.textContent='· 날짜/액션 변경됨'; }
-  else hint.textContent='';
+  let msg='', btn='';
+  if(pdChanged) msg=_eOrig.seed?'시작 P/D가 바뀌어서, 저장하면 이 라인 전체가 다시 계산돼요.':'직접 고친 P/D가 기준이 되고, 이후 기록이 여기서부터 다시 계산돼요.';
+  else if(_eOrig.pinned&&!_eUnpin){ msg='이 기록의 P/D는 직접 고친 값으로 고정돼 있어요.'; btn='<button class="link-btn" onclick="_eUnpin=true;eAutoRecalc();">자동 계산으로 되돌리기</button>'; }
+  else if(_eOrig.pinned&&_eUnpin) msg='저장하면 이 기록도 자동 계산값으로 돌아가요.';
+  else if(flowChanged) msg='저장하면 이 라인의 P/D가 자동으로 다시 계산돼요.';
+  el.innerHTML=msg?`${ic('check','ic-sm')}<span>${msg}</span>${btn}`:'';
+  el.style.display=msg?'':'none';
 }
 ['eDate','eAct','eActCustom','eP','eD'].forEach(id=>{
   const el=document.getElementById(id);
   el.addEventListener('input',eAutoRecalc); el.addEventListener('change',eAutoRecalc);
 });
 
-function updateLog(doRecalc){
+function updateLog(){
   const id =document.getElementById('eid').value;
   const idx=logs.findIndex(l=>l.id===id);
   let eAction=document.getElementById('eAct').value;
@@ -3105,16 +3122,18 @@ function updateLog(doRecalc){
   logs[idx].finalWells=document.getElementById('eWells').value;
   logs[idx].stocks    =document.getElementById('eStocks').value;
   logs[idx].memo      =document.getElementById('eMemo').value;
-  
-  if(doRecalc) {
-      recalcLogsForLine(logs[idx].lineId);
-  } else {
-      const line = lines.find(l => l.id === logs[idx].lineId);
-      if (line) syncLineState(line); 
+
+  // 직접 고친 P/D는 기준점으로 고정 (Seeded는 원래 라인 전체의 기준이라 고정 표시가 필요 없음)
+  const lg=logs[idx];
+  if(!isSeed(lg.action)){
+    if(_eUnpin){ delete lg.pinP; delete lg.pinD; }
+    if(String(lg.passage)!==_eOrig.p) lg.pinP=true;
+    if(lg.dayInfo!==_eOrig.d) lg.pinD=true;
   }
-  
+  recalcLogsForLine(lg.lineId);
+
   closeLogModal();updateUI();
-  toast(doRecalc?'수정하고 P/D를 다시 계산했어요':'수정했어요',{undo:snap});
+  toast('수정하고 P/D를 다시 계산했어요',{undo:snap});
 }
 
 function deleteLog(){
@@ -3127,7 +3146,7 @@ function deleteLog(){
     label:`${line?lineTag(line):'(삭제된 라인)'} · ${lg.date} · ${lg.action}`,log:lg});
   saveTrash();
   logs=logs.filter(l=>l.id!==id);
-  if(line) syncLineState(line);
+  if(line) recalcLogsForLine(line.id);   // Split 등을 지우면 이후 기록 P/D도 맞춰짐
   closeLogModal();updateUI();
 }
 
@@ -3561,7 +3580,7 @@ document.addEventListener('keydown',e=>{
   // Ctrl/Cmd+Enter: 기록 수정 창이 열려 있으면 그걸 저장, 아니면 오늘 작업의 기록 저장
   if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){
     e.preventDefault();
-    if(document.getElementById('logModal').classList.contains('open')){ updateLog(document.getElementById('eRecalc').checked); return; }
+    if(document.getElementById('logModal').classList.contains('open')){ updateLog(); return; }
     if(document.getElementById('finishModal').classList.contains('open')){ confirmFinish(); return; }
     if(document.querySelector('.modal.open')) return;
     if(curTab==='today') saveDailyLog();
