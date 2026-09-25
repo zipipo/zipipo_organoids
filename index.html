@@ -775,6 +775,22 @@ body[data-theme="mono"] .toast{box-shadow:0 10px 30px rgba(0,0,0,.14),inset 3px 
 body[data-theme="mono"] .toast button{background:#111;color:#fff;}
 body[data-theme="mono"] input[type=checkbox]{accent-color:#111;}
 
+
+/* ═══ 오늘 작업 패널 구분: 패널마다 고유 색(제목 줄 바탕 + 위쪽 선 + 아이콘 배지) ═══ */
+.sec-stock{--sa:#5B9BD5;--sb:#EEF5FC;--si:#DCEBFA;}
+.sec-plan{--sa:#8B7FD9;--sb:#F3F1FC;--si:#E5E1FA;}
+.sec-board{--sa:#4FAE8C;--sb:#EDF8F3;--si:#D5F0E4;}
+.sec-today{--sa:#D2A93B;--sb:#FCF8EA;--si:#F6EBC4;}
+.panel.sec{border-top:3px solid var(--sa);}
+.panel.sec > .panel-hd{background:var(--sb);border-bottom-color:color-mix(in srgb,var(--sa) 18%,transparent);}
+.sec-ic{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:6px;background:var(--si);color:var(--sa);font-style:normal;}
+.sec-ic .ic{width:14px;height:14px;stroke-width:1.9;}
+.panel.sec > .panel-hd .panel-n{color:var(--sa);font-weight:600;}
+body[data-theme="mono"] .panel.sec{border-top-color:#111;}
+body[data-theme="mono"] .panel.sec > .panel-hd{background:#FAFAFA;border-bottom-color:var(--bd2);}
+body[data-theme="mono"] .sec-ic{background:#111;color:#fff;}
+body[data-theme="mono"] .panel.sec > .panel-hd .panel-n{color:var(--sub);}
+
 /* 모바일 전용 요소 (데스크톱에서는 숨김) */
 .mtabs,.sel-fab,.side-backdrop{display:none;}
 
@@ -954,8 +970,8 @@ body[data-theme="mono"] input[type=checkbox]{accent-color:#111;}
         <div id="stats" class="stats"></div>
         <div id="stockBanner"></div>
         <div id="dash"></div>
-        <section class="panel">
-          <div class="panel-hd"><span>오늘 기록</span></div>
+        <section class="panel sec sec-today">
+          <div class="panel-hd"><span><i class="sec-ic"><svg class="ic"><use href="#i-list"/></svg></i>오늘 기록</span></div>
           <div id="todayLogs"></div>
         </section>
       </div>
@@ -1691,8 +1707,8 @@ function renderDash(){
     }).join('')+'</div>';
   });
 
-  el.innerHTML=buildPlanStrip()+`<section class="panel">
-    <div class="panel-hd"><span>배양 현황</span>
+  el.innerHTML=buildPlanStrip()+`<section class="panel sec sec-board">
+    <div class="panel-hd"><span><i class="sec-ic">${ic('flask')}</i>배양 현황</span>
       <span class="panel-act">
         ${bulkLines.length?`<button class="btn btn-ghost" onclick="clearBulkLines()">${bulkLines.length}개 선택 해제</button>`:''}
         <button class="btn btn-ghost pal-btn" onclick="openColorModal()" title="종류별 색상 바꾸기">${ic('palette')}색상</button>
@@ -1954,8 +1970,8 @@ function buildPlanStrip(){
     </div>`;
   }).join('');
 
-  return `<section class="panel">
-    <div class="panel-hd"><span>예정 작업</span><span class="panel-act"><button class="btn btn-icon" onclick="openPlanModal()" title="예정 작업 추가">${ic('plus')}</button></span></div>
+  return `<section class="panel sec sec-plan">
+    <div class="panel-hd"><span><i class="sec-ic">${ic('pin')}</i>예정 작업</span><span class="panel-act"><button class="btn btn-icon" onclick="openPlanModal()" title="예정 작업 추가">${ic('plus')}</button></span></div>
     <div class="wk">${dayCells}</div>
     ${rows?`<div class="pl-list">${rows}</div>`:''}
   </section>`;
@@ -2116,7 +2132,7 @@ function renderStockBanner(){
     <label class="sc-chk ${sc.ln2Done?'done':''}"><input type="checkbox" ${sc.ln2Done?'checked':''} onclick="toggleSC('${sc.id}','ln2')">LN2 이동</label>
     <label class="sc-chk ${sc.dbDone?'done':''}"><input type="checkbox" ${sc.dbDone?'checked':''} onclick="toggleSC('${sc.id}','db')">DB 업데이트</label>
   </div>`).join('');
-  el.innerHTML=`<section class="panel"><div class="panel-hd"><span>${ic('vial')}Stock 후처리</span><em class="panel-n">${pend.length}</em></div>${items}</section>`;
+  el.innerHTML=`<section class="panel sec sec-stock"><div class="panel-hd"><span><i class="sec-ic">${ic('vial')}</i>Stock 후처리</span><em class="panel-n">${pend.length}건 남음</em></div>${items}</section>`;
 }
 
 function toggleSC(id,field){
