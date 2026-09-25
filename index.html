@@ -853,6 +853,12 @@ html[data-font="spoqa"] :is(h1,h2,.panel-hd,.cp-hd,.bd-name,.tl-name,.tlog-name,
 html[data-font="nanumneo"] .brand-tx small,html[data-font="spoqa"] .brand-tx small{font-weight:700;}
 html[data-font="nanumneo"] body{letter-spacing:-.015em;}
 
+
+/* 굵기 단계가 적은 글씨체(나눔고딕·나눔바른고딕·고운돋움)도 나눔스퀘어 네오와 같은 두 단계 규칙 */
+html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) body{font-weight:400;}
+html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) :is(.btn,.nav-i,.act,.chip,.seg,label,th,.badge,.mc,.tbl-btn,.dd-menu button,.link-btn,.lbl-sub,.bd-pd,.bd-plate,.bm-pd,.tlog-d,.pl-date,.stat-l,.panel-n,.hint,.tl-plate,.tl-n,em,small){font-weight:400;}
+html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) :is(.btn-pri,.act.on,.nav-i.on,.chip.on,.seg.on){font-weight:700;}
+html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) :is(h1,h2,.panel-hd,.cp-hd,.bd-name,.tl-name,.tlog-name,.pv-name,.stat-n,.type-chip,.brand-tx,.sc-name,.a-line,.hb-l,.wk-n,b,strong){font-weight:700;}
 /* 모바일 전용 요소 (데스크톱에서는 숨김) */
 .mtabs,.sel-fab,.side-backdrop{display:none;}
 
@@ -3639,6 +3645,11 @@ const FONTS={
   spoqa:{label:'Spoqa Han Sans Neo', family:"'Spoqa Han Sans Neo'", css:'https://spoqa.github.io/spoqa-han-sans/css/SpoqaHanSansNeo.css', scale:.94},
   plex:{label:'IBM Plex Sans KR', family:"'IBM Plex Sans KR'", css:'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap'},
   nanumneo:{label:'나눔스퀘어 네오', family:"'NanumSquareNeo'", css:'https://hangeul.pstatic.net/hangeul_static/css/nanum-square-neo.css', scale:.92},
+  noto:{label:'Noto Sans KR', family:"'Noto Sans KR'", css:'https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap'},
+  gothica1:{label:'Gothic A1', family:"'Gothic A1'", css:'https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;600;700&display=swap'},
+  nanumgothic:{label:'나눔고딕', family:"'Nanum Gothic'", css:'https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap'},
+  nanumbarun:{label:'나눔바른고딕', family:"'NanumBarunGothic'", css:'https://hangeul.pstatic.net/hangeul_static/css/nanum-barun-gothic.css'},
+  gowun:{label:'고운돋움', family:"'Gowun Dodum'", css:'https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap', scale:1.02},
 };
 function setFont(k){
   if(!FONTS[k]) k='pretendard';
