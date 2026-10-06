@@ -240,12 +240,20 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
 .wb-opts{display:flex;gap:14px;align-items:center;flex-wrap:wrap;background:var(--sur2);border:1px solid var(--bd);border-radius:6px;padding:10px 13px;margin-bottom:12px;font-size:.8rem;}
 .wb-opts label{display:flex;align-items:center;gap:6px;margin:0;cursor:pointer;}
 .wb-opts input[type=range]{width:130px;}
-.wb-big{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.wb-big{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+@media (max-width:700px){ .wb-big{grid-template-columns:1fr;} }
 .wb-big figure{margin:0;}
 .wb-big img{width:100%;border-radius:5px;border:1px solid var(--bd);display:block;background:#000;}
 .wb-big figcaption{font-size:.72rem;color:var(--sub);margin-top:3px;text-align:center;}
-.wb-row{cursor:pointer;}
-.wb-row.on{border-color:var(--tx);}
+.wb-row{cursor:zoom-in;}
+.wb-opts b{font-size:.82rem;}
+.wb-d2{display:flex;align-items:center;gap:5px;}
+.wb-d2 small{color:var(--mut);font-size:.72rem;}
+.wb-sw-lg{width:16px;height:16px;border-radius:4px;}
+.wb-ctl{display:inline-flex;align-items:center;gap:6px;font-size:.74rem;}
+.wb-ctl label{display:flex;align-items:center;gap:4px;margin:0;cursor:pointer;font-weight:600;}
+.wb-seg .seg{height:22px;padding:0 8px;font-size:.7rem;}
+.wb-all{display:inline-flex;align-items:center;gap:4px;margin-left:auto;margin-right:8px;}
 .wb-th{height:56px;width:auto;border-radius:4px;border:1px solid var(--bd);flex:none;background:#000;}
 .wb-arrow{color:var(--mut);flex:none;}
 .wb-info{font-size:.72rem;color:var(--sub);margin-top:3px;}
@@ -253,7 +261,13 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
 .wb-skip{color:var(--due);}
 .sb-loading{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;flex-direction:column;gap:15px;background:rgba(15,23,42,.5);backdrop-filter:blur(2px);}
 .sb-loading.on{display:flex;}
-.sb-spin{width:48px;height:48px;border:5px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sbspin .8s linear infinite;}
+.sb-ring{position:relative;width:76px;height:76px;}
+/* 기기 설정에서 '움직임 줄이기'를 켜 두어도 진행 표시는 돌아가야 하므로 !important로 살린다 */
+.sb-ring svg{width:100%;height:100%;animation:sbspin 1.1s linear infinite!important;}
+.sb-ring circle{fill:none;stroke-width:4.5;}
+.sb-ring .tr{stroke:rgba(255,255,255,.22);}
+.sb-ring .pr{stroke:#fff;stroke-linecap:round;stroke-dasharray:119.4;stroke-dashoffset:89.5;transition:stroke-dashoffset .25s ease!important;}
+.sb-ring b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.86rem;font-weight:700;}
 @keyframes sbspin{to{transform:rotate(360deg);}}
 .sb-loadtxt{color:#fff;font-size:.95rem;font-weight:600;letter-spacing:.2px;}
 .bk-status{font-size:.72rem;display:inline-flex;align-items:center;gap:6px;margin-left:2px;}
@@ -1025,8 +1039,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
   <nav class="nav nav-steps">
     <button class="nav-i" onclick="openShotLogModal()"><i class="step">1</i><span>촬영 순서</span><em id="shotCount"></em></button>
     <button class="nav-i" onclick="openSbarModal()"><i class="step">2</i><span>이름·스케일바</span></button>
-    <button class="nav-i" onclick="openWbModal()"><i class="step">3</i><span>색 보정</span></button>
-    <button class="nav-i" onclick="openPptModal()"><i class="step">4</i><span>PPT 만들기</span></button>
+    <button class="nav-i" onclick="openPptModal()"><i class="step">3</i><span>PPT 만들기</span></button>
   </nav>
 
   <div class="side-foot">
@@ -3869,7 +3882,8 @@ function openSbarModal(){
     window._sbWired=true;
   }
   sbRenderSetPicker();
-  document.getElementById('sbWb').checked=!!wbOpts.inSbar;
+  wbResetBrightness();
+  document.getElementById('sbWbOpts').innerHTML=wbOptsHTML();
   renderSbarList();
   renderSbDir();
   document.getElementById('sbarModal').classList.add('open');
@@ -3965,7 +3979,9 @@ async function handleSbarFiles(fileList){
       try{
         const {canvas,w,h}=await sbLoadImageFile(f);
         // 사진은 라인·배율 지정 없이 그냥 쌓인다 — 순서를 채우려면 "촬영 순서 적용하기" 버튼을 눌러야 한다
-        sbFiles.push({id:'sb'+Date.now()+Math.random().toString(36).slice(2,6), fname:f.name, srcCanvas:canvas, w, h, thumb:sbMakeThumb(canvas), lineId:'', mag:'4x', note:''});
+        // 색 보정은 기본으로 켜 두고, 오가노이드/2D는 라인 종류를 고르면 자동으로 따라간다(wbMode=null)
+        const thSmall=wbScaled(canvas,240);
+        sbFiles.push({id:'sb'+Date.now()+Math.random().toString(36).slice(2,6), fname:f.name, srcCanvas:canvas, w, h, thumb:sbMakeThumb(canvas), thSmall, an:wbAnalyze(canvas), wb:true, wbMode:null, _c:{}, lineId:'', mag:'4x', note:''});
       }catch(e){ failed.push(f.name+' ('+e.message+')'); }
       done++; sbLoading(true,`사진 불러오는 중… (${done}/${arr.length})`);
       await new Promise(r=>setTimeout(r,0));
@@ -4042,6 +4058,14 @@ function sbRemove(i){
   renderSbarList();
 }
 function sbClearAll(){ if(sbFiles.length && confirm('추가한 사진 '+sbFiles.length+'장을 모두 지울까요?')){ sbFiles=[]; _sbSplitAt=null; renderSbarList(); } }
+function sbWbMode(f){
+  if(f.wbMode) return f.wbMode;
+  const line=lines.find(l=>l.id===f.lineId);
+  return line ? wbModeForText(line.type) : 'org';
+}
+function sbSetWb(i,on){ if(sbFiles[i]){ sbFiles[i].wb=on; renderSbarList(); } }
+function sbSetWbMode(i,m){ if(sbFiles[i]){ sbFiles[i].wbMode=m; renderSbarList(); } }
+function sbWbAll(on){ sbFiles.forEach(f=>f.wb=on); renderSbarList(); }
 function sbNatCmp(a,b){ const k=x=>x.replace(/\d+/g,n=>n.padStart(10,'0')); return k(a).localeCompare(k(b)); }
 // 파일시스템 금지문자(/ \ : * ? " < > | 및 제어문자)를 - 로 치환, 앞뒤 점·공백 제거
 function safeFileName(s){
@@ -4085,6 +4109,7 @@ function renderSbarList(){
   const barOn = (document.getElementById('sbAddBar')||{}).checked!==false;
   const head=`<div class="sb-listhd"><span>추가된 사진 <b>${sbFiles.length}</b>장</span>
     <button class="tbl-btn" title="사진을 추가/삭제하거나 순서를 다시 골랐을 때, 여기를 눌러야 순서가 다시 채워집니다" onclick="sbApplyOrder()">촬영 순서 적용하기${shotLog.length?` (${shotLog.length})`:''}</button>
+    <span class="wb-all">색 보정 <button class="tbl-btn" onclick="sbWbAll(true)">전체 선택</button><button class="tbl-btn" onclick="sbWbAll(false)">전체 해제</button></span>
     <button class="sb-clear" onclick="sbClearAll()">전체 삭제</button></div>`;
   // 이 배치 안에서 이미 다른 사진에 배정된 라인 수 (드롭다운에서 이미 고른 라인을 구분해 보여주기 위함)
   const lineUsage={};
@@ -4116,8 +4141,13 @@ function renderSbarList(){
     const splitHd = _sbSplitAt===i ? `<div class="sb-dgrp sb-dsplit"><span>이 사진부터 아래 묶음을 다른 날짜로:</span>
       <input type="date" id="sbSplitDate" onchange="sbDoSplit(this.value)"><button class="tbl-btn" onclick="_sbSplitAt=null;renderSbarList()">취소</button></div>` : '';
     const canSplit = i>0 && !g;   // 묶음의 첫 사진은 이미 경계라 나눌 필요 없음
+    const wbMode=sbWbMode(f);
+    const thumbSrc=wbPreviewURL(f._c, f.thSmall, f.an, wbMode, f.wb) || f.thumb;
+    const wbBad=f.wb && !f.an[wbMode].ok;
+    const wbCtl=`<span class="wb-ctl"><label><input type="checkbox" style="width:auto;" ${f.wb?'checked':''} onchange="sbSetWb(${i},this.checked)"> 색 보정</label>
+      ${f.wb?wbModeSeg(wbMode,m=>`sbSetWbMode(${i},'${m}')`):''}${wbBad?`<span class="wb-skip" title="${esc(f.an[wbMode].why)}">건너뜀</span>`:''}</span>`;
     return `${grpHd}${splitHd}<div class="sb-row">
-      <img class="sb-thumb" src="${f.thumb}">
+      <img class="sb-thumb" src="${thumbSrc}" style="cursor:zoom-in;" title="눌러서 보정 전/후 크게 비교" onclick="wbOpenCompare('sb',${i})">
       <div class="sb-mid">
         <div class="sb-orig">${esc(f.fname)} · ${f.w}×${f.h}px</div>
         <div class="sb-ctrls">
@@ -4125,6 +4155,7 @@ function renderSbarList(){
           <select onchange="sbSet(${i},'mag',this.value)">${magOpts}</select>
           <input class="sb-note" placeholder="특이사항(선택)" value="${esc(f.note||'')}" oninput="sbSetNote(${i},this.value)">
           <span class="sb-bar">${barInfo}</span>
+          ${wbCtl}
           ${canSplit?`<button class="sb-split" title="이 사진부터 아래를 다른 촬영 날짜로 나눕니다" onclick="sbAskSplit(${i})">여기부터 다른 날짜</button>`:''}
         </div>
         <div class="sb-prev" id="sbprev${i}">${esc(preview)}</div>
@@ -4135,17 +4166,30 @@ function renderSbarList(){
 }
 
 function sbBarOn(){ const t=document.getElementById('sbAddBar'); return !t || t.checked; }
-function sbLoading(on, txt){ const el=document.getElementById('sbLoading'); if(!el) return; if(txt!=null){ const t=document.getElementById('sbLoadTxt'); if(t) t.textContent=txt; } el.classList.toggle('on', !!on); }
+// 문구에 "(3/10)"이 있으면 그 비율만큼 고리를 채우고 %를 띄운다. 없으면 1/4 고리로 계속 돈다.
+function sbLoading(on, txt){
+  const el=document.getElementById('sbLoading'); if(!el) return;
+  if(txt!=null){
+    const t=document.getElementById('sbLoadTxt'); if(t) t.textContent=txt;
+    const m=/\((\d+)\/(\d+)\)/.exec(txt);
+    const p=m?Math.min(1,(+m[1])/Math.max(1,+m[2])):null;
+    const ring=document.getElementById('sbRingP'), pct=document.getElementById('sbPct');
+    if(ring) ring.style.strokeDashoffset=String(119.4*(1-(p==null?.25:Math.max(.04,p))));
+    if(pct) pct.textContent=p==null?'':Math.round(p*100)+'%';
+  }
+  el.classList.toggle('on', !!on);
+}
 
-function sbDrawBar(src, mag){
+function sbDrawBar(f){
+  const src=f.srcCanvas, mag=f.mag;
   const W=src.width, H=src.height;
   const out=document.createElement('canvas'); out.width=W; out.height=H;
   const ctx=out.getContext('2d');
   ctx.drawImage(src,0,0);
   // 색 보정은 스케일바보다 먼저 (바 색이 보정값에 물들지 않게)
-  if((document.getElementById('sbWb')||{}).checked){
-    const a=wbAnalyze(src);
-    if(a.ok) wbApplyInPlace(out, wbGains(a.bg));
+  if(f.wb){
+    const g=wbGains(f.an, sbWbMode(f));
+    if(g) wbApplyInPlace(out, g);
   }
   const cal=SB_CAL[mag];
   if(sbBarOn() && cal){
@@ -4195,7 +4239,7 @@ async function sbarSaveAll(btn){
       // 같은 샘플·배율로 또 촬영해 이름이 겹치면 뒤에 (1), (2)…를 붙여 저장 (덮어쓰기 방지)
       if(cnt[base]==null){ cnt[base]=0; } else { cnt[base]++; base=base+' ('+cnt[base]+')'; }
       const fname=safeFileName(base)+ext;
-      const cv=sbDrawBar(f.srcCanvas,f.mag);
+      const cv=sbDrawBar(f);
       const blob=await new Promise(r=>cv.toBlob(r,'image/png'));
       if(dir){
         const fh=await dir.getFileHandle(fname,{create:true});
@@ -4220,16 +4264,37 @@ async function sbarSaveAll(btn){
 // ══════════════════════════════════════════
 //  색 보정 (배경 기준 화이트밸런스)
 // ══════════════════════════════════════════
-// 명시야 사진은 배경(배지)이 밝고 오가노이드가 더 어둡다. 밝기 상위 구간(70~98번째 백분위)의 픽셀을
-// 배경으로 보고 평균 색을 구한 뒤, 그 색이 회색(R=G=B)이 되도록 채널별 배율을 곱한다.
-// 맨 위 2%는 반사·포화 픽셀이라 뺀다. 배경이 어두우면(형광 사진 등) 이 가정이 깨지므로 건너뛴다.
-let wbOpts=Object.assign({bright:true, level:215}, JSON.parse(localStorage.getItem('orgWbOpts')||'{}'));
-function wbStoreOpts(){ localStorage.setItem('orgWbOpts', JSON.stringify(wbOpts)); }
-function wbSaveOpts(){   // 3단계 창의 밝기 옵션
-  wbOpts.bright=document.getElementById('wbBright').checked;
-  wbOpts.level=+document.getElementById('wbLevel').value;
-  wbStoreOpts();
+// 사진 배경(배지)의 평균 색을 구해서, 그 색이 목표색이 되도록 R·G·B 채널마다 같은 배율을 곱한다.
+//  · 오가노이드(명시야): 배경이 가장 밝은 쪽이라 밝기 70~98번째 백분위 픽셀을 배경으로 본다. 목표색 = 회색.
+//  · 2D(위상차 + 보라 필터): 세포 가장자리 halo가 하얗게 밝아서 위 방식은 흰색 쪽으로 끌려간다.
+//    대신 가장 흔한 밝기(히스토그램 꼭짓점) 주변 픽셀을 배경으로 본다. 목표색 = 2D 기준 보라색.
+// 사진 전체에 같은 배율만 곱하므로 구조는 그대로이고, 배경이 어두운 사진(형광 등)은 건너뛴다.
+const WB_D2_DEFAULT=[126,136,203];   // 실제 2D 사진 5장 배경 평균
+const WB_MODES={org:'오가노이드', d2:'2D'};
+// 밝기 설정은 창을 열 때마다 추천값으로 돌아가고, 2D 기준색만 기억한다
+const WB_LEVEL_DEFAULT=215;
+let wbOpts={bright:true, level:WB_LEVEL_DEFAULT, d2:(JSON.parse(localStorage.getItem('orgWbOpts')||'{}').d2)||WB_D2_DEFAULT.slice()};
+function wbResetBrightness(){ wbOpts.bright=true; wbOpts.level=WB_LEVEL_DEFAULT; }
+function wbStoreOpts(){ localStorage.setItem('orgWbOpts', JSON.stringify({d2:wbOpts.d2})); }
+function wbRerenderOpen(){
+  document.querySelectorAll('.wb-opts-box').forEach(el=>el.innerHTML=wbOptsHTML());
+  if(document.getElementById('sbarModal').classList.contains('open')) renderSbarList();
+  if(document.getElementById('wbModal').classList.contains('open')) wbRefresh();
 }
+function wbSetOpt(k,v){ wbOpts[k]=v; wbStoreOpts(); wbRerenderOpen(); }
+function wbResetD2(){ wbSetOpt('d2', WB_D2_DEFAULT.slice()); }
+function wbSetD2From(an){ if(an&&an.d2.ok) wbSetOpt('d2', an.d2.bg.map(Math.round)); }
+const wbRgb=c=>`rgb(${c.map(Math.round).join(',')})`;
+function wbOptsHTML(){
+  return `<b>색 보정</b>
+    <label title="끄면 색 비율만 맞추고 사진 원래 밝기는 그대로 둡니다"><input type="checkbox" style="width:auto;" ${wbOpts.bright?'checked':''} onchange="wbSetOpt('bright',this.checked)"> 밝기도 맞추기</label>
+    <label>오가노이드 배경 밝기 <input type="range" min="160" max="245" step="1" value="${wbOpts.level}" oninput="this.nextElementSibling.textContent=this.value" onchange="wbSetOpt('level',+this.value)"><b>${wbOpts.level}</b></label>
+    <span class="wb-d2">2D 기준색 <i class="wb-sw wb-sw-lg" style="background:${wbRgb(wbOpts.d2)}"></i><small>${wbOpts.d2.join('/')}</small>
+      ${wbOpts.d2.join()!==WB_D2_DEFAULT.join()?`<button class="bk-mini" onclick="wbResetD2()">기본값</button>`:''}</span>`;
+}
+// 종류 이름에 org가 들어가면 오가노이드, 아니면(Cell line 등) 2D
+function wbModeForText(t){ return /org/i.test(t||'')?'org':'d2'; }
+
 function wbScaled(src, maxSide){
   const k=Math.min(1, maxSide/Math.max(src.width,src.height));
   const c=document.createElement('canvas');
@@ -4242,24 +4307,36 @@ function wbAnalyze(src){
   const d=c.getContext('2d').getImageData(0,0,c.width,c.height).data;
   const n=d.length/4, Y=new Uint8Array(n), hist=new Uint32Array(256);
   for(let i=0,j=0;j<n;i+=4,j++){ const y=(d[i]*299+d[i+1]*587+d[i+2]*114)/1000|0; Y[j]=y; hist[y]++; }
+  const meanIn=(test)=>{
+    let r=0,g=0,b=0,cnt=0;
+    for(let i=0,j=0;j<n;i+=4,j++){
+      if(!test(Y[j])) continue;
+      if(d[i]>=254||d[i+1]>=254||d[i+2]>=254) continue;
+      r+=d[i]; g+=d[i+1]; b+=d[i+2]; cnt++;
+    }
+    return cnt?[r/cnt,g/cnt,b/cnt]:null;
+  };
+  const lumOf=c=>(c[0]*299+c[1]*587+c[2]*114)/1000;
+  const DARK='배경이 어두워 형광 사진 같아 건너뜀';
+  // 오가노이드: 밝은 쪽 구간
   const pct=q=>{ let acc=0; const t=n*q; for(let v=0;v<256;v++){ acc+=hist[v]; if(acc>=t) return v; } return 255; };
   const lo=pct(.70), hi=pct(.98);
-  let r=0,g=0,b=0,cnt=0;
-  for(let i=0,j=0;j<n;i+=4,j++){
-    if(Y[j]<lo||Y[j]>hi) continue;
-    if(d[i]>=254||d[i+1]>=254||d[i+2]>=254) continue;
-    r+=d[i]; g+=d[i+1]; b+=d[i+2]; cnt++;
-  }
-  if(!cnt) return {ok:false, why:'배경을 찾지 못함'};
-  const bg=[r/cnt,g/cnt,b/cnt];
-  const lum=(bg[0]*299+bg[1]*587+bg[2]*114)/1000;
-  if(lum<70) return {ok:false, bg, why:'배경이 어두워 명시야 사진이 아닌 것 같아 건너뜀'};
-  return {ok:true, bg};
+  const bo=meanIn(y=>y>=lo&&y<=hi);
+  const org = !bo ? {ok:false, why:'배경을 찾지 못함'} : lumOf(bo)<70 ? {ok:false, bg:bo, why:DARK} : {ok:true, bg:bo};
+  // 2D: 가장 흔한 밝기(±3 이동평균으로 잡음 완화) 주변 ±8
+  let pk=0, best=-1;
+  for(let v=0;v<256;v++){ let sum=0; for(let k=-3;k<=3;k++){ const x=v+k; if(x>=0&&x<256) sum+=hist[x]; } if(sum>best){ best=sum; pk=v; } }
+  const bd=meanIn(y=>Math.abs(y-pk)<=8);
+  const d2 = !bd ? {ok:false, why:'배경을 찾지 못함'} : lumOf(bd)<40 ? {ok:false, bg:bd, why:DARK} : {ok:true, bg:bd};
+  return {org, d2};
 }
-function wbGains(bg){
-  const m=(bg[0]+bg[1]+bg[2])/3;
-  const target=wbOpts.bright?wbOpts.level:m;
-  return bg.map(c=>target/Math.max(c,1));
+function wbGains(an, mode){
+  const a=an&&an[mode]; if(!a||!a.ok) return null;
+  const bg=a.bg, m=(bg[0]+bg[1]+bg[2])/3;
+  let T;
+  if(mode==='org') T=wbOpts.bright?[wbOpts.level,wbOpts.level,wbOpts.level]:[m,m,m];
+  else { T=wbOpts.d2.slice(); if(!wbOpts.bright){ const tm=(T[0]+T[1]+T[2])/3; T=T.map(v=>v*m/tm); } }
+  return T.map((t,k)=>t/Math.max(bg[k],1));
 }
 function wbApplyInPlace(cv, gains){
   const ctx=cv.getContext('2d');
@@ -4271,9 +4348,47 @@ function wbApplyInPlace(cv, gains){
   return cv;
 }
 function wbCopy(src){ const c=document.createElement('canvas'); c.width=src.width; c.height=src.height; c.getContext('2d').drawImage(src,0,0); return c; }
+// 보정 결과를 작은 그림으로 (설정·모드가 같으면 다시 계산하지 않음)
+function wbPreviewURL(cache, srcSmall, an, mode, on){
+  if(!on) return null;
+  const g=wbGains(an,mode); if(!g) return null;
+  const key=mode+JSON.stringify(wbOpts);
+  if(cache._k!==key){ cache._k=key; cache._u=wbApplyInPlace(wbCopy(srcSmall),g).toDataURL('image/jpeg',.85); }
+  return cache._u;
+}
+function wbInfoHTML(an, mode){
+  const a=an[mode];
+  if(!a.ok) return `<span class="wb-skip">${esc(a.why)}</span>`;
+  const g=wbGains(an,mode), after=a.bg.map((c,k)=>Math.min(255,c*g[k]));
+  return `배경 <i class="wb-sw" style="background:${wbRgb(a.bg)}"></i>${a.bg.map(Math.round).join('/')} → <i class="wb-sw" style="background:${wbRgb(after)}"></i> R×${g[0].toFixed(2)} G×${g[1].toFixed(2)} B×${g[2].toFixed(2)}`;
+}
+// call: 모드 이름을 받아 onclick 코드를 돌려주는 함수
+function wbModeSeg(mode, call){
+  return `<span class="seg-group wb-seg">${Object.keys(WB_MODES).map(m=>`<button type="button" class="seg${m===mode?' on':''}" onclick="event.stopPropagation();${call(m)}">${WB_MODES[m]}</button>`).join('')}</span>`;
+}
 
-let wbFiles=[]; // {id, name, canvas, small, an, thBefore, thAfter, bigAfter}
-let wbSel=0;
+// ── 크게 비교 (이름·스케일바 / 저장된 사진 보정 둘 다 사용) ──
+let _wbCmp=null;
+function wbOpenCompare(kind,i){
+  const f = kind==='sb' ? sbFiles[i] : wbFiles[i]; if(!f) return;
+  _wbCmp={kind,i};
+  const src = kind==='sb' ? f.srcCanvas : f.canvas;
+  f._big = f._big || wbScaled(src,1100);
+  f._bigBefore = f._bigBefore || f._big.toDataURL('image/jpeg',.9);
+  const mode = kind==='sb' ? sbWbMode(f) : f.mode;
+  const after = wbPreviewURL(f._bigCache=(f._bigCache||{}), f._big, f.an, mode, true) || f._bigBefore;
+  const name = kind==='sb' ? f.fname : f.name;
+  document.getElementById('wbCmpBody').innerHTML=`
+    <div class="wb-big"><figure><img src="${f._bigBefore}"><figcaption>보정 전</figcaption></figure><figure><img src="${after}"><figcaption>보정 후 (${WB_MODES[mode]})</figcaption></figure></div>
+    <div class="mm-txt" style="font-size:.76rem;">${esc(name)}</div>
+    <div class="wb-info">${wbInfoHTML(f.an,mode)}</div>
+    ${mode==='d2'&&f.an.d2.ok?`<button class="tbl-btn" style="margin-top:8px;" onclick="wbSetD2From(${kind==='sb'?'sbFiles':'wbFiles'}[${i}].an);wbOpenCompare('${kind}',${i})">이 사진 배경색을 2D 기준색으로 쓰기</button>`:''}`;
+  document.getElementById('wbCmpModal').classList.add('open');
+}
+function closeWbCompare(){ document.getElementById('wbCmpModal').classList.remove('open'); _wbCmp=null; }
+
+// ── 이미 저장해 둔 사진만 보정 (이름·스케일바 창 안의 링크로 연다) ──
+let wbFiles=[]; // {id, name, canvas, small, an, mode, _c}
 function openWbModal(){
   if(!window._wbWired){
     const drop=document.getElementById('wbDrop'), inp=document.getElementById('wbInput');
@@ -4284,24 +4399,12 @@ function openWbModal(){
     drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('drag'); if(e.dataTransfer&&e.dataTransfer.files) handleWbFiles(e.dataTransfer.files);});
     window._wbWired=true;
   }
-  document.getElementById('wbBright').checked=wbOpts.bright;
-  document.getElementById('wbLevel').value=wbOpts.level;
-  document.getElementById('wbLevelV').textContent=wbOpts.level;
+  wbResetBrightness();
+  document.getElementById('wbOptsBox').innerHTML=wbOptsHTML();
   renderWbList();
   document.getElementById('wbModal').classList.add('open');
 }
 function closeWbModal(){ document.getElementById('wbModal').classList.remove('open'); }
-
-// 미리보기용 작은 그림(보정 전/후)을 다시 만든다. 밝기 옵션을 바꾸면 이것만 다시 계산.
-function wbMakePreviews(f){
-  const th=wbScaled(f.small,160);
-  f.thBefore=th.toDataURL('image/jpeg',.85);
-  if(f.an.ok){
-    const g=wbGains(f.an.bg);
-    f.thAfter=wbApplyInPlace(wbCopy(th),g).toDataURL('image/jpeg',.85);
-    f.bigAfter=wbApplyInPlace(wbCopy(f.small),g).toDataURL('image/jpeg',.9);
-  } else { f.thAfter=f.thBefore; f.bigAfter=f.bigBefore; }
-}
 async function handleWbFiles(fileList){
   const arr=[...fileList].filter(f=>/\.(tif|tiff|png|jpe?g|webp|bmp)$/i.test(f.name)||(f.type&&f.type.startsWith('image/')));
   arr.sort((a,b)=>sbNatCmp(a.name,b.name));
@@ -4312,10 +4415,11 @@ async function handleWbFiles(fileList){
     for(const file of arr){
       try{
         const {canvas}=await sbLoadImageFile(file);
-        const small=wbScaled(canvas,900);
-        const f={id:'wb'+Date.now()+Math.random().toString(36).slice(2,6), name:file.name, canvas, small, an:wbAnalyze(canvas), bigBefore:small.toDataURL('image/jpeg',.9)};
-        wbMakePreviews(f);
-        wbFiles.push(f);
+        const small=wbScaled(canvas,240);
+        // 규칙 이름이면 종류(…-org)로, 아니면 오가노이드로 시작
+        const meta=pptParse(file.name);
+        const mode=/org/i.test(file.name)?'org':(meta.named?'d2':'org');
+        wbFiles.push({id:'wb'+Date.now()+Math.random().toString(36).slice(2,6), name:file.name, canvas, small, before:small.toDataURL('image/jpeg',.85), an:wbAnalyze(canvas), mode, _c:{}});
       }catch(e){ failed.push(file.name+' ('+e.message+')'); }
       done++; sbLoading(true,`사진 불러오는 중… (${done}/${arr.length})`);
       await new Promise(r=>setTimeout(r,0));
@@ -4324,29 +4428,25 @@ async function handleWbFiles(fileList){
   renderWbList();
   if(failed.length) alert('일부 파일을 불러오지 못했습니다:\n'+failed.join('\n'));
 }
-function wbRefresh(){ wbFiles.forEach(wbMakePreviews); renderWbList(); }
-function wbRemove(i){ wbFiles.splice(i,1); if(wbSel>=wbFiles.length) wbSel=Math.max(0,wbFiles.length-1); renderWbList(); }
-function wbClearAll(){ if(wbFiles.length && confirm('추가한 사진 '+wbFiles.length+'장을 모두 지울까요?')){ wbFiles=[]; wbSel=0; renderWbList(); } }
-function wbPick(i){ wbSel=i; renderWbList(); }
+function wbRefresh(){ renderWbList(); }
+function wbRemove(i){ wbFiles.splice(i,1); renderWbList(); }
+function wbClearAll(){ if(wbFiles.length && confirm('추가한 사진 '+wbFiles.length+'장을 모두 지울까요?')){ wbFiles=[]; renderWbList(); } }
+function wbSetMode(i,m){ if(wbFiles[i]){ wbFiles[i].mode=m; renderWbList(); } }
+function wbAllMode(m){ wbFiles.forEach(f=>f.mode=m); renderWbList(); }
 function wbOutName(name){ return name.replace(/\.(tif|tiff|jpe?g|webp|bmp|png)$/i,'')+'.png'; }
 function renderWbList(){
-  const el=document.getElementById('wbList'), big=document.getElementById('wbBig');
-  if(!wbFiles.length){ big.innerHTML=''; el.innerHTML='<div class="sb-empty">아직 추가된 사진이 없습니다.</div>'; return; }
-  const sel=wbFiles[wbSel]||wbFiles[0];
-  big.innerHTML=`<div class="wb-big"><figure><img src="${sel.bigBefore}"><figcaption>보정 전</figcaption></figure><figure><img src="${sel.bigAfter}"><figcaption>보정 후 · ${esc(sel.name)}</figcaption></figure></div>`;
-  const sw=c=>`<i class="wb-sw" style="background:rgb(${c.map(Math.round).join(',')})"></i>`;
-  const skipped=wbFiles.filter(f=>!f.an.ok).length;
-  el.innerHTML=`<div class="sb-listhd"><span>추가된 사진 <b>${wbFiles.length}</b>장${skipped?` <span class="wb-skip">(건너뜀 ${skipped})</span>`:''}</span><button class="sb-clear" onclick="wbClearAll()">전체 삭제</button></div>`+
+  const el=document.getElementById('wbList');
+  if(!wbFiles.length){ el.innerHTML='<div class="sb-empty">아직 추가된 사진이 없습니다.</div>'; return; }
+  const skipped=wbFiles.filter(f=>!f.an[f.mode].ok).length;
+  el.innerHTML=`<div class="sb-listhd"><span>추가된 사진 <b>${wbFiles.length}</b>장${skipped?` <span class="wb-skip">(건너뜀 ${skipped})</span>`:''}</span>
+    <span class="wb-all">전체 <button class="tbl-btn" onclick="wbAllMode('org')">오가노이드</button><button class="tbl-btn" onclick="wbAllMode('d2')">2D</button></span>
+    <button class="sb-clear" onclick="wbClearAll()">전체 삭제</button></div>`+
   wbFiles.map((f,i)=>{
-    let info;
-    if(f.an.ok){
-      const g=wbGains(f.an.bg);
-      const after=f.an.bg.map((c,k)=>Math.min(255,c*g[k]));
-      info=`배경 ${sw(f.an.bg)} ${f.an.bg.map(Math.round).join('/')} → ${sw(after)} 배율 R×${g[0].toFixed(2)} G×${g[1].toFixed(2)} B×${g[2].toFixed(2)}`;
-    } else info=`<span class="wb-skip">${esc(f.an.why)}</span> · 원본 그대로 저장`;
-    return `<div class="sb-row wb-row${i===wbSel?' on':''}" onclick="wbPick(${i})">
-      <img class="wb-th" src="${f.thBefore}"><span class="wb-arrow">→</span><img class="wb-th" src="${f.thAfter}">
-      <div class="sb-mid"><div class="mm-txt" style="font-size:.76rem;">${esc(wbOutName(f.name))}</div><div class="wb-info">${info}</div></div>
+    const after=wbPreviewURL(f._c,f.small,f.an,f.mode,true)||f.before;
+    return `<div class="sb-row wb-row" onclick="wbOpenCompare('wb',${i})" title="눌러서 크게 비교">
+      <img class="wb-th" src="${f.before}"><span class="wb-arrow">→</span><img class="wb-th" src="${after}">
+      <div class="sb-mid"><div class="mm-txt" style="font-size:.76rem;">${esc(wbOutName(f.name))}</div>
+        <div class="sb-ctrls" style="margin-top:4px;">${wbModeSeg(f.mode,m=>`wbSetMode(${i},'${m}')`)}<span class="wb-info" style="margin:0;">${wbInfoHTML(f.an,f.mode)}</span></div></div>
       <button class="sb-x" title="제거" onclick="event.stopPropagation();wbRemove(${i})">×</button>
     </div>`;
   }).join('');
@@ -4356,7 +4456,7 @@ async function wbSaveAll(btn){
   let dir=null;
   if(window.showDirectoryPicker){
     try{ dir=await window.showDirectoryPicker({mode:'readwrite',id:'orgWbDir'}); }catch(e){ return; }
-    // 같은 이름 파일이 이미 있으면(2단계에서 저장한 폴더를 고른 경우 등) 덮어쓸지 먼저 묻는다
+    // 같은 이름 파일이 이미 있으면(이름·스케일바에서 저장한 폴더를 고른 경우 등) 덮어쓸지 먼저 묻는다
     let exists=0;
     for(const f of wbFiles){ try{ await dir.getFileHandle(wbOutName(f.name)); exists++; }catch(e){} }
     if(exists && !confirm(`이 폴더에 같은 이름 파일이 ${exists}개 있어요. 보정본으로 덮어쓸까요?\n원본을 남기려면 [취소] 후 다른 폴더(예: 보정본 폴더)를 고르세요.`)) return;
@@ -4366,7 +4466,7 @@ async function wbSaveAll(btn){
   try{
     for(const f of wbFiles){
       const out=wbCopy(f.canvas);
-      if(f.an.ok) wbApplyInPlace(out, wbGains(f.an.bg));
+      const g=wbGains(f.an,f.mode); if(g) wbApplyInPlace(out,g);
       const blob=await new Promise(r=>out.toBlob(r,'image/png'));
       const fname=wbOutName(f.name);
       if(dir){
@@ -5088,10 +5188,11 @@ function renderAnalytics(){
         <div><label>촬영 날짜</label><input type="date" id="sbDate" onchange="renderSbarList()" style="height:32px;"></div>
         <div style="padding-bottom:6px;"><label style="display:flex;align-items:center;gap:5px;cursor:pointer;margin:0;"><input type="checkbox" id="sbAddBar" checked onchange="renderSbarList()" style="width:auto;"> <b>스케일바 추가</b></label></div>
         <div><label>바 색상</label><select id="sbColor" onchange="renderSbarList()" style="height:32px;width:auto;"><option value="#000000" selected>검정</option><option value="#ffffff">흰색</option></select></div>
-        <div style="padding-bottom:6px;"><label style="display:flex;align-items:center;gap:5px;cursor:pointer;margin:0;" title="3단계 '색 보정'과 같은 방식(배경 기준 화이트밸런스)으로, 스케일바를 그리기 전에 보정합니다"><input type="checkbox" id="sbWb" style="width:auto;" onchange="wbOpts.inSbar=this.checked;wbStoreOpts()"> 색 보정 같이 적용</label></div>
         <div style="padding-bottom:6px;font-size:.76rem;color:#64748B;">저장 형식 <b>PNG</b></div>
         <div style="padding-bottom:6px;"><label style="display:flex;align-items:center;gap:5px;cursor:pointer;margin:0;"><input type="checkbox" id="sbLabel" checked style="width:auto;"> 100µm 라벨 표시</label></div>
       </div>
+      <div class="wb-opts wb-opts-box" id="sbWbOpts"></div>
+      <div class="hint" style="margin:-6px 0 12px;">사진마다 배경색을 기준으로 맞춰요. 라인 종류에 org가 있으면 오가노이드(회색 배경), 아니면 2D(보라 기준색)로 자동 선택돼요. <button class="link-btn" onclick="openWbModal()">이미 저장한 사진만 보정하기</button></div>
       <div style="margin-bottom:10px;">
         <select id="sbSetPicker" onchange="sbPickSet()" style="height:32px;width:100%;"></select>
       </div>
@@ -5110,16 +5211,11 @@ function renderAnalytics(){
 </div>
 <div id="wbModal" class="modal">
   <div class="mbox" style="width:720px;">
-    <h2>색 보정</h2>
+    <h2>저장한 사진 보정</h2>
     <div class="mscroll">
-      <div class="hint" style="margin-bottom:10px;">사진마다 세포 없는 밝은 배경을 찾아, 그 색이 무채색 회색이 되도록 R·G·B 비율을 맞춰요. 배지 때문에 분홍·보라로 찍힌 사진이 같은 톤으로 맞춰지고, 사진 전체에 같은 연산만 들어가요.</div>
-      <div class="wb-opts">
-        <label><input type="checkbox" id="wbBright" style="width:auto;" onchange="wbSaveOpts();wbRefresh()"> 밝기도 맞추기</label>
-        <label>배경 밝기 <input type="range" id="wbLevel" min="160" max="245" step="1" oninput="document.getElementById('wbLevelV').textContent=this.value" onchange="wbSaveOpts();wbRefresh()"> <b id="wbLevelV"></b></label>
-        <span style="color:var(--mut);font-size:.74rem;">저장 형식 <b>PNG</b> · 파일 이름은 그대로</span>
-      </div>
-      <div id="wbBig"></div>
-      <div id="wbDrop" class="sb-drop"><svg class="ic"><use href="#i-image"/></svg>사진을 끌어다 놓거나 클릭<br><span style="font-size:.72rem;color:#A1A1AA;">2단계에서 저장한 사진을 넣으면 이름 그대로 4단계 PPT에 쓸 수 있어요</span>
+      <div class="hint" style="margin-bottom:10px;">이름·스케일바에서 이미 저장한 사진을 넣으면, 같은 방식으로 보정해서 파일 이름 그대로 PNG로 저장해요. 줄을 누르면 크게 비교할 수 있어요.</div>
+      <div class="wb-opts wb-opts-box" id="wbOptsBox"></div>
+      <div id="wbDrop" class="sb-drop"><svg class="ic"><use href="#i-image"/></svg>사진을 끌어다 놓거나 클릭<br><span style="font-size:.72rem;color:#A1A1AA;">파일 이름에 org가 있으면 오가노이드, 규칙 이름인데 org가 없으면 2D로 시작해요</span>
         <input type="file" id="wbInput" accept="image/*,.tif,.tiff" multiple style="display:none;">
       </div>
       <div id="wbList" style="margin-top:11px;"></div>
@@ -5128,6 +5224,13 @@ function renderAnalytics(){
       <button class="btn btn-out" style="flex:1;" onclick="closeWbModal()">닫기</button>
       <button class="btn btn-pri" style="flex:2;" onclick="wbSaveAll(this)">보정해서 폴더에 저장</button>
     </div>
+  </div>
+</div>
+<div id="wbCmpModal" class="modal" onclick="if(event.target===this)closeWbCompare()">
+  <div class="mbox" style="width:960px;">
+    <h2>보정 전/후 비교</h2>
+    <div class="mscroll" id="wbCmpBody"></div>
+    <div class="mfoot"><button class="btn btn-out" style="width:100%;" onclick="closeWbCompare()">닫기</button></div>
   </div>
 </div>
 <div id="pptModal" class="modal">
@@ -5227,7 +5330,7 @@ function renderAnalytics(){
   </div>
 </div>
 <div id="toastWrap" class="toast-wrap"></div>
-<div id="sbLoading" class="sb-loading"><div class="sb-spin"></div><div class="sb-loadtxt" id="sbLoadTxt">처리 중…</div></div>
+<div id="sbLoading" class="sb-loading"><div class="sb-ring"><svg viewBox="0 0 44 44"><circle class="tr" cx="22" cy="22" r="19"/><circle class="pr" id="sbRingP" cx="22" cy="22" r="19"/></svg><b id="sbPct"></b></div><div class="sb-loadtxt" id="sbLoadTxt">처리 중…</div></div>
 <div id="notePrintArea"></div>
 </body>
 </html>
