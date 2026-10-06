@@ -4145,7 +4145,7 @@ function renderSbarList(){
     const lineOpts=`<option value="" ${!f.lineId?'selected':''}>라인 선택…</option>`+(_opts||'<option value="" disabled>선택 가능한 라인 없음</option>');
     const magOpts=ALL_MAGS.map(m=>`<option value="${m}" ${m===f.mag?'selected':''}>${m}</option>`).join('');
     const line=lines.find(l=>l.id===f.lineId);
-    let preview=`보정만 → corrected 폴더/${wbOutName(f.fname)}`, barInfo='';
+    let preview=`보정만 → color-matched 폴더/${wbOutName(f.fname)}`, barInfo='';
     if(line&&date){
       preview=sbFullName(line,date,f)+sbExt();
       if(!barOn){ barInfo='스케일바 없음'; }
@@ -4232,7 +4232,7 @@ async function sbarSaveAll(btn){
   // 라인을 고른 사진 = 이름·스케일바 저장 / 안 고른 사진 = 원래 이름 그대로 색 보정만 해서 따로 폴더에
   const named=sbFiles.filter(f=>f.lineId), plain=sbFiles.filter(f=>!f.lineId);
   if(named.some(f=>!sbEffDate(f))){ alert('촬영 날짜를 선택하세요.'); return; }
-  const plainDir=`${ymd6(ymdLocal(new Date()))}_corrected_${plain.length}`;
+  const plainDir=`${ymd6(ymdLocal(new Date()))}_color-matched_${plain.length}`;
   // 저장 전에 날짜별 장수를 보여주고 한 번 더 확인
   const byDate=new Map();
   named.forEach(f=>{ const d=sbEffDate(f); if(!byDate.has(d)) byDate.set(d,[]); byDate.get(d).push(f); });
@@ -4311,6 +4311,7 @@ const WB_MODES={org:'오가노이드', d2:'2D'};
 // 설정 없이 늘 같은 기준으로: 오가노이드는 배경 밝기 215의 회색, 2D는 기준 보라색
 const wbOpts={bright:true, level:215};
 try{ localStorage.removeItem('orgWbOpts'); }catch(e){}
+const wbRgb=c=>`rgb(${c.map(Math.round).join(',')})`;
 // 종류 이름에 org가 들어가면 오가노이드, 아니면(Cell line 등) 2D
 function wbModeForText(t){ return /org/i.test(t||'')?'org':'d2'; }
 
@@ -5124,7 +5125,7 @@ function renderAnalytics(){
       <div class="hint" style="margin:8px 0;line-height:1.6;">
         · 사진(썸네일)을 누르면 색 보정 전/후를 크게 비교할 수 있어요. 라인 종류에 org가 있으면 오가노이드, 아니면 2D로 보정돼요.<br>
         · 여러 날짜분은 저장된 순서를 이어붙여 적용하거나, 사진 줄의 "여기부터 다른 날짜"로 나눠요.<br>
-        · 라인을 고르지 않은 사진은 원래 파일 이름 그대로 보정만 해서 <b>날짜_corrected_N장</b> 폴더에 따로 저장돼요.</div>
+        · 라인을 고르지 않은 사진은 원래 파일 이름 그대로 보정만 해서 <b>날짜_color-matched_N장</b> 폴더에 따로 저장돼요.</div>
       <div id="sbList"></div>
       <div id="sbDirInfo" style="font-size:.74rem;color:#64748B;margin:11px 2px 2px;"></div>
     </div>
