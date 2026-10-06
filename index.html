@@ -228,6 +228,14 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
 .sb-clear{background:#FEE2E2;color:#DC2626;border:none;border-radius:5px;padding:4px 10px;font-size:.74rem;font-weight:700;cursor:pointer;}
 .sb-clear:hover{background:#FECACA;}
 .sb-unsel{color:#94A3B8;}
+/* 촬영 날짜 묶음 머리 (다른 날짜분이 섞였을 때만 표시) */
+.sb-dgrp{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 2px 6px;padding:6px 10px;border-radius:6px;background:var(--hov);font-size:.78rem;}
+.sb-dgrp b{font-size:.84rem;}
+.sb-dgrp span{color:var(--sub);}
+.sb-dgrp input[type=date]{margin-left:auto;height:28px;width:auto;font-size:.76rem;}
+.sb-dsplit{border:1px dashed var(--bd);background:var(--sur2);}
+.sb-split{background:none;border:none;padding:0;font:inherit;font-size:.7rem;color:var(--mut);text-decoration:underline;cursor:pointer;}
+.sb-split:hover{color:var(--tx);}
 .sb-loading{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;flex-direction:column;gap:15px;background:rgba(15,23,42,.5);backdrop-filter:blur(2px);}
 .sb-loading.on{display:flex;}
 .sb-spin{width:48px;height:48px;border:5px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sbspin .8s linear infinite;}
@@ -739,17 +747,22 @@ body[data-tab="ana"] .pane[data-pane="ana"]{display:block;animation:paneIn .28s 
 body[data-theme="dark"]{color-scheme:dark;
   --bg:#121214;--sur:#1B1B1F;--sur2:#202025;--hov:#26262C;--act:#2C2C33;--side:#16161A;--topbar:rgba(18,18,20,.86);--mtabs:rgba(22,22,26,.95);--ink:#D4D4D8;
   --tx:#EDEDEF;--sub:#A1A1AA;--mut:#6E6E78;--bd:#2E2E35;--bd2:#25252B;
-  --pri:#F4DF61;--pri-h:#EDD444;--pri-bg:#26262C;--pri-bgh:#2F2F36;--pri-fg:#EDEDEF;--psoft:#312A11;
-  --acc:#F4DF61;--acc-bg:#2A2E17;--acc-bd:#4D4420;
+  --pri:#CFC08A;--pri-h:#C2B27A;--pri-bg:#26262C;--pri-bgh:#2F2F36;--pri-fg:#EDEDEF;--psoft:#2A2720;
+  --acc:#CFC08A;--acc-bg:#26251F;--acc-bd:#3D3A2E;
   --ok:#86D8A8;--ok-bg:#15291E;--warn:#E9C865;--warn-bg:#2E2711;--due:#F2908B;--due-bg:#361A1A;}
 body[data-theme="dark"] [style*="--tf"]{--tf:var(--kf)!important;--ts:var(--kf)!important;--td:var(--kc)!important;--tt:var(--kt)!important;--tl:var(--kl)!important;}
 body[data-theme="dark"] .mbox,body[data-theme="dark"] table{background:var(--sur);}
 body[data-theme="dark"] .modal{background:rgba(0,0,0,.55);}
 body[data-theme="dark"] .mbox [style*="#F8FAFC"],body[data-theme="dark"] [style*="background:#F8FAFC"]{background:var(--sur2)!important;border-color:var(--bd)!important;}
 body[data-theme="dark"] [style*="color:#475569"],body[data-theme="dark"] [style*="color:#64748B"]{color:var(--sub)!important;}
-body[data-theme="dark"] .badge,body[data-theme="dark"] .act{background:color-mix(in srgb,currentColor 16%,#1B1B1F)!important;border-color:color-mix(in srgb,currentColor 38%,transparent)!important;filter:brightness(1.55) saturate(.85);}
-body[data-theme="dark"] .act{opacity:.8;}
-body[data-theme="dark"] .act.on{opacity:1;box-shadow:0 0 0 2px var(--sur),0 0 0 3.5px currentColor;}
+/* 다크: 종류·액션 배지는 밝기를 끌어올리지 않고, 무채색 바탕 + 채도를 뺀 차분한 글자색으로만 구분 */
+body[data-theme="dark"] .badge,body[data-theme="dark"] .act{background:#232328!important;border-color:#33333A!important;filter:none;}
+body[data-theme="dark"] .bm{color:#93AFC4;} body[data-theme="dark"] .bsp{color:#C4A288;} body[data-theme="dark"] .br{color:#8EB9A2;}
+body[data-theme="dark"] .bpl{color:#AFA0C4;} body[data-theme="dark"] .bst{color:#C29CB0;} body[data-theme="dark"] .bf{color:#A1A1AA;}
+body[data-theme="dark"] .bo{color:#C2B282;} body[data-theme="dark"] .bsd{color:#8BB5AE;} body[data-theme="dark"] .bfx{color:#A0A7C8;} body[data-theme="dark"] .bhv{color:#C49CA2;}
+body[data-theme="dark"] .act{opacity:.85;}
+body[data-theme="dark"] .act:hover{background:#2A2A30!important;}
+body[data-theme="dark"] .act.on{opacity:1;background:#313138!important;border-color:#5A5A63!important;color:#EDEDEF;box-shadow:none;}
 body[data-theme="dark"] .tl-n{background:rgba(255,255,255,.08)!important;}
 body[data-theme="dark"] .tl-hdr .btn-ghost:hover,body[data-theme="dark"] .bd-color:hover{background:rgba(255,255,255,.08);}
 body[data-theme="dark"] .bd-row.sel .cbx{background:var(--tt);}
@@ -758,7 +771,7 @@ body[data-theme="dark"] .cbx{border-color:#4A4A52;}
 body[data-theme="dark"] .bm-row:hover{background:rgba(255,255,255,.05);}
 body[data-theme="dark"] .toast{box-shadow:0 10px 30px rgba(0,0,0,.5),inset 3px 0 0 var(--pri);}
 body[data-theme="dark"] .toast button{background:var(--psoft);color:var(--pri);}
-body[data-theme="dark"] .toast button:hover{background:#3E3619;}
+body[data-theme="dark"] .toast button:hover{background:#34312A;}
 body[data-theme="dark"] .brand-mark{box-shadow:0 0 0 1px var(--bd);}
 body[data-theme="dark"] .demo-badge{background:var(--psoft);border-color:var(--acc-bd);color:var(--pri);}
 body[data-theme="dark"] .acct.on{color:var(--ok);}
@@ -792,19 +805,19 @@ body[data-theme="dark"] [style*="solid #E2E8F0"],body[data-theme="dark"] [style*
 
 
 
-/* ═══ 모노: 흰 바탕 + 검정 글씨. 채워지는 강조(아이콘 배지·종류 태그·선택·버튼)는 차콜 바탕 + 흰 글씨 ═══ */
-body[data-theme="mono"]{--bg:#F2F2F3;--sur:#FFFFFF;--sur2:#FAFAFA;--hov:#F3F3F4;--act:#E9E9EB;--side:#F7F7F8;--topbar:rgba(242,242,243,.9);--ink:#1F1F23;
-  --tx:#0F0F12;--sub:#55555C;--mut:#8E8E96;--bd:#DEDEE1;--bd2:#EDEDEF;
-  --ch:#55555D;--pri:#55555D;--pri-h:#48484F;--pri-bg:#55555D;--pri-bgh:#48484F;--pri-fg:#FFFFFF;--psoft:#EDEDEF;
-  --acc:#55555D;--acc-bg:#EDEDEF;--acc-bd:#D4D4D8;
-  --ok:#3F3F46;--ok-bg:#F1F1F2;--warn:#0F0F12;--warn-bg:#FFFFFF;--due:#FFFFFF;--due-bg:#55555D;}
-body[data-theme="mono"] [style*="--tf"]{--tf:#FAFAFA!important;--ts:var(--ms)!important;--td:var(--mg)!important;--tt:#FFFFFF!important;--tl:var(--mg)!important;}
-body[data-theme="mono"] .bd-row.sel{background:var(--ms);}
-body[data-theme="mono"] .bd-row.sel .cbx{background:var(--mg);}
+/* ═══ 모노: 흰 바탕 + 진한 검정 글씨. 채워지는 강조(종류 태그·선택·버튼)는 검정 바탕 + 흰 글씨 ═══ */
+body[data-theme="mono"]{--bg:#F2F2F3;--sur:#FFFFFF;--sur2:#FAFAFA;--hov:#F3F3F4;--act:#E9E9EB;--side:#F7F7F8;--topbar:rgba(242,242,243,.9);--ink:#000000;
+  --tx:#000000;--sub:#2E2E33;--mut:#6B6B73;--bd:#DEDEE1;--bd2:#EDEDEF;
+  --ch:#000000;--pri:#000000;--pri-h:#1F1F1F;--pri-bg:#000000;--pri-bgh:#1F1F1F;--pri-fg:#FFFFFF;--psoft:#EDEDEF;
+  --acc:#000000;--acc-bg:#EDEDEF;--acc-bd:#D4D4D8;
+  --ok:#000000;--ok-bg:#F1F1F2;--warn:#000000;--warn-bg:#FFFFFF;--due:#FFFFFF;--due-bg:#000000;}
+body[data-theme="mono"] [style*="--tf"]{--tf:#FAFAFA!important;--ts:#EDEDEF!important;--td:#000000!important;--tt:#FFFFFF!important;--tl:#000000!important;}
+body[data-theme="mono"] .bd-row.sel{background:#EDEDEF;}
+body[data-theme="mono"] .bd-row.sel .cbx{background:var(--ch);}
 body[data-theme="mono"] .bd-row.sel .bd-name{color:var(--tx);}
-body[data-theme="mono"] .dtag.ltag{background:#fff;border-color:var(--mg);}
-body[data-theme="mono"] .badge{background:#fff!important;color:#1F1F23!important;border:1px solid var(--ch)!important;}
-body[data-theme="mono"] .act{background:#fff!important;color:#1F1F23!important;border:1px solid #D4D4D8!important;opacity:1;}
+body[data-theme="mono"] .dtag.ltag{background:#fff;border-color:var(--ch);}
+body[data-theme="mono"] .badge{background:#fff!important;color:#000!important;border:1px solid var(--ch)!important;}
+body[data-theme="mono"] .act{background:#fff!important;color:#000!important;border:1px solid #D4D4D8!important;opacity:1;}
 body[data-theme="mono"] .act:hover{border-color:var(--ch)!important;}
 body[data-theme="mono"] .act.on{background:var(--ch)!important;color:#fff!important;border-color:var(--ch)!important;box-shadow:none;}
 body[data-theme="mono"] .act small{color:inherit;}
@@ -830,29 +843,29 @@ body[data-theme="mono"] .toast{box-shadow:0 10px 30px rgba(0,0,0,.12),inset 3px 
 body[data-theme="mono"] .toast button{background:var(--ch);color:#fff;}
 body[data-theme="mono"] input[type=checkbox]{accent-color:var(--ch);}
 /* 모노: 타임라인 카드 제목 줄도 차콜 바탕 + 흰 글씨 */
-body[data-theme="mono"] .tl-hdr{background:var(--mg,var(--ch))!important;color:#fff!important;}
-body[data-theme="mono"] .tl-hdr:hover{background:var(--mh,#5F5F67)!important;filter:none;}
+body[data-theme="mono"] .tl-hdr{background:var(--ch)!important;color:#fff!important;}
+body[data-theme="mono"] .tl-hdr:hover{background:#262626!important;filter:none;}
 body[data-theme="mono"] .tl-hdr .tl-name,body[data-theme="mono"] .tl-hdr .tl-pd,body[data-theme="mono"] .tl-hdr .tl-pd b{color:#fff;}
 body[data-theme="mono"] .tl-hdr .tl-plate,body[data-theme="mono"] .tl-hdr .tl-arr{color:#C8C8CE;}
 body[data-theme="mono"] .tl-hdr .tl-n{background:rgba(255,255,255,.14)!important;color:#E4E4E7;}
 body[data-theme="mono"] .tl-hdr .btn-ghost{color:#E4E4E7;}
 body[data-theme="mono"] .tl-hdr .btn-ghost:hover{background:rgba(255,255,255,.12);color:#fff;}
-body[data-theme="mono"] .tl-wrap::before{background:var(--mg,var(--ch));}
+body[data-theme="mono"] .tl-wrap::before{background:var(--ch);}
 /* 모노: 패널 제목 줄·요약 숫자·표 머리 줄도 차콜 바탕 + 흰 글씨로 (검정 면을 넓게 써서 흑백 디자인으로) */
 body[data-theme="mono"] .panel-hd,body[data-theme="mono"] .cp-hd{background:var(--ch)!important;color:#fff;border-bottom-color:var(--ch)!important;}
 body[data-theme="mono"] .panel-hd .panel-n,body[data-theme="mono"] .panel-hd small,body[data-theme="mono"] .panel-hd em{color:#C8C8CE!important;}
 body[data-theme="mono"] .panel-hd .ic,body[data-theme="mono"] .panel-hd .btn-icon,body[data-theme="mono"] .panel-hd .btn-ghost,body[data-theme="mono"] .cp-hd kbd{color:#E4E4E7;}
 body[data-theme="mono"] .panel-hd .btn-icon:hover,body[data-theme="mono"] .panel-hd .btn-ghost:hover{background:rgba(255,255,255,.12);color:#fff;}
-body[data-theme="mono"] .cp-hd kbd{background:transparent;border-color:#7A7A82;}
+body[data-theme="mono"] .cp-hd kbd{background:transparent;border-color:#5A5A5A;}
 body[data-theme="mono"] .panel-hd .sec-ic .ic{color:#fff;}
 body[data-theme="mono"] .panel-hd .seg-group{background:rgba(255,255,255,.1);}
 body[data-theme="mono"] .panel-hd .seg{color:#C8C8CE;} body[data-theme="mono"] .panel-hd .seg.on{background:#fff;color:var(--ch);}
 body[data-theme="mono"] .stats{background:var(--ch);border-color:var(--ch);}
-body[data-theme="mono"] .stat{border-left-color:#6E6E76;}
+body[data-theme="mono"] .stat{border-left-color:#3A3A3A;}
 body[data-theme="mono"] .stat-l{color:#C8C8CE;} body[data-theme="mono"] .stat-n{color:#fff;}
-body[data-theme="mono"] .stat.click:hover{background:#5F5F67;}
+body[data-theme="mono"] .stat.click:hover{background:#262626;}
 body[data-theme="mono"] .stats .d-warn{background:transparent;box-shadow:inset 0 0 0 1.5px #fff;} body[data-theme="mono"] .stats .d-due{background:#fff;}
-body[data-theme="mono"] .bd-head{background:#6A6A72;color:#D4D4D8;border-bottom-color:#6A6A72;}
+body[data-theme="mono"] .bd-head{background:#000;color:#D4D4D8;border-bottom-color:#000;}
 body[data-theme="mono"] .at-h{color:var(--sub);}
 body[data-theme="mono"] input:focus,body[data-theme="mono"] select:focus,body[data-theme="mono"] textarea:focus{border-color:#8E8E96;box-shadow:0 0 0 3px rgba(43,43,48,.12);}
 
@@ -1590,17 +1603,7 @@ function _mix(hex,to,t){ const a=parseInt(hex.slice(1),16), b=parseInt(to.slice(
   return '#'+((1<<24)|(r<<16)|(g<<8)|bl).toString(16).slice(1); }
 // 팔레트 자체가 밝기·채도를 고르게 맞춘 값이라, 그대로 써도 종류끼리 진하기 차이가 없다
 function tone(c){ return {fill:c.hbg, soft:_mix(c.hbg,'#FFFFFF',.35), dot:c.bg, line:c.bd, text:c.ht}; }
-// 모노 테마용 종류별 회색: 종류 이름 순서대로 여섯 단계를 번갈아 배정해, 이웃한 종류끼리 밝기가 확실히 갈리게 한다
-const MONO_GRAYS=['#4A4A52','#7C7C85','#5C5C64','#8C8C95','#535359','#6C6C74'];
-function monoGray(c){
-  const types=getAllTypes();
-  const t=Object.keys(tcm).find(k=>tcm[k]===c);
-  const i=t!=null?types.indexOf(t):-1;
-  return i<0?'#55555D':MONO_GRAYS[i%MONO_GRAYS.length];
-}
-const toneVars=c=>{ const t=tone(c); const mg=monoGray(c); return `--tf:${t.fill};--ts:${t.soft};--td:${t.dot};--tl:${t.line};--tt:${t.text};`+
-  // 모노 테마용: 종류별 회색(mg) / 선택한 줄 바탕(ms) / 제목 줄 hover(mh)
-  `--mg:${mg};--ms:${_mix(mg,'#FFFFFF',.9)};--mh:${_mix(mg,'#FFFFFF',.1)};`+
+const toneVars=c=>{ const t=tone(c); return `--tf:${t.fill};--ts:${t.soft};--td:${t.dot};--tl:${t.line};--tt:${t.text};`+
   // 다크 테마용: 어두운 바탕에 옅게 섞은 색 / 밝은 글자색
   `--kf:${_mix(c.bd,'#1B1B1F',.86)};--kc:${_mix(c.bd,'#1B1B1F',.62)};--kt:${c.bg};--kl:${_mix(c.bd,'#1B1B1F',.25)};`; };
 let tcm={};
@@ -1937,6 +1940,47 @@ function shotSetDefaultName(dateStr, count){
   const wd=['일','월','화','수','목','금','토'][d.getDay()];
   return `${yy}.${mm}.${dd} ${wd}요일 순서 ${count}컷`;
 }
+const WD_KO=['일','월','화','수','목','금','토'];
+// "2026-10-03" → "10월 3일(금)" (UTC로 읽혀 하루 밀리지 않게 현지 날짜로 직접 만든다)
+function dateKo(ds){
+  const [y,m,d]=String(ds).split('-').map(Number);
+  return `${m}월 ${d}일(${WD_KO[new Date(y,m-1,d).getDay()]})`;
+}
+// 저장 시각 표시: "10/3(금) 14:32"
+function tsKo(ts){
+  const d=new Date(ts);
+  return `${d.getMonth()+1}/${d.getDate()}(${WD_KO[d.getDay()]}) ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+// 세트가 어느 날 촬영분인지: 자동 기록은 저장한 촬영 날짜, 직접 저장한 세트는 이름 앞의 "26.10.03"에서 읽는다.
+// 이름을 "금요일 루틴"처럼 바꿔 날짜가 없으면 템플릿으로 보고 날짜를 붙이지 않는다.
+function shotSetDate(s){
+  if(s.autoKey) return s.autoKey.split('_')[0];
+  const m=/^(\d{2})\.(\d{2})\.(\d{2})/.exec(s.name||'');
+  return m?`20${m[1]}-${m[2]}-${m[3]}`:null;
+}
+// 같은 날짜에 컷 구성이 똑같은 세트가 둘 이상이면(자동 기록 + 직접 저장 등) 하나만 남긴다.
+// 직접 저장한 세트(이름을 붙인 쪽)를 우선 남기고, 저장 시각은 둘 중 더 늦은 쪽으로 맞춘다.
+function dedupeShotSets(){
+  const keyOf=s=>(shotSetDate(s)||'')+'#'+s.items.map(it=>it.lineId+'|'+it.mag+'|'+(it.note||'')).join(';');
+  const keep=new Map();
+  shotSets.forEach(s=>{
+    const k=keyOf(s), cur=keep.get(k);
+    if(!cur){ keep.set(k,s); return; }
+    const better = (!!cur.autoKey!==!!s.autoKey) ? (cur.autoKey?s:cur) : (s.updatedTs>cur.updatedTs?s:cur);
+    better.updatedTs=Math.max(cur.updatedTs||0, s.updatedTs||0);
+    keep.set(k,better);
+  });
+  if(keep.size===shotSets.length) return false;
+  const ids=new Set([...keep.values()].map(s=>s.id));
+  shotSets=shotSets.filter(s=>ids.has(s.id));
+  return true;
+}
+// 세트를 작업 큐(shotLog)에 넣을 때 그 세트의 촬영 날짜를 컷마다 같이 실어 둔다.
+// 서로 다른 날짜의 세트를 이어붙여도, 사진에 적용할 때 각 사진이 제 날짜를 받아간다.
+function shotSetToQueue(s){
+  const ts=Date.now(), date=shotSetDate(s);
+  return s.items.map(it=>({lineId:it.lineId, mag:it.mag, note:it.note||'', ts, ...(date?{date}:{})}));
+}
 function slSaveAsSet(){
   if(!shotLog.length) return alert('저장할 촬영 순서가 없습니다. 먼저 순서를 쌓아주세요.');
   const defName=shotSetDefaultName(ymdLocal(new Date()), shotLog.length);
@@ -1944,15 +1988,14 @@ function slSaveAsSet(){
   if(name===null) return;
   const items=shotLog.map(s=>({lineId:s.lineId, mag:s.mag, note:s.note||''}));
   shotSets.push({id:uid(), name:(name.trim()||defName), items, createdTs:Date.now(), updatedTs:Date.now()});
-  saveShotSets(); renderShotSets();
+  dedupeShotSets(); saveShotSets(); renderShotSets();
   // 세트로 저장했으니 오늘 쌓아둔 작업 큐는 비운다 (다음 촬영을 위해 새로 쌓기 시작)
   shotLog=[]; saveShotLog(); renderShotLog(); slRenderLineOptions();
 }
 function slLoadSet(id){
   const s=shotSets.find(x=>x.id===id); if(!s) return;
   const doLoad=(replace)=>{
-    const ts=Date.now();
-    const loaded=s.items.map(it=>({lineId:it.lineId, mag:it.mag, note:it.note||'', ts}));
+    const loaded=shotSetToQueue(s);
     shotLog = replace ? loaded : [...shotLog, ...loaded];
     saveShotLog(); renderShotLog(); slRenderRecent(); slRenderLineOptions();
   };
@@ -1970,20 +2013,21 @@ function slDeleteSet(id){
 // 사진을 실제로 저장할 때마다(=그날 그 순서로 진짜 촬영을 마쳤다는 뜻) 자동으로 목록에 기록해 둔다.
 // 파일이 자동으로 쌓이듯, 사용자가 따로 이름 붙여 저장하지 않아도 날짜(+오전/오후)별 기록이 쌓인다.
 // 같은 날짜·시간대에 다시 저장하면(사진을 더 추가해서 재저장 등) 새로 만들지 않고 그 기록을 갱신한다.
-function archiveShotOrderFromSbFiles(date){
-  if(!sbFiles.length) return;
+function archiveShotOrderFromSbFiles(date, files){
+  if(!files.length) return;
   const session=new Date().getHours()<12?'오전':'오후';
   const autoKey=date+'_'+session;
-  const items=sbFiles.map(f=>({lineId:f.lineId, mag:f.mag, note:f.note||''}));
+  const items=files.map(f=>({lineId:f.lineId, mag:f.mag, note:f.note||''}));
   const name=shotSetDefaultName(date, items.length);
   const existing=shotSets.find(s=>s.autoKey===autoKey);
   if(existing){ existing.items=items; existing.name=name; existing.updatedTs=Date.now(); }
   else { shotSets.push({id:uid(), name, items, autoKey, createdTs:Date.now(), updatedTs:Date.now()}); }
-  saveShotSets();
+  dedupeShotSets(); saveShotSets();
 }
 function renderShotSets(){
   const el=document.getElementById('slSets');
   if(!el) return;
+  if(dedupeShotSets()) saveShotSets();
   if(!shotSets.length){ el.innerHTML='<div class="hint" style="padding:4px 2px;">없음</div>'; return; }
   el.innerHTML = shotSets.slice().sort((a,b)=>b.updatedTs-a.updatedTs).map(s=>{
     const labels=s.items.map(it=>{const l=lines.find(x=>x.id===it.lineId); return l?lineTag(l):'(삭제된 라인)';});
@@ -1992,7 +2036,7 @@ function renderShotSets(){
     return `<div style="display:flex;align-items:center;gap:6px;padding:6px 8px;border:1px solid #E2E8F0;border-radius:6px;margin-bottom:6px;background:#fff;">
       <div style="flex:1;min-width:0;">
         <div style="font-weight:700;font-size:.79rem;display:flex;align-items:center;gap:6px;">${esc(s.name)} ${tag}</div>
-        <div style="font-size:.71rem;color:#94A3B8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.items.length}컷 · ${esc(uniq.join(', '))}</div>
+        <div style="font-size:.71rem;color:#94A3B8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${tsKo(s.updatedTs)} 저장 · ${s.items.length}컷 · ${esc(uniq.join(', '))}</div>
       </div>
       <button class="tbl-btn" onclick="slLoadSet('${s.id}')">불러오기</button>
       <button class="tbl-btn" style="color:#DC2626;" onclick="slDeleteSet('${s.id}')">삭제</button>
@@ -2010,7 +2054,7 @@ function renderShotLog(){
   shotLog.forEach((s,i)=>{
     const last=groups[groups.length-1];
     const dupMagWithNote = last && s.note && last.items.some(it=>it.mag===s.mag);
-    if(last && last.lineId===s.lineId && !dupMagWithNote) last.items.push({...s, idx:i});
+    if(last && last.lineId===s.lineId && !dupMagWithNote && (last.items[0].date||'')===(s.date||'')) last.items.push({...s, idx:i});
     else groups.push({lineId:s.lineId, items:[{...s, idx:i}]});
   });
   el.innerHTML=groups.map(g=>{
@@ -2020,11 +2064,12 @@ function renderShotLog(){
     const today=ymdLocal(new Date())===ymdLocal(d);
     const timeStr=(today?'':(d.getMonth()+1)+'/'+d.getDate()+' ')+d.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
     const note=g.items.find(it=>it.note)?.note;
+    const dateTag=first.date?`<span style="font-size:.66rem;background:var(--hov);color:var(--sub);padding:1px 6px;border-radius:8px;font-weight:700;margin-right:4px;">${dateKo(first.date)}</span>`:'';
     const magsHtml=g.items.map(it=>`<span class="mc-tag" style="background:var(--hov);color:var(--tx);cursor:pointer;border-radius:4px;" title="클릭해서 이 컷만 삭제" onclick="slRemove(${it.idx})">${it.mag} ×</span>`).join(' ');
     const groupIdxs=g.items.map(it=>it.idx).join(',');
     return `<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-bottom:1px solid #F1F5F9;font-size:.78rem;flex-wrap:wrap;">
       <span style="color:#94A3B8;min-width:64px;">${timeStr}</span>
-      <span style="flex:1;font-weight:600;">${esc(label)}${note?' · '+esc(note):''}</span>
+      <span style="flex:1;font-weight:600;">${dateTag}${esc(label)}${note?' · '+esc(note):''}</span>
       <span style="display:flex;gap:4px;flex-wrap:wrap;">${magsHtml}</span>
       <button type="button" title="이 줄(순서 중간 포함) 전체 삭제" onclick="slRemoveGroup([${groupIdxs}])" style="flex:none;background:#FEE2E2;color:#DC2626;border:none;border-radius:5px;width:24px;height:24px;font-size:.9rem;font-weight:700;cursor:pointer;">×</button>
     </div>`;
@@ -2037,11 +2082,16 @@ function renderShotLog(){
 function sbApplyOrder(){
   if(!shotLog.length) return alert('적용할 촬영 순서가 없습니다. 위 드롭다운에서 저장된 순서를 고르거나, "촬영 순서"에서 순서를 먼저 쌓아주세요.');
   if(!sbFiles.length) return alert('먼저 사진을 추가하세요.');
-  const n=Math.min(sbFiles.length, shotLog.length);
-  sbApplyQueueToAll();
+  // 이미 라인이 채워진 사진과 빈 사진이 섞여 있으면(다른 날짜분을 이어서 올린 경우) 빈 사진에만 채울지 묻는다
+  const emptyIdx=sbFiles.map((f,i)=>f.lineId?-1:i).filter(i=>i>=0);
+  const onlyEmpty = emptyIdx.length>0 && emptyIdx.length<sbFiles.length
+    && confirm(`이미 채워진 사진 ${sbFiles.length-emptyIdx.length}장이 있어요.\n[확인] 비어 있는 사진 ${emptyIdx.length}장에만 순서 채우기\n[취소] 처음부터 전부 다시 채우기`);
+  const targets = onlyEmpty ? emptyIdx : sbFiles.map((_,i)=>i);
+  sbApplyQueueTo(targets);
   renderSbarList();
-  if(sbFiles.length!==shotLog.length){
-    alert(`사진 ${sbFiles.length}장 / 순서 ${shotLog.length}개 — 앞 ${n}장만 순서대로 채웠어요. 나머지는 직접 골라주세요.`);
+  if(targets.length!==shotLog.length){
+    const n=Math.min(targets.length, shotLog.length);
+    alert(`사진 ${targets.length}장 / 순서 ${shotLog.length}개 — 앞 ${n}장만 순서대로 채웠어요. 나머지는 직접 골라주세요.`);
   }
 }
 
@@ -3701,6 +3751,8 @@ function setFont(k){
 // 모바일: 사이드바를 서랍처럼 열고 닫기
 function openSide(){ document.body.classList.add('side-open'); }
 function closeSide(){ document.body.classList.remove('side-open'); }
+// 모바일: 사이드 메뉴에서 도구(촬영 순서, 이름·스케일바 등)를 열면 메뉴는 알아서 닫는다
+document.getElementById('side').addEventListener('click',e=>{ if(e.target.closest('.nav-i')) closeSide(); });
 // 모바일: 라인을 고르면 아래에 "n개 선택 · 기록" 버튼을 띄워 입력 패널로 바로 이동
 function renderSelFab(){
   const f=document.getElementById('selFab'); if(!f) return;
@@ -3808,10 +3860,11 @@ function openSbarModal(){
 function sbRenderSetPicker(){
   const el=document.getElementById('sbSetPicker');
   if(!el) return;
+  if(dedupeShotSets()) saveShotSets();
   if(!shotSets.length){ el.innerHTML='<option value="">저장된 순서 없음</option>'; el.disabled=true; return; }
   el.disabled=false;
   el.innerHTML='<option value="">저장된 순서 불러오기…</option>'+shotSets.slice().sort((a,b)=>b.updatedTs-a.updatedTs)
-    .map(s=>`<option value="${esc(s.id)}">${esc(s.name)} (${s.items.length}컷)</option>`).join('');
+    .map(s=>`<option value="${esc(s.id)}">${esc(s.name)} (${s.items.length}컷 · ${tsKo(s.updatedTs)} 저장)</option>`).join('');
 }
 // 드롭다운에서 저장된 순서를 고르기만 하면 바로 작업 큐(shotLog)에 들어간다 — 별도 버튼 불필요.
 // 사진에 실제로 채우려면 "촬영 순서 적용하기" 버튼을 눌러야 한다.
@@ -3820,9 +3873,23 @@ function sbPickSet(){
   const id=picker.value;
   if(!id) return;
   const s=shotSets.find(x=>x.id===id); if(!s) return;
-  if(shotLog.length && !confirm(`지금 쌓인 순서 ${shotLog.length}개를 "${s.name}"(으)로 교체할까요?`)){ picker.value=''; return; }
-  shotLog = s.items.map(it=>({lineId:it.lineId, mag:it.mag, note:it.note||'', ts:Date.now()}));
+  const replace = shotLog.length
+    ? confirm(`지금 쌓인 순서 ${shotLog.length}개가 있어요.\n[확인] "${s.name}"(으)로 교체\n[취소] 뒤에 이어붙이기 (다른 날짜분을 한 번에 저장할 때)`)
+    : true;
+  const loaded=shotSetToQueue(s);
+  shotLog = replace ? loaded : [...shotLog, ...loaded];
   saveShotLog();
+  picker.value='';
+  // 불러온 순서의 촬영 날짜로 맞춘다. 이미 라인을 채운 사진이 있으면 그 사진들 날짜는 건드리지 않고,
+  // 이 순서를 적용받는 사진에만 날짜가 따라 붙는다.
+  const date=shotSetDate(s);
+  const di=document.getElementById('sbDate');
+  if(date && !sbFiles.some(f=>f.lineId)){
+    di.value=date;
+    toast(`촬영 날짜를 ${dateKo(date)}로 맞췄어요`);
+  } else if(date && date!==di.value){
+    toast(`이 순서를 적용받는 사진은 ${dateKo(date)} 날짜로 저장돼요`);
+  }
   renderSbarList();
 }
 function closeSbarModal(){ document.getElementById('sbarModal').classList.remove('open'); }
@@ -3908,21 +3975,55 @@ function sbSet(i,k,v){
 }
 // shotLog(촬영 순서 큐)를 지금 올라온 사진 전체에 '위치' 기준으로 다시 채운다.
 // 사진 개수와 순서 기록 개수가 안 맞을 때(중간 삭제 등) 뒤쪽 사진들을 앞으로 당겨 다시 맞추는 용도로도 쓴다.
-function sbApplyQueueToAll(){
-  const n=Math.min(sbFiles.length, shotLog.length);
-  for(let i=0;i<n;i++){
-    sbFiles[i].lineId=shotLog[i].lineId;
-    sbFiles[i].mag=shotLog[i].mag;
-    sbFiles[i].note=shotLog[i].note||'';
+// targets: 채울 사진 인덱스 목록(순서대로). 순서 컷에 날짜가 실려 있으면 그 사진의 날짜도 같이 바꾼다.
+function sbApplyQueueTo(targets){
+  const n=Math.min(targets.length, shotLog.length);
+  for(let k=0;k<n;k++){
+    const f=sbFiles[targets[k]], q=shotLog[k];
+    f.lineId=q.lineId; f.mag=q.mag; f.note=q.note||'';
+    if(q.date) f.date=q.date; else delete f.date;
   }
+}
+// ── 사진별 촬영 날짜 ──
+// 기본은 위의 "촬영 날짜"를 따르고, 다른 날짜분이 섞이면 사진에 f.date가 붙는다.
+// 화면에는 연속된 같은 날짜끼리 묶음으로 보여주고, 묶음 머리에서 날짜를 한 번에 바꾼다.
+function sbEffDate(f){ return f.date || document.getElementById('sbDate').value; }
+function sbNormDates(){
+  const di=document.getElementById('sbDate');
+  // 모든 사진이 따로 날짜를 갖고 있으면 위 촬영 날짜를 첫 사진 날짜로 맞춰 둔다
+  if(sbFiles.length && sbFiles.every(f=>f.date)) di.value=sbFiles[0].date;
+  sbFiles.forEach(f=>{ if(f.date && f.date===di.value) delete f.date; });
+}
+function sbDateGroups(){
+  const groups=[];
+  sbFiles.forEach((f,i)=>{
+    const d=sbEffDate(f), last=groups[groups.length-1];
+    if(last && last.date===d) last.end=i; else groups.push({date:d, start:i, end:i});
+  });
+  return groups;
+}
+function sbSetGroupDate(start,end,v){
+  if(!v) return renderSbarList();
+  for(let i=start;i<=end;i++) sbFiles[i].date=v;
+  renderSbarList();
+}
+// 이 사진부터 같은 묶음 끝까지를 다른 날짜로 떼어낸다 (날짜를 고르면 적용)
+let _sbSplitAt=null;
+function sbAskSplit(i){ _sbSplitAt=i; renderSbarList(); const el=document.getElementById('sbSplitDate'); if(el){ el.focus(); try{ el.showPicker(); }catch(e){} } }
+function sbDoSplit(v){
+  const i=_sbSplitAt; _sbSplitAt=null;
+  if(i==null || !v) return renderSbarList();
+  const g=sbDateGroups().find(g=>i>=g.start && i<=g.end);
+  sbSetGroupDate(i, g?g.end:i, v);
 }
 function sbRemove(i){
   // 사진을 지워도 순서를 자동으로 다시 채우지 않는다 — 뒤로 밀린 사진들을 앞당기고 싶으면
   // "촬영 순서 적용하기" 버튼을 직접 눌러야 한다
   sbFiles.splice(i,1);
+  _sbSplitAt=null;
   renderSbarList();
 }
-function sbClearAll(){ if(sbFiles.length && confirm('추가한 사진 '+sbFiles.length+'장을 모두 지울까요?')){ sbFiles=[]; renderSbarList(); } }
+function sbClearAll(){ if(sbFiles.length && confirm('추가한 사진 '+sbFiles.length+'장을 모두 지울까요?')){ sbFiles=[]; _sbSplitAt=null; renderSbarList(); } }
 function sbNatCmp(a,b){ const k=x=>x.replace(/\d+/g,n=>n.padStart(10,'0')); return k(a).localeCompare(k(b)); }
 // 파일시스템 금지문자(/ \ : * ? " < > | 및 제어문자)를 - 로 치환, 앞뒤 점·공백 제거
 function safeFileName(s){
@@ -3941,7 +4042,7 @@ function sbFullName(line,date,f){
   return safeFileName(n);
 }
 function sbExt(){ return '.png'; }
-function sbSetNote(i,v){ if(!sbFiles[i])return; sbFiles[i].note=v; const f=sbFiles[i],date=document.getElementById('sbDate').value,line=lines.find(l=>l.id===f.lineId),p=document.getElementById('sbprev'+i); if(p) p.textContent=(line&&date)?sbFullName(line,date,f)+sbExt():'—'; }
+function sbSetNote(i,v){ if(!sbFiles[i])return; sbFiles[i].note=v; const f=sbFiles[i],date=sbEffDate(f),line=lines.find(l=>l.id===f.lineId),p=document.getElementById('sbprev'+i); if(p) p.textContent=(line&&date)?sbFullName(line,date,f)+sbExt():'—'; }
 let sbDirHandle=null;
 async function sbGetDir(){
   if(sbDirHandle){
@@ -3954,12 +4055,14 @@ function renderSbDir(){ const el=document.getElementById('sbDirInfo'); if(!el) r
 
 function renderSbarList(){
   const el=document.getElementById('sbList');
-  const date=document.getElementById('sbDate').value;
+  sbNormDates();
   // 촬영 날짜에 아직 진행 중이었던 라인은 선택 가능 (그 날짜엔 배양완료 전이었으면 완료된 라인도 포함)
-  const active=lines.filter(l=>{
+  const activeAt=date=>lines.filter(l=>{
     if(!l.isCompleted) return true;
     return !!(date && l.finishDate && date <= l.finishDate);
   }).sort(typeCmp);
+  const groups=sbDateGroups(), multi=groups.length>1;
+  const grpAt={}; groups.forEach(g=>grpAt[g.start]=g);
   if(!sbFiles.length){ el.innerHTML='<div class="sb-empty">아직 추가된 사진이 없습니다. 위 영역에 끌어다 놓으세요.</div>'; return; }
   const barOn = (document.getElementById('sbAddBar')||{}).checked!==false;
   const head=`<div class="sb-listhd"><span>추가된 사진 <b>${sbFiles.length}</b>장</span>
@@ -3969,7 +4072,8 @@ function renderSbarList(){
   const lineUsage={};
   sbFiles.forEach(sf=>{ if(sf.lineId) lineUsage[sf.lineId]=(lineUsage[sf.lineId]||0)+1; });
   el.innerHTML = head + sbFiles.map((f,i)=>{
-    const optLines=active.slice();
+    const date=sbEffDate(f);
+    const optLines=activeAt(date);
     if(f.lineId && !optLines.some(l=>l.id===f.lineId)){ const sel=lines.find(l=>l.id===f.lineId); if(sel) optLines.push(sel); }
     optLines.sort(typeCmp);   // 위에서 추가로 밀어넣은 라인이 있어도 종류별 그룹이 흐트러지지 않도록 재정렬
     const _opts=lineOptGroupsHTML(optLines, l=>{
@@ -3988,7 +4092,13 @@ function renderSbarList(){
       if(!barOn){ barInfo='스케일바 없음'; }
       else { const cal=SB_CAL[f.mag]; barInfo = cal? `바 ${Math.round(cal*(f.w/SB_REF_W))}px / 100µm` : '배율 보정값 없음'; }
     }
-    return `<div class="sb-row">
+    const g=grpAt[i];
+    const grpHd = (multi && g) ? `<div class="sb-dgrp"><b>${dateKo(g.date)}</b><span>${g.end-g.start+1}장</span>
+      <input type="date" value="${g.date}" title="이 묶음 날짜 바꾸기" onchange="sbSetGroupDate(${g.start},${g.end},this.value)"></div>` : '';
+    const splitHd = _sbSplitAt===i ? `<div class="sb-dgrp sb-dsplit"><span>이 사진부터 아래 묶음을 다른 날짜로:</span>
+      <input type="date" id="sbSplitDate" onchange="sbDoSplit(this.value)"><button class="tbl-btn" onclick="_sbSplitAt=null;renderSbarList()">취소</button></div>` : '';
+    const canSplit = i>0 && !g;   // 묶음의 첫 사진은 이미 경계라 나눌 필요 없음
+    return `${grpHd}${splitHd}<div class="sb-row">
       <img class="sb-thumb" src="${f.thumb}">
       <div class="sb-mid">
         <div class="sb-orig">${esc(f.fname)} · ${f.w}×${f.h}px</div>
@@ -3997,6 +4107,7 @@ function renderSbarList(){
           <select onchange="sbSet(${i},'mag',this.value)">${magOpts}</select>
           <input class="sb-note" placeholder="특이사항(선택)" value="${esc(f.note||'')}" oninput="sbSetNote(${i},this.value)">
           <span class="sb-bar">${barInfo}</span>
+          ${canSplit?`<button class="sb-split" title="이 사진부터 아래를 다른 촬영 날짜로 나눕니다" onclick="sbAskSplit(${i})">여기부터 다른 날짜</button>`:''}
         </div>
         <div class="sb-prev" id="sbprev${i}">${esc(preview)}</div>
       </div>
@@ -4033,10 +4144,15 @@ function sbDrawBar(src, mag){
 }
 
 async function sbarSaveAll(btn){
-  const date=document.getElementById('sbDate').value;
-  if(!date){ alert('촬영 날짜를 선택하세요.'); return; }
   if(!sbFiles.length){ alert('사진을 먼저 추가하세요.'); return; }
+  sbNormDates();
+  if(sbFiles.some(f=>!sbEffDate(f))){ alert('촬영 날짜를 선택하세요.'); return; }
   for(const f of sbFiles){ if(!f.lineId){ alert('모든 사진의 라인을 선택하세요.'); return; } }
+  // 저장 전에 날짜별 장수를 보여주고 한 번 더 확인
+  const byDate=new Map();
+  sbFiles.forEach(f=>{ const d=sbEffDate(f); if(!byDate.has(d)) byDate.set(d,[]); byDate.get(d).push(f); });
+  const summary=[...byDate.keys()].sort().map(d=>`· ${d.slice(0,4)}년 ${dateKo(d)} — ${byDate.get(d).length}장`).join('\n');
+  if(!confirm(`이 촬영 날짜로 저장할까요?\n\n${summary}\n\n날짜가 틀리면 [취소]를 누르고 고쳐주세요.`)) return;
 
   const useFS = !!window.showDirectoryPicker;
   let dir=null;
@@ -4052,7 +4168,7 @@ async function sbarSaveAll(btn){
   try{
     for(const f of sbFiles){
       const line=lines.find(l=>l.id===f.lineId); if(!line) continue;
-      let base=sbFullName(line,date,f);
+      let base=sbFullName(line,sbEffDate(f),f);
       // 같은 샘플·배율로 또 촬영해 이름이 겹치면 뒤에 (1), (2)…를 붙여 저장 (덮어쓰기 방지)
       if(cnt[base]==null){ cnt[base]=0; } else { cnt[base]++; base=base+' ('+cnt[base]+')'; }
       const fname=safeFileName(base)+ext;
@@ -4068,7 +4184,7 @@ async function sbarSaveAll(btn){
       }
       saved++; sbLoading(true,`저장 중… (${saved}/${sbFiles.length})`);
     }
-    archiveShotOrderFromSbFiles(date);
+    byDate.forEach((files,d)=>archiveShotOrderFromSbFiles(d, files));
     alert(sbFiles.length+'개 저장 완료'+(dir?' (선택한 폴더)':' (브라우저 다운로드 폴더)'));
   }catch(e){
     alert('저장 중 오류: '+e.message);
@@ -4785,14 +4901,13 @@ function renderAnalytics(){
         <div style="padding-bottom:6px;font-size:.76rem;color:#64748B;">저장 형식 <b>PNG</b></div>
         <div style="padding-bottom:6px;"><label style="display:flex;align-items:center;gap:5px;cursor:pointer;margin:0;"><input type="checkbox" id="sbLabel" checked style="width:auto;"> 100µm 라벨 표시</label></div>
       </div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">
-        <select id="sbSetPicker" onchange="sbPickSet()" style="height:32px;flex:1;min-width:170px;"></select>
-        <button class="tbl-btn" style="font-weight:700;" onclick="sbApplyOrder()">촬영 순서 적용하기</button>
+      <div style="margin-bottom:10px;">
+        <select id="sbSetPicker" onchange="sbPickSet()" style="height:32px;width:100%;"></select>
       </div>
       <div id="sbDrop" class="sb-drop"><svg class="ic"><use href="#i-image"/></svg>사진을 끌어다 놓거나 클릭<br><span style="font-size:.72rem;color:#A1A1AA;">PNG · JPG · TIFF</span>
         <input type="file" id="sbInput" accept="image/*,.tif,.tiff" multiple style="display:none;">
       </div>
-      <div class="hint" style="margin:8px 0;">파일명이 겹치면 (1), (2)가 자동으로 붙어요.</div>
+      <div class="hint" style="margin:8px 0;">파일명이 겹치면 (1), (2)가 자동으로 붙어요. 여러 날짜분은 저장된 순서를 이어붙여 적용하거나, 사진 줄의 "여기부터 다른 날짜"로 나눠요.</div>
       <div id="sbList"></div>
       <div id="sbDirInfo" style="font-size:.74rem;color:#64748B;margin:11px 2px 2px;"></div>
     </div>
