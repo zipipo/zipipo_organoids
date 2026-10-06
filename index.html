@@ -224,7 +224,7 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
 .sb-prev{font-size:.78rem;font-weight:700;color:#0F172A;margin-top:5px;word-break:break-all;}
 .sb-x{flex:none;background:#FEE2E2;color:#DC2626;border:none;border-radius:5px;width:28px;height:28px;font-size:1rem;cursor:pointer;font-weight:700;}
 .sb-x:hover{background:#FECACA;}
-.sb-listhd{display:flex;align-items:center;justify-content:space-between;font-size:.78rem;color:#64748B;margin:2px 2px 8px;}
+.sb-listhd{display:flex;align-items:center;justify-content:space-between;gap:8px 12px;flex-wrap:wrap;font-size:.78rem;color:#64748B;margin:2px 2px 8px;}
 .sb-clear{background:#FEE2E2;color:#DC2626;border:none;border-radius:5px;padding:4px 10px;font-size:.74rem;font-weight:700;cursor:pointer;}
 .sb-clear:hover{background:#FECACA;}
 .sb-unsel{color:#94A3B8;}
@@ -232,8 +232,11 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
 .sb-dgrp{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 2px 6px;padding:6px 10px;border-radius:6px;background:var(--hov);font-size:.78rem;}
 .sb-dgrp b{font-size:.84rem;}
 .sb-dgrp span{color:var(--sub);}
-.sb-dgrp input[type=date]{margin-left:auto;height:28px;width:auto;font-size:.76rem;}
-.sb-dsplit{border:1px dashed var(--bd);background:var(--sur2);}
+.sb-dgrp input[type=date]{height:28px;width:auto;font-size:.76rem;}
+.sb-dline{margin-top:18px;position:relative;}
+.sb-dline::before{content:"";position:absolute;left:-2px;right:-2px;top:-10px;border-top:2px dashed var(--bd);}
+.sb-dx{margin-left:auto;background:none;border:none;color:var(--mut);font-size:1rem;cursor:pointer;padding:0 4px;}
+.sb-dx:hover{color:var(--tx);}
 .sb-split{background:none;border:none;padding:0;font:inherit;font-size:.7rem;color:var(--mut);text-decoration:underline;cursor:pointer;}
 .sb-split:hover{color:var(--tx);}
 /* 색 보정 */
@@ -3882,8 +3885,6 @@ function openSbarModal(){
     window._sbWired=true;
   }
   sbRenderSetPicker();
-  wbResetBrightness();
-  document.getElementById('sbWbOpts').innerHTML=wbOptsHTML();
   renderSbarList();
   renderSbDir();
   document.getElementById('sbarModal').classList.add('open');
@@ -3918,6 +3919,7 @@ function sbPickSet(){
   const di=document.getElementById('sbDate');
   if(date && !sbFiles.some(f=>f.lineId)){
     di.value=date;
+    sbFiles.forEach(f=>{ f.date=date; delete f.dateBreak; });
     toast(`촬영 날짜를 ${dateKo(date)}로 맞췄어요`);
   } else if(date && date!==di.value){
     toast(`이 순서를 적용받는 사진은 ${dateKo(date)} 날짜로 저장돼요`);
@@ -3973,6 +3975,7 @@ async function handleSbarFiles(fileList){
   arr.sort((a,b)=>sbNatCmp(a.name,b.name));   // 숫자 오름차순 (image_01 → image_02 …)
   if(!arr.length) return;
   let failed=[], done=0;
+  const newDate=sbFiles.length?sbEffDate(sbFiles[sbFiles.length-1]):document.getElementById('sbDate').value;
   sbLoading(true,'사진 불러오는 중…');
   try{
     for(const f of arr){
@@ -3981,7 +3984,7 @@ async function handleSbarFiles(fileList){
         // 사진은 라인·배율 지정 없이 그냥 쌓인다 — 순서를 채우려면 "촬영 순서 적용하기" 버튼을 눌러야 한다
         // 색 보정은 기본으로 켜 두고, 오가노이드/2D는 라인 종류를 고르면 자동으로 따라간다(wbMode=null)
         const thSmall=wbScaled(canvas,240);
-        sbFiles.push({id:'sb'+Date.now()+Math.random().toString(36).slice(2,6), fname:f.name, srcCanvas:canvas, w, h, thumb:sbMakeThumb(canvas), thSmall, an:wbAnalyze(canvas), wb:true, wbMode:null, _c:{}, lineId:'', mag:'4x', note:''});
+        sbFiles.push({id:'sb'+Date.now()+Math.random().toString(36).slice(2,6), fname:f.name, srcCanvas:canvas, w, h, thumb:sbMakeThumb(canvas), thSmall, an:wbAnalyze(canvas), wb:true, wbMode:null, _c:{}, date:newDate, lineId:'', mag:'4x', note:''});
       }catch(e){ failed.push(f.name+' ('+e.message+')'); }
       done++; sbLoading(true,`사진 불러오는 중… (${done}/${arr.length})`);
       await new Promise(r=>setTimeout(r,0));
@@ -4015,53 +4018,62 @@ function sbApplyQueueTo(targets){
   for(let k=0;k<n;k++){
     const f=sbFiles[targets[k]], q=shotLog[k];
     f.lineId=q.lineId; f.mag=q.mag; f.note=q.note||'';
-    if(q.date) f.date=q.date; else delete f.date;
+    f.date=q.date||document.getElementById('sbDate').value;
   }
 }
 // ── 사진별 촬영 날짜 ──
-// 기본은 위의 "촬영 날짜"를 따르고, 다른 날짜분이 섞이면 사진에 f.date가 붙는다.
-// 화면에는 연속된 같은 날짜끼리 묶음으로 보여주고, 묶음 머리에서 날짜를 한 번에 바꾼다.
+// 사진마다 f.date를 갖는다(새로 올린 사진은 마지막 사진 날짜, 없으면 기본 날짜 #sbDate).
+// 화면에는 연속된 같은 날짜끼리 묶고, "여기부터 다른 날짜"를 누르면 그 자리에 구분선(f.dateBreak)이 생긴다.
+// 묶음마다 머리줄의 날짜 칸에서 날짜를 고른다.
 function sbEffDate(f){ return f.date || document.getElementById('sbDate').value; }
 function sbNormDates(){
-  const di=document.getElementById('sbDate');
-  // 모든 사진이 따로 날짜를 갖고 있으면 위 촬영 날짜를 첫 사진 날짜로 맞춰 둔다
-  if(sbFiles.length && sbFiles.every(f=>f.date)) di.value=sbFiles[0].date;
-  sbFiles.forEach(f=>{ if(f.date && f.date===di.value) delete f.date; });
+  const def=document.getElementById('sbDate').value;
+  sbFiles.forEach((f,i)=>{ if(!f.date) f.date=def; if(i===0) delete f.dateBreak; });
 }
 function sbDateGroups(){
   const groups=[];
   sbFiles.forEach((f,i)=>{
     const d=sbEffDate(f), last=groups[groups.length-1];
-    if(last && last.date===d) last.end=i; else groups.push({date:d, start:i, end:i});
+    if(last && last.date===d && !f.dateBreak) last.end=i; else groups.push({date:d, start:i, end:i});
   });
   return groups;
 }
 function sbSetGroupDate(start,end,v){
   if(!v) return renderSbarList();
   for(let i=start;i<=end;i++) sbFiles[i].date=v;
+  if(start===0) document.getElementById('sbDate').value=v;   // 첫 묶음 날짜 = 앞으로 올릴 사진의 기본 날짜
   renderSbarList();
 }
-// 이 사진부터 같은 묶음 끝까지를 다른 날짜로 떼어낸다 (날짜를 고르면 적용)
-let _sbSplitAt=null;
-function sbAskSplit(i){ _sbSplitAt=i; renderSbarList(); const el=document.getElementById('sbSplitDate'); if(el){ el.focus(); try{ el.showPicker(); }catch(e){} } }
-function sbDoSplit(v){
-  const i=_sbSplitAt; _sbSplitAt=null;
-  if(i==null || !v) return renderSbarList();
-  const g=sbDateGroups().find(g=>i>=g.start && i<=g.end);
-  sbSetGroupDate(i, g?g.end:i, v);
+function sbSetDefaultDate(v){ if(v){ document.getElementById('sbDate').value=v; renderSbarList(); } }
+// 구분선을 넣고 바로 그 묶음의 날짜 고르기 창을 띄운다
+function sbAskSplit(i){
+  if(!sbFiles[i]) return;
+  sbFiles[i].dateBreak=true;
+  renderSbarList();
+  const el=document.getElementById('sbGrpDate'+i);
+  if(el){ el.focus(); try{ el.showPicker(); }catch(e){} }
+}
+// 구분선 없애기: 이 묶음을 바로 위 묶음 날짜로 합친다
+function sbMergeUp(start,end){
+  if(start<=0) return;
+  const prev=sbEffDate(sbFiles[start-1]);
+  for(let i=start;i<=end;i++){ sbFiles[i].date=prev; delete sbFiles[i].dateBreak; }
+  renderSbarList();
 }
 function sbRemove(i){
   // 사진을 지워도 순서를 자동으로 다시 채우지 않는다 — 뒤로 밀린 사진들을 앞당기고 싶으면
   // "촬영 순서 적용하기" 버튼을 직접 눌러야 한다
   sbFiles.splice(i,1);
-  _sbSplitAt=null;
   renderSbarList();
 }
-function sbClearAll(){ if(sbFiles.length && confirm('추가한 사진 '+sbFiles.length+'장을 모두 지울까요?')){ sbFiles=[]; _sbSplitAt=null; renderSbarList(); } }
+function sbClearAll(){ if(sbFiles.length && confirm('추가한 사진 '+sbFiles.length+'장을 모두 지울까요?')){ sbFiles=[]; renderSbarList(); } }
 function sbWbMode(f){
   if(f.wbMode) return f.wbMode;
   const line=lines.find(l=>l.id===f.lineId);
-  return line ? wbModeForText(line.type) : 'org';
+  if(line) return wbModeForText(line.type);
+  // 라인이 없으면(이미 저장한 사진을 보정만 할 때) 파일 이름으로: org가 있으면 오가노이드, 규칙 이름인데 org가 없으면 2D
+  if(/org/i.test(f.fname)) return 'org';
+  return pptParse(f.fname).named ? 'd2' : 'org';
 }
 function sbSetWb(i,on){ if(sbFiles[i]){ sbFiles[i].wb=on; renderSbarList(); } }
 function sbSetWbMode(i,m){ if(sbFiles[i]){ sbFiles[i].wbMode=m; renderSbarList(); } }
@@ -4103,9 +4115,13 @@ function renderSbarList(){
     if(!l.isCompleted) return true;
     return !!(date && l.finishDate && date <= l.finishDate);
   }).sort(typeCmp);
-  const groups=sbDateGroups(), multi=groups.length>1;
+  const groups=sbDateGroups();
   const grpAt={}; groups.forEach(g=>grpAt[g.start]=g);
-  if(!sbFiles.length){ el.innerHTML='<div class="sb-empty">아직 추가된 사진이 없습니다. 위 영역에 끌어다 놓으세요.</div>'; return; }
+  if(!sbFiles.length){
+    el.innerHTML=`<div class="sb-dgrp"><b>촬영 날짜</b><input type="date" value="${document.getElementById('sbDate').value}" onchange="sbSetDefaultDate(this.value)"></div>
+      <div class="sb-empty">아직 추가된 사진이 없습니다. 위 영역에 끌어다 놓으세요.</div>`;
+    return;
+  }
   const barOn = (document.getElementById('sbAddBar')||{}).checked!==false;
   const head=`<div class="sb-listhd"><span>추가된 사진 <b>${sbFiles.length}</b>장</span>
     <button class="tbl-btn" title="사진을 추가/삭제하거나 순서를 다시 골랐을 때, 여기를 눌러야 순서가 다시 채워집니다" onclick="sbApplyOrder()">촬영 순서 적용하기${shotLog.length?` (${shotLog.length})`:''}</button>
@@ -4129,24 +4145,24 @@ function renderSbarList(){
     const lineOpts=`<option value="" ${!f.lineId?'selected':''}>라인 선택…</option>`+(_opts||'<option value="" disabled>선택 가능한 라인 없음</option>');
     const magOpts=ALL_MAGS.map(m=>`<option value="${m}" ${m===f.mag?'selected':''}>${m}</option>`).join('');
     const line=lines.find(l=>l.id===f.lineId);
-    let preview='—', barInfo='';
+    let preview=`보정만 → corrected 폴더/${wbOutName(f.fname)}`, barInfo='';
     if(line&&date){
       preview=sbFullName(line,date,f)+sbExt();
       if(!barOn){ barInfo='스케일바 없음'; }
       else { const cal=SB_CAL[f.mag]; barInfo = cal? `바 ${Math.round(cal*(f.w/SB_REF_W))}px / 100µm` : '배율 보정값 없음'; }
     }
     const g=grpAt[i];
-    const grpHd = (multi && g) ? `<div class="sb-dgrp"><b>${dateKo(g.date)}</b><span>${g.end-g.start+1}장</span>
-      <input type="date" value="${g.date}" title="이 묶음 날짜 바꾸기" onchange="sbSetGroupDate(${g.start},${g.end},this.value)"></div>` : '';
-    const splitHd = _sbSplitAt===i ? `<div class="sb-dgrp sb-dsplit"><span>이 사진부터 아래 묶음을 다른 날짜로:</span>
-      <input type="date" id="sbSplitDate" onchange="sbDoSplit(this.value)"><button class="tbl-btn" onclick="_sbSplitAt=null;renderSbarList()">취소</button></div>` : '';
+    const grpHd = g ? `<div class="sb-dgrp${i>0?' sb-dline':''}"><b>촬영 날짜</b>
+      <input type="date" id="sbGrpDate${i}" value="${g.date}" title="이 묶음 날짜 고르기" onchange="sbSetGroupDate(${g.start},${g.end},this.value)">
+      <span>${g.date?dateKo(g.date):''} · ${g.end-g.start+1}장</span>
+      ${i>0?`<button class="sb-dx" title="구분선 없애고 위 묶음 날짜로 합치기" onclick="sbMergeUp(${g.start},${g.end})">×</button>`:''}</div>` : '';
     const canSplit = i>0 && !g;   // 묶음의 첫 사진은 이미 경계라 나눌 필요 없음
     const wbMode=sbWbMode(f);
     const thumbSrc=wbPreviewURL(f._c, f.thSmall, f.an, wbMode, f.wb) || f.thumb;
     const wbBad=f.wb && !f.an[wbMode].ok;
     const wbCtl=`<span class="wb-ctl"><label><input type="checkbox" style="width:auto;" ${f.wb?'checked':''} onchange="sbSetWb(${i},this.checked)"> 색 보정</label>
       ${f.wb?wbModeSeg(wbMode,m=>`sbSetWbMode(${i},'${m}')`):''}${wbBad?`<span class="wb-skip" title="${esc(f.an[wbMode].why)}">건너뜀</span>`:''}</span>`;
-    return `${grpHd}${splitHd}<div class="sb-row">
+    return `${grpHd}<div class="sb-row">
       <img class="sb-thumb" src="${thumbSrc}" style="cursor:zoom-in;" title="눌러서 보정 전/후 크게 비교" onclick="wbOpenCompare('sb',${i})">
       <div class="sb-mid">
         <div class="sb-orig">${esc(f.fname)} · ${f.w}×${f.h}px</div>
@@ -4213,19 +4229,28 @@ function sbDrawBar(f){
 async function sbarSaveAll(btn){
   if(!sbFiles.length){ alert('사진을 먼저 추가하세요.'); return; }
   sbNormDates();
-  if(sbFiles.some(f=>!sbEffDate(f))){ alert('촬영 날짜를 선택하세요.'); return; }
-  for(const f of sbFiles){ if(!f.lineId){ alert('모든 사진의 라인을 선택하세요.'); return; } }
+  // 라인을 고른 사진 = 이름·스케일바 저장 / 안 고른 사진 = 원래 이름 그대로 색 보정만 해서 따로 폴더에
+  const named=sbFiles.filter(f=>f.lineId), plain=sbFiles.filter(f=>!f.lineId);
+  if(named.some(f=>!sbEffDate(f))){ alert('촬영 날짜를 선택하세요.'); return; }
+  const plainDir=`${ymd6(ymdLocal(new Date()))}_corrected_${plain.length}`;
   // 저장 전에 날짜별 장수를 보여주고 한 번 더 확인
   const byDate=new Map();
-  sbFiles.forEach(f=>{ const d=sbEffDate(f); if(!byDate.has(d)) byDate.set(d,[]); byDate.get(d).push(f); });
-  const summary=[...byDate.keys()].sort().map(d=>`· ${d.slice(0,4)}년 ${dateKo(d)} — ${byDate.get(d).length}장`).join('\n');
-  if(!confirm(`이 촬영 날짜로 저장할까요?\n\n${summary}\n\n날짜가 틀리면 [취소]를 누르고 고쳐주세요.`)) return;
+  named.forEach(f=>{ const d=sbEffDate(f); if(!byDate.has(d)) byDate.set(d,[]); byDate.get(d).push(f); });
+  const msg=[];
+  if(named.length) msg.push('이 촬영 날짜로 저장할까요?\n\n'+[...byDate.keys()].sort().map(d=>`· ${d.slice(0,4)}년 ${dateKo(d)} ${byDate.get(d).length}장`).join('\n'));
+  if(plain.length) msg.push(`라인을 고르지 않은 사진 ${plain.length}장은 원래 이름 그대로 색 보정만 해서\n"${plainDir}" 폴더에 저장해요.`);
+  if(!confirm(msg.join('\n\n')+'\n\n틀린 게 있으면 [취소]를 누르고 고쳐주세요.')) return;
 
   const useFS = !!window.showDirectoryPicker;
-  let dir=null;
+  let dir=null, pdir=null, pdirName=plainDir;
   if(useFS){
     dir = await sbGetDir();   // 기억된 폴더 우선, 없으면 선택
     if(!dir) return;          // 사용자가 취소
+    if(plain.length){
+      // 같은 이름 폴더가 이미 있으면 뒤에 _2, _3…을 붙여 새로 만든다 (예전 보정본 덮어쓰기 방지)
+      for(let k=2;;k++){ try{ await dir.getDirectoryHandle(pdirName); pdirName=plainDir+'_'+k; }catch(e){ break; } }
+      pdir=await dir.getDirectoryHandle(pdirName,{create:true});
+    }
   }
   const ext='.png';
   const ot=btn.textContent; btn.disabled=true; btn.textContent='저장 중...';
@@ -4233,7 +4258,24 @@ async function sbarSaveAll(btn){
   sbLoading(true,'저장 중…'); let saved=0;
   const cnt={};
   try{
-    for(const f of sbFiles){
+    const writeOut=async(folder,fname,blob)=>{
+      if(folder){
+        const fh=await folder.getFileHandle(fname,{create:true});
+        const w=await fh.createWritable(); await w.write(blob); await w.close();
+      } else {
+        const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=fname; a.click();
+        setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+        await new Promise(r=>setTimeout(r,200));
+      }
+    };
+    for(const f of plain){
+      const out=wbCopy(f.srcCanvas);
+      if(f.wb){ const g=wbGains(f.an,sbWbMode(f)); if(g) wbApplyInPlace(out,g); }
+      const blob=await new Promise(r=>out.toBlob(r,'image/png'));
+      await writeOut(pdir, wbOutName(f.fname), blob);
+      saved++; sbLoading(true,`저장 중… (${saved}/${sbFiles.length})`);
+    }
+    for(const f of named){
       const line=lines.find(l=>l.id===f.lineId); if(!line) continue;
       let base=sbFullName(line,sbEffDate(f),f);
       // 같은 샘플·배율로 또 촬영해 이름이 겹치면 뒤에 (1), (2)…를 붙여 저장 (덮어쓰기 방지)
@@ -4241,18 +4283,11 @@ async function sbarSaveAll(btn){
       const fname=safeFileName(base)+ext;
       const cv=sbDrawBar(f);
       const blob=await new Promise(r=>cv.toBlob(r,'image/png'));
-      if(dir){
-        const fh=await dir.getFileHandle(fname,{create:true});
-        const w=await fh.createWritable(); await w.write(blob); await w.close();
-      } else {
-        const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=fname; a.click();
-        setTimeout(()=>URL.revokeObjectURL(a.href),2000);
-        await new Promise(r=>setTimeout(r,200));
-      }
+      await writeOut(dir, fname, blob);
       saved++; sbLoading(true,`저장 중… (${saved}/${sbFiles.length})`);
     }
     byDate.forEach((files,d)=>archiveShotOrderFromSbFiles(d, files));
-    alert(sbFiles.length+'개 저장 완료'+(dir?' (선택한 폴더)':' (브라우저 다운로드 폴더)'));
+    alert(sbFiles.length+'개 저장 완료'+(dir?' (선택한 폴더)':' (브라우저 다운로드 폴더)')+(plain.length&&pdir?`\n보정만 한 사진 ${plain.length}장: ${pdirName} 폴더`:''));
   }catch(e){
     alert('저장 중 오류: '+e.message);
   }finally{
@@ -4267,31 +4302,15 @@ async function sbarSaveAll(btn){
 // 사진 배경(배지)의 평균 색을 구해서, 그 색이 목표색이 되도록 R·G·B 채널마다 같은 배율을 곱한다.
 //  · 오가노이드(명시야): 배경이 가장 밝은 쪽이라 밝기 70~98번째 백분위 픽셀을 배경으로 본다. 목표색 = 회색.
 //  · 2D(위상차 + 보라 필터): 세포 가장자리 halo가 하얗게 밝아서 위 방식은 흰색 쪽으로 끌려간다.
-//    대신 가장 흔한 밝기(히스토그램 꼭짓점) 주변 픽셀을 배경으로 본다. 목표색 = 2D 기준 보라색.
+//    대신 가장 흔한 밝기(히스토그램 꼭짓점) 주변 픽셀을 배경으로 본다. 목표색 = 원래 밝기 + 옅은 보라.
 // 사진 전체에 같은 배율만 곱하므로 구조는 그대로이고, 배경이 어두운 사진(형광 등)은 건너뛴다.
-const WB_D2_DEFAULT=[126,136,203];   // 실제 2D 사진 5장 배경 평균
+// 2D 목표색: 사진 원래 밝기는 그대로 두고, 보라 기운(회색에서 벗어난 정도)만 모든 사진에 같은 양으로 준다.
+// 실제 2D 사진 5장 배경 평균(126,136,203)은 너무 쨍해서, 그 회색 대비 편차의 60%만 쓴다 (합이 0이라 밝기 불변).
+const WB_D2_TINT=[-17.4,-11.4,28.8];
 const WB_MODES={org:'오가노이드', d2:'2D'};
-// 밝기 설정은 창을 열 때마다 추천값으로 돌아가고, 2D 기준색만 기억한다
-const WB_LEVEL_DEFAULT=215;
-let wbOpts={bright:true, level:WB_LEVEL_DEFAULT, d2:(JSON.parse(localStorage.getItem('orgWbOpts')||'{}').d2)||WB_D2_DEFAULT.slice()};
-function wbResetBrightness(){ wbOpts.bright=true; wbOpts.level=WB_LEVEL_DEFAULT; }
-function wbStoreOpts(){ localStorage.setItem('orgWbOpts', JSON.stringify({d2:wbOpts.d2})); }
-function wbRerenderOpen(){
-  document.querySelectorAll('.wb-opts-box').forEach(el=>el.innerHTML=wbOptsHTML());
-  if(document.getElementById('sbarModal').classList.contains('open')) renderSbarList();
-  if(document.getElementById('wbModal').classList.contains('open')) wbRefresh();
-}
-function wbSetOpt(k,v){ wbOpts[k]=v; wbStoreOpts(); wbRerenderOpen(); }
-function wbResetD2(){ wbSetOpt('d2', WB_D2_DEFAULT.slice()); }
-function wbSetD2From(an){ if(an&&an.d2.ok) wbSetOpt('d2', an.d2.bg.map(Math.round)); }
-const wbRgb=c=>`rgb(${c.map(Math.round).join(',')})`;
-function wbOptsHTML(){
-  return `<b>색 보정</b>
-    <label title="끄면 색 비율만 맞추고 사진 원래 밝기는 그대로 둡니다"><input type="checkbox" style="width:auto;" ${wbOpts.bright?'checked':''} onchange="wbSetOpt('bright',this.checked)"> 밝기도 맞추기</label>
-    <label>오가노이드 배경 밝기 <input type="range" min="160" max="245" step="1" value="${wbOpts.level}" oninput="this.nextElementSibling.textContent=this.value" onchange="wbSetOpt('level',+this.value)"><b>${wbOpts.level}</b></label>
-    <span class="wb-d2">2D 기준색 <i class="wb-sw wb-sw-lg" style="background:${wbRgb(wbOpts.d2)}"></i><small>${wbOpts.d2.join('/')}</small>
-      ${wbOpts.d2.join()!==WB_D2_DEFAULT.join()?`<button class="bk-mini" onclick="wbResetD2()">기본값</button>`:''}</span>`;
-}
+// 설정 없이 늘 같은 기준으로: 오가노이드는 배경 밝기 215의 회색, 2D는 기준 보라색
+const wbOpts={bright:true, level:215};
+try{ localStorage.removeItem('orgWbOpts'); }catch(e){}
 // 종류 이름에 org가 들어가면 오가노이드, 아니면(Cell line 등) 2D
 function wbModeForText(t){ return /org/i.test(t||'')?'org':'d2'; }
 
@@ -4335,7 +4354,7 @@ function wbGains(an, mode){
   const bg=a.bg, m=(bg[0]+bg[1]+bg[2])/3;
   let T;
   if(mode==='org') T=wbOpts.bright?[wbOpts.level,wbOpts.level,wbOpts.level]:[m,m,m];
-  else { T=wbOpts.d2.slice(); if(!wbOpts.bright){ const tm=(T[0]+T[1]+T[2])/3; T=T.map(v=>v*m/tm); } }
+  else T=WB_D2_TINT.map(d=>m+d);
   return T.map((t,k)=>t/Math.max(bg[k],1));
 }
 function wbApplyInPlace(cv, gains){
@@ -4370,119 +4389,24 @@ function wbModeSeg(mode, call){
 // ── 크게 비교 (이름·스케일바 / 저장된 사진 보정 둘 다 사용) ──
 let _wbCmp=null;
 function wbOpenCompare(kind,i){
-  const f = kind==='sb' ? sbFiles[i] : wbFiles[i]; if(!f) return;
+  const f=sbFiles[i]; if(!f) return;
   _wbCmp={kind,i};
-  const src = kind==='sb' ? f.srcCanvas : f.canvas;
+  const src=f.srcCanvas;
   f._big = f._big || wbScaled(src,1100);
   f._bigBefore = f._bigBefore || f._big.toDataURL('image/jpeg',.9);
-  const mode = kind==='sb' ? sbWbMode(f) : f.mode;
+  const mode=sbWbMode(f);
   const after = wbPreviewURL(f._bigCache=(f._bigCache||{}), f._big, f.an, mode, true) || f._bigBefore;
-  const name = kind==='sb' ? f.fname : f.name;
+  const name=f.fname;
   document.getElementById('wbCmpBody').innerHTML=`
     <div class="wb-big"><figure><img src="${f._bigBefore}"><figcaption>보정 전</figcaption></figure><figure><img src="${after}"><figcaption>보정 후 (${WB_MODES[mode]})</figcaption></figure></div>
     <div class="mm-txt" style="font-size:.76rem;">${esc(name)}</div>
     <div class="wb-info">${wbInfoHTML(f.an,mode)}</div>
-    ${mode==='d2'&&f.an.d2.ok?`<button class="tbl-btn" style="margin-top:8px;" onclick="wbSetD2From(${kind==='sb'?'sbFiles':'wbFiles'}[${i}].an);wbOpenCompare('${kind}',${i})">이 사진 배경색을 2D 기준색으로 쓰기</button>`:''}`;
+    ${f.wb?'':'<div class="wb-info">이 사진은 색 보정이 꺼져 있어 원본 그대로 저장돼요.</div>'}`;
   document.getElementById('wbCmpModal').classList.add('open');
 }
 function closeWbCompare(){ document.getElementById('wbCmpModal').classList.remove('open'); _wbCmp=null; }
 
-// ── 이미 저장해 둔 사진만 보정 (이름·스케일바 창 안의 링크로 연다) ──
-let wbFiles=[]; // {id, name, canvas, small, an, mode, _c}
-function openWbModal(){
-  if(!window._wbWired){
-    const drop=document.getElementById('wbDrop'), inp=document.getElementById('wbInput');
-    drop.addEventListener('click',()=>inp.click());
-    inp.addEventListener('change',e=>{handleWbFiles(e.target.files); inp.value='';});
-    ['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('drag');}));
-    drop.addEventListener('dragleave',e=>{e.preventDefault();drop.classList.remove('drag');});
-    drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('drag'); if(e.dataTransfer&&e.dataTransfer.files) handleWbFiles(e.dataTransfer.files);});
-    window._wbWired=true;
-  }
-  wbResetBrightness();
-  document.getElementById('wbOptsBox').innerHTML=wbOptsHTML();
-  renderWbList();
-  document.getElementById('wbModal').classList.add('open');
-}
-function closeWbModal(){ document.getElementById('wbModal').classList.remove('open'); }
-async function handleWbFiles(fileList){
-  const arr=[...fileList].filter(f=>/\.(tif|tiff|png|jpe?g|webp|bmp)$/i.test(f.name)||(f.type&&f.type.startsWith('image/')));
-  arr.sort((a,b)=>sbNatCmp(a.name,b.name));
-  if(!arr.length) return;
-  let failed=[], done=0;
-  sbLoading(true,'사진 불러오는 중…');
-  try{
-    for(const file of arr){
-      try{
-        const {canvas}=await sbLoadImageFile(file);
-        const small=wbScaled(canvas,240);
-        // 규칙 이름이면 종류(…-org)로, 아니면 오가노이드로 시작
-        const meta=pptParse(file.name);
-        const mode=/org/i.test(file.name)?'org':(meta.named?'d2':'org');
-        wbFiles.push({id:'wb'+Date.now()+Math.random().toString(36).slice(2,6), name:file.name, canvas, small, before:small.toDataURL('image/jpeg',.85), an:wbAnalyze(canvas), mode, _c:{}});
-      }catch(e){ failed.push(file.name+' ('+e.message+')'); }
-      done++; sbLoading(true,`사진 불러오는 중… (${done}/${arr.length})`);
-      await new Promise(r=>setTimeout(r,0));
-    }
-  } finally { sbLoading(false); }
-  renderWbList();
-  if(failed.length) alert('일부 파일을 불러오지 못했습니다:\n'+failed.join('\n'));
-}
-function wbRefresh(){ renderWbList(); }
-function wbRemove(i){ wbFiles.splice(i,1); renderWbList(); }
-function wbClearAll(){ if(wbFiles.length && confirm('추가한 사진 '+wbFiles.length+'장을 모두 지울까요?')){ wbFiles=[]; renderWbList(); } }
-function wbSetMode(i,m){ if(wbFiles[i]){ wbFiles[i].mode=m; renderWbList(); } }
-function wbAllMode(m){ wbFiles.forEach(f=>f.mode=m); renderWbList(); }
 function wbOutName(name){ return name.replace(/\.(tif|tiff|jpe?g|webp|bmp|png)$/i,'')+'.png'; }
-function renderWbList(){
-  const el=document.getElementById('wbList');
-  if(!wbFiles.length){ el.innerHTML='<div class="sb-empty">아직 추가된 사진이 없습니다.</div>'; return; }
-  const skipped=wbFiles.filter(f=>!f.an[f.mode].ok).length;
-  el.innerHTML=`<div class="sb-listhd"><span>추가된 사진 <b>${wbFiles.length}</b>장${skipped?` <span class="wb-skip">(건너뜀 ${skipped})</span>`:''}</span>
-    <span class="wb-all">전체 <button class="tbl-btn" onclick="wbAllMode('org')">오가노이드</button><button class="tbl-btn" onclick="wbAllMode('d2')">2D</button></span>
-    <button class="sb-clear" onclick="wbClearAll()">전체 삭제</button></div>`+
-  wbFiles.map((f,i)=>{
-    const after=wbPreviewURL(f._c,f.small,f.an,f.mode,true)||f.before;
-    return `<div class="sb-row wb-row" onclick="wbOpenCompare('wb',${i})" title="눌러서 크게 비교">
-      <img class="wb-th" src="${f.before}"><span class="wb-arrow">→</span><img class="wb-th" src="${after}">
-      <div class="sb-mid"><div class="mm-txt" style="font-size:.76rem;">${esc(wbOutName(f.name))}</div>
-        <div class="sb-ctrls" style="margin-top:4px;">${wbModeSeg(f.mode,m=>`wbSetMode(${i},'${m}')`)}<span class="wb-info" style="margin:0;">${wbInfoHTML(f.an,f.mode)}</span></div></div>
-      <button class="sb-x" title="제거" onclick="event.stopPropagation();wbRemove(${i})">×</button>
-    </div>`;
-  }).join('');
-}
-async function wbSaveAll(btn){
-  if(!wbFiles.length){ alert('사진을 먼저 추가하세요.'); return; }
-  let dir=null;
-  if(window.showDirectoryPicker){
-    try{ dir=await window.showDirectoryPicker({mode:'readwrite',id:'orgWbDir'}); }catch(e){ return; }
-    // 같은 이름 파일이 이미 있으면(이름·스케일바에서 저장한 폴더를 고른 경우 등) 덮어쓸지 먼저 묻는다
-    let exists=0;
-    for(const f of wbFiles){ try{ await dir.getFileHandle(wbOutName(f.name)); exists++; }catch(e){} }
-    if(exists && !confirm(`이 폴더에 같은 이름 파일이 ${exists}개 있어요. 보정본으로 덮어쓸까요?\n원본을 남기려면 [취소] 후 다른 폴더(예: 보정본 폴더)를 고르세요.`)) return;
-  }
-  const ot=btn.textContent; btn.disabled=true;
-  sbLoading(true,'보정해서 저장 중…'); let saved=0;
-  try{
-    for(const f of wbFiles){
-      const out=wbCopy(f.canvas);
-      const g=wbGains(f.an,f.mode); if(g) wbApplyInPlace(out,g);
-      const blob=await new Promise(r=>out.toBlob(r,'image/png'));
-      const fname=wbOutName(f.name);
-      if(dir){
-        const fh=await dir.getFileHandle(fname,{create:true});
-        const w=await fh.createWritable(); await w.write(blob); await w.close();
-      } else {
-        const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=fname; a.click();
-        setTimeout(()=>URL.revokeObjectURL(a.href),2000);
-        await new Promise(r=>setTimeout(r,200));
-      }
-      saved++; sbLoading(true,`보정해서 저장 중… (${saved}/${wbFiles.length})`);
-    }
-    alert(saved+'개 저장 완료'+(dir?' (선택한 폴더)':' (브라우저 다운로드 폴더)'));
-  }catch(e){ alert('저장 중 오류: '+e.message); }
-  finally{ sbLoading(false); btn.disabled=false; btn.textContent=ot; }
-}
 
 // ══════════════════════════════════════════
 //  폴더 → PPT 만들기 (브라우저, PptxGenJS)
@@ -5185,44 +5109,28 @@ function renderAnalytics(){
     <h2>사진 이름·스케일바</h2>
     <div class="mscroll">
       <div style="display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:6px;padding:11px 13px;margin-bottom:12px;">
-        <div><label>촬영 날짜</label><input type="date" id="sbDate" onchange="renderSbarList()" style="height:32px;"></div>
         <div style="padding-bottom:6px;"><label style="display:flex;align-items:center;gap:5px;cursor:pointer;margin:0;"><input type="checkbox" id="sbAddBar" checked onchange="renderSbarList()" style="width:auto;"> <b>스케일바 추가</b></label></div>
         <div><label>바 색상</label><select id="sbColor" onchange="renderSbarList()" style="height:32px;width:auto;"><option value="#000000" selected>검정</option><option value="#ffffff">흰색</option></select></div>
         <div style="padding-bottom:6px;font-size:.76rem;color:#64748B;">저장 형식 <b>PNG</b></div>
         <div style="padding-bottom:6px;"><label style="display:flex;align-items:center;gap:5px;cursor:pointer;margin:0;"><input type="checkbox" id="sbLabel" checked style="width:auto;"> 100µm 라벨 표시</label></div>
       </div>
-      <div class="wb-opts wb-opts-box" id="sbWbOpts"></div>
-      <div class="hint" style="margin:-6px 0 12px;">사진마다 배경색을 기준으로 맞춰요. 라인 종류에 org가 있으면 오가노이드(회색 배경), 아니면 2D(보라 기준색)로 자동 선택돼요. <button class="link-btn" onclick="openWbModal()">이미 저장한 사진만 보정하기</button></div>
+      <input type="date" id="sbDate" hidden>
       <div style="margin-bottom:10px;">
         <select id="sbSetPicker" onchange="sbPickSet()" style="height:32px;width:100%;"></select>
       </div>
       <div id="sbDrop" class="sb-drop"><svg class="ic"><use href="#i-image"/></svg>사진을 끌어다 놓거나 클릭<br><span style="font-size:.72rem;color:#A1A1AA;">PNG · JPG · TIFF</span>
         <input type="file" id="sbInput" accept="image/*,.tif,.tiff" multiple style="display:none;">
       </div>
-      <div class="hint" style="margin:8px 0;">파일명이 겹치면 (1), (2)가 자동으로 붙어요. 여러 날짜분은 저장된 순서를 이어붙여 적용하거나, 사진 줄의 "여기부터 다른 날짜"로 나눠요.</div>
+      <div class="hint" style="margin:8px 0;line-height:1.6;">
+        · 사진(썸네일)을 누르면 색 보정 전/후를 크게 비교할 수 있어요. 라인 종류에 org가 있으면 오가노이드, 아니면 2D로 보정돼요.<br>
+        · 여러 날짜분은 저장된 순서를 이어붙여 적용하거나, 사진 줄의 "여기부터 다른 날짜"로 나눠요.<br>
+        · 라인을 고르지 않은 사진은 원래 파일 이름 그대로 보정만 해서 <b>날짜_corrected_N장</b> 폴더에 따로 저장돼요.</div>
       <div id="sbList"></div>
       <div id="sbDirInfo" style="font-size:.74rem;color:#64748B;margin:11px 2px 2px;"></div>
     </div>
     <div class="mfoot" style="display:flex;gap:8px;">
       <button class="btn btn-out" style="flex:1;" onclick="closeSbarModal()">닫기</button>
       <button class="btn btn-pri" style="flex:2;" onclick="sbarSaveAll(this)">폴더에 저장</button>
-    </div>
-  </div>
-</div>
-<div id="wbModal" class="modal">
-  <div class="mbox" style="width:720px;">
-    <h2>저장한 사진 보정</h2>
-    <div class="mscroll">
-      <div class="hint" style="margin-bottom:10px;">이름·스케일바에서 이미 저장한 사진을 넣으면, 같은 방식으로 보정해서 파일 이름 그대로 PNG로 저장해요. 줄을 누르면 크게 비교할 수 있어요.</div>
-      <div class="wb-opts wb-opts-box" id="wbOptsBox"></div>
-      <div id="wbDrop" class="sb-drop"><svg class="ic"><use href="#i-image"/></svg>사진을 끌어다 놓거나 클릭<br><span style="font-size:.72rem;color:#A1A1AA;">파일 이름에 org가 있으면 오가노이드, 규칙 이름인데 org가 없으면 2D로 시작해요</span>
-        <input type="file" id="wbInput" accept="image/*,.tif,.tiff" multiple style="display:none;">
-      </div>
-      <div id="wbList" style="margin-top:11px;"></div>
-    </div>
-    <div class="mfoot" style="display:flex;gap:8px;">
-      <button class="btn btn-out" style="flex:1;" onclick="closeWbModal()">닫기</button>
-      <button class="btn btn-pri" style="flex:2;" onclick="wbSaveAll(this)">보정해서 폴더에 저장</button>
     </div>
   </div>
 </div>
