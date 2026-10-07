@@ -234,6 +234,7 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
 .sb-dgrp span{color:var(--sub);}
 .sb-dgrp input[type=date]{height:28px;width:auto;font-size:.76rem;}
 .sb-dline{margin-top:18px;position:relative;}
+.sb-dset{height:28px;width:auto;max-width:230px;font-size:.76rem;flex:0 1 auto;min-width:0;}
 .sb-dline::before{content:"";position:absolute;left:-2px;right:-2px;top:-10px;border-top:2px dashed var(--bd);}
 .sb-dx{margin-left:auto;background:none;border:none;color:var(--mut);font-size:1rem;cursor:pointer;padding:0 4px;}
 .sb-dx:hover{color:var(--tx);}
@@ -3884,35 +3885,25 @@ function openSbarModal(){
     drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('drag'); if(e.dataTransfer&&e.dataTransfer.files) handleSbarFiles(e.dataTransfer.files);});
     window._sbWired=true;
   }
-  sbRenderSetPicker();
+  if(dedupeShotSets()) saveShotSets();
   renderSbarList();
   renderSbDir();
   document.getElementById('sbarModal').classList.add('open');
 }
-// 사진을 추가하기 전에도, 저장해 둔 촬영 순서를 미리 골라 작업 큐에 넣어둘 수 있게 한다
-function sbRenderSetPicker(){
-  const el=document.getElementById('sbSetPicker');
-  if(!el) return;
-  if(dedupeShotSets()) saveShotSets();
-  if(!shotSets.length){ el.innerHTML='<option value="">저장된 순서 없음</option>'; el.disabled=true; return; }
-  el.disabled=false;
-  el.innerHTML='<option value="">저장된 순서 불러오기…</option>'+shotSets.slice().sort((a,b)=>b.updatedTs-a.updatedTs)
-    .map(s=>`<option value="${esc(s.id)}">${esc(s.name)} (${s.items.length}컷 · ${tsKo(s.updatedTs)} 저장)</option>`).join('');
+// 촬영 날짜 줄 옆의 순서 드롭다운 목록 (selId: 이미 이 묶음에 적용된 세트)
+function sbSetOptionsHTML(selId){
+  if(!shotSets.length) return '<option value="">저장된 순서 없음</option>';
+  return '<option value="">촬영 순서 고르기…</option>'+shotSets.slice().sort((a,b)=>b.updatedTs-a.updatedTs)
+    .map(s=>`<option value="${esc(s.id)}"${s.id===selId?' selected':''}>${esc(s.name)} (${s.items.length}컷)</option>`).join('');
 }
-// 드롭다운에서 저장된 순서를 고르기만 하면 바로 작업 큐(shotLog)에 들어간다 — 별도 버튼 불필요.
-// 사진에 실제로 채우려면 "촬영 순서 적용하기" 버튼을 눌러야 한다.
-function sbPickSet(){
-  const picker=document.getElementById('sbSetPicker');
-  const id=picker.value;
+// 사진을 넣기 전: 고른 순서를 작업 큐에 넣고 날짜를 맞춰 둔다 (사진을 넣은 뒤 "촬영 순서 적용하기")
+let _sbPendingSet='';   // 사진 넣기 전에 고른 순서: 사진이 들어오면 바로 채운다
+function sbPickSet(id){
+  _sbPendingSet=id||'';
   if(!id) return;
   const s=shotSets.find(x=>x.id===id); if(!s) return;
-  const replace = shotLog.length
-    ? confirm(`지금 쌓인 순서 ${shotLog.length}개가 있어요.\n[확인] "${s.name}"(으)로 교체\n[취소] 뒤에 이어붙이기 (다른 날짜분을 한 번에 저장할 때)`)
-    : true;
-  const loaded=shotSetToQueue(s);
-  shotLog = replace ? loaded : [...shotLog, ...loaded];
+  shotLog=shotSetToQueue(s);
   saveShotLog();
-  picker.value='';
   // 불러온 순서의 촬영 날짜로 맞춘다. 이미 라인을 채운 사진이 있으면 그 사진들 날짜는 건드리지 않고,
   // 이 순서를 적용받는 사진에만 날짜가 따라 붙는다.
   const date=shotSetDate(s);
@@ -3925,6 +3916,23 @@ function sbPickSet(){
     toast(`이 순서를 적용받는 사진은 ${dateKo(date)} 날짜로 저장돼요`);
   }
   renderSbarList();
+}
+// 날짜 묶음 하나에 순서를 바로 채운다. 그 순서의 촬영 날짜가 있으면 묶음 날짜도 같이 바뀐다.
+function sbPickSetForGroup(start,end,id){
+  const s=shotSets.find(x=>x.id===id); if(!s) return renderSbarList();
+  const cnt=end-start+1;
+  const filled=sbFiles.slice(start,end+1).filter(f=>f.lineId).length;
+  if(filled && !confirm(`이 묶음 사진 ${cnt}장 중 ${filled}장은 이미 라인이 있어요. "${s.name}" 순서로 다시 채울까요?`)) return renderSbarList();
+  const q=shotSetToQueue(s), n=Math.min(cnt,q.length);
+  for(let k=0;k<n;k++){ const f=sbFiles[start+k]; f.lineId=q[k].lineId; f.mag=q[k].mag; f.note=q[k].note||''; }
+  for(let i=start;i<=end;i++) sbFiles[i].setId=s.id;
+  const date=shotSetDate(s);
+  if(date){
+    for(let i=start;i<=end;i++) sbFiles[i].date=date;
+    if(start>0) sbFiles[start].dateBreak=true; else document.getElementById('sbDate').value=date;
+  }
+  renderSbarList();
+  if(cnt!==q.length) toast(`사진 ${cnt}장 / 순서 ${q.length}컷: 앞 ${n}장만 채웠어요`,{warn:true});
 }
 function closeSbarModal(){ document.getElementById('sbarModal').classList.remove('open'); }
 
@@ -3976,6 +3984,7 @@ async function handleSbarFiles(fileList){
   if(!arr.length) return;
   let failed=[], done=0;
   const newDate=sbFiles.length?sbEffDate(sbFiles[sbFiles.length-1]):document.getElementById('sbDate').value;
+  const firstNew=sbFiles.length;   // 이미 사진이 있으면 새로 넣은 묶음은 구분선으로 따로 시작 (다른 날짜분 이어붙이기)
   sbLoading(true,'사진 불러오는 중…');
   try{
     for(const f of arr){
@@ -3990,7 +3999,9 @@ async function handleSbarFiles(fileList){
       await new Promise(r=>setTimeout(r,0));
     }
   } finally { sbLoading(false); }
+  if(firstNew>0 && sbFiles[firstNew]) sbFiles[firstNew].dateBreak=true;
   renderSbarList();
+  if(firstNew===0 && _sbPendingSet && sbFiles.length){ const id=_sbPendingSet; _sbPendingSet=''; sbPickSetForGroup(0, sbFiles.length-1, id); }
   if(failed.length) alert('일부 파일을 불러오지 못했습니다:\n'+failed.join('\n'));
 }
 
@@ -4071,8 +4082,10 @@ function sbWbMode(f){
   if(f.wbMode) return f.wbMode;
   const line=lines.find(l=>l.id===f.lineId);
   if(line) return wbModeForText(line.type);
-  // 라인이 없으면(이미 저장한 사진을 보정만 할 때) 파일 이름으로: org가 있으면 오가노이드, 없으면 2D
-  return wbModeForText(f.fname);
+  // 라인이 없으면(이미 저장한 사진을 보정만 할 때) 파일 이름으로: org가 있으면 오가노이드,
+  // 저장 규칙 이름인데 org가 없으면 2D, 규칙을 모르는 이름은 오가노이드(기본)
+  if(/org/i.test(f.fname)) return 'org';
+  return pptParse(f.fname).named ? 'd2' : 'org';
 }
 function sbSetWb(i,on){ if(sbFiles[i]){ sbFiles[i].wb=on; renderSbarList(); } }
 function sbSetWbMode(i,m){ if(sbFiles[i]){ sbFiles[i].wbMode=m; renderSbarList(); } }
@@ -4116,8 +4129,10 @@ function renderSbarList(){
   }).sort(typeCmp);
   const groups=sbDateGroups();
   const grpAt={}; groups.forEach(g=>grpAt[g.start]=g);
+  const grpSetId=g=>{ const id=sbFiles[g.start].setId; return id && sbFiles.slice(g.start,g.end+1).every(f=>f.setId===id) ? id : ''; };
   if(!sbFiles.length){
-    el.innerHTML=`<div class="sb-dgrp"><b>촬영 날짜</b><input type="date" value="${document.getElementById('sbDate').value}" onchange="sbSetDefaultDate(this.value)"></div>
+    el.innerHTML=`<div class="sb-dgrp"><b>촬영 날짜</b><input type="date" value="${document.getElementById('sbDate').value}" onchange="sbSetDefaultDate(this.value)">
+      <select class="sb-dset" onchange="sbPickSet(this.value)">${sbSetOptionsHTML(_sbPendingSet)}</select></div>
       <div class="sb-empty">아직 추가된 사진이 없습니다. 위 영역에 끌어다 놓으세요.</div>`;
     return;
   }
@@ -4153,7 +4168,8 @@ function renderSbarList(){
     const g=grpAt[i];
     const grpHd = g ? `<div class="sb-dgrp${i>0?' sb-dline':''}"><b>촬영 날짜</b>
       <input type="date" id="sbGrpDate${i}" value="${g.date}" title="이 묶음 날짜 고르기" onchange="sbSetGroupDate(${g.start},${g.end},this.value)">
-      <span>${g.date?dateKo(g.date):''} · ${g.end-g.start+1}장</span>
+      <select class="sb-dset" title="이 묶음 사진에 촬영 순서 채우기" onchange="sbPickSetForGroup(${g.start},${g.end},this.value)">${sbSetOptionsHTML(grpSetId(g))}</select>
+      <span>${g.end-g.start+1}장</span>
       ${i>0?`<button class="sb-dx" title="구분선 없애고 위 묶음 날짜로 합치기" onclick="sbMergeUp(${g.start},${g.end})">×</button>`:''}</div>` : '';
     const canSplit = i>0 && !g;   // 묶음의 첫 사진은 이미 경계라 나눌 필요 없음
     const wbMode=sbWbMode(f);
@@ -5115,15 +5131,12 @@ function renderAnalytics(){
         <div style="padding-bottom:6px;"><label style="display:flex;align-items:center;gap:5px;cursor:pointer;margin:0;"><input type="checkbox" id="sbLabel" checked style="width:auto;"> 100µm 라벨 표시</label></div>
       </div>
       <input type="date" id="sbDate" hidden>
-      <div style="margin-bottom:10px;">
-        <select id="sbSetPicker" onchange="sbPickSet()" style="height:32px;width:100%;"></select>
-      </div>
       <div id="sbDrop" class="sb-drop"><svg class="ic"><use href="#i-image"/></svg>사진을 끌어다 놓거나 클릭<br><span style="font-size:.72rem;color:#A1A1AA;">PNG · JPG · TIFF</span>
         <input type="file" id="sbInput" accept="image/*,.tif,.tiff" multiple style="display:none;">
       </div>
       <div class="hint" style="margin:8px 0;line-height:1.6;">
         · 사진(썸네일)을 누르면 색 보정 전/후를 크게 비교할 수 있어요. 라인 종류에 org가 있으면 오가노이드, 아니면 2D로 보정돼요.<br>
-        · 여러 날짜분은 저장된 순서를 이어붙여 적용하거나, 사진 줄의 "여기부터 다른 날짜"로 나눠요.<br>
+        · 촬영 날짜 옆에서 저장된 순서를 고르면 그 묶음 사진에 바로 채워져요. 사진을 더 넣으면 새 묶음으로 따로 시작하고, "여기부터 다른 날짜"로 직접 나눌 수도 있어요.<br>
         · 라인을 고르지 않은 사진은 원래 파일 이름 그대로 보정만 해서 <b>날짜_color-matched_N장</b> 폴더에 따로 저장돼요.</div>
       <div id="sbList"></div>
       <div id="sbDirInfo" style="font-size:.74rem;color:#64748B;margin:11px 2px 2px;"></div>
