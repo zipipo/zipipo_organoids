@@ -4071,9 +4071,8 @@ function sbWbMode(f){
   if(f.wbMode) return f.wbMode;
   const line=lines.find(l=>l.id===f.lineId);
   if(line) return wbModeForText(line.type);
-  // 라인이 없으면(이미 저장한 사진을 보정만 할 때) 파일 이름으로: org가 있으면 오가노이드, 규칙 이름인데 org가 없으면 2D
-  if(/org/i.test(f.fname)) return 'org';
-  return pptParse(f.fname).named ? 'd2' : 'org';
+  // 라인이 없으면(이미 저장한 사진을 보정만 할 때) 파일 이름으로: org가 있으면 오가노이드, 없으면 2D
+  return wbModeForText(f.fname);
 }
 function sbSetWb(i,on){ if(sbFiles[i]){ sbFiles[i].wb=on; renderSbarList(); } }
 function sbSetWbMode(i,m){ if(sbFiles[i]){ sbFiles[i].wbMode=m; renderSbarList(); } }
