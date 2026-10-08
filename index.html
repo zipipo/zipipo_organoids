@@ -1182,7 +1182,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
           <div><label>Plate 종류</label><select id="elPlate" onchange="onPlateSelectChange('elPlate','elPlateCustom')"></select>
             <input type="text" id="elPlateCustom" placeholder="Plate 종류 입력" style="display:none;margin-top:6px;"></div>
         </div>
-        <div style="margin-top:9px;"><label>Seeding 메모</label><textarea id="elMemo" rows="2" placeholder="비우면 '최초 seeding'으로 기록돼요"></textarea></div>
+        <div style="margin-top:9px;"><label>Memo</label><textarea id="elMemo" rows="2" placeholder="비우면 '최초 seeding'으로 기록돼요"></textarea></div>
         <div style="display:flex;gap:7px;margin-top:13px;flex-wrap:wrap;">
           <button class="btn btn-del" id="elDelBtn" style="display:none;" onclick="deleteLine(document.getElementById('elId').value)">휴지통으로</button>
           <span style="flex:1;"></span>
@@ -3113,8 +3113,8 @@ function saveLine(){
       passage:p,dayInfo:dayStr,details:'',plate:plateType,finalWells:wells||'',stocks:'',memo:seedMemo||'최초 seeding',printedToNotebook:false});
   }
   if(id){ closeLineModal(); updateUI(); return toast('라인을 수정했어요'); }
-  // 새 라인은 창을 닫지 않고 이어서 추가할 수 있게 라인명·세부명만 비운다 (종류·날짜·Plate·메모 등은 유지)
-  ['elPid','elLineDetail'].forEach(i=>document.getElementById(i).value='');
+  // 새 라인은 창을 닫지 않고 폼만 비워서 이어서 추가할 수 있게
+  resetLineForm();
   updateUI();
   document.getElementById('elPid').focus({preventScroll:true});
   toast(`${pId} 라인을 추가했어요`);
