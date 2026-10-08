@@ -1182,6 +1182,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
           <div><label>Plate 종류</label><select id="elPlate" onchange="onPlateSelectChange('elPlate','elPlateCustom')"></select>
             <input type="text" id="elPlateCustom" placeholder="Plate 종류 입력" style="display:none;margin-top:6px;"></div>
         </div>
+        <div style="margin-top:9px;"><label>Seeding 메모</label><textarea id="elMemo" rows="2" placeholder="비우면 '최초 seeding'으로 기록돼요"></textarea></div>
         <div style="display:flex;gap:7px;margin-top:13px;flex-wrap:wrap;">
           <button class="btn btn-del" id="elDelBtn" style="display:none;" onclick="deleteLine(document.getElementById('elId').value)">휴지통으로</button>
           <span style="flex:1;"></span>
@@ -1759,6 +1760,13 @@ function latestWell(line){
   const w=logs.filter(l=>l.lineId===line.id&&l.finalWells!==''&&l.finalWells!=null)
     .sort((a,b)=>new Date(b.date)-new Date(a.date));
   return w.length?w[0].finalWells:(line.initialWells||'');
+}
+
+// 해당 날짜 기준으로 마지막에 기록된 Plate (새 기록에서 Plate를 비우면 이걸 그대로 이어서 기록)
+function plateAt(line,date){
+  const p=logs.filter(l=>l.lineId===line.id&&l.plate&&l.date<=date)
+    .sort((a,b)=>new Date(b.date)-new Date(a.date)||(b.seq||0)-(a.seq||0));
+  return p.length?p[0].plate:(line.plateType||'');
 }
 
 // 가장 최근에 기록된 로그의 Plate 종류를 보여준다 (같은 날짜면 나중에 입력한 기록 우선)
@@ -2967,7 +2975,7 @@ function saveDailyLog(){
     // (1) 현재 라인의 상태를 긁어와서, 일단 그 상태 그대로 로그로 저장!
     const curP = line.passage;
     const curDStr = calcDayStr(line, date);
-    logs.push({id:uid(),seq:nextSeq(),lineId,date,action,passage:curP,dayInfo:curDStr,details:det,plate,finalWells:wells,stocks,memo,printedToNotebook:false});
+    logs.push({id:uid(),seq:nextSeq(),lineId,date,action,passage:curP,dayInfo:curDStr,details:det,plate:plate||plateAt(line,date),finalWells:wells,stocks,memo,printedToNotebook:false});
 
     // (2) 그 액션이 상태를 바꾸는 액션(Split/Reseeding)이라면, '다음 추가될 로그'를 위해 라인의 정보를 진화시킴
     if (isPassageUp(action)) {
@@ -3063,6 +3071,7 @@ function saveLine(){
   const wells=document.getElementById('elWells').value;
   const start=document.getElementById('elStart').value;
   const plateType=getPlateSelectValue('elPlate','elPlateCustom');
+  const seedMemo=document.getElementById('elMemo').value.trim();
   if(!pId||!type||!start) return alert('필수 정보를 입력하세요.');
 
   // 파일명(사진 저장 시 사용)에 못 쓰는 문자 검사
@@ -3088,9 +3097,11 @@ function saveLine(){
       seed.passage=p;
       seed.finalWells=wells;
       seed.dayInfo=dayStr;
+      seed.plate=plateType;
+      seed.memo=seedMemo;
     } else {
       logs.push({id:uid()+'_sd',seq:nextSeq(),lineId:id,date:start,action:'Seeded',
-        passage:p,dayInfo:dayStr,details:'',finalWells:wells||'',stocks:'',memo:'수동 추가',printedToNotebook:false});
+        passage:p,dayInfo:dayStr,details:'',plate:plateType,finalWells:wells||'',stocks:'',memo:seedMemo||'수동 추가',printedToNotebook:false});
     }
     recalcLogsForLine(id);
   } else {
@@ -3099,11 +3110,14 @@ function saveLine(){
     lines.push(nl);
 
     logs.push({id:uid()+'_sd',seq:nextSeq(),lineId:nl.id,date:start,action:'Seeded',
-      passage:p,dayInfo:dayStr,details:'',finalWells:wells||'',stocks:'',memo:'최초 seeding',printedToNotebook:false});
+      passage:p,dayInfo:dayStr,details:'',plate:plateType,finalWells:wells||'',stocks:'',memo:seedMemo||'최초 seeding',printedToNotebook:false});
   }
-  const wasEdit=!!id;
-  closeLineModal();updateUI();
-  toast(wasEdit?'라인을 수정했어요':'라인을 추가했어요');
+  if(id){ closeLineModal(); updateUI(); return toast('라인을 수정했어요'); }
+  // 새 라인은 창을 닫지 않고 이어서 추가할 수 있게 라인명·세부명만 비운다 (종류·날짜·Plate·메모 등은 유지)
+  ['elPid','elLineDetail'].forEach(i=>document.getElementById(i).value='');
+  updateUI();
+  document.getElementById('elPid').focus({preventScroll:true});
+  toast(`${pId} 라인을 추가했어요`);
 }
 
 function editLine(id){
@@ -3148,7 +3162,8 @@ function editLine(id){
   document.getElementById('elBase').value =startBase;
   document.getElementById('elWells').value=startWells;
   document.getElementById('elStart').value=startDt;
-  setPlateSelectValue('elPlate','elPlateCustom', l.plateType||'');
+  setPlateSelectValue('elPlate','elPlateCustom', (seedLog&&seedLog.plate)||l.plateType||'');
+  document.getElementById('elMemo').value=seedLog?(seedLog.memo||''):'';
   document.getElementById('elDelBtn').style.display='';
   document.getElementById('elSaveBtn').textContent='수정 저장';
   document.getElementById('lineFormTitle').textContent='라인 수정 · '+lineTag(l);
@@ -3409,7 +3424,7 @@ function quickMediaChange(lineId,ev){
   const date=today();
   const snap=takeSnap();
   logs.push({id:uid(),seq:nextSeq(),lineId,date,action:'Media Change',passage:line.passage,
-    dayInfo:calcDayStr(line,date),details:'',plate:latestPlate(line),finalWells:'',stocks:'',memo:'',printedToNotebook:false});
+    dayInfo:calcDayStr(line,date),details:'',plate:plateAt(line,date),finalWells:'',stocks:'',memo:'',printedToNotebook:false});
   recalcLogsForLine(lineId);
   updateUI();
   toast(`${lineTag(line)} Media Change 기록했어요`,{undo:snap});
@@ -3430,7 +3445,7 @@ function closeLineModal(){ document.getElementById('lineFormPanel').style.displa
 function closeModalsAll(){ document.querySelectorAll('.modal.open').forEach(m=>m.classList.remove('open')); }
 function closeLogModal(){document.getElementById('logModal').classList.remove('open');}
 function resetLineForm(){
-  ['elId','elPid','elType','elLineDetail'].forEach(i=>document.getElementById(i).value='');
+  ['elId','elPid','elType','elLineDetail','elMemo'].forEach(i=>document.getElementById(i).value='');
   setPlateSelectValue('elPlate','elPlateCustom','');
   document.getElementById('elP').value=0;document.getElementById('elBase').value=0;
   document.getElementById('elWells').value=0;document.getElementById('elStart').valueAsDate=new Date();
@@ -3712,6 +3727,8 @@ try{ curTab=localStorage.getItem('orgTab')||'today'; }catch(e){}
 function setTab(t, instant){
   if(t==='arch'){ t='tl'; setLineFilter('done',true); }   // 예전 [완료된 배양] 탭은 배양 라인의 '완료' 필터로
   if(!['today','tl','ana'].includes(t)) t='today';
+  // 새 라인/라인 수정 창은 다른 탭에 갔다 오면 닫혀 있게
+  if(t!=='tl'){ const lf=document.getElementById('lineFormPanel'); if(lf&&lf.style.display!=='none') closeLineModal(); }
   const apply=()=>{
     curTab=t;
     document.body.dataset.tab=t;
