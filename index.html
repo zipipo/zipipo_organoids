@@ -2044,6 +2044,9 @@ function dedupeShotSets(){
     if(!cur){ keep.set(k,s); return; }
     const better = (!!cur.autoKey!==!!s.autoKey) ? (cur.autoKey?s:cur) : (s.updatedTs>cur.updatedTs?s:cur);
     better.updatedTs=Math.max(cur.updatedTs||0, s.updatedTs||0);
+    // 둘 중 하나라도 사진 이름 바꿔 저장에 쓰였으면 남는 쪽에 그 표시를 넘겨준다
+    const ps=Math.max(shotSetSavedTs(cur), shotSetSavedTs(s));
+    if(ps) better.photoSavedTs=ps;
     keep.set(k,better);
   });
   if(keep.size===shotSets.length) return false;
@@ -2051,6 +2054,9 @@ function dedupeShotSets(){
   shotSets=shotSets.filter(s=>ids.has(s.id));
   return true;
 }
+// 이 순서로 사진을 '이름 바꿔서 저장'한 적이 있는지 (자동 기록은 저장할 때 생기므로 항상 해당)
+function shotSetSavedTs(s){ return s.photoSavedTs || (s.autoKey ? (s.updatedTs||1) : 0); }
+const SAVED_BADGE='<span title="이 순서로 사진을 이름 바꿔서 저장한 적이 있어요" style="font-size:.62rem;background:#DCFCE7;color:#15803D;padding:1px 6px;border-radius:8px;font-weight:700;">저장됨</span>';
 // 세트를 작업 큐(shotLog)에 넣을 때 그 세트의 촬영 날짜를 컷마다 같이 실어 둔다.
 // 서로 다른 날짜의 세트를 이어붙여도, 사진에 적용할 때 각 사진이 제 날짜를 받아간다.
 function shotSetToQueue(s){
@@ -2091,13 +2097,16 @@ function slDeleteSet(id){
 // 같은 날짜·시간대에 다시 저장하면(사진을 더 추가해서 재저장 등) 새로 만들지 않고 그 기록을 갱신한다.
 function archiveShotOrderFromSbFiles(date, files){
   if(!files.length) return;
+  // 이 사진들에 드롭다운으로 적용했던 세트에도 저장됨 표시
+  const now=Date.now();
+  new Set(files.map(f=>f.setId).filter(Boolean)).forEach(id=>{ const s=shotSets.find(x=>x.id===id); if(s) s.photoSavedTs=now; });
   const session=new Date().getHours()<12?'오전':'오후';
   const autoKey=date+'_'+session;
   const items=files.map(f=>({lineId:f.lineId, mag:f.mag, note:f.note||''}));
   const name=shotSetDefaultName(date, items.length);
   const existing=shotSets.find(s=>s.autoKey===autoKey);
-  if(existing){ existing.items=items; existing.name=name; existing.updatedTs=Date.now(); }
-  else { shotSets.push({id:uid(), name, items, autoKey, createdTs:Date.now(), updatedTs:Date.now()}); }
+  if(existing){ existing.items=items; existing.name=name; existing.updatedTs=now; existing.photoSavedTs=now; }
+  else { shotSets.push({id:uid(), name, items, autoKey, createdTs:now, updatedTs:now, photoSavedTs:now}); }
   dedupeShotSets(); saveShotSets();
 }
 function renderShotSets(){
@@ -2109,9 +2118,10 @@ function renderShotSets(){
     const labels=s.items.map(it=>{const l=lines.find(x=>x.id===it.lineId); return l?lineTag(l):'(삭제된 라인)';});
     const uniq=[...new Set(labels)];
     const tag=s.autoKey?'<span style="font-size:.62rem;background:#F1F5F9;color:#64748B;padding:1px 6px;border-radius:8px;font-weight:700;">자동 기록</span>':'';
-    return `<div style="display:flex;align-items:center;gap:6px;padding:6px 8px;border:1px solid #E2E8F0;border-radius:6px;margin-bottom:6px;background:#fff;">
+    const saved=!!shotSetSavedTs(s);
+    return `<div style="display:flex;align-items:center;gap:6px;padding:6px 8px;border:1px solid ${saved?'#BBF7D0':'#E2E8F0'};${saved?'border-left:3px solid #22C55E;':''}border-radius:6px;margin-bottom:6px;background:${saved?'#F0FDF4':'#fff'};">
       <div style="flex:1;min-width:0;">
-        <div style="font-weight:700;font-size:.79rem;display:flex;align-items:center;gap:6px;">${esc(s.name)} ${tag}</div>
+        <div style="font-weight:700;font-size:.79rem;display:flex;align-items:center;gap:6px;">${esc(s.name)} ${tag}${saved?SAVED_BADGE:''}</div>
         <div style="font-size:.71rem;color:#94A3B8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${tsKo(s.updatedTs)} 저장 · ${s.items.length}컷 · ${esc(uniq.join(', '))}</div>
       </div>
       <button class="tbl-btn" onclick="slLoadSet('${s.id}')">불러오기</button>
@@ -3945,7 +3955,7 @@ function openSbarModal(){
 function sbSetOptionsHTML(selId){
   if(!shotSets.length) return '<option value="">저장된 순서 없음</option>';
   return '<option value="">촬영 순서 고르기…</option>'+shotSets.slice().sort((a,b)=>b.updatedTs-a.updatedTs)
-    .map(s=>`<option value="${esc(s.id)}"${s.id===selId?' selected':''}>${esc(s.name)} (${s.items.length}컷)</option>`).join('');
+    .map(s=>`<option value="${esc(s.id)}"${s.id===selId?' selected':''}${shotSetSavedTs(s)?' style="color:#15803D;background:#F0FDF4;font-weight:600;"':''}>${esc(s.name)} (${s.items.length}컷)</option>`).join('');
 }
 // 사진을 넣기 전: 고른 순서를 작업 큐에 넣고 날짜를 맞춰 둔다 (사진을 넣은 뒤 "촬영 순서 적용하기")
 let _sbPendingSet='';   // 사진 넣기 전에 고른 순서: 사진이 들어오면 바로 채운다
