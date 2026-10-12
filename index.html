@@ -1342,6 +1342,24 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
   </div>
 </div>
 
+<div id="syncModal" class="modal">
+  <div class="mbox" style="width:460px;">
+    <h2>클라우드 데이터와 이 기기 데이터가 달라요</h2>
+    <div class="mscroll" style="font-size:.84rem;line-height:1.6;">
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:4px 12px;background:var(--sur2,#F8FAFC);border:1px solid var(--bd);border-radius:6px;padding:10px 12px;margin-bottom:10px;">
+        <b>이 기기</b><span id="syncLocalInfo"></span>
+        <b>클라우드</b><span id="syncCloudInfo"></span>
+      </div>
+      <div style="color:var(--sub);font-size:.78rem;">어느 쪽을 골라도 로그인은 유지돼요. 덮어쓰기를 고르면 사라지는 쪽 데이터는 백업 파일(.json)로 자동 저장되고, [데이터 → 백업 불러오기]로 되살릴 수 있어요.</div>
+    </div>
+    <div class="mfoot" style="display:grid;gap:7px;">
+      <button class="btn btn-pri" data-sync="merge">합치기 (권장) · 양쪽 기록 모두 남김</button>
+      <button class="btn btn-out" data-sync="cloud">클라우드 데이터로 이 기기 덮어쓰기</button>
+      <button class="btn btn-out" data-sync="local">이 기기 데이터로 클라우드 덮어쓰기</button>
+    </div>
+  </div>
+</div>
+
 <div id="colorModal" class="modal">
   <div class="mbox">
     <h2>종류별 색상 설정</h2>
@@ -1444,7 +1462,19 @@ if(!DEMO && typeof firebase!=='undefined'){
   }catch(e){ console.warn('Firebase 초기화 실패', e); fbAuth=null; fbDb=null; }
 }
 
-let cloudUid=null, cloudUnsub=null, cloudSyncing=false, cloudPushTimer=null;
+// ── 동기화 방식 ──
+// 예전에는 저장할 때마다 이 기기 메모리에 있던 데이터 전체로 클라우드 문서를 통째로 덮어썼다.
+// 그래서 오래 열어둔 탭(노트북을 덮어뒀다 연 경우, 휴대폰 백그라운드 탭)이 다른 기기의 새 기록을 모른 채
+// 아무거나 하나 저장하면, 옛날 데이터가 클라우드에 올라가고 다른 기기도 그걸 받아 기록이 사라졌다.
+// 지금은 문서에 rev(저장 번호)를 붙이고, 마지막으로 맞춘 클라우드 상태(base)를 기기에 기억해 둔다.
+// 올릴 때 클라우드 rev가 base와 다르면(=그 사이 다른 기기가 저장함) 항목 id 단위로 3-way 병합한 뒤 올린다.
+let cloudUid=null, cloudUnsub=null, cloudPushTimer=null;
+let cloudReady=false;      // 로그인 직후 클라우드와 처음 맞추기 전에는 올리지 않는다
+let cloudApplying=false;   // 받은 데이터를 화면에 반영하는 동안(updateUI→saveData) 다시 올리지 않도록
+let cloudPushing=false, cloudPushAgain=false;
+let cloudBase=null;        // { uid, rev, sig, data } 마지막으로 클라우드와 맞춘 상태
+const SYNC_ARR=['lines','logs','stockChecks','trash','plans','shotSets'];
+const SYNC_OBJ=['tlCollapsed','typeColors'];
 
 function cloudDocRef(uid){ return fbDb.collection('users').doc(uid).collection('data').doc('appData'); }
 
@@ -1454,12 +1484,82 @@ function stableStringify(obj){
   return '{'+Object.keys(obj).sort().map(k=>JSON.stringify(k)+':'+stableStringify(obj[k])).join(',')+'}';
 }
 
-function dataSig(lines_,logs_,stockChecks_,trash_,tlCollapsed_,plans_,shotSets_){
-  // Firestore는 저장 시 필드(키) 순서를 그대로 보존해 준다는 보장이 없어서,
-  // 키 순서에 영향받지 않도록 정렬 후 문자열화한다 (안 그러면 내용이 같아도 신호가 달라짐)
-  const s=stableStringify({lines:lines_,logs:logs_,stockChecks:stockChecks_,trash:trash_,tlCollapsed:tlCollapsed_,plans:plans_||[],shotSets:shotSets_||[]});
+// Firestore는 필드(키) 순서를 보존한다는 보장이 없어서, 키를 정렬한 뒤 문자열화해 비교한다
+function dataSig(d){
+  const s=stableStringify(d);
   let h=0; for(let i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))|0;}
   return s.length+':'+h;
+}
+function pickSync(d){
+  d=d||{}; const o={};
+  SYNC_ARR.forEach(k=>o[k]=Array.isArray(d[k])?d[k]:[]);
+  SYNC_OBJ.forEach(k=>o[k]=(d[k]&&typeof d[k]==='object')?d[k]:{});
+  return o;
+}
+// 깊은 복사: 올리는 도중이나 base로 기억한 뒤에 화면에서 배열을 고쳐도 비교 기준이 같이 바뀌지 않도록
+const syncClone = d => JSON.parse(JSON.stringify(d));
+function localSync(){ return syncClone(pickSync({lines,logs,stockChecks,trash,plans,shotSets,tlCollapsed,typeColors})); }
+const syncHas = d => d.lines.length>0 || d.logs.length>0;
+
+function loadCloudBase(uid){
+  try{ const b=JSON.parse(localStorage.getItem('orgCloudBase')); if(b && b.uid===uid && b.data) return b; }catch(e){}
+  return null;
+}
+function setCloudBase(rev,data){
+  const d=syncClone(pickSync(data));
+  cloudBase={uid:cloudUid, rev, sig:dataSig(d), data:d};
+  try{ localStorage.setItem('orgCloudBase', JSON.stringify(cloudBase)); }catch(e){ /* 용량 초과 시 메모리에만 둔다 */ }
+}
+
+// base(마지막으로 맞춘 상태) · local(이 기기) · remote(클라우드) 세 벌을 항목 id 단위로 합친다.
+//  한쪽만 바뀐 항목 → 바뀐 쪽 / 양쪽이 같게 바뀜 → 그대로 / 양쪽이 다르게 바뀜 → prefer 쪽
+//  한쪽은 지우고 한쪽은 고쳤으면 → 고친 쪽을 남긴다 (지운 건 휴지통에 남아 있고, 날아가는 것보다 낫다)
+// base가 없으면(이 기기에서 처음 맞추는 경우) 양쪽을 합집합으로 합친다.
+function merge3(base,local,remote,prefer){
+  base=pickSync(base); local=pickSync(local); remote=pickSync(remote);
+  const out={}; let conflicts=0;
+  const pickOne=(b,l,r)=>{
+    if(l===r) return 'l';
+    if(l===b) return 'r';
+    if(r===b) return 'l';
+    if(l===undefined) return 'r';
+    if(r===undefined) return 'l';
+    conflicts++; return prefer==='remote'?'r':'l';
+  };
+  const keyOf=it=>(it&&it.id!=null)?'#'+it.id:'h'+stableStringify(it);
+  SYNC_ARR.forEach(k=>{
+    const toMap=a=>{ const m=new Map(); a.forEach(it=>m.set(keyOf(it),it)); return m; };
+    const B=toMap(base[k]), L=toMap(local[k]), R=toMap(remote[k]);
+    const s=v=>v===undefined?undefined:stableStringify(v);
+    const res=[], seen=new Set();
+    // 순서: 클라우드 순서를 따르고, 이 기기에만 새로 생긴 항목은 이 기기 순서대로 그 위치 근처에 끼운다
+    const order=[]; let ri=0; const rk=[...R.keys()];
+    [...L.keys()].forEach(key=>{
+      if(R.has(key)){ while(ri<rk.length && rk[ri]!==key){ order.push(rk[ri]); ri++; } if(ri<rk.length){ order.push(rk[ri]); ri++; } }
+      else order.push(key);
+    });
+    while(ri<rk.length) order.push(rk[ri++]);
+    order.forEach(key=>{
+      if(seen.has(key)) return; seen.add(key);
+      const b=B.get(key), l=L.get(key), r=R.get(key);
+      const w=pickOne(s(b),s(l),s(r));
+      const v=w==='l'?l:r;
+      if(v!==undefined) res.push(v);
+    });
+    out[k]=res;
+  });
+  SYNC_OBJ.forEach(k=>{
+    const B=base[k], L=local[k], R=remote[k], o={};
+    new Set([...Object.keys(L),...Object.keys(R)]).forEach(key=>{
+      const s=v=>v===undefined?undefined:stableStringify(v);
+      const w=pickOne(s(B[key]),s(L[key]),s(R[key]));
+      const v=w==='l'?L[key]:R[key];
+      if(v!==undefined) o[key]=v;
+    });
+    out[k]=o;
+  });
+  out.trash.sort((a,b)=>String(b.deletedAt||'').localeCompare(String(a.deletedAt||'')));
+  return {data:out, conflicts};
 }
 
 function cloudToggle(){
@@ -1486,69 +1586,153 @@ function renderCloudStatus(user){
   }
 }
 
-function applyCloudData(d){
-  // 클라우드에서 받은 데이터를 반영하는 동안은 saveData()가 다시 클라우드로 되쏘지 않도록 잠금
-  cloudSyncing=true;
-  lines=d.lines||[]; logs=d.logs||[]; stockChecks=d.stockChecks||[];
-  trash=d.trash||[]; tlCollapsed=d.tlCollapsed||{}; plans=d.plans||[]; shotSets=d.shotSets||[];
-  typeColors=d.typeColors||{};
-  localStorage.setItem('orgTrash', JSON.stringify(trash));
-  localStorage.setItem('orgTlCollapsed', JSON.stringify(tlCollapsed));
-  localStorage.setItem('orgPlans', JSON.stringify(plans));
-  localStorage.setItem('orgShotSets', JSON.stringify(shotSets));
-  localStorage.setItem('orgTypeColors', JSON.stringify(typeColors));
-  updateUI();
-  setTimeout(()=>{cloudSyncing=false;},300);
+// 합친(또는 받은) 데이터를 이 기기에 반영. 화면 갱신 중 saveData()가 불려도 클라우드로 되쏘지 않는다.
+function applySyncData(d){
+  d=pickSync(d);
+  if(dataSig(d)===dataSig(localSync())) return;
+  cloudApplying=true;
+  try{
+    lines=d.lines; logs=d.logs; stockChecks=d.stockChecks; trash=d.trash;
+    plans=d.plans; shotSets=d.shotSets; tlCollapsed=d.tlCollapsed; typeColors=d.typeColors;
+    _logSeq=logs.reduce((m,l)=>Math.max(m,l.seq||0),0);
+    localStorage.setItem('orgTrash', JSON.stringify(trash));
+    localStorage.setItem('orgTlCollapsed', JSON.stringify(tlCollapsed));
+    localStorage.setItem('orgPlans', JSON.stringify(plans));
+    localStorage.setItem('orgShotSets', JSON.stringify(shotSets));
+    localStorage.setItem('orgTypeColors', JSON.stringify(typeColors));
+    updateUI();   // 안에서 saveData()가 lines/logs/stockChecks를 저장한다
+  } finally { cloudApplying=false; }
 }
 
-function cloudPush(){
-  if(!cloudUid) return Promise.resolve();
-  cloudSyncing=true;
-  return cloudDocRef(cloudUid).set({lines,logs,stockChecks,trash,tlCollapsed,plans,shotSets,typeColors,updatedAt:new Date().toISOString()})
-    .catch(e=>console.error('클라우드 저장 실패', e))
-    .finally(()=>{ setTimeout(()=>{cloudSyncing=false;},400); });
-}
 function cloudPushDebounced(){
-  if(!cloudUid || cloudSyncing) return;
+  if(!cloudUid || !cloudReady || cloudApplying) return;
   clearTimeout(cloudPushTimer);
   cloudPushTimer=setTimeout(cloudPush, 800);
 }
 
+async function cloudPush(opt){
+  opt=opt||{};
+  if(!cloudUid || !fbDb) return;
+  if(cloudPushing){ cloudPushAgain=true; return; }
+  const sent=localSync(), sentSig=dataSig(sent);
+  if(!opt.force && cloudBase && sentSig===cloudBase.sig) return;   // 마지막으로 맞춘 뒤 바뀐 게 없음
+  cloudPushing=true;
+  const uid=cloudUid, ref=cloudDocRef(uid);
+  try{
+    const res=await fbDb.runTransaction(async tx=>{
+      const snap=await tx.get(ref);
+      const cur=snap.exists?snap.data():null;
+      const curRev=cur?(cur.rev||0):0;
+      let next=sent, merged=false, conflicts=0;
+      // 그 사이 다른 기기가 저장했으면(rev가 다르면) 덮어쓰지 않고 합친 결과를 올린다
+      const curData=cur?pickSync(cur):null;
+      if(cur && (!cloudBase || curRev!==cloudBase.rev || dataSig(curData)!==cloudBase.sig)){
+        const m=merge3(cloudBase?cloudBase.data:null, sent, curData, 'local');
+        next=m.data; conflicts=m.conflicts; merged=true;
+      }
+      tx.set(ref, Object.assign({}, next, {rev:curRev+1, updatedAt:new Date().toISOString()}));
+      return {next, rev:curRev+1, merged, conflicts};
+    });
+    if(uid!==cloudUid) return;
+    setCloudBase(res.rev, res.next);
+    // 올리는 동안 이 기기에서 또 고친 내용이 있으면 그것까지 살려서 반영
+    const now=localSync();
+    if(res.merged || dataSig(now)!==sentSig){
+      applySyncData(merge3(sent, now, res.next, 'local').data);
+    }
+    if(res.merged) toast('다른 기기에서 바뀐 내용과 합쳐서 저장했어요'+(res.conflicts?` (같은 항목 ${res.conflicts}건은 이 기기 쪽으로)`:''));
+    if(dataSig(localSync())!==cloudBase.sig) cloudPushAgain=true;
+  }catch(e){
+    console.error('클라우드 저장 실패', e);   // 오프라인 등: 이 기기에 남아 있고, 다시 연결되면 올린다
+  } finally {
+    cloudPushing=false;
+    if(cloudPushAgain){ cloudPushAgain=false; cloudPushDebounced(); }
+  }
+}
+window.addEventListener('online', ()=>{ if(cloudUid && cloudReady) cloudPush(); });
+
+// 클라우드 문서가 바뀌면(다른 기기 저장) base 기준으로 이 기기의 아직 안 올린 변경과 합쳐 반영
+function onCloudSnapshot(doc){
+  if(!doc.exists || doc.metadata.hasPendingWrites) return;
+  const d=doc.data(), rev=d.rev||0;
+  const remote=pickSync(d);
+  // rev만 보지 않고 내용도 본다 (rev를 모르는 옛 버전 탭이 저장한 경우까지 잡기 위해)
+  if(cloudBase && rev===cloudBase.rev && dataSig(remote)===cloudBase.sig) return;   // 이미 맞춘 상태
+  const m=merge3(cloudBase?cloudBase.data:null, localSync(), remote, 'local');
+  setCloudBase(rev, remote);
+  applySyncData(m.data);
+  if(dataSig(m.data)!==cloudBase.sig) cloudPushDebounced();   // 이 기기에만 있던 변경은 이어서 올림
+}
+
+// base가 없는 기기(처음 로그인, 이번 업데이트 직후)에서 두 데이터가 다를 때 고르는 창.
+// 예전 [확인/취소] 창은 취소하면 로그아웃돼 버려서, 로그인은 유지한 채 세 가지 중에 고르게 바꿨다.
+function askSyncChoice(local, remote){
+  return new Promise(resolve=>{
+    const cnt=d=>`라인 ${d.lines.length} · 기록 ${d.logs.length}`;
+    const lastLocal=d=>{ const t=d.logs.map(l=>l.date||'').sort().pop(); return t?' · 최근 기록 '+String(t).slice(0,10):''; };
+    document.getElementById('syncLocalInfo').textContent=cnt(local)+lastLocal(local);
+    document.getElementById('syncCloudInfo').textContent=cnt(remote)+lastLocal(remote);
+    const m=document.getElementById('syncModal');
+    m.querySelectorAll('[data-sync]').forEach(b=>{ b.onclick=()=>{ m.classList.remove('open'); resolve(b.dataset.sync); }; });
+    m.classList.add('open');
+  });
+}
+function downloadSyncBackup(tag, d){
+  const t=new Date(), p2=n=>String(n).padStart(2,'0');
+  const ymd=String(t.getFullYear()).slice(-2)+p2(t.getMonth()+1)+p2(t.getDate())+'_'+p2(t.getHours())+p2(t.getMinutes());
+  const blob=new Blob([JSON.stringify(Object.assign({app:'organoid-log',v:2,exportedAt:t.toISOString()},d))],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`organoid_${tag}_${ymd}.json`;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+
 if(fbAuth) fbAuth.onAuthStateChanged(async user=>{
   if(cloudUnsub){ cloudUnsub(); cloudUnsub=null; }
+  cloudReady=false; clearTimeout(cloudPushTimer);
   if(!user){
-    cloudUid=null; renderCloudStatus(null);
+    cloudUid=null; cloudBase=null; renderCloudStatus(null);
     // 로그아웃 상태는 상단 안내 문구와 [Google 로그인] 버튼으로만 알린다 (매번 뜨던 alert 제거)
     return;
   }
 
   cloudUid=user.uid;
+  cloudBase=loadCloudBase(user.uid);
   renderCloudStatus(user);
   const ref=cloudDocRef(user.uid);
   const snap=await ref.get().catch(()=>null);
+  if(cloudUid!==user.uid) return;
 
   if(snap && snap.exists){
-    const d=snap.data();
-    // 로컬 데이터와 클라우드 데이터가 이미 똑같으면(=매번 새로고침할 때의 정상 상황) 아무것도 묻지 않고 넘어감
-    if(dataSig(lines,logs,stockChecks,trash,tlCollapsed,plans,shotSets) !== dataSig(d.lines||[],d.logs||[],d.stockChecks||[],d.trash||[],d.tlCollapsed||{},d.plans||[],d.shotSets||[])){
-      const cloudHas=(d.lines&&d.lines.length)||(d.logs&&d.logs.length);
-      const localHas=lines.length||logs.length;
-      if(cloudHas && localHas){
-        if(!confirm('이 계정에 이미 클라우드에 저장된 데이터가 있고, 이 기기의 데이터와 내용이 다릅니다.\n클라우드 데이터를 불러와서 이 기기의 현재 데이터를 덮어쓸까요?\n(취소하면 로그인이 취소되고 이 기기 데이터는 그대로 유지됩니다)')){
-          await fbAuth.signOut();
-          return;
-        }
+    const d=snap.data(), rev=d.rev||0, remote=pickSync(d), local=localSync();
+    if(cloudBase){
+      // 이 기기가 전에 맞춰 둔 상태를 알고 있으면 묻지 않고 합친다 (이 기기에서 안 올린 변경도 살아남음)
+      onCloudSnapshot({exists:true, metadata:{}, data:()=>d});
+    } else if(dataSig(local)===dataSig(remote) || !syncHas(local)){
+      setCloudBase(rev, remote); applySyncData(remote);
+    } else if(!syncHas(remote)){
+      setCloudBase(rev, remote);   // 클라우드가 비어 있으면 이 기기 데이터를 올린다
+    } else {
+      const c=await askSyncChoice(local, remote);
+      if(cloudUid!==user.uid) return;
+      const now=localSync();
+      if(c==='merge'){
+        // 기준이 없으니 합집합. 같은 항목이 양쪽에서 다르면 클라우드 쪽(다른 기기에서 최근에 고친 쪽일 가능성이 큼)
+        setCloudBase(rev, remote);
+        applySyncData(merge3(null, now, remote, 'remote').data);
+      } else if(c==='cloud'){
+        downloadSyncBackup('이기기백업', now);   // 덮어써서 사라지는 쪽은 파일로 남겨 둔다
+        setCloudBase(rev, remote); applySyncData(remote);
+      } else {
+        downloadSyncBackup('클라우드백업', remote);
+        setCloudBase(rev, remote);   // base=클라우드로 두면 다음 올리기에서 이 기기 내용이 그대로 올라간다
       }
-      applyCloudData(d);
     }
-  } else {
-    await cloudPush();   // 처음 로그인: 이 기기의 현재 데이터를 클라우드에 올림
+  } else if(snap){
+    setCloudBase(0, {});   // 처음 로그인: 이 기기의 현재 데이터를 클라우드에 올림
   }
 
-  cloudUnsub=ref.onSnapshot(doc=>{
-    if(cloudSyncing || !doc.exists) return;
-    applyCloudData(doc.data());
-  });
+  cloudReady=true;
+  await cloudPush();
+  cloudUnsub=ref.onSnapshot(onCloudSnapshot, e=>console.error('클라우드 수신 실패', e));
 });
 
 // ══════════════════════════════════════════
@@ -3486,7 +3670,7 @@ function openLineModal(keep){
   setTimeout(()=>document.getElementById('elPid').focus({preventScroll:true}),120);
 }
 function closeLineModal(){ document.getElementById('lineFormPanel').style.display='none'; resetLineForm(); }
-function closeModalsAll(){ document.querySelectorAll('.modal.open').forEach(m=>m.classList.remove('open')); }
+function closeModalsAll(){ document.querySelectorAll('.modal.open:not(#syncModal)').forEach(m=>m.classList.remove('open')); }
 function closeLogModal(){document.getElementById('logModal').classList.remove('open');}
 function resetLineForm(){
   ['elId','elPid','elType','elLineDetail','elMemo'].forEach(i=>document.getElementById(i).value='');
@@ -3866,7 +4050,7 @@ document.addEventListener('keydown',e=>{
   // Esc: 가장 위에 열린 창부터 닫기
   if(e.key==='Escape'){
     if(document.querySelector('.dd.open')){ closeDd(); return; }
-    const open=[...document.querySelectorAll('.modal.open')];
+    const open=[...document.querySelectorAll('.modal.open:not(#syncModal)')];   // 동기화 선택 창은 골라야만 닫힌다
     if(open.length){ open[open.length-1].classList.remove('open'); return; }
     if(document.body.classList.contains('side-open')){ closeSide(); return; }
     const lf=document.getElementById('lineFormPanel');
