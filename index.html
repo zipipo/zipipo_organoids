@@ -1407,7 +1407,7 @@ let _slRecentIds= JSON.parse(localStorage.getItem('orgSlRecent')||'[]');      //
 let _slRecentNotes=JSON.parse(localStorage.getItem('orgSlRecentNotes')||'[]'); // 촬영 순서 기록에서 최근 쓴 특이사항
 let typeColors  = JSON.parse(localStorage.getItem('orgTypeColors')) || {};    // 종류(type)별로 직접 고른 색상 { type: PAL 인덱스 }
 function saveTypeColors(){ localStorage.setItem('orgTypeColors', JSON.stringify(typeColors)); cloudPushDebounced(); }
-function saveShotLog(){ localStorage.setItem('orgShotLog', JSON.stringify(shotLog)); }
+function saveShotLog(){ localStorage.setItem('orgShotLog', JSON.stringify(shotLog)); syncShotDraft(); }
 function saveShotSets(){ localStorage.setItem('orgShotSets', JSON.stringify(shotSets)); cloudPushDebounced(); }
 function savePlans(){ localStorage.setItem('orgPlans', JSON.stringify(plans)); cloudPushDebounced(); }
 function ymdLocal(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -2218,12 +2218,46 @@ function shotSetDate(s){
   const m=/^(\d{2})\.(\d{2})\.(\d{2})/.exec(s.name||'');
   return m?`20${m[1]}-${m[2]}-${m[3]}`:null;
 }
+// 쌓는 중인 촬영 순서(shotLog)는 이 기기에만 있어서, [순서 저장]을 안 누르면 다른 기기에서 못 봤다.
+// 그래서 순서가 바뀔 때마다 기기별 '작성 중' 세트 하나(draft:true)로 같이 올려 둔다. 세트 목록은 클라우드로 동기화된다.
+// 큐 자체는 기기마다 따로 두고(노트북에서 세트를 불러와도 폰 큐를 덮지 않게), 세트 목록에만 비춰 보이게 한 것.
+// 큐가 비거나, 이미 저장된 세트와 컷 구성이 같아지면 작성 중 세트는 지운다.
+function shotDraftId(){
+  let id=localStorage.getItem('orgShotDraftId');
+  if(!id){ id='draft_'+uid(); localStorage.setItem('orgShotDraftId', id); }
+  return id;
+}
+const shotItemsSig=items=>items.map(it=>it.lineId+'|'+it.mag+'|'+(it.note||'')).join(';');
+function syncShotDraft(){
+  const id=shotDraftId(), idx=shotSets.findIndex(x=>x.id===id);
+  const items=shotLog.map(s=>({lineId:s.lineId, mag:s.mag, note:s.note||''}));
+  const sig=shotItemsSig(items);
+  const dup=items.length && shotSets.some(x=>!x.draft && shotItemsSig(x.items)===sig);
+  if(!items.length || dup){
+    if(idx<0) return;
+    shotSets.splice(idx,1);
+  } else {
+    if(idx>=0 && shotItemsSig(shotSets[idx].items)===sig) return;
+    const date=shotLog[0].date || ymdLocal(new Date(shotLog[0].ts||Date.now()));
+    const dev=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)?'폰':'PC';
+    const now=Date.now();
+    const d={id, draft:true, name:shotSetDefaultName(date, items.length)+` · ${dev}`, items,
+      createdTs:idx>=0?shotSets[idx].createdTs:now, updatedTs:now};
+    if(idx>=0) shotSets[idx]=d; else shotSets.push(d);
+  }
+  saveShotSets();
+  if(typeof renderShotSets==='function' && document.getElementById('slSets')) renderShotSets();
+}
+
 // 같은 날짜에 컷 구성이 똑같은 세트가 둘 이상이면(자동 기록 + 직접 저장 등) 하나만 남긴다.
 // 직접 저장한 세트(이름을 붙인 쪽)를 우선 남기고, 저장 시각은 둘 중 더 늦은 쪽으로 맞춘다.
 function dedupeShotSets(){
   const keyOf=s=>(shotSetDate(s)||'')+'#'+s.items.map(it=>it.lineId+'|'+it.mag+'|'+(it.note||'')).join(';');
   const keep=new Map();
-  shotSets.forEach(s=>{
+  // 작성 중 세트는 합치지 않는다. 같은 구성의 저장된 세트가 생기면 작성 중 쪽만 빠진다.
+  const savedSigs=new Set(shotSets.filter(s=>!s.draft).map(s=>shotItemsSig(s.items)));
+  const drafts=shotSets.filter(s=>s.draft && !savedSigs.has(shotItemsSig(s.items)));
+  shotSets.filter(s=>!s.draft).forEach(s=>{
     const k=keyOf(s), cur=keep.get(k);
     if(!cur){ keep.set(k,s); return; }
     const better = (!!cur.autoKey!==!!s.autoKey) ? (cur.autoKey?s:cur) : (s.updatedTs>cur.updatedTs?s:cur);
@@ -2233,8 +2267,8 @@ function dedupeShotSets(){
     if(ps) better.photoSavedTs=ps;
     keep.set(k,better);
   });
-  if(keep.size===shotSets.length) return false;
-  const ids=new Set([...keep.values()].map(s=>s.id));
+  if(keep.size+drafts.length===shotSets.length) return false;
+  const ids=new Set([...keep.values(), ...drafts].map(s=>s.id));
   shotSets=shotSets.filter(s=>ids.has(s.id));
   return true;
 }
@@ -2301,7 +2335,8 @@ function renderShotSets(){
   el.innerHTML = shotSets.slice().sort((a,b)=>b.updatedTs-a.updatedTs).map(s=>{
     const labels=s.items.map(it=>{const l=lines.find(x=>x.id===it.lineId); return l?lineTag(l):'(삭제된 라인)';});
     const uniq=[...new Set(labels)];
-    const tag=s.autoKey?'<span style="font-size:.62rem;background:#F1F5F9;color:#64748B;padding:1px 6px;border-radius:8px;font-weight:700;">자동 기록</span>':'';
+    const tag=s.draft?'<span style="font-size:.62rem;background:#FEF3C7;color:#B45309;padding:1px 6px;border-radius:8px;font-weight:700;">작성 중</span>'
+      :s.autoKey?'<span style="font-size:.62rem;background:#F1F5F9;color:#64748B;padding:1px 6px;border-radius:8px;font-weight:700;">자동 기록</span>':'';
     const saved=!!shotSetSavedTs(s);
     return `<div style="display:flex;align-items:center;gap:6px;padding:6px 8px;border:1px solid ${saved?'#BBF7D0':'#E2E8F0'};${saved?'border-left:3px solid #22C55E;':''}border-radius:6px;margin-bottom:6px;background:${saved?'#F0FDF4':'#fff'};">
       <div style="flex:1;min-width:0;">
@@ -2313,6 +2348,8 @@ function renderShotSets(){
     </div>`;
   }).join('');
 }
+// 예전 버전에서 쌓아 두고 저장 안 한 순서도 열자마자 작성 중 세트로 올라가게
+syncShotDraft();
 
 // 연속으로 같은 라인에 기록된 항목은 한 줄로 묶어서 보여줌 (세트로 넣었든 개별로 이어 넣었든 동일하게 묶임)
 // 단, 같은 라인 안에서 이미 나온 배율(예: 4x)이 특이사항을 달고 다시 나오면 — 같은 라인의 다른 샘플로 보고 새 세트로 끊는다
