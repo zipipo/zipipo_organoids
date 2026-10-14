@@ -3175,6 +3175,40 @@ function recalcLogsForLine(lineId) {
   syncLineState(line);
 }
 
+// 기록 1건 추가 + 라인 상태 전진. 화면 저장(saveDailyLog)과 cclAgent.addRecords가 같이 쓴다.
+// 저장·화면 갱신은 하지 않으므로, 부른 쪽에서 recalcLogsForLine → updateUI 순서로 마무리한다.
+function pushDailyLog(line, r){
+    const lineId=line.id, date=r.date, action=r.action;
+    // (1) 현재 라인의 상태를 긁어와서, 일단 그 상태 그대로 로그로 저장!
+    const curP = line.passage;
+    const curDStr = calcDayStr(line, date);
+    const lg={id:uid(),seq:nextSeq(),lineId,date,action,passage:curP,dayInfo:curDStr,details:r.det,plate:r.plate||plateAt(line,date),finalWells:r.wells,stocks:r.stocks,memo:r.memo,printedToNotebook:false};
+    if(r.src) lg.src=r.src;
+    logs.push(lg);
+
+    // (2) 그 액션이 상태를 바꾸는 액션(Split/Reseeding)이라면, '다음 추가될 로그'를 위해 라인의 정보를 진화시킴
+    if (isPassageUp(action)) {
+        line.passage++;
+        line.daySegs = [];
+        line.baseDay = 0;
+        line.isReseeded = false;
+        line.startDate = isoD(date);
+    } else if (action === 'Reseeding') {
+        const s = new Date(line.startDate), ld = new Date(date);
+        s.setHours(0,0,0,0); ld.setHours(0,0,0,0);
+        const diff = Math.max(0, Math.floor((ld - s) / 86400000));
+        line.daySegs = [...(line.daySegs||[]), diff];
+        line.baseDay = line.daySegs.reduce((a,b)=>a+b,0);
+        line.isReseeded = true;
+        line.startDate = isoD(date);
+    }
+
+    if(r.stocks&&parseInt(r.stocks)>0){
+      stockChecks.push({id:uid(),lineId:lineId, lineLabel:lineTag(line),date,stocks:r.stocks,ln2Done:false,dbDone:false});
+    }
+    return lg;
+}
+
 // ══════════════════════════════════════════
 //  SAVE DAILY LOG
 // ══════════════════════════════════════════
@@ -3199,33 +3233,7 @@ function saveDailyLog(){
   dates.slice().sort().forEach(date=>{
     const line=lines.find(l=>l.id===lineId);
     if(!line) return;
-
-    // (1) 현재 라인의 상태를 긁어와서, 일단 그 상태 그대로 로그로 저장!
-    const curP = line.passage;
-    const curDStr = calcDayStr(line, date);
-    logs.push({id:uid(),seq:nextSeq(),lineId,date,action,passage:curP,dayInfo:curDStr,details:det,plate:plate||plateAt(line,date),finalWells:wells,stocks,memo,printedToNotebook:false});
-
-    // (2) 그 액션이 상태를 바꾸는 액션(Split/Reseeding)이라면, '다음 추가될 로그'를 위해 라인의 정보를 진화시킴
-    if (isPassageUp(action)) {
-        line.passage++;
-        line.daySegs = [];
-        line.baseDay = 0;
-        line.isReseeded = false;
-        line.startDate = isoD(date);
-    } else if (action === 'Reseeding') {
-        const s = new Date(line.startDate), ld = new Date(date);
-        s.setHours(0,0,0,0); ld.setHours(0,0,0,0);
-        const diff = Math.max(0, Math.floor((ld - s) / 86400000));
-        line.daySegs = [...(line.daySegs||[]), diff];
-        line.baseDay = line.daySegs.reduce((a,b)=>a+b,0);
-        line.isReseeded = true;
-        line.startDate = isoD(date);
-    }
-    
-    if(stocks&&parseInt(stocks)>0){
-      const ln=lines.find(l=>l.id===lineId);
-      stockChecks.push({id:uid(),lineId:lineId, lineLabel:lineTag(ln),date,stocks,ln2Done:false,dbDone:false});
-    }
+    pushDailyLog(line, {date,action,det,plate,wells,stocks,memo});
   });
   });
 
@@ -5687,6 +5695,229 @@ function renderAnalytics(){
   setVolMode(_volMode);
 }
 
+// ══════════════════════════════════════════
+//  cclAgent: Claude(Chrome 확장)가 콘솔 한 번으로 조회·기록하도록 열어 둔 함수
+// ══════════════════════════════════════════
+// 화면에는 아무것도 추가하지 않는다. 기록 추가는 화면 저장과 같은 pushDailyLog → recalcLogsForLine → updateUI 흐름을 탄다.
+// 쓰기는 Google 로그인 + 첫 동기화가 끝난 상태에서만 허용한다 (데이터 접근 범위는 Firestore 규칙이 막는다).
+// 라인 생성·배양 완료·영구 삭제·백업 불러오기는 일부러 열지 않았다.
+(function(){
+  const VERSION='1.0';
+  const kstToday=()=>{ try{ return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul'}).format(new Date()); }catch(e){ return ymdLocal(new Date()); } };
+  const loggedIn=()=>!!(fbAuth && fbAuth.currentUser && cloudUid && cloudReady);
+  const norm=s=>String(s==null?'':s).toLowerCase().replace(/[\s_\-·]+/g,' ').trim();
+  const str=v=>(v===null||v===undefined)?'':String(v).trim();
+  const clone=o=>JSON.parse(JSON.stringify(o));
+
+  function syncState(){
+    if(DEMO) return 'demo';
+    if(!fbAuth) return 'unavailable';
+    if(!cloudUid) return 'signed-out';
+    if(!cloudReady) return 'connecting';
+    if(cloudPushing) return 'pushing';
+    if(cloudBase && dataSig(localSync())!==cloudBase.sig) return 'pending';
+    return navigator.onLine===false?'offline':'synced';
+  }
+  function lastRecordDate(line){
+    return logs.filter(l=>l.lineId===line.id).map(l=>l.date||'').sort().pop()||'';
+  }
+  function lineOut(l){
+    return {id:l.id, name:lineTag(l), type:l.type, detail:l.detail||'', P:l.passage, d:calcDayStr(l, kstToday()),
+      plate:latestPlate(l), wells:latestWell(l), lastRecordDate:lastRecordDate(l), completed:!!l.isCompleted};
+  }
+  function recOut(lg){
+    return {id:lg.id, lineId:lg.lineId, date:lg.date, action:lg.action, P:lg.passage, d:lg.dayInfo||'',
+      ratio:lg.details||'', plate:lg.plate||'', wells:lg.finalWells||'', stock:lg.stocks||'', memo:lg.memo||'', src:lg.src||''};
+  }
+  // 이름 일부("HCC18 IFNg")로 찾기. 띄어쓰기·_·- 로 나눈 조각이 모두 들어 있는 라인. 이름이 정확히 같으면 그 라인만.
+  function matchLines(query, includeDone){
+    const pool=lines.filter(l=>includeDone||!l.isCompleted);
+    const byId=pool.filter(l=>l.id===query);
+    if(byId.length) return byId;
+    const q=norm(query);
+    if(!q) return [];
+    const exact=pool.filter(l=>norm(lineTag(l))===q);
+    if(exact.length) return exact;
+    const toks=q.split(' ');
+    return pool.filter(l=>{ const n=norm(lineTag(l)); return toks.every(t=>n.includes(t)); });
+  }
+  // 대소문자만 다른 기존 액션 이름은 원래 표기로 맞춘다 ("reseeding" → "Reseeding")
+  function knownActions(){
+    const out=[];
+    ACTIONS.forEach(a=>{ if(a.key==='__custom__') return; (a.variants||[a.key]).forEach(v=>out.push(v)); });
+    return out;
+  }
+  function normAction(a){
+    const s=str(a); if(!s) return '';
+    const hit=knownActions().find(k=>k.toLowerCase()===s.toLowerCase());
+    if(hit) return hit;
+    if(s.toLowerCase()==='stock') return 'Stock (p+1)';
+    if(s.toLowerCase()==='pellet') return 'Pellet (passage 유지)';
+    return s;
+  }
+  function effectOf(action){
+    if(isPassageUp(action)) return 'P+1, d0';
+    if(action==='Reseeding') return 'd 누적 (d이전+0)';
+    return 'P/d 변화 없음';
+  }
+  function lineState(l){ return {P:l.passage, d:calcDayStr(l, kstToday()), wells:latestWell(l), plate:latestPlate(l)}; }
+
+  // 입력 검증 → [{ok rec}] / errors / warnings
+  function prepare(records){
+    const errors=[], warnings=[], items=[];
+    if(!Array.isArray(records)) records=[records];
+    const t=kstToday();
+    records.forEach((r,i)=>{
+      const tag=`#${i}`;
+      if(!r || typeof r!=='object'){ errors.push(`${tag}: 기록 형식이 아님`); return; }
+      const q=str(r.lineId||r.line);
+      const cand=matchLines(q,false);
+      if(!q){ errors.push(`${tag}: line 비어 있음`); return; }
+      if(cand.length===0){
+        const done=matchLines(q,true).filter(l=>l.isCompleted);
+        errors.push(`${tag}: 라인을 못 찾음 "${q}"`+(done.length?` (완료된 라인 ${done.map(lineTag).join(', ')}만 맞음)`:''));
+        return;
+      }
+      if(cand.length>1){ errors.push(`${tag}: "${q}"에 맞는 라인이 ${cand.length}개: ${cand.map(lineTag).join(' / ')}`); return; }
+      const line=cand[0];
+      const date=str(r.date)||t;
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(date) || isNaN(new Date(date))){ errors.push(`${tag}: 날짜 형식 오류 "${date}" (YYYY-MM-DD)`); return; }
+      const action=normAction(r.action);
+      if(!action){ errors.push(`${tag}: action 비어 있음`); return; }
+      if(isFin(action) || isSeed(action)){ errors.push(`${tag}: "${action}"은 API로 기록하지 않음 (배양 완료·라인 시작은 화면에서)`); return; }
+      if(!knownActions().includes(action)) warnings.push(`${tag}: 목록에 없는 액션 "${action}" 그대로 기록`);
+      if(date>t) warnings.push(`${tag}: 미래 날짜 ${date}`);
+      const lastD=lastRecordDate(line);
+      if(lastD && date<lastD) warnings.push(`${tag}: ${lineTag(line)}의 마지막 기록(${lastD})보다 이전 날짜 → 이후 기록 P/d 재계산됨`);
+      if(logs.some(l=>l.lineId===line.id&&l.date===date&&l.action===action)
+        || items.some(x=>x.line.id===line.id&&x.date===date&&x.action===action))
+        warnings.push(`${tag}: 중복 가능 (${lineTag(line)} · ${date} · ${action} 기록이 이미 있음)`);
+      const wells=str(r.wells), stocks=(r.stock===0||r.stock==='0')?'':str(r.stock);
+      if(wells && !/^\d+$/.test(wells)) warnings.push(`${tag}: wells가 숫자가 아님 "${wells}"`);
+      items.push({line, date, action, det:str(r.ratio), plate:str(r.plate), wells, stocks, memo:str(r.memo), src:'claude'});
+    });
+    return {items, errors, warnings};
+  }
+
+  // 같은 함수로 실제 적용한 뒤 결과만 읽고 되돌린다 (화면 저장과 결과가 어긋날 여지를 없앰)
+  function simulate(items){
+    const snap=JSON.stringify({lines,logs,stockChecks}), seq=_logSeq;
+    try{
+      const before={};
+      items.forEach(it=>{ if(!before[it.line.id]) before[it.line.id]=lineState(it.line); });
+      const recs=items.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(it=>{
+        const line=lines.find(l=>l.id===it.line.id);
+        return {it, lg:pushDailyLog(line, it)};
+      });
+      [...new Set(items.map(it=>it.line.id))].forEach(recalcLogsForLine);
+      const lineChanges=Object.keys(before).map(id=>{
+        const l=lines.find(x=>x.id===id);
+        return {lineId:id, name:lineTag(l), before:before[id], after:lineState(l)};
+      });
+      return {records:recs.map(x=>Object.assign(recOut(x.lg),{line:lineTag(x.it.line), effect:effectOf(x.lg.action)})), lines:lineChanges};
+    } finally {
+      const d=JSON.parse(snap); lines=d.lines; logs=d.logs; stockChecks=d.stockChecks; _logSeq=seq;
+    }
+  }
+
+  async function flushCloud(){
+    clearTimeout(cloudPushTimer);
+    await cloudPush();
+    for(let i=0;i<20 && cloudPushing;i++) await new Promise(r=>setTimeout(r,250));
+    return !!(cloudBase && dataSig(localSync())===cloudBase.sig);
+  }
+  function denied(){ return {ok:false, saved:[], warnings:[], errors:[`로그인·동기화 상태가 아님 (${syncState()}). Google 로그인 후 다시 시도`]}; }
+
+  async function addRecords(records, opt){
+    opt=opt||{};
+    if(!loggedIn()) return denied();
+    const {items, errors, warnings}=prepare(records);
+    if(opt.dryRun){
+      const sim=items.length?simulate(items):{records:[],lines:[]};
+      return {ok:errors.length===0, dryRun:true, saved:[], preview:sim.records, lines:sim.lines, warnings, errors};
+    }
+    if(!items.length) return {ok:false, saved:[], warnings, errors};
+    const snap=takeSnap();
+    const saved=items.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(it=>pushDailyLog(it.line, it).id);
+    [...new Set(items.map(it=>it.line.id))].forEach(recalcLogsForLine);
+    updateUI();
+    toast(`Claude 기록 ${saved.length}건 저장`,{undo:snap});
+    const synced=await flushCloud();
+    if(!synced) warnings.push('클라우드 반영 대기 중 (이 기기에는 저장됨, 연결되면 자동 업로드)');
+    return {ok:errors.length===0, saved, records:saved.map(id=>recOut(logs.find(l=>l.id===id))), synced, warnings, errors};
+  }
+
+  // Claude가 넣은 기록만 휴지통으로 (영구 삭제 없음, 휴지통에서 복원 가능)
+  async function undo(recordIds){
+    if(!loggedIn()) return denied();
+    const ids=Array.isArray(recordIds)?recordIds:[recordIds];
+    const trashed=[], errors=[], touched=new Set();
+    ids.forEach(id=>{
+      const lg=logs.find(l=>l.id===id);
+      if(!lg){ errors.push(`${id}: 기록 없음`); return; }
+      if(lg.src!=='claude'){ errors.push(`${id}: Claude가 넣은 기록이 아니라서 건너뜀 (화면에서 삭제)`); return; }
+      const line=lines.find(l=>l.id===lg.lineId);
+      trash.unshift({id:uid(),kind:'log',deletedAt:new Date().toISOString(),
+        label:`${line?lineTag(line):'(삭제된 라인)'} · ${lg.date} · ${lg.action}`,log:lg});
+      logs=logs.filter(l=>l.id!==id);
+      if(line) touched.add(line.id);
+      trashed.push(id);
+    });
+    if(trashed.length){
+      saveTrash();
+      touched.forEach(recalcLogsForLine);
+      updateUI();
+      toast(`Claude 기록 ${trashed.length}건 휴지통으로 이동`);
+      await flushCloud();
+    }
+    return {ok:errors.length===0, trashed, errors};
+  }
+
+  // P/d에 영향 없는 칸만 고친다. 고치기 전 값을 같이 돌려준다.
+  const EDITABLE={memo:'memo', ratio:'details', wells:'finalWells', plate:'plate', stock:'stocks'};
+  async function editRecord(recordId, patch){
+    if(!loggedIn()) return denied();
+    const lg=logs.find(l=>l.id===recordId);
+    if(!lg) return {ok:false, errors:[`${recordId}: 기록 없음`]};
+    const keys=Object.keys(patch||{});
+    const bad=keys.filter(k=>!(k in EDITABLE));
+    if(bad.length) return {ok:false, errors:[`수정할 수 없는 필드: ${bad.join(', ')} (가능: ${Object.keys(EDITABLE).join(', ')})`]};
+    if(!keys.length) return {ok:false, errors:['patch 비어 있음']};
+    const before={};
+    keys.forEach(k=>{ before[k]=lg[EDITABLE[k]]==null?'':lg[EDITABLE[k]]; lg[EDITABLE[k]]=(k==='stock'&&(patch[k]===0||patch[k]==='0'))?'':str(patch[k]); });
+    updateUI();
+    toast('Claude 기록 1건 수정');
+    await flushCloud();
+    return {ok:true, before, after:recOut(lg)};
+  }
+
+  const api={
+    version:VERSION,
+    status:()=>({loggedIn:loggedIn(), syncState:syncState(), today:kstToday()}),
+    whenReady:(ms)=>new Promise(res=>{
+      const t0=Date.now(), tick=()=>{ if(loggedIn()) return res(true); if(Date.now()-t0>(ms||15000)) return res(false); setTimeout(tick,300); };
+      tick();
+    }),
+    actions:()=>knownActions().map(a=>({action:a, effect:effectOf(a)})),
+    listLines:(o)=>{ o=o||{}; const act=o.active!==false; return lines.filter(l=>act?!l.isCompleted:true).sort(typeCmp).map(lineOut); },
+    findLine:(query,o)=>{ const c=matchLines(str(query), !!(o&&o.includeDone)).map(lineOut); return c.length===1?c[0]:c; },
+    listRecords:(o)=>{
+      o=o||{};
+      let rs=logs.slice();
+      if(o.lineId||o.line){
+        const c=o.lineId?lines.filter(l=>l.id===o.lineId):matchLines(str(o.line),true);
+        const ids=new Set(c.map(l=>l.id)); rs=rs.filter(l=>ids.has(l.lineId));
+      }
+      if(o.date) rs=rs.filter(l=>l.date===o.date);
+      if(!o.date && !o.lineId && !o.line) rs=rs.filter(l=>l.date===kstToday());
+      return rs.sort((a,b)=>String(a.date).localeCompare(String(b.date))||(a.seq||0)-(b.seq||0))
+        .map(lg=>{ const l=lines.find(x=>x.id===lg.lineId); return Object.assign(recOut(lg),{line:l?lineTag(l):''}); });
+    },
+    addRecords, undo, editRecord,
+  };
+  try{ Object.defineProperty(window,'cclAgent',{value:Object.freeze(api), configurable:false, writable:false}); }
+  catch(e){ window.cclAgent=Object.freeze(api); }
+})();
 </script>
 
 <div id="sbarModal" class="modal">
