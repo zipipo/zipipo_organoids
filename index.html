@@ -4392,7 +4392,7 @@ function sbClearAll(){ if(sbFiles.length && confirm('추가한 사진 '+sbFiles.
 function sbWbMode(f){
   if(f.wbMode) return f.wbMode;
   const line=lines.find(l=>l.id===f.lineId);
-  if(line) return wbModeForText(line.type);
+  if(line) return wbModeForText((line.type||'')+' '+(line.detail||''));   // 종류나 샘플 세부명에 org가 있으면 오가노이드
   // 라인이 없으면(이미 저장한 사진을 보정만 할 때) 파일 이름으로: org가 있으면 오가노이드,
   // 저장 규칙 이름인데 org가 없으면 2D, 규칙을 모르는 이름은 오가노이드(기본)
   if(/org/i.test(f.fname)) return 'org';
@@ -5993,7 +5993,7 @@ function renderAnalytics(){
         <input type="file" id="sbInput" accept="image/*,.tif,.tiff" multiple style="display:none;">
       </div>
       <div class="hint" style="margin:8px 0;line-height:1.6;">
-        · 사진(썸네일)을 누르면 색 보정 전/후를 크게 비교할 수 있어요. 라인 종류에 org가 있으면 오가노이드, 아니면 2D로 보정돼요.<br>
+        · 사진(썸네일)을 누르면 색 보정 전/후를 크게 비교할 수 있어요. 라인 종류나 샘플 세부명에 org가 있으면 오가노이드, 아니면 2D로 보정돼요.<br>
         · 촬영 날짜 옆에서 저장된 순서를 고르면 그 묶음 사진에 바로 채워져요. 사진을 더 넣으면 새 묶음으로 따로 시작하고, "여기부터 다른 날짜"로 직접 나눌 수도 있어요.<br>
         · 라인을 고르지 않은 사진은 원래 파일 이름 그대로 보정만 해서 <b>날짜_color-matched_N장</b> 폴더에 따로 저장돼요.</div>
       <div id="sbList"></div>
