@@ -4091,6 +4091,27 @@ function toggleDd(e,id){ e.stopPropagation(); document.getElementById(id).classL
 function closeDd(){ document.querySelectorAll('.dd.open').forEach(d=>d.classList.remove('open')); }
 document.addEventListener('click',e=>{ if(!e.target.closest('.dd-menu')) closeDd(); else if(e.target.closest('button')) setTimeout(closeDd,0); });
 
+// 입력하면서 바로 바꾸기: -> 는 →, 10^6 은 10⁶ (^ 뒤 숫자와, 위첨자 바로 뒤에 이어 친 숫자까지 위첨자로)
+// 파일 이름에 들어가는 칸(사진 특이사항)과 검색창은 건드리지 않는다.
+// 캡처 단계에서 먼저 바꿔 두므로 각 칸의 oninput은 바뀐 값을 받는다.
+const SUP={'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','-':'⁻'};
+function autoTypo(s){
+  return s.replace(/->/g,'→')
+    .replace(/\^(-?\d)/g,(m,d)=>[...d].map(c=>SUP[c]).join(''))
+    .replace(/([⁰¹²³⁴⁵⁶⁷⁸⁹])(\d+)/g,(m,a,d)=>a+[...d].map(c=>SUP[c]).join(''));
+}
+document.addEventListener('input',e=>{
+  const el=e.target;
+  if(!el.matches('textarea, input[type="text"], input:not([type])') || el.matches('#lineSearch, .sb-note, #slNote')) return;
+  if(e.isComposing || /^(delete|history)/.test(e.inputType||'')) return;
+  const pos=el.selectionStart, v=el.value;
+  if(pos==null) return;
+  const head=autoTypo(v.slice(0,pos)), tail=v.slice(pos).replace(/->/g,'→');
+  if(head+tail===v) return;
+  el.value=head+tail;
+  el.setSelectionRange(head.length,head.length);
+},true);
+
 document.addEventListener('keydown',e=>{
   // Esc: 가장 위에 열린 창부터 닫기
   if(e.key==='Escape'){
