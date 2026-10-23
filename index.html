@@ -1010,7 +1010,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
   *,*::before,*::after{animation:none!important;transition:none!important;}
 }
 
-/* 라인 나누기 · 계보 */
+/* 라인 나누기 · Tree */
 .tl-from{font-size:.72rem;color:var(--sub);background:var(--sur2,#F8FAFC);border:1px solid var(--bd);border-radius:4px;padding:1px 6px;cursor:pointer;display:inline-flex;align-items:center;gap:3px;white-space:nowrap;}
 .tl-from:hover{border-color:var(--sub);}
 .tl-from .ic{width:12px;height:12px;}
@@ -1335,7 +1335,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
     <div class="mscroll" id="archDetailBody"></div>
     <div class="mfoot" style="display:flex;gap:7px;">
       <button class="btn btn-edt" id="archDetailEdit">라인 수정</button>
-      <button class="btn btn-out" id="archDetailKin">계보 보기</button>
+      <button class="btn btn-out" id="archDetailKin">Tree</button>
       <button class="btn btn-out" style="flex:1;" onclick="closeArchDetail()">닫기</button>
     </div>
   </div>
@@ -2768,7 +2768,7 @@ function renderTimelines(containerId,showDone){
         <div class="tl-act" onclick="event.stopPropagation()">
           <button class="btn btn-ghost" onclick="startLogForLine('${line.id}')">${ic('plus')}기록</button>
           <button class="btn btn-ghost" onclick="openBranchModal('${line.id}')" title="웰 일부를 떼어 새 라인으로">${ic('branch')}나누기</button>
-          ${lineHasKin(line)?`<button class="btn btn-ghost" onclick="openLineage('${line.id}')" title="어디서 나뉘었고 어떻게 쓰였는지">${ic('tree')}계보</button>`:''}
+          ${lineHasKin(line)?`<button class="btn btn-ghost" onclick="openLineage('${line.id}')" title="어디서 나뉘었고 어떻게 쓰였는지">${ic('tree')}Tree</button>`:''}
           <button class="btn btn-ghost" onclick="editLine('${line.id}')">${ic('edit')}수정</button>
           <button class="btn btn-ghost" onclick="completeLine('${line.id}')">${ic('flag')}배양 완료</button>
         </div>
@@ -3778,7 +3778,7 @@ function resetLineForm(){
   document.getElementById('lineFormTitle').textContent='새 라인';
 }
 // ══════════════════════════════════════════
-//  라인 나누기(분기) · 계보
+//  라인 나누기 · Tree
 //  한 라인의 웰 일부를 떼어 새 라인으로 만든다. 새 라인은 parentId로 원래 라인을 가리키고,
 //  P/D는 나눈 날짜 기준 원래 라인 값을 그대로 이어받는다.
 // ══════════════════════════════════════════
@@ -3898,7 +3898,7 @@ function confirmBranch(){
   const to=kids.map(k=>`${k.detail}${k.initialWells?' '+k.initialWells+'well':''}`).join(', ');
   if(keep){
     const rest=cur?String(Math.max(0,cur-used)):'';
-    logs.push({id:uid(),seq:nextSeq(),lineId:l.id,date,action:'Branch (분기)',passage:st.P,dayInfo:dStr,details:'',plate,
+    logs.push({id:uid(),seq:nextSeq(),lineId:l.id,date,action:'Branch',passage:st.P,dayInfo:dStr,details:'',plate,
       finalWells:rest,stocks:'',memo:'→ '+to,branchTo:kids.map(k=>k.id),printedToNotebook:false});
     recalcLogsForLine(l.id);
   } else {
@@ -3913,7 +3913,7 @@ function confirmBranch(){
   toast(`${lineTag(l)} → ${kids.length}개 라인으로 나눴어요`,{undo:snap});
 }
 
-// 계보: 맨 위 조상부터 아래로 나뉜 라인을 가지처럼 그린다. 칸을 누르면 아래에 그 라인 기록이 펼쳐진다.
+// Tree: 맨 위 조상부터 아래로 나뉜 라인을 가지처럼 그린다. 칸을 누르면 아래에 그 라인 기록이 펼쳐진다.
 let _lgSel=null;
 function openLineage(id){
   const l=lineById(id); if(!l) return;
@@ -3934,7 +3934,7 @@ function lineageNode(l, isRoot){
   const w=latestWell(l);
   const acts=lineActSummary(l.id);
   const fin=logs.find(lg=>lg.lineId===l.id&&isFin(lg.action));
-  const edge=isRoot ? (l.parentId?'(원래 라인 삭제됨)':'처음 seeding '+esc(lineFirstDate(l)))
+  const edge=isRoot ? (l.parentId?'원래 라인 삭제됨':'처음 seeding '+esc(lineFirstDate(l)))
     : `${esc(l.branchDate||'')} 분기${l.initialWells?' · '+esc(l.initialWells)+' well':''}`;
   const node=`<div class="lt-node${l.isCompleted?' done':''}${l.id===_lgSel?' sel':''}" style="${toneVars(c)}" onclick="_lgSel='${l.id}';renderLineage();">
     <div class="lt-edge">${edge}</div>
@@ -3950,7 +3950,7 @@ function lineageNode(l, isRoot){
 function renderLineage(){
   const sel=lineById(_lgSel); if(!sel) return closeLineage();
   const root=lineRoot(sel);
-  document.getElementById('lgTitle').textContent='라인 계보 · '+root.patientId+'_'+root.type;
+  document.getElementById('lgTitle').textContent='Tree · '+root.patientId+'_'+root.type;
   document.getElementById('lgTree').innerHTML=lineageNode(root,true);
   const p=sel.parentId&&lineById(sel.parentId);
   document.getElementById('lgDetail').innerHTML=`<div class="lt-detail-hd"><span>${esc(lineTag(sel))}
@@ -6361,12 +6361,12 @@ function renderAnalytics(){
       <input type="hidden" id="brId">
       <div class="br-src" id="brSrc"></div>
       <label>나눈 날짜</label><input type="date" id="brDate" style="margin-bottom:10px;" onchange="brRender()">
-      <div class="br-head"><span>세부명 (새 라인)</span><span>well</span><span class="br-memo">용도 · 처리 (예: Drug A 10µM)</span><span></span></div>
+      <div class="br-head"><span>새 라인 세부명</span><span>well</span><span class="br-memo">용도 · 처리 · 예: Drug A 10µM</span><span></span></div>
       <div id="brRows"></div>
       <button class="btn btn-ghost" style="padding-left:2px;" onclick="brAddRow()"><svg class="ic"><use href="#i-plus"/></svg>갈래 추가</button>
       <div class="br-rest">
         <label><input type="radio" name="brRest" value="keep" checked onchange="brRender()">남은 웰은 원래 라인에서 그대로 계속</label>
-        <label><input type="radio" name="brRest" value="end" onchange="brRender()">원래 라인은 여기서 끝내기 (전부 나눔)</label>
+        <label><input type="radio" name="brRest" value="end" onchange="brRender()">전부 나누고 원래 라인은 여기서 끝내기</label>
       </div>
       <div class="br-sum" id="brSum"></div>
     </div>
@@ -6379,7 +6379,7 @@ function renderAnalytics(){
 </div>
 <div id="lineageModal" class="modal">
   <div class="mbox" style="width:960px;">
-    <h2 id="lgTitle">라인 계보</h2>
+    <h2 id="lgTitle">Tree</h2>
     <div class="mscroll">
       <div class="lt-wrap" id="lgTree"></div>
       <div class="lt-detail" id="lgDetail"></div>
