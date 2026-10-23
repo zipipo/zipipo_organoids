@@ -1010,6 +1010,46 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
   *,*::before,*::after{animation:none!important;transition:none!important;}
 }
 
+/* 라인 나누기 · 계보 */
+.tl-from{font-size:.72rem;color:var(--sub);background:var(--sur2,#F8FAFC);border:1px solid var(--bd);border-radius:4px;padding:1px 6px;cursor:pointer;display:inline-flex;align-items:center;gap:3px;white-space:nowrap;}
+.tl-from:hover{border-color:var(--sub);}
+.tl-from .ic{width:12px;height:12px;}
+.br-src{background:var(--sur2,#F8FAFC);border:1px solid var(--bd);border-radius:6px;padding:9px 11px;font-size:.82rem;margin-bottom:10px;line-height:1.55;}
+.br-row{display:grid;grid-template-columns:1.2fr 70px 1.6fr 28px;gap:6px;align-items:center;margin-bottom:6px;}
+.br-row input{margin:0;}
+.br-head{display:grid;grid-template-columns:1.2fr 70px 1.6fr 28px;gap:6px;font-size:.72rem;color:var(--sub);margin-bottom:3px;}
+.br-x{height:30px;width:28px;border:1px solid var(--bd);background:none;border-radius:5px;cursor:pointer;color:var(--sub);}
+.br-rest{display:flex;flex-direction:column;gap:6px;margin-top:10px;font-size:.82rem;}
+.br-rest label{display:flex;align-items:center;gap:7px;margin:0;font-weight:500;cursor:pointer;}
+.br-rest input[type=radio]{width:auto;margin:0;}
+.br-sum{font-size:.76rem;color:var(--sub);margin-top:4px;}
+.br-sum b.warn{color:#DC2626;}
+@media(max-width:560px){.br-row,.br-head{grid-template-columns:1fr 60px 28px;}.br-row .br-memo,.br-head .br-memo{grid-column:1/3;}}
+.lt-wrap{overflow-x:auto;padding:6px 2px 10px;}
+.lt-ch{display:flex;flex-direction:column;position:relative;padding-left:15px;}
+.lt-ch::before{content:"";position:absolute;left:0;top:50%;width:15px;border-top:1.5px solid var(--bd);}
+.lt-li{display:flex;align-items:center;position:relative;padding:5px 0 5px 15px;}
+.lt-li::before{content:"";position:absolute;left:0;top:0;bottom:0;border-left:1.5px solid var(--bd);}
+.lt-li:first-child::before{top:50%;}
+.lt-li:last-child::before{bottom:50%;}
+.lt-li:only-child::before{display:none;}
+.lt-li::after{content:"";position:absolute;left:0;top:50%;width:15px;border-top:1.5px solid var(--bd);}
+.lt-root{padding-left:0;}
+.lt-root::before,.lt-root::after{display:none;}
+.lt-node{min-width:190px;max-width:250px;background:var(--sur);border:1px solid var(--bd);border-left:4px solid var(--td,var(--bd));border-radius:8px;padding:7px 10px;cursor:pointer;font-size:.76rem;line-height:1.45;transition:box-shadow .12s,transform .12s;flex-shrink:0;}
+.lt-node:hover{box-shadow:0 4px 14px rgba(0,0,0,.08);transform:translateY(-1px);}
+.lt-node.sel{outline:2px solid var(--pri);outline-offset:1px;}
+.lt-node.done{opacity:.72;}
+.lt-edge{font-size:.68rem;color:var(--sub);margin-bottom:2px;}
+.lt-ttl{font-weight:700;font-size:.84rem;color:var(--tx);word-break:break-all;}
+.lt-st{font-size:.66rem;border-radius:3px;padding:0 5px;margin-left:4px;font-weight:600;vertical-align:1px;background:var(--ts,var(--hov));color:var(--tt,var(--sub));}
+.lt-node.done .lt-st{background:var(--hov,#F1F5F9);color:var(--sub);}
+.lt-meta{color:var(--sub);}
+.lt-why{margin-top:3px;color:var(--tx);background:var(--sur2,#F8FAFC);border-radius:4px;padding:2px 6px;}
+.lt-acts{margin-top:3px;color:var(--sub);font-size:.7rem;}
+.lt-detail{margin-top:12px;border-top:1px solid var(--bd);padding-top:10px;}
+.lt-detail-hd{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;font-size:.84rem;font-weight:700;}
+.lt-detail-hd span{flex:1;}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/utif@3.1.0/UTIF.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
@@ -1046,6 +1086,8 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
   <symbol id="i-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
   <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></symbol>
   <symbol id="i-scope" viewBox="0 0 24 24"><path d="M6 18h8M3 22h18M14 22a7 7 0 1 0 0-14h-1M9 14h2"/><path d="M9 12a2 2 0 0 1-2-2V6h6v4a2 2 0 0 1-2 2z"/><path d="M12 6V3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3"/></symbol>
+  <symbol id="i-branch" viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><circle cx="6" cy="19" r="2"/><circle cx="18" cy="8" r="2"/><path d="M6 7v10M18 10c0 4-6 3-11.2 7.4"/></symbol>
+  <symbol id="i-tree" viewBox="0 0 24 24"><rect x="2" y="9" width="6" height="6" rx="1"/><rect x="16" y="3" width="6" height="6" rx="1"/><rect x="16" y="15" width="6" height="6" rx="1"/><path d="M8 12h4M12 6v12M12 6h4M12 18h4"/></symbol>
   <symbol id="i-shuffle" viewBox="0 0 24 24"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></symbol>
   <symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
   <symbol id="i-flag" viewBox="0 0 24 24"><path d="M4 22V4M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1"/></symbol>
@@ -1293,6 +1335,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
     <div class="mscroll" id="archDetailBody"></div>
     <div class="mfoot" style="display:flex;gap:7px;">
       <button class="btn btn-edt" id="archDetailEdit">라인 수정</button>
+      <button class="btn btn-out" id="archDetailKin">계보 보기</button>
       <button class="btn btn-out" style="flex:1;" onclick="closeArchDetail()">닫기</button>
     </div>
   </div>
@@ -1771,6 +1814,7 @@ function badgeCls(a){
   if(l.includes('fixation')) return 'bfx';
   if(l.includes('harvest')) return 'bhv';
   if(l.includes('finish')||l.includes('완료')) return 'bf';
+  if(l.includes('branch')||l.includes('분기')) return 'br';
   return 'bo';
 }
 
@@ -2716,12 +2760,15 @@ function renderTimelines(containerId,showDone){
           <span class="tl-arr">${ic('right')}</span>
           <i class="tdot"></i>
           <span class="tl-name">${esc(lineTag(line))}</span>
+          ${lineFromChip(line)}
           <span class="tl-pd"><b>P${line.passage}</b> ${calcDayStr(line)}</span>
           ${curPlate?`<span class="tl-plate">${esc(curPlate)}</span>`:''}
           <span class="tl-n" title="이 라인의 기록 수">기록 ${nLogs}건</span>
         </div>
         <div class="tl-act" onclick="event.stopPropagation()">
           <button class="btn btn-ghost" onclick="startLogForLine('${line.id}')">${ic('plus')}기록</button>
+          <button class="btn btn-ghost" onclick="openBranchModal('${line.id}')" title="웰 일부를 떼어 새 라인으로">${ic('branch')}나누기</button>
+          ${lineHasKin(line)?`<button class="btn btn-ghost" onclick="openLineage('${line.id}')" title="어디서 나뉘었고 어떻게 쓰였는지">${ic('tree')}계보</button>`:''}
           <button class="btn btn-ghost" onclick="editLine('${line.id}')">${ic('edit')}수정</button>
           <button class="btn btn-ghost" onclick="completeLine('${line.id}')">${ic('flag')}배양 완료</button>
         </div>
@@ -2749,7 +2796,7 @@ function renderArchiveGrid(el, filtered){
     const tc=tcm[line.type]||PAL[0];
     const logCount=logs.filter(lg=>lg.lineId===line.id).length;
     html+=`<div class="arch-card" style="${toneVars(tc)}" onclick="openArchDetail('${line.id}')">
-      <div class="arch-card-ttl">${esc(lineTag(line))}</div>
+      <div class="arch-card-ttl">${esc(lineTag(line))}${lineHasKin(line)?` <span title="나뉜 라인이 있어요" style="color:var(--sub);">${ic('branch','ic-sm')}</span>`:''}</div>
       <div class="arch-card-meta">
         <span class="pb ${pCls(line.passage)}">P${line.passage}</span>
         <span style="font-size:.74rem;color:var(--sub);">/ ${calcDayStr(line)}</span>
@@ -2769,6 +2816,9 @@ function openArchDetail(lineId){
      <span style="font-size:.75rem;color:var(--sub);font-weight:400;margin-left:8px;">${esc(lineDateRange(line))}</span>`;
   document.getElementById('archDetailBody').innerHTML=buildLogTable(line);
   document.getElementById('archDetailEdit').onclick=()=>{ closeArchDetail(); editLine(line.id); };
+  const kb=document.getElementById('archDetailKin');
+  kb.style.display=lineHasKin(line)?'':'none';
+  kb.onclick=()=>{ closeArchDetail(); openLineage(line.id); };
   document.getElementById('archDetailModal').classList.add('open');
 }
 function closeArchDetail(){document.getElementById('archDetailModal').classList.remove('open');}
@@ -3154,6 +3204,7 @@ function recalcLogsForLine(lineId) {
       const dObj = parseD(seedLog.dayInfo);
       if (dObj) {
           currentSegs = dObj.segs.slice();
+          if (dObj.diff > 0) currentStartDt.setDate(currentStartDt.getDate() - dObj.diff);
       }
   } else {
       const first = lls.find(lg => !isFin(lg.action)) || lls[0];
@@ -3726,9 +3777,193 @@ function resetLineForm(){
   document.getElementById('elSaveBtn').textContent='라인 추가';
   document.getElementById('lineFormTitle').textContent='새 라인';
 }
+// ══════════════════════════════════════════
+//  라인 나누기(분기) · 계보
+//  한 라인의 웰 일부를 떼어 새 라인으로 만든다. 새 라인은 parentId로 원래 라인을 가리키고,
+//  P/D는 나눈 날짜 기준 원래 라인 값을 그대로 이어받는다.
+// ══════════════════════════════════════════
+const lineById = id => lines.find(l=>l.id===id);
+const lineKids = id => lines.filter(l=>l.parentId===id).sort((a,b)=>(a.branchDate||'').localeCompare(b.branchDate||'')||lineTag(a).localeCompare(lineTag(b)));
+const lineHasKin = l => !!(l && ((l.parentId && lineById(l.parentId)) || lines.some(x=>x.parentId===l.id)));
+function lineRoot(l){
+  const seen=new Set([l.id]);
+  while(l.parentId){ const p=lineById(l.parentId); if(!p||seen.has(p.id)) break; seen.add(p.id); l=p; }
+  return l;
+}
+function lineFromChip(l){
+  const p=l.parentId&&lineById(l.parentId); if(!p) return '';
+  return `<span class="tl-from" onclick="event.stopPropagation();openLineage('${l.id}')" title="${esc(lineTag(p))}에서 ${esc(l.branchDate||'')} 분기">${ic('branch')}${esc(p.detail||lineTag(p))}에서</span>`;
+}
+// 나눈 날짜 '처리 후' 상태 (같은 날 Split이 있으면 이미 P+1 된 것으로 본다)
+function stateAfter(line, date){
+  const tgt=new Date(date); tgt.setHours(0,0,0,0);
+  const lls=logs.filter(l=>l.lineId===line.id && !isFin(l.action)).sort((a,b)=>new Date(a.date)-new Date(b.date)||(a.seq||0)-(b.seq||0));
+  if(!lls.length){ const d=parseD(calcDayStr(line,date)); return {P:line.passage, segs:d?d.segs:[], diff:d?d.diff:0}; }
+  const anchor=lls.find(lg=>isSeed(lg.action))||lls[0];
+  let P=parseP(anchor.passage);
+  const dObj=parseD(anchor.dayInfo);
+  let segs=dObj?dObj.segs.slice():[];
+  let start=new Date(anchor.date); if(dObj&&dObj.diff>0) start.setDate(start.getDate()-dObj.diff); start.setHours(0,0,0,0);
+  lls.forEach(lg=>{
+    if(lg===anchor||isSeed(lg.action)) return;
+    const d=new Date(lg.date); d.setHours(0,0,0,0);
+    if(d>tgt) return;
+    if(lg.pinP) P=parseP(lg.passage);
+    if(isPassageUp(lg.action)){ P++; segs=[]; start=d; }
+    else if(lg.action==='Reseeding'){ segs=[...segs,Math.max(0,Math.floor((d-start)/86400000))]; start=d; }
+  });
+  return {P, segs, diff:Math.max(0,Math.floor((tgt-start)/86400000))};
+}
+function wellAt(line, date){
+  const w=logs.filter(l=>l.lineId===line.id&&l.date<=date&&l.finalWells!==''&&l.finalWells!=null)
+    .sort((a,b)=>new Date(b.date)-new Date(a.date)||(b.seq||0)-(a.seq||0));
+  return parseInt(w.length?w[0].finalWells:(line.initialWells||''))||0;
+}
+
+let _brRows=[];
+function openBranchModal(id){
+  const l=lineById(id); if(!l) return;
+  document.getElementById('brId').value=id;
+  document.getElementById('brDate').value=today();
+  document.querySelector('input[name=brRest][value=keep]').checked=true;
+  const base=l.detail?l.detail+'-':'';
+  _brRows=[{detail:base+'A', wells:'', memo:''}];
+  brRender();
+  document.getElementById('branchModal').classList.add('open');
+  setTimeout(()=>{ const f=document.querySelector('#brRows input'); if(f){ f.focus(); f.select(); } },50);
+}
+function closeBranchModal(){ document.getElementById('branchModal').classList.remove('open'); }
+function brAddRow(){
+  const l=lineById(document.getElementById('brId').value);
+  const base=l&&l.detail?l.detail+'-':'';
+  _brRows.push({detail:base+String.fromCharCode(65+_brRows.length), wells:'', memo:''});
+  brRender();
+}
+function brDelRow(i){ if(_brRows.length>1){ _brRows.splice(i,1); brRender(); } }
+function brSet(i,k,v){ _brRows[i][k]=v; brRenderSum(); }
+function brRender(){
+  const l=lineById(document.getElementById('brId').value); if(!l) return;
+  const date=document.getElementById('brDate').value||today();
+  const st=stateAfter(l,date), dStr=st.segs.length?`d${[...st.segs,st.diff].join('+')}`:`d${st.diff}`;
+  document.getElementById('brSrc').innerHTML=`<b>${esc(lineTag(l))}</b><br>${esc(date)} 기준 <b>P${st.P}</b> / ${dStr} · 현재 <b>${wellAt(l,date)||'?'} well</b> · ${esc(plateAt(l,date)||'plate 미기록')}`;
+  document.getElementById('brRows').innerHTML=_brRows.map((r,i)=>`<div class="br-row">
+    <input type="text" value="${esc(r.detail)}" placeholder="세부명" oninput="brSet(${i},'detail',this.value)">
+    <input type="number" min="0" value="${esc(r.wells)}" placeholder="well" oninput="brSet(${i},'wells',this.value)">
+    <input type="text" class="br-memo" value="${esc(r.memo)}" placeholder="용도 · 처리" oninput="brSet(${i},'memo',this.value)">
+    <button class="br-x" onclick="brDelRow(${i})" title="이 갈래 빼기" ${_brRows.length>1?'':'disabled'}>×</button>
+  </div>`).join('');
+  brRenderSum();
+}
+function brRenderSum(){
+  const l=lineById(document.getElementById('brId').value); if(!l) return;
+  const date=document.getElementById('brDate').value||today();
+  const cur=wellAt(l,date), used=_brRows.reduce((a,r)=>a+(parseInt(r.wells)||0),0);
+  const keep=document.querySelector('input[name=brRest]:checked').value==='keep';
+  let t=`새 라인 ${_brRows.length}개 · 떼어내는 웰 ${used}개`;
+  if(cur){
+    const rest=cur-used;
+    t+= keep ? ` · 원래 라인에 <b class="${rest<0?'warn':''}">${rest} well</b> 남음` : (rest!==0?` · <b class="warn">현재 ${cur} well과 ${rest>0?rest+'개 차이':(-rest)+'개 초과'}</b>`:' · 전부 나눔');
+  }
+  document.getElementById('brSum').innerHTML=t;
+}
+function confirmBranch(){
+  const l=lineById(document.getElementById('brId').value); if(!l) return;
+  const date=document.getElementById('brDate').value||today();
+  const keep=document.querySelector('input[name=brRest]:checked').value==='keep';
+  const rows=_brRows.map(r=>({detail:r.detail.trim(), wells:String(parseInt(r.wells)||''), memo:r.memo.trim()}));
+  if(rows.some(r=>!r.detail)) return toast('새 라인의 세부명을 입력하세요.',{warn:true});
+  const bad=[...new Set(rows.map(r=>r.detail).join('').match(/[\/\\:*?"<>|]/g)||[])];
+  if(bad.length) return toast('세부명에 파일 이름으로 못 쓰는 문자가 있어요: '+bad.join(' '),{warn:true});
+  const tags=rows.map(r=>l.patientId+'_'+l.type+'_'+r.detail);
+  if(new Set(tags).size!==tags.length) return toast('갈래끼리 세부명이 겹쳐요.',{warn:true});
+  const dup=tags.find(t=>lines.some(x=>!x.isCompleted&&lineTag(x)===t));
+  if(dup) return toast(`${dup} 라인이 이미 진행 중이에요. 세부명을 바꿔주세요.`,{warn:true});
+  const cur=wellAt(l,date), used=rows.reduce((a,r)=>a+(parseInt(r.wells)||0),0);
+  if(keep && cur && used>cur && !confirm(`현재 ${cur} well인데 ${used} well을 떼어내요. 그대로 진행할까요?`)) return;
+
+  const snap=takeSnap();
+  const st=stateAfter(l,date), dStr=st.segs.length?`d${[...st.segs,st.diff].join('+')}`:`d${st.diff}`;
+  const plate=plateAt(l,date);
+  const start=new Date(date); start.setDate(start.getDate()-st.diff);
+  const kids=rows.map(r=>{
+    const nl={id:uid(),patientId:l.patientId,type:l.type,detail:r.detail,passage:st.P,baseDay:st.segs.reduce((a,b)=>a+b,0),
+      daySegs:st.segs.slice(),isReseeded:st.segs.length>0,startDate:isoD(start),initialWells:r.wells,plateType:plate,isCompleted:false,
+      parentId:l.id,branchDate:date,branchNote:r.memo};
+    lines.push(nl);
+    logs.push({id:uid()+'_sd',seq:nextSeq(),lineId:nl.id,date,action:'Seeded',passage:st.P,dayInfo:dStr,details:'',plate,
+      finalWells:r.wells,stocks:'',memo:`${lineTag(l)}에서 분기`+(r.memo?' · '+r.memo:''),printedToNotebook:false});
+    recalcLogsForLine(nl.id);
+    return nl;
+  });
+  const to=kids.map(k=>`${k.detail}${k.initialWells?' '+k.initialWells+'well':''}`).join(', ');
+  if(keep){
+    const rest=cur?String(Math.max(0,cur-used)):'';
+    logs.push({id:uid(),seq:nextSeq(),lineId:l.id,date,action:'Branch (분기)',passage:st.P,dayInfo:dStr,details:'',plate,
+      finalWells:rest,stocks:'',memo:'→ '+to,branchTo:kids.map(k=>k.id),printedToNotebook:false});
+    recalcLogsForLine(l.id);
+  } else {
+    const ds=calcDayStr(l,date);
+    l.isCompleted=true; l.finishDate=date; l.finishDayStr=ds;
+    logs.push({id:uid(),seq:nextSeq(),lineId:l.id,date,action:'Finish (완료)',passage:l.passage,dayInfo:ds,details:'',
+      finalWells:'',stocks:'',memo:'분기로 종료 → '+to,branchTo:kids.map(k=>k.id),printedToNotebook:false});
+    bulkLines=bulkLines.filter(x=>x!==l.id);
+  }
+  closeBranchModal();
+  updateUI();
+  toast(`${lineTag(l)} → ${kids.length}개 라인으로 나눴어요`,{undo:snap});
+}
+
+// 계보: 맨 위 조상부터 아래로 나뉜 라인을 가지처럼 그린다. 칸을 누르면 아래에 그 라인 기록이 펼쳐진다.
+let _lgSel=null;
+function openLineage(id){
+  const l=lineById(id); if(!l) return;
+  _lgSel=id;
+  renderLineage();
+  document.getElementById('lineageModal').classList.add('open');
+}
+function closeLineage(){ document.getElementById('lineageModal').classList.remove('open'); }
+function lineActSummary(id){
+  const cnt={};
+  logs.filter(lg=>lg.lineId===id&&!isSeed(lg.action)&&!isFin(lg.action)).forEach(lg=>{
+    const k=lg.action.replace(/\s*\(.*\)$/,''); cnt[k]=(cnt[k]||0)+1;
+  });
+  return Object.entries(cnt).sort((a,b)=>b[1]-a[1]).map(([k,n])=>n>1?`${k} ×${n}`:k).join(' · ');
+}
+function lineageNode(l, isRoot){
+  const c=getC(l.type,false);
+  const w=latestWell(l);
+  const acts=lineActSummary(l.id);
+  const fin=logs.find(lg=>lg.lineId===l.id&&isFin(lg.action));
+  const edge=isRoot ? (l.parentId?'(원래 라인 삭제됨)':'처음 seeding '+esc(lineFirstDate(l)))
+    : `${esc(l.branchDate||'')} 분기${l.initialWells?' · '+esc(l.initialWells)+' well':''}`;
+  const node=`<div class="lt-node${l.isCompleted?' done':''}${l.id===_lgSel?' sel':''}" style="${toneVars(c)}" onclick="_lgSel='${l.id}';renderLineage();">
+    <div class="lt-edge">${edge}</div>
+    <div class="lt-ttl">${esc(l.detail||lineTag(l))}<span class="lt-st">${l.isCompleted?'완료':'진행 중'}</span></div>
+    <div class="lt-meta">P${l.passage} / ${calcDayStr(l)}${!l.isCompleted&&w?' · '+esc(w)+' well':''}</div>
+    ${l.branchNote?`<div class="lt-why">${esc(l.branchNote)}</div>`:''}
+    ${acts?`<div class="lt-acts">${esc(acts)}</div>`:''}
+    ${fin&&fin.memo&&!/^분기로 종료/.test(fin.memo)?`<div class="lt-acts">끝: ${esc(fin.memo)}</div>`:''}
+  </div>`;
+  const kids=lineKids(l.id);
+  return `<div class="lt-li${isRoot?' lt-root':''}">${node}${kids.length?`<div class="lt-ch">${kids.map(k=>lineageNode(k,false)).join('')}</div>`:''}</div>`;
+}
+function renderLineage(){
+  const sel=lineById(_lgSel); if(!sel) return closeLineage();
+  const root=lineRoot(sel);
+  document.getElementById('lgTitle').textContent='라인 계보 · '+root.patientId+'_'+root.type;
+  document.getElementById('lgTree').innerHTML=lineageNode(root,true);
+  const p=sel.parentId&&lineById(sel.parentId);
+  document.getElementById('lgDetail').innerHTML=`<div class="lt-detail-hd"><span>${esc(lineTag(sel))}
+      <em style="font-weight:400;color:var(--sub);font-size:.76rem;">${p?` · ${esc(lineTag(p))}에서 ${esc(sel.branchDate||'')} 분기`:''} · ${esc(lineDateRange(sel))}</em></span>
+      ${sel.isCompleted?'':`<button class="btn btn-ghost" onclick="closeLineage();startLogForLine('${sel.id}')">${ic('plus')}기록</button>
+      <button class="btn btn-ghost" onclick="closeLineage();openBranchModal('${sel.id}')">${ic('branch')}나누기</button>`}
+      <button class="btn btn-ghost" onclick="closeLineage();editLine('${sel.id}')">${ic('edit')}수정</button>
+    </div>${buildLogTable(sel)}`;
+}
+
 // 창 바깥(어두운 배경)을 누르면 닫기. 아래쪽에 선언된 창까지 포함되도록 문서 전체에서 한 번에 처리
 document.addEventListener('click',e=>{
-  if(['planDetailModal','finishModal'].includes(e.target.id)) e.target.classList.remove('open');
+  if(['planDetailModal','finishModal','branchModal','lineageModal'].includes(e.target.id)) e.target.classList.remove('open');
 });
 ['logModal','trashModal','archDetailModal'].forEach(id=>{
   document.getElementById(id).addEventListener('click',e=>{
@@ -6116,6 +6351,42 @@ function renderAnalytics(){
       <span style="flex:1;"></span>
       <button class="btn btn-out" onclick="closeFinishModal()">취소</button>
       <button class="btn btn-fin" style="min-width:110px;" onclick="confirmFinish()">완료 처리</button>
+    </div>
+  </div>
+</div>
+<div id="branchModal" class="modal">
+  <div class="mbox" style="width:560px;">
+    <h2>라인 나누기</h2>
+    <div class="mscroll">
+      <input type="hidden" id="brId">
+      <div class="br-src" id="brSrc"></div>
+      <label>나눈 날짜</label><input type="date" id="brDate" style="margin-bottom:10px;" onchange="brRender()">
+      <div class="br-head"><span>세부명 (새 라인)</span><span>well</span><span class="br-memo">용도 · 처리 (예: Drug A 10µM)</span><span></span></div>
+      <div id="brRows"></div>
+      <button class="btn btn-ghost" style="padding-left:2px;" onclick="brAddRow()"><svg class="ic"><use href="#i-plus"/></svg>갈래 추가</button>
+      <div class="br-rest">
+        <label><input type="radio" name="brRest" value="keep" checked onchange="brRender()">남은 웰은 원래 라인에서 그대로 계속</label>
+        <label><input type="radio" name="brRest" value="end" onchange="brRender()">원래 라인은 여기서 끝내기 (전부 나눔)</label>
+      </div>
+      <div class="br-sum" id="brSum"></div>
+    </div>
+    <div class="mfoot" style="display:flex;gap:7px;">
+      <span style="flex:1;"></span>
+      <button class="btn btn-out" onclick="closeBranchModal()">취소</button>
+      <button class="btn btn-pri" style="min-width:110px;" onclick="confirmBranch()">나누기</button>
+    </div>
+  </div>
+</div>
+<div id="lineageModal" class="modal">
+  <div class="mbox" style="width:960px;">
+    <h2 id="lgTitle">라인 계보</h2>
+    <div class="mscroll">
+      <div class="lt-wrap" id="lgTree"></div>
+      <div class="lt-detail" id="lgDetail"></div>
+    </div>
+    <div class="mfoot" style="display:flex;gap:7px;">
+      <span style="flex:1;"></span>
+      <button class="btn btn-out" onclick="closeLineage()">닫기</button>
     </div>
   </div>
 </div>
