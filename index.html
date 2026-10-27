@@ -1024,6 +1024,10 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
   *,*::before,*::after{animation:none!important;transition:none!important;}
 }
 
+/* 촬영 순서 특이사항 태그 */
+.sl-note-tag{display:inline-flex;align-items:center;}
+.sl-note-x{border:none;background:none;color:var(--mut,#94A3B8);cursor:pointer;font-size:.8rem;padding:0 3px;line-height:1;}
+.sl-note-x:hover{color:#DC2626;}
 /* 라인 나누기 · Tree */
 .tl-from{font-size:.72rem;color:var(--sub);background:var(--sur2,#F8FAFC);border:1px solid var(--bd);border-radius:4px;padding:1px 6px;cursor:pointer;display:inline-flex;align-items:center;gap:3px;white-space:nowrap;}
 .tl-from:hover{border-color:var(--sub);}
@@ -1532,7 +1536,7 @@ let cloudReady=false;      // 로그인 직후 클라우드와 처음 맞추기 
 let cloudApplying=false;   // 받은 데이터를 화면에 반영하는 동안(updateUI→saveData) 다시 올리지 않도록
 let cloudPushing=false, cloudPushAgain=false;
 let cloudBase=null;        // { uid, rev, sig, data } 마지막으로 클라우드와 맞춘 상태
-const SYNC_ARR=['lines','logs','stockChecks','trash','plans','shotSets'];
+const SYNC_ARR=['lines','logs','stockChecks','trash','plans','shotSets','shotNotes'];
 const SYNC_OBJ=['tlCollapsed','typeColors','pptCuts'];
 
 function cloudDocRef(uid){ return fbDb.collection('users').doc(uid).collection('data').doc('appData'); }
@@ -1557,7 +1561,7 @@ function pickSync(d){
 }
 // 깊은 복사: 올리는 도중이나 base로 기억한 뒤에 화면에서 배열을 고쳐도 비교 기준이 같이 바뀌지 않도록
 const syncClone = d => JSON.parse(JSON.stringify(d));
-function localSync(){ return syncClone(pickSync({lines,logs,stockChecks,trash,plans,shotSets,tlCollapsed,typeColors,pptCuts})); }
+function localSync(){ return syncClone(pickSync({lines,logs,stockChecks,trash,plans,shotSets,shotNotes:_slRecentNotes,tlCollapsed,typeColors,pptCuts})); }
 const syncHas = d => d.lines.length>0 || d.logs.length>0;
 
 function loadCloudBase(uid){
@@ -1652,7 +1656,7 @@ function applySyncData(d){
   cloudApplying=true;
   try{
     lines=d.lines; logs=d.logs; stockChecks=d.stockChecks; trash=d.trash;
-    plans=d.plans; shotSets=d.shotSets; tlCollapsed=d.tlCollapsed; typeColors=d.typeColors; pptCuts=d.pptCuts;
+    plans=d.plans; shotSets=d.shotSets; tlCollapsed=d.tlCollapsed; typeColors=d.typeColors; pptCuts=d.pptCuts; _slRecentNotes=d.shotNotes;
     _logSeq=logs.reduce((m,l)=>Math.max(m,l.seq||0),0);
     localStorage.setItem('orgTrash', JSON.stringify(trash));
     localStorage.setItem('orgTlCollapsed', JSON.stringify(tlCollapsed));
@@ -1660,6 +1664,7 @@ function applySyncData(d){
     localStorage.setItem('orgShotSets', JSON.stringify(shotSets));
     localStorage.setItem('orgTypeColors', JSON.stringify(typeColors));
     localStorage.setItem('orgPptCuts', JSON.stringify(pptCuts));
+    localStorage.setItem('orgSlRecentNotes', JSON.stringify(_slRecentNotes)); slRenderRecentNotes();
     updateUI();   // 안에서 saveData()가 lines/logs/stockChecks를 저장한다
   } finally { cloudApplying=false; }
 }
@@ -2196,7 +2201,7 @@ function slRenderRecentNotes(){
   const el=document.getElementById('slRecentNotes');
   if(!el) return;
   el.innerHTML = _slRecentNotes.length ? _slRecentNotes.map((n,i)=>
-    `<button type="button" class="tbl-btn" title="클릭하면 특이사항 칸에 채워집니다" onclick="slPickRecentNote(${i})">${esc(n)}</button>`
+    `<span class="sl-note-tag"><button type="button" class="tbl-btn" title="클릭하면 특이사항 칸에 채워집니다" onclick="slPickRecentNote(${i})">${esc(n)}</button><button type="button" class="sl-note-x" title="이 태그 지우기" onclick="slRemoveRecentNote(${i})">×</button></span>`
   ).join('') : '';
 }
 function slPickRecentNote(i){
@@ -2206,9 +2211,20 @@ function slPickRecentNote(i){
 }
 function _slTouchRecentNote(note){
   if(!note) return;
-  _slRecentNotes=[note, ..._slRecentNotes.filter(n=>n!==note)].slice(0,6);
+  // 개수 제한 없이 계속 남긴다. 최근 쓴 게 앞으로 오고, 지우는 건 태그 옆 × 로만
+  _slRecentNotes=[note, ..._slRecentNotes.filter(n=>n!==note)];
+  saveSlRecentNotes();
+}
+function saveSlRecentNotes(){
   localStorage.setItem('orgSlRecentNotes', JSON.stringify(_slRecentNotes));
+  cloudPushDebounced();
   slRenderRecentNotes();
+}
+function slRemoveRecentNote(i){
+  const n=_slRecentNotes[i];
+  if(n==null || !confirm(`"${n}" 태그를 지울까요?`)) return;
+  _slRecentNotes.splice(i,1);
+  saveSlRecentNotes();
 }
 
 // 파일명에 쓸 수 없는 문자( \ / : * ? " < > | 및 제어문자)가 특이사항에 들어있으면 저장 시 이름이
@@ -6421,7 +6437,7 @@ function renderAnalytics(){
         <button class="btn btn-out" style="flex:1;" onclick="slAdd('10x')">+10x</button>
         <button class="btn btn-out" style="flex:1;" onclick="slAdd('20x')">+20x</button>
       </div>
-      <div id="slRecentNotes" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px;"></div>
+      <div id="slRecentNotes" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px;max-height:132px;overflow-y:auto;"></div>
       <input id="slNote" placeholder="특이사항 (다음 1건에만)" style="margin-bottom:10px;">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px;">
         <span style="font-size:.76rem;font-weight:700;color:#475569;">오늘 순서</span>
