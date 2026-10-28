@@ -4660,7 +4660,7 @@ function sbClearAll(){ if(sbFiles.length && confirm('추가한 사진 '+sbFiles.
 function sbWbMode(f){
   if(f.wbMode) return f.wbMode;
   const line=lines.find(l=>l.id===f.lineId);
-  if(line) return wbModeForText((line.type||'')+' '+(line.detail||''));   // 종류나 샘플 세부명에 org · BRCO · CRCO가 있으면 오가노이드
+  if(line) return wbModeForText((line.type||'')+' '+(line.detail||''));   // 종류나 샘플 세부명에 org · BRCO · CRCO · assembloid가 있으면 오가노이드
   // 라인이 없으면(이미 저장한 사진을 보정만 할 때) 파일 이름으로: org가 있으면 오가노이드,
   // 저장 규칙 이름인데 org가 없으면 2D, 규칙을 모르는 이름은 오가노이드(기본)
   if(WB_ORG_RE.test(f.fname)) return 'org';
@@ -4907,8 +4907,8 @@ const wbOpts={bright:true, level:215};
 try{ localStorage.removeItem('orgWbOpts'); }catch(e){}
 const wbRgb=c=>`rgb(${c.map(Math.round).join(',')})`;
 // 종류 이름에 org가 들어가면 오가노이드, 아니면(Cell line 등) 2D
-// 오가노이드로 보는 이름: org가 들어간 것 + 한결쌤 BRCO · CRCO
-const WB_ORG_RE=/org|brco|crco/i;
+// 오가노이드로 보는 이름: org가 들어간 것 + 한결쌤 BRCO · CRCO + assembloid
+const WB_ORG_RE=/org|brco|crco|assembloid/i;
 function wbModeForText(t){ return WB_ORG_RE.test(t||'')?'org':'d2'; }
 
 function wbScaled(src, maxSide){
