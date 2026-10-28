@@ -5286,9 +5286,26 @@ function pptLayRecommend(model){
 
 // 배치 상태: zones(page/col/row/none) · 값 순서 · 뺀 값
 let pptLay=null, pptDark=null, pptLaySel=null, pptDrag=null;
+// 한 슬라이드 열 개수 (0 = 자동: 규칙 이름 5 · 제목 자르기 6 · 기타 사진은 열 수에 맞춤) — 이 브라우저에 기억
+// pptFlip: 규칙 이름 · 제목 자르기 슬라이드의 행 ↔ 열 (켜면 날짜·조건이 행, 배율이 열)
+let pptCols=0, pptFlip=false;
+try{ pptCols=+localStorage.getItem('orgPptCols')||0; pptFlip=localStorage.getItem('orgPptFlip')==='1'; }catch(e){}
+function pptSetCols(v){ pptCols=v; try{ localStorage.setItem('orgPptCols',String(v)); }catch(e){} pptLayRender(); }
+function pptToggleFlip(){ pptFlip=!pptFlip; try{ localStorage.setItem('orgPptFlip',pptFlip?'1':''); }catch(e){} pptLayRender(); }
+// 행 ↔ 열 뒤집기: grid는 matrix로 바꾼 뒤(행 = 날짜 열, 열 = 배율) 그대로, matrix는 전치
+function pptFlipPage(p,th){
+  if(p.kind==='grid'){
+    const mags=PPTG.MAG_ORDER.filter(m=>p.columns.some(c=>c.imgs[m]));
+    return {kind:'matrix',title:p.title,sub:p.dr,src:p.src,cut:p.cut,colLabels:mags,
+      rowLabels:p.columns.map(c=>pptHeaderRuns(c,th)),cells:p.columns.map(c=>mags.map(m=>c.imgs[m]||null))};
+  }
+  if(p.kind==='matrix') return Object.assign({},p,{colLabels:p.rowLabels,rowLabels:p.colLabels,
+    cells:p.colLabels.map((_,c)=>p.cells.map(row=>row[c]))});
+  return p;
+}
 function pptAuxFiles(){ return pptFiles.filter(f=>!pptParse(f.name).named); }
 function pptLayEnsure(){
-  if(!pptLay) pptLay={sig:'',zones:null,order:{},off:{},maxCols:0,perPage:0,dedupe:true,custom:false};
+  if(!pptLay) pptLay={sig:'',zones:null,order:{},off:{},perPage:0,dedupe:true,custom:false};
   const L=pptLay, model=pptAuxModel(pptAuxFiles(),L.dedupe), names=model.names;
   const rec=pptLayRecommend(model);
   if(!L.zones||!L.custom){ L.zones=rec; }
@@ -5331,7 +5348,7 @@ function pptPlanAux(model,L){
       const cell=new Map(); let layers=1;
       gr.forEach(r=>{ const k=cks.indexOf(JSON.stringify(keyOf(r,Z.col)))+'|'+rks.indexOf(JSON.stringify(keyOf(r,Z.row)));
         const a=cell.get(k)||[]; a.push(r.file); cell.set(k,a); layers=Math.max(layers,a.length); });
-      const mc=L.maxCols||(cols.length<=6?cols.length:5), chunks=Math.ceil(cols.length/mc), tot=chunks*layers;
+      const mc=pptCols||(cols.length<=6?cols.length:5), chunks=Math.ceil(cols.length/mc), tot=chunks*layers;
       for(let ly=0;ly<layers;ly++) for(let ch=0;ch<chunks;ch++){
         const ci0=ch*mc, cc=cols.slice(ci0,ci0+mc), n=ly*chunks+ch+1;
         pages.push({kind:'matrix',title:title+(tot>1?`  (${n}/${tot})`:''),
@@ -5418,7 +5435,7 @@ function pptPlanCut(title,items){
     recs.slice().sort((a,b)=>a.shot-b.shot||pptNatCmp(a.f.name,b.f.name))
       .forEach(r=>grid[rk.indexOf(r.meta.mag+'|'+r.pos)][ck.indexOf(JSON.stringify(r.lab))].push(r.f));
     const sub=[pptFmtDate(m0.date)].concat(m0.passage?[m0.passage.toUpperCase()]:[],m0.day?[m0.day]:[],common).join(' · ');
-    const mc=6, tot=Math.ceil(cols.length/mc);
+    const mc=pptCols||6, tot=Math.ceil(cols.length/mc);
     for(let c0=0;c0<cols.length;c0+=mc){
       pages.push({kind:'matrix',title:title+(tot>1?`  (${c0/mc+1}/${tot})`:''),sub,cut:gi[0].cut,src:gi[0].f.name,
         colLabels:cols.slice(c0,c0+mc).map(c=>c.join(' ')),
@@ -5448,18 +5465,20 @@ function pptPlanNamed(files){
       if(!colsMap[key]) colsMap[key]={date:m.date,passage:m.passage,passageVal:m.passageVal,day:m.day,well:m.well,region:m.region,extra:m.extra,sort:[m.date,m.passageVal,m.wellVal,m.regionVal,m.extra],imgs:{}};
       if(!colsMap[key].imgs[m.mag]) colsMap[key].imgs[m.mag]=f; });
     const cols=Object.values(colsMap).sort((a,b)=>pptCmpArr(a.sort,b.sort));
-    const dr=pptDateRange(gi), tot=Math.ceil(cols.length/PPTG.COLS);
-    for(let i=0;i<cols.length;i+=PPTG.COLS){
-      const suf=tot>1?`  (${Math.floor(i/PPTG.COLS)+1}/${tot})`:'';
-      pages.push({kind:'grid',title:g+suf,dr,columns:cols.slice(i,i+PPTG.COLS),src:(gi.find(x=>x.meta.cut)||gi[0]).f.name,cut:(gi.find(x=>x.meta.cut)||{meta:{}}).meta.cut});
+    const nc=pptCols||PPTG.COLS, dr=pptDateRange(gi), tot=Math.ceil(cols.length/nc);
+    for(let i=0;i<cols.length;i+=nc){
+      const suf=tot>1?`  (${Math.floor(i/nc)+1}/${tot})`:'';
+      pages.push({kind:'grid',title:g+suf,dr,nc,columns:cols.slice(i,i+nc),src:(gi.find(x=>x.meta.cut)||gi[0]).f.name,cut:(gi.find(x=>x.meta.cut)||{meta:{}}).meta.cut});
     }
   });
   return pages;
 }
 function pptPlanAll(){
   const model=pptLayEnsure();
-  const pages=pptPlanNamed(pptFiles.filter(f=>pptParse(f.name).named)).concat(model.recs.length?pptPlanAux(model,pptLay):[]);
   const dark=pptDark!==null?pptDark:(model.fields['채널']||[]).some(v=>v&&v!=='BF');
+  let named=pptPlanNamed(pptFiles.filter(f=>pptParse(f.name).named));
+  if(pptFlip) named=named.map(p=>pptFlipPage(p,dark?PPT_TH.dark:PPT_TH.light));
+  const pages=named.concat(model.recs.length?pptPlanAux(model,pptLay):[]);
   return {pages,dark,model};
 }
 function pptPageFiles(p){
@@ -5495,7 +5514,7 @@ function pptHtmlBackend(){
 }
 function pptRenderPage(D,p,th){
   D.bg(th.bg);
-  if(p.kind==='grid') pptDrawGrid(D,p.columns,p.title,p.dr,th);
+  if(p.kind==='grid') pptDrawGrid(D,p.columns,p.title,p.dr,th,p.nc);
   else if(p.kind==='matrix') pptDrawMatrix(D,p,th);
   else pptDrawFlow(D,p,th);
 }
@@ -5509,12 +5528,13 @@ function pptBadge(D,mag,ix,iy,iw){
 }
 function pptMagOf(f){ return pptDetectMag(f.name.replace(/\.[^.]+$/,'')); }
 
-function pptDrawGrid(D,columns,title,dr,th){
+function pptDrawGrid(D,columns,title,dr,th,nc){
+  nc=nc||PPTG.COLS;
   pptTitle(D,title,dr,th);
   const gridTop=PPTG.titleTop+PPTG.titleH+PPTG.contentGap;
   const availH=PPTG.slideH-gridTop-PPTG.bottomMargin;
   const usableW=(PPTG.slideW-2*PPTG.marginX)-PPTG.gutter;
-  let colW=(usableW-(PPTG.COLS-1)*PPTG.colGap)/PPTG.COLS;
+  let colW=(usableW-(nc-1)*PPTG.colGap)/nc;
   let rowH=PPTG.MAG_ORDER.map(mag=>{ const a=columns.filter(c=>c.imgs[mag]).map(c=>c.imgs[mag].aspect); return colW*(a.length?Math.max.apply(null,a):0.5625); });
   let totalH=PPTG.headerH+PPTG.headerGap+rowH.reduce((x,y)=>x+y,0)+PPTG.rowGap*(PPTG.MAG_ORDER.length-1);
   if(totalH>availH){ const k=availH/totalH; colW*=k; rowH=rowH.map(h=>h*k); totalH*=k; }
@@ -5607,13 +5627,18 @@ function pptLayRender(){
     const matrix=L.zones.col.length&&L.zones.row.length;
     const sel=(key,cur,opts)=>`<select onchange="pptLaySet('${key}',+this.value)">${opts.map(([v,t])=>`<option value="${v}"${cur===v?' selected':''}>${t}</option>`).join('')}</select>`;
     h+=`<div class="pl-opts"><button class="btn btn-out" onclick="pptLaySwap()">행 ↔ 열 바꾸기</button>`+
-      (matrix?`<label>한 슬라이드 열 ${sel('maxCols',L.maxCols,[[0,'자동'],[2,'2'],[3,'3'],[4,'4'],[5,'5'],[6,'6'],[7,'7'],[8,'8']])}</label>`
-             :`<label>한 슬라이드 ${sel('perPage',L.perPage,[[0,'자동']].concat(Object.keys(PPT_PER).map(k=>[+k,`${k}장 (${PPT_PER[k][0]}×${PPT_PER[k][1]})`])))}</label>`)+
+      (matrix?'':`<label>한 슬라이드 ${sel('perPage',L.perPage,[[0,'자동']].concat(Object.keys(PPT_PER).map(k=>[+k,`${k}장 (${PPT_PER[k][0]}×${PPT_PER[k][1]})`])))}</label>`)+
       `<label class="pl-ck"><input type="checkbox"${dark?' checked':''} onchange="pptSetDark(this.checked)">검은 배경</label>`+
       (model.hasOut?`<label class="pl-ck"><input type="checkbox"${L.dedupe?' checked':''} onchange="pptLaySet('dedupe',this.checked)">같은 사진은 하나만 (ch00 · ch01 · overlay)</label>`:'')+
       (L.custom?`<button class="link-btn" onclick="pptLayReset()">추천 배치로 되돌리기</button>`:'')+`</div>`;
   } else {
     h+=`<div class="pl-opts"><label class="pl-ck"><input type="checkbox"${dark?' checked':''} onchange="pptSetDark(this.checked)">검은 배경</label></div>`;
+  }
+  // 열 개수: 규칙 이름(날짜 열) · 제목 자르기(조건 열) · 기타 사진 행×열 배치에 모두 적용
+  const hasNamed=pptFiles.some(f=>pptParse(f.name).named);
+  if(pages.some(p=>p.kind!=='flow')){
+    const auto=pptCols?'':' selected', axis=pptFlip&&hasNamed?(model.recs.length?'열 · 행':'행'):'열';
+    h+=`<div class="pl-opts">${hasNamed?`<button class="btn btn-out" onclick="pptToggleFlip()" title="이름 규칙대로 만든 슬라이드: 날짜·조건을 열 또는 행으로">행 ↔ 열 바꾸기${model.recs.length?' (규칙 이름 사진)':''}</button>`:''}<label>한 슬라이드 ${axis} 개수 <select onchange="pptSetCols(+this.value)"><option value="0"${auto}>자동</option>${[2,3,4,5,6,7,8,9,10].map(n=>`<option value="${n}"${pptCols===n?' selected':''}>${n}</option>`).join('')}</select></label><span class="pl-mut">많을수록 사진이 작아지고, 넘치는 건 다음 슬라이드로 넘어가요 · 이 브라우저에 기억돼요</span></div>`;
   }
   const notes=[];
   if(model.dropped) notes.push(`겹치는 사진 ${model.dropped}장 뺌`);
