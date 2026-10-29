@@ -228,6 +228,7 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
 .pl-slide img{position:absolute;display:block;}
 .pl-cutbtn{position:absolute;right:4px;top:4px;font-size:.66rem;border:1px solid var(--bd);background:var(--sur);color:var(--sub);border-radius:4px;padding:1px 6px;cursor:pointer;opacity:.85;}
 .pl-cutbtn:hover,.pl-cutbtn.on{opacity:1;border-color:var(--acc);color:var(--acc);}
+.pl-modesel{position:absolute;right:4px;bottom:4px;height:22px;font-size:.68rem;padding:0 4px;width:auto;max-width:60%;border:1px solid var(--acc-bd);background:var(--sur);color:var(--acc);border-radius:4px;}
 .pl-cutbtn.cut{background:var(--acc-bg);border-color:var(--acc-bd);color:var(--acc);}
 .pl-cut{border:1px solid var(--acc-bd);background:var(--acc-bg);border-radius:8px;padding:9px 11px;margin-bottom:10px;font-size:.78rem;}
 .pl-cut-h{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;margin-bottom:7px;}
@@ -5185,7 +5186,9 @@ function pptPassageColor(passageVal){ const n=((Math.floor(passageVal)%10)+10)%1
 function pptHeaderRuns(c,th){
   th=th||PPT_TH.light;
   const runs=[]; const sep='  ';
-  runs.push({text:pptFmtDate(c.date),options:{color:th.txt}});
+  // head: 여러 실험을 한 장에 묶을 때 열 이름(샘플) — 날짜는 제목에 있으니 빼고 P · d만
+  if(c.head) runs.push({text:c.head+'\n',options:{color:th.txt}});
+  else runs.push({text:pptFmtDate(c.date),options:{color:th.txt}});
   if(c.passage){ runs.push({text:sep,options:{color:th.txt}}); runs.push({text:c.passage.toUpperCase(),options:{color:pptPassageColor(c.passageVal||0),bold:true}}); }
   if(c.day){ runs.push({text:sep+c.day,options:{color:th.txt}}); }
   if(c.well){ runs.push({text:sep+c.well,options:{color:th.well}}); }
@@ -5289,27 +5292,15 @@ function pptLayRecommend(model){
 // 배치 상태: zones(page/col/row/none) · 값 순서 · 뺀 값
 let pptLay=null, pptDark=null, pptLaySel=null, pptDrag=null;
 // 한 슬라이드 열 개수 (0 = 자동: 규칙 이름 5 · 제목 자르기 6 · 기타 사진은 열 수에 맞춤) — 이 브라우저에 기억
-// pptFlip: 규칙 이름 · 제목 자르기 슬라이드의 행 ↔ 열 (켜면 날짜·조건이 행, 배율이 열)
-let pptCols=0, pptFlip=false;
-try{ pptCols=+localStorage.getItem('orgPptCols')||0; pptFlip=localStorage.getItem('orgPptFlip')==='1'; }catch(e){}
+// 한 슬라이드 열 개수 (0 = 자동) — 이 브라우저에 기억
+let pptCols=0;
+try{ pptCols=+localStorage.getItem('orgPptCols')||0; }catch(e){}
 function pptSetCols(v){ pptCols=v; try{ localStorage.setItem('orgPptCols',String(v)); }catch(e){} pptLayRender(); }
-// 제목 자르기(조건 있는) 슬라이드의 날짜 배치: page = 날짜마다 한 장 · row = 날짜를 행으로 · col = 날짜를 열로
-let pptDateMode='auto', pptDatesPer=0;
-try{ pptDateMode=localStorage.getItem('orgPptDateMode2')||'auto'; pptDatesPer=+localStorage.getItem('orgPptDatesPer')||0; }catch(e){}
-function pptSetDateMode(v){ pptDateMode=v; try{ localStorage.setItem('orgPptDateMode2',v); }catch(e){} pptLayRender(); }
-function pptSetDatesPer(v){ pptDatesPer=v; try{ localStorage.setItem('orgPptDatesPer',String(v)); }catch(e){} pptLayRender(); }
-function pptToggleFlip(){ pptFlip=!pptFlip; try{ localStorage.setItem('orgPptFlip',pptFlip?'1':''); }catch(e){} pptLayRender(); }
-// 행 ↔ 열 뒤집기: grid는 matrix로 바꾼 뒤(행 = 날짜 열, 열 = 배율) 그대로, matrix는 전치
-function pptFlipPage(p,th){
-  if(p.kind==='grid'){
-    const mags=PPTG.MAG_ORDER.filter(m=>p.columns.some(c=>c.imgs[m]));
-    return {kind:'matrix',title:p.title,sub:p.dr,src:p.src,cut:p.cut,colLabels:mags,
-      rowLabels:p.columns.map(c=>pptRunsLines(pptHeaderRuns(c,th))),cells:p.columns.map(c=>mags.map(m=>c.imgs[m]||null))};
-  }
-  if(p.kind==='matrix') return Object.assign({},p,{wrap:0,slotRows:0,colLabels:p.rowLabels,rowLabels:p.colLabels,
-    cells:p.colLabels.map((_,c)=>p.cells.map(row=>row[c]))});
-  return p;
-}
+// 조건 슬라이드 배치는 실험(제목)마다 고정: pptCuts['mode:'+제목] = col | row | page (없으면 자동 추천)
+// pptCuts와 같이 저장·동기화되므로 다른 기기에서도 같은 배치
+const PPT_MODES=[['auto','자동'],['col','날짜를 열로'],['row','날짜를 행으로'],['page','날짜마다 한 장']];
+function pptModeOf(title){ return pptCuts['mode:'+title]||'auto'; }
+function pptSetMode(title,v){ if(v==='auto') delete pptCuts['mode:'+title]; else pptCuts['mode:'+title]=v; savePptCuts(); pptLayRender(); }
 function pptAuxFiles(){ return pptFiles.filter(f=>!pptParse(f.name).named); }
 function pptLayEnsure(){
   if(!pptLay) pptLay={sig:'',zones:null,order:{},off:{},perPage:0,dedupe:true,custom:false};
@@ -5420,11 +5411,13 @@ function pptChunks(len,n){ const out=[]; for(let a=0;a<len;a+=n) out.push([a,Mat
 function pptNumber(pages,title){ pages.forEach((p,i)=>{ p.title=title+(pages.length>1?`  (${i+1}/${pages.length})`:''); }); return pages; }
 // 날짜 머리글 runs(날짜  P7  d1 …)를 '날짜' / 'P7 d1 …' 두 줄로: 가로로 쓴 행 이름이 좁은 칸에 들어가게
 function pptRunsLines(runs){ return runs.map((r,i)=>i===1&&/^\s+$/.test(r.text)?Object.assign({},r,{text:'\n'}):r); }
+// 조건 조각 중 시간(0h · 24h · 30min …): '날짜를 행으로'에서는 조건이 아니라 행(날짜) 쪽 정보로 봄
+const PPT_TIME=/^\d+(?:\.\d+)?(?:h|hr|hrs|min)$/i;
 function pptPlanCut(title,items,th){
-  // items: {f, meta, cond:[조각]} → 날짜·p·d 묶음(버킷)으로 나눈 뒤 pptDateMode대로 배치
-  //   page: 버킷마다 한 장 (열 = 조건, 행 = 배율 × 위치)
-  //   row : 한 장에 여러 날짜, 행 = 날짜 × 배율 × 위치
-  //   col : 한 장에 여러 날짜, 열 = 날짜 × 조건
+  // items: {f, meta, cond:[조각]} → 날짜·p·d 묶음(버킷)으로 나눈 뒤 실험마다 고른 배치대로
+  //   col : 열 = 날짜 × 조건, 행 = 배율 × 위치  (일반 그리드와 같은 읽는 방향: 시간이 왼→오)
+  //   row : 열 = 조건, 행 = 날짜(+시간) × 배율 × 위치  (같은 조건이 세로로 줄 맞춰 날짜별 비교)
+  //   page: 날짜마다 한 장
   const buckets={}, pages=[];
   items.forEach(it=>{ const m=it.meta, k=[m.date,String(m.passageVal).padStart(4,'0'),m.day].join('|'); (buckets[k]=buckets[k]||[]).push(it); });
   const bks=Object.keys(buckets).sort().map(k=>buckets[k]);
@@ -5437,73 +5430,93 @@ function pptPlanCut(title,items,th){
       else if((r=x.t.match(/^([a-z]+)(\d*)$/i))&&PPT_POS.includes(r[1].toLowerCase())){ pos=r[1].toLowerCase(); if(r[2]) shot=+r[2]; }
       else col.push(x.t);
     });
-    return {f,meta,pos,shot,col,bi};
+    return {f,meta,pos,shot,col,bi,time:col.filter(t=>PPT_TIME.test(t)).join(' '),core:col.filter(t=>!PPT_TIME.test(t))};
   };
-  // 자동 추천: 사진 구성을 보고 제목마다 배치를 고름
-  //   날짜 1개 → 한 장 / 조건 2개 이하 → 날짜를 열로(일반 그리드처럼 시간 흐름)
-  //   날짜마다 조건이 대부분 겹침(채움 60% 이상) → 날짜를 행으로(같은 조건이 세로로 줄 맞춰 비교)
-  //   날짜마다 조건이 다름 → 날짜를 열로(빈칸 없이 촘촘하게)
-  let mode=pptDateMode;
+  const all=bks.flatMap((b,bi)=>b.map(it=>toRec(bi,it)));
+  const mpKey=r=>r.meta.mag+'|'+r.pos;
+  // 자동 추천
+  //   조건(시간 뺀)이 3개 이상이고 날짜마다 대부분 겹치며(채움 60%↑), 행이 6줄 안에 들어가면 → 날짜를 행으로
+  //   그 밖 → 날짜를 열로 (날짜 하나여도 열로: 한 장에 다 들어감)
+  const modeSet=pptModeOf(title);
+  let mode=modeSet;
+  const rowsPerDate=Math.max(1,...bks.map((_,bi)=>new Set(all.filter(r=>r.bi===bi).map(r=>r.time+'|'+mpKey(r))).size));
   if(mode==='auto'){
-    const per=bks.map((b,bi)=>new Set(b.map(it=>JSON.stringify(toRec(bi,it).col))));
+    const per=bks.map((_,bi)=>new Set(all.filter(r=>r.bi===bi).map(r=>JSON.stringify(r.core))));
     const nC=new Set(per.flatMap(x=>[...x])).size, fill=per.reduce((a,x)=>a+x.size,0)/(bks.length*nC||1);
-    mode=bks.length===1?'page':nC<=2?'col':fill>=0.6?'row':'col';
+    mode=bks.length>1&&nC>=3&&fill>=0.6&&rowsPerDate*Math.min(2,bks.length)<=6?'row':'col';
   }
-  // 한 장에 들어갈 버킷 묶음
+  // 한 장에 들어갈 날짜 묶음: 날짜를 행으로는 행 6줄까지, 날짜를 열로는 전부(넘치는 열은 아래에서 나눔)
   let groups;
-  if(mode==='page') groups=bks.map(b=>[b]);
-  else {
-    const magRows=new Set(items.map(it=>it.meta.mag)).size||1;
-    // 날짜를 행으로: 한 장에 행 4줄까지 (넘으면 사진이 너무 작아져 읽기 어려움)
-    const per=pptDatesPer||(mode==='row'?Math.max(1,Math.floor(4/magRows)):bks.length);
-    groups=pptChunks(bks.length,per).map(([a,b])=>bks.slice(a,b));
-  }
-  groups.forEach((gb,gi)=>{
-    const recs=gb.flatMap((b,bi)=>b.map(it=>toRec(bi,it)));
-    // 이 슬라이드의 모든 열에 똑같이 있는 조각(예: 0h)은 열 이름에서 빼고 부제로
-    const colKeys=[...new Map(recs.map(r=>[JSON.stringify(r.col),r.col])).values()];
+  if(mode==='page') groups=bks.map((_,bi)=>[bi]);
+  else { const per=mode==='row'?Math.max(1,Math.floor(6/rowsPerDate)):bks.length;
+    groups=pptChunks(bks.length,per).map(([a,b])=>bks.map((_,i)=>i).slice(a,b)); }
+  groups.forEach(gb=>{
+    const recs=all.filter(r=>gb.includes(r.bi)), useCore=mode==='row';
+    const colOf=r=>useCore?r.core:r.col;
+    // 이 슬라이드의 모든 열에 똑같이 있는 조각은 열 이름에서 빼고 부제로
+    const colKeys=[...new Map(recs.map(r=>[JSON.stringify(colOf(r)),colOf(r)])).values()];
     const common=colKeys.length>1?colKeys[0].filter(t=>colKeys.every(c=>c.includes(t))):[];
-    recs.forEach(r=>{ r.lab=r.col.filter(t=>!common.includes(t)); });
-    const conds=[...new Map(recs.map(r=>[JSON.stringify(r.lab),r.lab])).values()].sort(pptCondCmp);
+    recs.forEach(r=>{ r.lab=colOf(r).filter(t=>!common.includes(t)); });
     const ckOf=r=>(mode==='col'?r.bi+'|':'')+JSON.stringify(r.lab);
-    const rkOf=r=>(mode==='row'?r.bi+'|':'')+r.meta.mag+'|'+r.pos;
-    const dateIn=bi=>{ const m=gb[bi][0].meta; return pptHeaderRuns({date:m.date,passage:m.passage,passageVal:m.passageVal,day:m.day},th); };
-    // 열
+    const rkOf=r=>(mode==='row'?r.bi+'|'+r.time+'|':'')+mpKey(r);
+    const dateIn=bi=>{ const m=bks[bi][0].meta; return pptHeaderRuns({date:m.date,passage:m.passage,passageVal:m.passageVal,day:m.day},th); };
     let cols;
+    // 날짜를 열로: 날짜는 그 날짜 열들 위에 한 번만(묶음 머리글), 열 이름은 조건만
     if(mode==='col') cols=[...new Map(recs.map(r=>[ckOf(r),r])).values()]
-      .sort((a,b)=>a.bi-b.bi||pptCondCmp(a.lab,b.lab)).map(r=>({k:ckOf(r),lab:dateIn(r.bi).concat(r.lab.length?[{text:'\n'+r.lab.join(' '),options:{color:th.txt}}]:[])}));
-    else cols=conds.map(c=>({k:JSON.stringify(c),lab:c.join(' ')}));
-    // 행
+      .sort((a,b)=>a.bi-b.bi||pptCondCmp(a.lab,b.lab)).map(r=>({k:ckOf(r),bi:r.bi,lab:r.lab.join(' '),
+        full:dateIn(r.bi).concat(r.lab.length?[{text:'\n'+r.lab.join(' '),options:{color:th.txt}}]:[])}));
+    else cols=[...new Map(recs.map(r=>[JSON.stringify(r.lab),r.lab])).values()].sort(pptCondCmp).map(c=>({k:JSON.stringify(c),lab:c.join(' ')}));
+    // 행: 날짜를 행으로면 날짜(+시간)는 그 날짜 첫 행에만 쓰고 나머지 행은 배율만
     const rows=[...new Map(recs.map(r=>[rkOf(r),r])).values()]
-      .sort((a,b)=>(mode==='row'?a.bi-b.bi:0)||a.meta.magVal-b.meta.magVal||posRank(a.pos)-posRank(b.pos))
-      .map(r=>{ const mp=[r.meta.mag,r.pos].filter(Boolean).join(' ');
-        return {k:rkOf(r),lab:mode==='row'?pptRunsLines(dateIn(r.bi)).concat([{text:'\n'+mp,options:{color:th.txt}}]):mp}; });
-    const ck=cols.map(c=>c.k), rk=rows.map(r=>r.k);
-    const grid=rows.map(()=>cols.map(()=>[]));
+      .sort((a,b)=>(mode==='row'?a.bi-b.bi||pptNatCmp(a.time,b.time):0)||a.meta.magVal-b.meta.magVal||posRank(a.pos)-posRank(b.pos));
+    let prev='';
+    const rowObjs=rows.map(r=>{ const mp=[r.meta.mag,r.pos].filter(Boolean).join(' '), dk=r.bi+'|'+r.time;
+      if(mode!=='row') return {k:rkOf(r),lab:mp};
+      const first=dk!==prev; prev=dk;
+      return {k:rkOf(r),newGroup:first,lab:first?pptRunsLines(dateIn(r.bi)).concat(r.time?[{text:'  '+r.time,options:{color:th.txt}}]:[],[{text:'\n'+mp,options:{color:th.txt}}]):mp}; });
+    const ck=cols.map(c=>c.k), rk=rowObjs.map(r=>r.k);
+    const grid=rowObjs.map(()=>cols.map(()=>[]));
     recs.slice().sort((a,b)=>a.shot-b.shot||pptNatCmp(a.f.name,b.f.name))
       .forEach(r=>grid[rk.indexOf(rkOf(r))][ck.indexOf(ckOf(r))].push(r.f));
-    const m0=gb[0][0].meta, mL=gb[gb.length-1][0].meta;
+    const m0=bks[gb[0]][0].meta, mL=bks[gb[gb.length-1]][0].meta;
     const head=gb.length===1?[bLab(m0)]:[pptFmtDate(m0.date)+' – '+pptFmtDate(mL.date)];
     const sub=head.concat(common).join(' · ');
-    // 열이 넘치면 앞에서부터 나눔 (시간순)
-    // 행이 한 줄뿐이면(배율 하나) 한 장에 9장까지 받고, 그릴 때 3열씩 여러 줄로 감아 사진을 크게
-    const oneRow=rows.length===1&&!pptCols, mc=pptCols||(oneRow?9:6);
-    pptChunks(cols.length,mc).forEach(([c0,c1])=>{
+    // 한 장 열 수(자동): 행이 적을수록 더 받음 (행 1줄 9 · 2줄 8 · 3줄 7 · 그 이상 6). 행이 한 줄이면 3열씩 감아 사진을 크게
+    const nR=rowObjs.length, oneRow=nR===1&&!pptCols, mc=pptCols||(nR<=1?9:nR===2?8:nR===3?7:6);
+    // 나누기: 날짜를 열로면 한 날짜의 열이 두 장으로 갈라지지 않게 날짜 단위로 채움, 그 밖은 고르게
+    let chunks=[];
+    if(mode==='col'){ let cur=null;
+      cols.forEach((c,i)=>{ if(i===0||c.bi!==cols[i-1].bi){
+          const end=cols.findIndex((x,j)=>j>i&&x.bi!==c.bi), e=end<0?cols.length:end;
+          if(cur&&e-cur[0]<=mc){ cur[1]=e; }
+          else { if(cur) chunks.push(cur);
+            if(e-i<=mc) cur=[i,e]; else { pptChunks(e-i,mc).forEach(([a,b])=>chunks.push([i+a,i+b])); chunks.pop(); cur=[i+Math.floor((e-i-1)/mc)*mc,e]; } } } });
+      if(cur) chunks.push(cur);
+    } else { const k=Math.ceil(cols.length/mc), sz=Math.ceil(cols.length/k); chunks=pptChunks(cols.length,sz); }
+    chunks.forEach(([c0,c1])=>{
       const n=c1-c0, wrap=oneRow&&n>3?Math.ceil(n/Math.ceil(n/3)):0;
-      pages.push({kind:'matrix',cond:true,title,sub,cut:gb[0][0].cut,src:gb[0][0].f.name,wrap,
-        // 날짜를 행으로 여러 장이면 마지막 장도 같은 칸 크기로 (행 수를 첫 장 기준으로 맞춤)
-        slotRows:mode==='row'&&groups.length>1?Math.max(...groups.map(g=>g.length))*Math.ceil(rows.length/gb.length):0,
-        // 이 장에서 사진이 하나도 없는 행(날짜)은 뺌
-        ...(()=>{ const ri=rows.map((_,i)=>i).filter(i=>grid[i].slice(c0,c1).some(a=>a.length));
-          return {colLabels:cols.slice(c0,c1).map(c=>c.lab),rowLabels:ri.map(i=>rows[i].lab),
-            cells:ri.map(i=>grid[i].slice(c0,c1).map(a=>a.length?a:null))}; })()});
+      // 이 장이 한 날짜뿐이면 날짜는 부제로만, 열 이름은 조건만
+      const cc=cols.slice(c0,c1), oneDate=mode==='col'&&new Set(cc.map(c=>c.bi)).size===1, grp=mode==='col'&&!wrap&&!oneDate;
+      const colGroups=grp?cc.reduce((a,c,i)=>{ if(i&&cc[i-1].bi===c.bi) a[a.length-1].c1=i+1; else a.push({c0:i,c1:i+1,lab:dateIn(c.bi)}); return a; },[]):null;
+      // 이 장에서 사진이 하나도 없는 행은 뺌
+      const ri=rowObjs.map((_,i)=>i).filter(i=>grid[i].slice(c0,c1).some(a=>a.length));
+      pages.push({kind:'matrix',cond:true,exp:title,mode,modeSet,sub,cut:bks[gb[0]][0].cut,src:bks[gb[0]][0].f.name,wrap,
+        slotRows:mode==='row'&&groups.length>1?Math.max(...groups.map(g=>g.length))*rowsPerDate:0,
+        sub:oneDate?[bLab(bks[cc[0].bi][0].meta)].concat(common).join(' · '):sub,
+        colGroups,colLabels:cc.map(c=>mode==='col'&&!grp&&!oneDate?c.full:c.lab),rowLabels:ri.map(i=>rowObjs[i].lab),
+        rowBreaks:ri.map(i=>!!rowObjs[i].newGroup),
+        cells:ri.map(i=>grid[i].slice(c0,c1).map(a=>a.length?a:null))});
     });
   });
+  pages.forEach((p,i)=>{ p.part=i; });
   return pptNumber(pages,title);
 }
 
+// 한 날짜뿐인 실험 묶기 (기본 켬) — 이 브라우저에 기억
+let pptMergeDay=true; try{ pptMergeDay=localStorage.getItem('orgPptMergeDay')!=='0'; }catch(e){}
+function pptSetMergeDay(v){ pptMergeDay=v; try{ localStorage.setItem('orgPptMergeDay',v?'1':'0'); }catch(e){} pptLayRender(); }
 function pptPlanNamed(files,th){
-  const groups={}, cutG={}, pages=[];
+  const groups={}, cutG={}, pages=[], single={};
   files.forEach(f=>{
     const m=pptParse(f.name), c=pptCutOf(f.name);
     // 자른 뒤가 비었거나 (1)(2) 번호뿐이면 조건이 아님 → 원래 그리드(열 = 날짜)에 번호 칸으로 들어감
@@ -5525,15 +5538,28 @@ function pptPlanNamed(files,th){
     const nc=pptCols||PPTG.COLS, gp=[], src=(gi.find(x=>x.meta.cut)||gi[0]).f.name, cut=(gi.find(x=>x.meta.cut)||{meta:{}}).meta.cut;
     pptChunks(cols.length,nc).forEach(([a,b])=>{ const cc=cols.slice(a,b);
       gp.push({kind:'grid',dr:pptDateRange(cc.map(c=>({meta:{date:c.date}}))),nc,columns:cc,src,cut}); });
+    // 사진이 한 날짜뿐인 실험은 같은 환자 · 같은 날짜끼리 한 장으로 묶음 (슬라이드가 쓸데없이 늘지 않게)
+    if(pptMergeDay&&gp.length===1&&cols.length===1){
+      const pt=g.split(' ')[0], k=pt+'|'+cols[0].date;
+      if(!single[k]){ single[k]={pt,date:cols[0].date,items:[]}; pages.push({_merge:k}); }
+      single[k].items.push({g,page:gp[0]}); return;
+    }
     pages.push(...pptNumber(gp,g));
   });
-  return pages;
+  return pages.flatMap(p=>{
+    if(!p._merge) return [p];
+    const S=single[p._merge];
+    if(S.items.length===1) return pptNumber([S.items[0].page],S.items[0].g);
+    const cols=S.items.map(({g,page})=>Object.assign({},page.columns[0],{head:g.slice(S.pt.length).trim()||g}));
+    const nc=pptCols||PPTG.COLS, gp=[];
+    pptChunks(cols.length,nc).forEach(([a,b])=>gp.push({kind:'grid',dr:'',nc,columns:cols.slice(a,b),merged:true}));
+    return pptNumber(gp,S.pt+' · '+pptFmtDate(S.date));
+  });
 }
 function pptPlanAll(){
   const model=pptLayEnsure();
   const dark=pptDark!==null?pptDark:(model.fields['채널']||[]).some(v=>v&&v!=='BF');
-  let named=pptPlanNamed(pptFiles.filter(f=>pptParse(f.name).named),dark?PPT_TH.dark:PPT_TH.light);
-  if(pptFlip) named=named.map(p=>pptFlipPage(p,dark?PPT_TH.dark:PPT_TH.light));
+  const named=pptPlanNamed(pptFiles.filter(f=>pptParse(f.name).named),dark?PPT_TH.dark:PPT_TH.light);
   const pages=named.concat(model.recs.length?pptPlanAux(model,pptLay):[]);
   return {pages,dark,model};
 }
@@ -5592,13 +5618,16 @@ function pptDrawGrid(D,columns,title,dr,th,nc){
   const usableW=(PPTG.slideW-2*PPTG.marginX)-PPTG.gutter;
   let colW=(usableW-(nc-1)*PPTG.colGap)/nc;
   let rowH=PPTG.MAG_ORDER.map(mag=>{ const a=columns.filter(c=>c.imgs[mag]).map(c=>c.imgs[mag].aspect); return colW*(a.length?Math.max.apply(null,a):0.5625); });
-  let totalH=PPTG.headerH+PPTG.headerGap+rowH.reduce((x,y)=>x+y,0)+PPTG.rowGap*(PPTG.MAG_ORDER.length-1);
+  const hh=PPTG.headerH*(columns.some(c=>c.head)?1.7:1);
+  let totalH=hh+PPTG.headerGap+rowH.reduce((x,y)=>x+y,0)+PPTG.rowGap*(PPTG.MAG_ORDER.length-1);
   if(totalH>availH){ const k=availH/totalH; colW*=k; rowH=rowH.map(h=>h*k); totalH*=k; }
-  const left=PPTG.marginX, top=gridTop+Math.max(0,(availH-totalH)/2);
+  // 열이 다 안 차면 가운데로
+  const usedW=columns.length*colW+(columns.length-1)*PPTG.colGap;
+  const left=PPTG.marginX+Math.max(0,(usableW-usedW)/2), top=gridTop+Math.max(0,(availH-totalH)/2);
   let cx=left+PPTG.gutter;
   columns.forEach(col=>{
-    D.text(pptHeaderRuns(col,th),cx,top,colW,PPTG.headerH,{fontSize:11,bold:true,align:'center',valign:'middle'});
-    let ry2=top+PPTG.headerH+PPTG.headerGap;
+    D.text(pptHeaderRuns(col,th),cx,top,colW,hh,{fontSize:11,bold:true,align:'center',valign:'middle'});
+    let ry2=top+hh+PPTG.headerGap;
     PPTG.MAG_ORDER.forEach((mag,i)=>{
       const it=col.imgs[mag];
       if(it){ const ih=colW*it.aspect, iy=ry2+Math.max(0,(rowH[i]-ih)/2);
@@ -5616,7 +5645,7 @@ function pptDrawMatrix(D,p,th){
   pptTitle(D,p.title,p.sub||'',th);
   const gridTop=PPTG.titleTop+PPTG.titleH+PPTG.contentGap, availH=PPTG.slideH-gridTop-PPTG.bottomMargin;
   const fullW=PPTG.slideW-2*PPTG.marginX, ncAll=p.colLabels.length, nr=p.rowLabels.length, gap=PPTG.mGap, bgap=0.35;
-  const hasRL=p.rowLabels.some(Boolean), hasCL=p.colLabels.some(Boolean);
+  const hasRL=p.rowLabels.some(Boolean), hasCL=p.colLabels.some(Boolean), gH=p.colGroups?PPTG.headerH*0.75:0, gG=p.colGroups?0.12:0;
   const lines=t=>(Array.isArray(t)?t.map(x=>x.text).join(''):String(t)).split('\n').length;
   // 행 이름은 가로 글씨: 짧으면(4x 등) 좁게, 날짜가 들어가면 넓게
   const rlTxt=p.rowLabels.map(t=>(Array.isArray(t)?t.map(x=>x.text).join(''):String(t||'')).split('\n'));
@@ -5630,17 +5659,25 @@ function pptDrawMatrix(D,p,th){
   const nc=Math.min(wrap,ncAll), nb=bands.length;
   // slotRows: 칸 크기 계산은 이 행 수 기준 (같은 실험 다른 장과 사진 크기 맞춤)
   const hr=Math.max(nr,p.slotRows||0), avgA=rowA.reduce((s,a)=>s+a,0)/(nr||1);
-  const sumA=nb*rowA.reduce((s,a)=>s+a,0)+(hr-nr)*avgA, vFix=nb*(hdH+hdG)+gap*(nb*(nr-1)+(hr-nr))+bgap*(nb-1);
+  // 날짜를 행으로: 날짜가 바뀌는 행 앞에 틈을 더 줘서 날짜 묶음이 눈에 띄게
+  const brk=0.3, nBrk=nb*(p.rowBreaks||[]).filter((b,i)=>b&&i>0).length, gTot=nb*(gH+gG);
+  const sumA=nb*rowA.reduce((s,a)=>s+a,0)+(hr-nr)*avgA, vFix=nb*(hdH+hdG)+gap*(nb*(nr-1)+(hr-nr))+bgap*(nb-1)+brk*nBrk+gTot;
   // 열이 1~2개뿐이어도 사진이 슬라이드를 꽉 채우지 않게 최소 3열 폭으로 계산
   const kc=Math.max(nc,3), colW=Math.min((fullW-labW-labG-(kc-1)*gap)/kc,(availH-vFix)/sumA);
-  const gridW=labW+labG+nc*colW+(nc-1)*gap, totalH=nb*(hdH+hdG)+colW*nb*rowA.reduce((s,a)=>s+a,0)+gap*nb*(nr-1)+bgap*(nb-1);
+  const gridW=labW+labG+nc*colW+(nc-1)*gap, totalH=nb*(hdH+hdG)+colW*nb*rowA.reduce((s,a)=>s+a,0)+gap*nb*(nr-1)+bgap*(nb-1)+brk*nBrk+gTot;
   const left=PPTG.marginX+(fullW-gridW)/2, x0=left+labW+labG;
   let y=gridTop+(hr>nr?0:Math.max(0,(availH-totalH)/2));
   bands.forEach(([c0,c1])=>{
+    // 묶음 머리글(날짜): 해당 열들 위에 한 번, 아래 가는 선
+    if(p.colGroups){ p.colGroups.forEach(g=>{ const gx=x0+g.c0*(colW+gap), gw=(g.c1-g.c0)*(colW+gap)-gap;
+        D.text(g.lab,gx,y,gw,gH,{fontSize:13,bold:true,color:th.txt,align:'center',valign:'middle'});
+        D.text('',gx,y+gH,gw,0.03,{fill:{color:th.sub}}); });
+      y+=gH+gG; }
     if(hasCL) p.colLabels.slice(c0,c1).forEach((t,c)=>D.text(t,x0+c*(colW+gap),y,colW,hdH,{fontSize:13,bold:true,color:th.txt,align:'center',valign:'middle'}));
     y+=hdH+hdG;
     p.cells.forEach((row,r)=>{
       const rh=colW*rowA[r];
+      if(r>0&&p.rowBreaks&&p.rowBreaks[r]) y+=brk;
       if(hasRL) D.text(p.rowLabels[r],left,y,labW,rh,{fontSize:rlFs,bold:true,color:th.txt,align:'right',valign:'middle'});
       row.slice(c0,c1).forEach((cell,c)=>{ const fs=arrOf(cell); if(!fs.length) return;
         const k=fs.length, sw=(colW-(k-1)*sg)/k;
@@ -5704,16 +5741,8 @@ function pptLayRender(){
     h+=`<div class="pl-opts"><label class="pl-ck"><input type="checkbox"${dark?' checked':''} onchange="pptSetDark(this.checked)">검은 배경</label></div>`;
   }
   // 열 개수: 규칙 이름(날짜 열) · 제목 자르기(조건 열) · 기타 사진 행×열 배치에 모두 적용
-  const hasNamed=pptFiles.some(f=>pptParse(f.name).named);
   if(pages.some(p=>p.kind!=='flow')){
-    const auto=pptCols?'':' selected', axis=pptFlip&&hasNamed?(model.recs.length?'열 · 행':'행'):'열';
-    h+=`<div class="pl-opts">${hasNamed?`<button class="btn btn-out" onclick="pptToggleFlip()" title="이름 규칙대로 만든 슬라이드: 날짜·조건을 열 또는 행으로">행 ↔ 열 바꾸기${model.recs.length?' (규칙 이름 사진)':''}</button>`:''}<label>한 슬라이드 ${axis} 개수 <select onchange="pptSetCols(+this.value)"><option value="0"${auto}>자동</option>${[2,3,4,5,6,7,8,9,10].map(n=>`<option value="${n}"${pptCols===n?' selected':''}>${n}</option>`).join('')}</select></label><span class="pl-mut">많을수록 사진이 작아지고, 넘치는 건 다음 슬라이드로 넘어가요 · 이 브라우저에 기억돼요</span></div>`;
-  }
-  // 날짜 배치: 제목 자르기(조건) 슬라이드가 있을 때만
-  if(pptFiles.some(f=>{ const c=pptParse(f.name).named&&pptCutOf(f.name); return c&&!c.cond.every(x=>PPT_SHOT.test(x.t)); })){
-    const dm=[['auto','자동 추천'],['page','날짜마다 한 장'],['row','날짜를 행으로'],['col','날짜를 열로']];
-    h+=`<div class="pl-opts"><span>조건 슬라이드 날짜 배치</span>${dm.map(([v,t])=>`<label class="pl-ck"><input type="radio" name="pptDm"${pptDateMode===v?' checked':''} onchange="pptSetDateMode('${v}')">${t}</label>`).join('')}`+
-      (pptDateMode!=='page'?`<label>한 슬라이드 날짜 수 <select onchange="pptSetDatesPer(+this.value)">${[[0,'자동']].concat([1,2,3,4,5,6,8,10].map(n=>[n,String(n)])).map(([v,t])=>`<option value="${v}"${pptDatesPer===v?' selected':''}>${t}</option>`).join('')}</select></label>`:'')+`</div>`;
+    h+=`<div class="pl-opts"><label>한 슬라이드 열 개수 <select onchange="pptSetCols(+this.value)"><option value="0"${pptCols?'':' selected'}>자동</option>${[2,3,4,5,6,7,8,9,10].map(n=>`<option value="${n}"${pptCols===n?' selected':''}>${n}</option>`).join('')}</select></label><label class="pl-ck"><input type="checkbox"${pptMergeDay?' checked':''} onchange="pptSetMergeDay(this.checked)">한 날짜뿐인 실험은 같은 환자·날짜끼리 한 장에</label><span class="pl-mut">조건 있는 실험은 썸네일 아래 칸에서 실험마다 배치를 고를 수 있어요 (저장됨)</span></div>`;
   }
   const notes=[];
   if(model.dropped) notes.push(`겹치는 사진 ${model.dropped}장 뺌`);
@@ -5723,7 +5752,8 @@ function pptLayRender(){
   h+=`<div class="pl-sum"><span>슬라이드 <b>${pages.length}</b>장${notes.length?' · '+notes.join(' · '):''}</span><span class="pl-mut">썸네일을 누르면 크게 보여요 · <b>제목 자르기</b>로 같은 실험을 한 장에 모을 수 있어요</span></div>`;
   h+=`<div class="pl-thumbs">`+pages.map((p,i)=>{ const D=pptHtmlBackend(); pptRenderPage(D,p,th);
     const ed=canCut(p)?`<button class="pl-cutbtn${pptCutEd===p.src?' on':''}${p.cut?' cut':''}" data-src="${esc(p.src)}" title="이 슬라이드 제목을 어디까지 쓸지 고르기">${p.cut?'✂ 자름':'✂ 제목 자르기'}</button>`:'';
-    return `<div class="pl-th" title="${i+1}번 슬라이드">${D.html()}<span class="pl-no">${i+1}</span>${ed}</div>`; }).join('')+`</div>`;
+    const md=p.cond&&p.part===0?`<select class="pl-modesel" data-t="${esc(p.exp)}" title="이 실험의 배치 (저장됨)" onchange="pptSetMode(this.dataset.t,this.value)">${PPT_MODES.map(([v,t])=>`<option value="${v}"${p.modeSet===v?' selected':''}>${v==='auto'?`자동 · ${(PPT_MODES.find(x=>x[0]===p.mode)||[])[1]}`:t}</option>`).join('')}</select>`:'';
+    return `<div class="pl-th" title="${i+1}번 슬라이드">${D.html()}<span class="pl-no">${i+1}</span>${ed}${md}</div>`; }).join('')+`</div>`;
   body.innerHTML=h;
 }
 function pptCutEditorHtml(){
@@ -5768,6 +5798,7 @@ function pptLayWire(){
     if(cn){ const f=cn.parentElement.dataset.f; pptLaySel=pptLaySel===f?null:f; pptLayRender(); return; }
     const cb=e.target.closest('.pl-cutbtn'); if(cb){ pptCutEd=pptCutEd===cb.dataset.src?null:cb.dataset.src; pptLayRender(); if(pptCutEd) b.scrollTop=0; return; }
     const pc=e.target.closest('.pl-pc'); if(pc){ pptCutSet(+pc.dataset.n); return; }   // 누른 조각부터 조건
+    if(e.target.closest('.pl-modesel')) return;   // 배치 고르기 칸을 눌러도 썸네일이 커지지 않게
     const th=e.target.closest('.pl-th'); if(th){ th.classList.toggle('big'); return; }
     const zn=e.target.closest('.pl-zone');
     if(zn&&pptLaySel&&!e.target.closest('.pl-chip')){ pptLayMove(pptLaySel,zn.dataset.z,null); pptLaySel=null; pptLayRender(); }
