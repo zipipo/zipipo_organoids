@@ -5476,9 +5476,10 @@ function pptPlanCut(title,items,th){
     const mc=pptCols||6;
     pptChunks(cols.length,mc).forEach(([c0,c1])=>{
       pages.push({kind:'matrix',cond:true,title,sub,cut:gb[0][0].cut,src:gb[0][0].f.name,
-        colLabels:cols.slice(c0,c1).map(c=>c.lab),
-        rowLabels:rows.map(r=>r.lab),
-        cells:grid.map(row=>row.slice(c0,c1).map(a=>a.length?a:null))});
+        // 이 장에서 사진이 하나도 없는 행(날짜)은 뺌
+        ...(()=>{ const ri=rows.map((_,i)=>i).filter(i=>grid[i].slice(c0,c1).some(a=>a.length));
+          return {colLabels:cols.slice(c0,c1).map(c=>c.lab),rowLabels:ri.map(i=>rows[i].lab),
+            cells:ri.map(i=>grid[i].slice(c0,c1).map(a=>a.length?a:null))}; })()});
     });
   });
   return pptNumber(pages,title);
