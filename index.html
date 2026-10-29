@@ -5414,6 +5414,10 @@ function pptCondCmp(a,b){
   }
   return 0;
 }
+// 날짜 순으로 놓인 len개를 n개씩 자르되 최신 쪽부터: 최신 묶음이 꽉 차고 맨 앞에 옴 → [[시작,끝)…]
+function pptChunksNewest(len,n){ const out=[]; for(let e=len;e>0;e-=n) out.push([Math.max(0,e-n),e]); return out; }
+// 같은 제목 슬라이드가 여러 장이면 보이는 순서대로 (1/N) 번호
+function pptNumber(pages,title){ pages.forEach((p,i)=>{ p.title=title+(pages.length>1?`  (${i+1}/${pages.length})`:''); }); return pages; }
 function pptPlanCut(title,items,th){
   // items: {f, meta, cond:[조각]} → 날짜·p·d 묶음(버킷)으로 나눈 뒤 pptDateMode대로 배치
   //   page: 버킷마다 한 장 (열 = 조건, 행 = 배율 × 위치)
@@ -5435,11 +5439,11 @@ function pptPlanCut(title,items,th){
   };
   // 한 장에 들어갈 버킷 묶음
   let groups;
-  if(pptDateMode==='page') groups=bks.map(b=>[b]);
+  if(pptDateMode==='page') groups=bks.map(b=>[b]).reverse();   // 최신 날짜가 앞 슬라이드
   else {
     const magRows=new Set(items.map(it=>it.meta.mag)).size||1;
     const per=pptDatesPer||(pptDateMode==='row'?Math.max(1,Math.floor(6/magRows)):bks.length);
-    groups=[]; for(let i=0;i<bks.length;i+=per) groups.push(bks.slice(i,i+per));
+    groups=pptChunksNewest(bks.length,per).map(([a,b])=>bks.slice(a,b));
   }
   groups.forEach((gb,gi)=>{
     const recs=gb.flatMap((b,bi)=>b.map(it=>toRec(bi,it)));
@@ -5468,16 +5472,18 @@ function pptPlanCut(title,items,th){
     const m0=gb[0][0].meta, mL=gb[gb.length-1][0].meta;
     const head=gb.length===1?[bLab(m0)]:[pptFmtDate(m0.date)+' – '+pptFmtDate(mL.date)];
     const sub=head.concat(common).join(' · ');
-    const mc=pptCols||6, tot=Math.ceil(cols.length/mc), gTot=groups.length>1&&pptDateMode!=='page'?groups.length:1;
-    for(let c0=0;c0<cols.length;c0+=mc){
-      const n=gi*tot+c0/mc+1, all=gTot*tot;
-      pages.push({kind:'matrix',cond:true,title:title+(pptDateMode==='page'?(tot>1?`  (${c0/mc+1}/${tot})`:''):(all>1?`  (${n}/${all})`:'')),sub,cut:gb[0][0].cut,src:gb[0][0].f.name,
-        colLabels:cols.slice(c0,c0+mc).map(c=>c.lab),
+    // 열이 넘치면 나눔: 날짜가 열이면 최신 날짜 쪽이 앞, 조건만 열이면 조건 순서대로
+    const mc=pptCols||6, chunks=[];
+    if(pptDateMode==='col') chunks.push(...pptChunksNewest(cols.length,mc));
+    else for(let c0=0;c0<cols.length;c0+=mc) chunks.push([c0,Math.min(cols.length,c0+mc)]);
+    chunks.forEach(([c0,c1])=>{
+      pages.push({kind:'matrix',cond:true,title,sub,cut:gb[0][0].cut,src:gb[0][0].f.name,
+        colLabels:cols.slice(c0,c1).map(c=>c.lab),
         rowLabels:rows.map(r=>r.lab),
-        cells:grid.map(row=>row.slice(c0,c0+mc).map(a=>a.length?a:null))});
-    }
+        cells:grid.map(row=>row.slice(c0,c1).map(a=>a.length?a:null))});
+    });
   });
-  return pages;
+  return pptNumber(pages,title);
 }
 
 function pptPlanNamed(files,th){
@@ -5499,11 +5505,11 @@ function pptPlanNamed(files,th){
       if(!colsMap[key]) colsMap[key]={date:m.date,passage:m.passage,passageVal:m.passageVal,day:m.day,well:m.well,region:m.region,extra:m.extra,sort:[m.date,m.passageVal,m.wellVal,m.regionVal,m.extra],imgs:{}};
       if(!colsMap[key].imgs[m.mag]) colsMap[key].imgs[m.mag]=f; });
     const cols=Object.values(colsMap).sort((a,b)=>pptCmpArr(a.sort,b.sort));
-    const nc=pptCols||PPTG.COLS, dr=pptDateRange(gi), tot=Math.ceil(cols.length/nc);
-    for(let i=0;i<cols.length;i+=nc){
-      const suf=tot>1?`  (${Math.floor(i/nc)+1}/${tot})`:'';
-      pages.push({kind:'grid',title:g+suf,dr,nc,columns:cols.slice(i,i+nc),src:(gi.find(x=>x.meta.cut)||gi[0]).f.name,cut:(gi.find(x=>x.meta.cut)||{meta:{}}).meta.cut});
-    }
+    // 슬라이드 안은 날짜 오름차순, 슬라이드 순서는 최신 날짜가 앞
+    const nc=pptCols||PPTG.COLS, gp=[], src=(gi.find(x=>x.meta.cut)||gi[0]).f.name, cut=(gi.find(x=>x.meta.cut)||{meta:{}}).meta.cut;
+    pptChunksNewest(cols.length,nc).forEach(([a,b])=>{ const cc=cols.slice(a,b);
+      gp.push({kind:'grid',dr:pptDateRange(cc.map(c=>({meta:{date:c.date}}))),nc,columns:cc,src,cut}); });
+    pages.push(...pptNumber(gp,g));
   });
   return pages;
 }
