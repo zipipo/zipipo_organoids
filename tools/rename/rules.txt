@@ -1,0 +1,24 @@
+﻿# 이름 통일 규칙: 한 줄에 하나씩   바꿀말 => 새말
+# 파일 이름 안에 '바꿀말'이 그대로(대소문자 구분) 있으면 '새말'로 바꿔요. 위 줄부터 차례로 적용돼요.
+# 앞뒤에 _ 나 실험 이름을 같이 적어 두면 엉뚱한 파일이 바뀌는 걸 막을 수 있어요.
+# 맨 앞이 # 인 줄은 무시해요. 고친 뒤에는 꼭 저장하고 실행하세요.
+
+# HCC18 IFNg-2nd: 10/28 사진만 IFNg가 빠져 있음 → 10/27 이름과 같게
+for-IFNg-2nd_48h-10ng- => for-IFNg-2nd_48h-IFNg-10ng-
+for-IFNg-2nd_48h-20ng- => for-IFNg-2nd_48h-IFNg-20ng-
+
+# HCC27 CM-test: 메모가 d2로 시작하면 앱이 배양 일수(d)로 읽음 → day2로
+_d2-W1_ => _day2-W1_
+_d2-W2_ => _day2-W2_
+
+# (예시) Pre 처리 이름도 본 처리처럼 쓰고 싶으면 맨 앞 # 을 지우세요
+# _Pre-24h-10- => _Pre-24h-IFNg-10ng-
+# _Pre-24h-20- => _Pre-24h-IFNg-20ng-
+# _Pre-48h-10- => _Pre-48h-IFNg-10ng-
+# _Pre-48h-20- => _Pre-48h-IFNg-20ng-
+
+# (예시) 첫 번째 IFNg 실험도 같은 형식으로
+# for-IFNg_24h-10_ => for-IFNg_24h-IFNg-10ng_
+# for-IFNg_24h-20_ => for-IFNg_24h-IFNg-20ng_
+# for-IFNg_48h-10_ => for-IFNg_48h-IFNg-10ng_
+# for-IFNg_48h-20_ => for-IFNg_48h-IFNg-20ng_
