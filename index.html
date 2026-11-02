@@ -5296,10 +5296,9 @@ function pptLayRecommend(model){
 // 배치 상태: zones(page/col/row/none) · 값 순서 · 뺀 값
 let pptLay=null, pptDark=null, pptLaySel=null, pptDrag=null;
 // 한 슬라이드 열 개수 (0 = 자동: 규칙 이름 5 · 제목 자르기 6 · 기타 사진은 열 수에 맞춤) — 이 브라우저에 기억
-// 한 슬라이드 열 개수 (0 = 자동) — 이 브라우저에 기억
+// 한 슬라이드 열 개수 (0 = 자동)
 let pptCols=0;
-try{ pptCols=+localStorage.getItem('orgPptCols')||0; }catch(e){}
-function pptSetCols(v){ pptCols=v; try{ localStorage.setItem('orgPptCols',String(v)); }catch(e){} pptLayRender(); }
+function pptSetCols(v){ pptCols=v; pptLayRender(); }   // 기억하지 않음: 페이지를 열 때마다 자동부터
 // 조건 슬라이드 배치는 실험(제목)마다 고정: pptCuts['mode:'+제목] = col | row | page (없으면 자동 추천)
 // pptCuts와 같이 저장·동기화되므로 다른 기기에서도 같은 배치
 const PPT_MODES=[['auto','자동'],['col','날짜를 열로'],['row','날짜를 행으로'],['page','날짜마다 한 장']];
@@ -5562,8 +5561,10 @@ function pptPlanCut(title,items,th){
 }
 
 // 한 날짜뿐인 실험 묶기 (기본 켬) — 이 브라우저에 기억
-let pptMergeDay=true; try{ pptMergeDay=localStorage.getItem('orgPptMergeDay')!=='0'; }catch(e){}
-function pptSetMergeDay(v){ pptMergeDay=v; try{ localStorage.setItem('orgPptMergeDay',v?'1':'0'); }catch(e){} pptLayRender(); }
+// 환자마다 고름: pptCuts['merge:HCC37'] = 0 이면 그 환자는 안 묶음 (기본 묶음), 저장·동기화
+let pptMergePts=[];   // 이번 사진 중 묶을 수 있는 환자 (같은 날 한 장짜리 실험이 2개 이상)
+const pptMergeOn=pt=>pptCuts['merge:'+pt]!==0;
+function pptSetMerge(pt,on){ if(on) delete pptCuts['merge:'+pt]; else pptCuts['merge:'+pt]=0; savePptCuts(); pptLayRender(); }
 // ── 파일 이름에서 제목 · 조건 자동으로 나누기 ──
 // 앱이 만드는 이름: 날짜_환자_종류[_샘플세부명][_촬영메모]_p_d_배율 → 제목 = 환자 종류 [세부명], 조건 = 촬영메모
 // 앞 조각이 하나만 더 있으면 세부명인지 메모인지 애매해서:
@@ -5596,7 +5597,7 @@ function pptAutoSplit(name,ctx){
   return {title:pre.slice(0,2).concat(detail?[detail]:[]).join(' '), cond, shot};
 }
 function pptPlanNamed(files,th){
-  const groups={}, cutG={}, pages=[], single={}, actx=pptAutoCtx(files);
+  const groups={}, cutG={}, pages=[], single={}, mcount={}, actx=pptAutoCtx(files);
   files.forEach(f=>{
     const m=pptParse(f.name);
     // 직접 고른 제목 자르기가 있으면 그게 먼저, 없으면 이름 구조로 자동
@@ -5627,13 +5628,16 @@ function pptPlanNamed(files,th){
     ch.forEach(([a,b])=>{ const cc=cols.slice(a,b);
       gp.push({kind:'grid',dr:pptDateRange(cc.map(c=>({meta:{date:c.date}}))),nc:Math.max(nc,cc.length),columns:cc,src,cut}); });
     // 사진이 한 날짜뿐인 실험은 같은 환자 · 같은 날짜끼리 한 장으로 묶음 (슬라이드가 쓸데없이 늘지 않게)
-    if(pptMergeDay&&gp.length===1&&cols.length===1){
+    if(gp.length===1&&cols.length===1){
       const pt=g.split(' ')[0], k=pt+'|'+cols[0].date;
+      (mcount[k]=mcount[k]||{pt,n:0}).n++;
+      if(!pptMergeOn(pt)){ pages.push(...pptNumber(gp,g)); return; }
       if(!single[k]){ single[k]={pt,date:cols[0].date,items:[]}; pages.push({_merge:k}); }
       single[k].items.push({g,page:gp[0]}); return;
     }
     pages.push(...pptNumber(gp,g));
   });
+  pptMergePts=[...new Set(Object.values(mcount).filter(x=>x.n>=2).map(x=>x.pt))].sort(pptNatCmp);
   return pages.flatMap(p=>{
     if(!p._merge) return [p];
     const S=single[p._merge];
@@ -5861,7 +5865,7 @@ function pptLayRender(){
   }
   // 열 개수: 규칙 이름(날짜 열) · 제목 자르기(조건 열) · 기타 사진 행×열 배치에 모두 적용
   if(pages.some(p=>p.kind!=='flow')){
-    h+=`<div class="pl-opts"><label>한 슬라이드 열 개수 <select onchange="pptSetCols(+this.value)"><option value="0"${pptCols?'':' selected'}>자동</option>${[2,3,4,5,6,7,8,9,10].map(n=>`<option value="${n}"${pptCols===n?' selected':''}>${n}</option>`).join('')}</select></label><label class="pl-ck"><input type="checkbox"${pptMergeDay?' checked':''} onchange="pptSetMergeDay(this.checked)">한 날짜뿐인 실험은 같은 환자·날짜끼리 한 장에</label></div><div class="pl-opts"><span>오른쪽 위 마일스톤</span>${PPT_MS_ACTS.map(k=>`<label class="pl-ck"><input type="checkbox"${pptMsActs().includes(k)?' checked':''} onchange="pptToggleMs('${k}',this.checked)">${pptMsLabel(k)}</label>`).join('')}<span class="pl-mut">사진 기간의 기록 + 그 직전 기록 하나 (라인 기록과 제목이 맞는 실험만)</span><span class="pl-mut">조건 있는 실험은 썸네일 아래 칸에서 실험마다 배치를 고를 수 있어요 (저장됨)</span></div>`;
+    h+=`<div class="pl-opts"><label>한 슬라이드 열 개수 <select onchange="pptSetCols(+this.value)"><option value="0"${pptCols?'':' selected'}>자동</option>${[2,3,4,5,6,7,8,9,10].map(n=>`<option value="${n}"${pptCols===n?' selected':''}>${n}</option>`).join('')}</select></label></div>${pptMergePts.length?`<div class="pl-opts"><span>한 날짜뿐인 실험을 같은 날끼리 한 장에</span>${pptMergePts.map(pt=>`<label class="pl-ck"><input type="checkbox"${pptMergeOn(pt)?' checked':''} onchange="pptSetMerge('${esc(pt)}',this.checked)">${esc(pt)}</label>`).join('')}</div>`:''}<div class="pl-opts"><span>오른쪽 위 마일스톤</span>${PPT_MS_ACTS.map(k=>`<label class="pl-ck"><input type="checkbox"${pptMsActs().includes(k)?' checked':''} onchange="pptToggleMs('${k}',this.checked)">${pptMsLabel(k)}</label>`).join('')}<span class="pl-mut">사진 기간의 기록 + 그 직전 기록 하나 (라인 기록과 제목이 맞는 실험만)</span><span class="pl-mut">조건 있는 실험은 썸네일 아래 칸에서 실험마다 배치를 고를 수 있어요 (저장됨)</span></div>`;
   }
   const notes=[];
   if(model.dropped) notes.push(`겹치는 사진 ${model.dropped}장 뺌`);
