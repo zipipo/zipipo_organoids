@@ -5672,7 +5672,10 @@ function pptMilestones(title,dates){
 }
 // ── 환자 요약 슬라이드: 행 = 그 환자의 실험, 열 = 날짜, 칸 = 대표 사진 1장(조건 없는 사진 · 4x 우선), 사진 왼쪽 아래 P · d
 // pptCuts['sum:HCC37'] = 1 이면 켬 (기본 끔), 저장·동기화
-let pptSumPts=[];   // 요약을 만들 수 있는 환자 (실험 2개 이상)
+let pptSumPts=[], pptSumTitles={};   // 요약을 만들 수 있는 환자 (실험 2개 이상), 환자별 실험 목록
+// 요약에서 뺄 실험: pptCuts['sumx:HCC27 Tumor-org for-CM-test'] = 1 (기본은 모두 넣음)
+const pptSumIn=t=>pptCuts['sumx:'+t]!==1;
+function pptSetSumIn(t,on){ if(on) delete pptCuts['sumx:'+t]; else pptCuts['sumx:'+t]=1; savePptCuts(); pptLayRender(); }
 const pptSumOn=pt=>pptCuts['sum:'+pt]===1;
 function pptSetSum(pt,on){ if(on) pptCuts['sum:'+pt]=1; else delete pptCuts['sum:'+pt]; savePptCuts(); pptLayRender(); }
 function pptPatientSummary(files,th){
@@ -5685,8 +5688,10 @@ function pptPatientSummary(files,th){
     if(!cur||pptCmpArr(rank,cur.rank)<0) P[k]={title:c.title,date:m.date,f,m,rank}; });
   pptSumPts=Object.keys(by).filter(pt=>new Set(Object.values(by[pt]).map(x=>x.title)).size>=2).sort(pptNatCmp);
   const out={};
+  pptSumTitles={}; pptSumPts.forEach(pt=>{ pptSumTitles[pt]=[...new Set(Object.values(by[pt]).map(x=>x.title))].sort(pptNatCmp); });
   pptSumPts.filter(pptSumOn).forEach(pt=>{
-    const cells=Object.values(by[pt]);
+    const cells=Object.values(by[pt]).filter(x=>pptSumIn(x.title));
+    if(!cells.length) return;
     const titles=[...new Set(cells.map(x=>x.title))].sort(pptNatCmp), dates=[...new Set(cells.map(x=>x.date))].sort();
     const RP=5, CP=6, pages=[];   // 한 장에 실험 5줄 × 날짜 6열까지
     const get=(t,d)=>cells.find(x=>x.title===t&&x.date===d);
@@ -5904,7 +5909,8 @@ function pptLayRender(){
   }
   // 열 개수: 규칙 이름(날짜 열) · 제목 자르기(조건 열) · 기타 사진 행×열 배치에 모두 적용
   if(pages.some(p=>p.kind!=='flow')){
-    h+=`<div class="pl-opts"><label>한 슬라이드 열 개수 <select onchange="pptSetCols(+this.value)"><option value="0"${pptCols?'':' selected'}>자동</option>${[2,3,4,5,6,7,8,9,10].map(n=>`<option value="${n}"${pptCols===n?' selected':''}>${n}</option>`).join('')}</select></label></div>${pptSumPts.length?`<div class="pl-opts"><span>환자 요약 슬라이드 (그 환자 맨 앞)</span>${pptSumPts.map(pt=>`<label class="pl-ck"><input type="checkbox"${pptSumOn(pt)?' checked':''} onchange="pptSetSum('${esc(pt)}',this.checked)">${esc(pt)}</label>`).join('')}</div>`:''}${pptMergePts.length?`<div class="pl-opts"><span>한 날짜뿐인 실험을 같은 날끼리 한 장에</span>${pptMergePts.map(pt=>`<label class="pl-ck"><input type="checkbox"${pptMergeOn(pt)?' checked':''} onchange="pptSetMerge('${esc(pt)}',this.checked)">${esc(pt)}</label>`).join('')}</div>`:''}<div class="pl-opts"><span>오른쪽 위 마일스톤</span>${PPT_MS_ACTS.map(k=>`<label class="pl-ck"><input type="checkbox"${pptMsActs().includes(k)?' checked':''} onchange="pptToggleMs('${k}',this.checked)">${pptMsLabel(k)}</label>`).join('')}<span class="pl-mut">사진 기간의 기록 + 그 직전 기록 하나 (라인 기록과 제목이 맞는 실험만)</span><span class="pl-mut">조건 있는 실험은 썸네일 아래 칸에서 실험마다 배치를 고를 수 있어요 (저장됨)</span></div>`;
+    h+=`<div class="pl-opts"><label>한 슬라이드 열 개수 <select onchange="pptSetCols(+this.value)"><option value="0"${pptCols?'':' selected'}>자동</option>${[2,3,4,5,6,7,8,9,10].map(n=>`<option value="${n}"${pptCols===n?' selected':''}>${n}</option>`).join('')}</select></label></div>${pptSumPts.length?`<div class="pl-opts"><span>환자 요약 슬라이드 (그 환자 맨 앞)</span>${pptSumPts.map(pt=>`<label class="pl-ck"><input type="checkbox"${pptSumOn(pt)?' checked':''} onchange="pptSetSum('${esc(pt)}',this.checked)">${esc(pt)}</label>`).join('')}</div>`+
+      pptSumPts.filter(pptSumOn).map(pt=>`<div class="pl-opts"><span class="pl-mut">${esc(pt)} 요약에 넣을 실험</span>${(pptSumTitles[pt]||[]).map(t=>`<label class="pl-ck"><input type="checkbox"${pptSumIn(t)?' checked':''} data-t="${esc(t)}" onchange="pptSetSumIn(this.dataset.t,this.checked)">${esc(t.slice(pt.length).trim()||t)}</label>`).join('')}</div>`).join(''):''}${pptMergePts.length?`<div class="pl-opts"><span>한 날짜뿐인 실험을 같은 날끼리 한 장에</span>${pptMergePts.map(pt=>`<label class="pl-ck"><input type="checkbox"${pptMergeOn(pt)?' checked':''} onchange="pptSetMerge('${esc(pt)}',this.checked)">${esc(pt)}</label>`).join('')}</div>`:''}<div class="pl-opts"><span>오른쪽 위 마일스톤</span>${PPT_MS_ACTS.map(k=>`<label class="pl-ck"><input type="checkbox"${pptMsActs().includes(k)?' checked':''} onchange="pptToggleMs('${k}',this.checked)">${pptMsLabel(k)}</label>`).join('')}<span class="pl-mut">사진 기간의 기록 + 그 직전 기록 하나 (라인 기록과 제목이 맞는 실험만)</span><span class="pl-mut">조건 있는 실험은 썸네일 아래 칸에서 실험마다 배치를 고를 수 있어요 (저장됨)</span></div>`;
   }
   const notes=[];
   if(model.dropped) notes.push(`겹치는 사진 ${model.dropped}장 뺌`);
