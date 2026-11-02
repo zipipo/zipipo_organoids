@@ -519,7 +519,7 @@ label{font-size:.74rem;font-weight:550;color:var(--sub);}
 
 /* 오늘 작업: 본문 + 오른쪽 기록 패널 */
 .today{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:20px;align-items:start;}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--bd);border-radius:8px;background:var(--sur);margin-bottom:14px;overflow:hidden;}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);border:1px solid var(--bd);border-radius:8px;background:var(--sur);margin-bottom:14px;overflow:hidden;}
 .stat{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-left:1px solid var(--bd2);}
 .stat:first-child{border-left:none;}
 .stat-l{display:flex;align-items:center;gap:6px;font-size:.74rem;color:var(--sub);font-weight:500;}
@@ -2112,6 +2112,7 @@ function renderDash(){
   const todayPlans=plans.filter(p=>!p.done&&p.date<=t).length;
   document.getElementById('stats').innerHTML=`
     <div class="stat"><span class="stat-l">배양 중</span><span class="stat-n">${active.length}</span></div>
+    <div class="stat"><span class="stat-l">총 Well</span><span class="stat-n">${Object.values(groups).reduce((s,d)=>s+d.wells,0)}</span></div>
     <div class="stat${mcWarn?' click':''}" ${mcWarn?'onclick="selectMcNeeded()" title="MC 필요 라인 전체 선택"':''}><span class="stat-l"><i class="dot d-warn"></i>MC 3일차</span><span class="stat-n">${mcWarn}</span></div>
     <div class="stat${mcDue?' click':''}" ${mcDue?'onclick="selectMcNeeded()" title="MC 필요 라인 전체 선택"':''}><span class="stat-l"><i class="dot d-due"></i>MC 지연</span><span class="stat-n">${mcDue}</span></div>
     <div class="stat"><span class="stat-l">오늘 예정</span><span class="stat-n">${todayPlans}</span></div>`;
@@ -2773,14 +2774,14 @@ function renderTimelines(containerId,showDone){
 
   if(showDone){ renderArchiveGrid(el, filtered); return; }
 
-  const typeN={}; filtered.forEach(l=>{typeN[l.type]=(typeN[l.type]||0)+1;});
+  const typeN={}, typeW={}; filtered.forEach(l=>{typeN[l.type]=(typeN[l.type]||0)+1; typeW[l.type]=(typeW[l.type]||0)+(parseInt(latestWell(l))||0);});
   let curType=null;
   filtered.forEach(line=>{
     const c=getC(line.type,line.isCompleted);
     // 종류가 바뀌는 지점마다 종류 머리 줄 (오늘 작업의 배양 현황과 같은 모양, 색 바꾸기 버튼 포함)
     if(line.type!==curType){
       curType=line.type;
-      el.innerHTML+=`<div class="type-hd" style="${toneVars(c)}"><span class="type-chip">${esc(line.type||'(종류 없음)')}</span><em>라인 ${typeN[line.type]}개</em>
+      el.innerHTML+=`<div class="type-hd" style="${toneVars(c)}"><span class="type-chip">${esc(line.type||'(종류 없음)')}</span><em>라인 ${typeN[line.type]}개 · 총 ${typeW[line.type]} well</em>
         <button class="bd-color" onclick="openColorModal('${jsEsc(line.type)}')" title="이 종류 색 바꾸기">${ic('palette')}</button></div>`;
     }
     const curPlate=latestPlate(line);
