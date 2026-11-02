@@ -5670,10 +5670,47 @@ function pptMilestones(title,dates){
     const det=[g.details,g.passage!=null&&actionDef(g.action).key==='Split'?'P'+g.passage:''].filter(Boolean).join(' ');
     return m+' '+g.action+(det?' ('+det+')':''); }):null;
 }
+// ── 환자 요약 슬라이드: 행 = 그 환자의 실험, 열 = 날짜, 칸 = 대표 사진 1장(조건 없는 사진 · 4x 우선), 사진 왼쪽 아래 P · d
+// pptCuts['sum:HCC37'] = 1 이면 켬 (기본 끔), 저장·동기화
+let pptSumPts=[];   // 요약을 만들 수 있는 환자 (실험 2개 이상)
+const pptSumOn=pt=>pptCuts['sum:'+pt]===1;
+function pptSetSum(pt,on){ if(on) pptCuts['sum:'+pt]=1; else delete pptCuts['sum:'+pt]; savePptCuts(); pptLayRender(); }
+function pptPatientSummary(files,th){
+  const ctx=pptAutoCtx(files), by={};
+  files.forEach(f=>{ const m=pptParse(f.name), c=pptCutOf(f.name)||pptAutoSplit(f.name,ctx); if(!c||!m.date) return;
+    const pt=c.title.split(' ')[0], cond=(c.cond||[]).filter(x=>!PPT_SHOT.test(x.t)).length;
+    const mi=PPTG.MAG_ORDER.indexOf(m.mag);
+    const rank=[cond?1:0, mi<0?9:mi, m.regionVal||0];
+    const P=by[pt]=by[pt]||{}, k=c.title+'|'+m.date, cur=P[k];
+    if(!cur||pptCmpArr(rank,cur.rank)<0) P[k]={title:c.title,date:m.date,f,m,rank}; });
+  pptSumPts=Object.keys(by).filter(pt=>new Set(Object.values(by[pt]).map(x=>x.title)).size>=2).sort(pptNatCmp);
+  const out={};
+  pptSumPts.filter(pptSumOn).forEach(pt=>{
+    const cells=Object.values(by[pt]);
+    const titles=[...new Set(cells.map(x=>x.title))].sort(pptNatCmp), dates=[...new Set(cells.map(x=>x.date))].sort();
+    const RP=5, CP=6, pages=[];   // 한 장에 실험 5줄 × 날짜 6열까지
+    const get=(t,d)=>cells.find(x=>x.title===t&&x.date===d);
+    const even=(n,m)=>{ const k=Math.ceil(n/m); return pptChunks(n,Math.ceil(n/k)); };   // 고르게 나눔 (9 → 5+4)
+    // 날짜를 먼저 나누고, 그 날짜들에 사진이 있는 실험만 골라 다시 고르게 나눔
+    even(dates.length,CP).forEach(([d0,d1])=>{ const dd=dates.slice(d0,d1), present=titles.filter(t=>dd.some(d=>get(t,d)));
+     even(present.length,RP).forEach(([r0,r1])=>{
+      const ri=present.slice(r0,r1), di=dd.filter(d=>ri.some(t=>get(t,d)));
+      pages.push({kind:'matrix',summary:true,sub:'환자 요약 · 대표 사진 (조건 없는 사진 · 4x 우선)',
+        colLabels:di.map(d=>pptFmtDate(d)),rowLabels:ri.map(t=>t.slice(pt.length).trim()||t),
+        cells:ri.map(t=>di.map(d=>{ const x=get(t,d); return x?x.f:null; })),
+        caps:ri.map(t=>di.map(d=>{ const x=get(t,d); return x?[x.m.passage.toUpperCase(),x.m.day].filter(Boolean).join(' '):''; }))});
+    }); });
+    out[pt]=pptNumber(pages,pt+' 요약');
+  });
+  return out;
+}
 function pptPlanAll(){
   const model=pptLayEnsure();
   const dark=pptDark!==null?pptDark:(model.fields['채널']||[]).some(v=>v&&v!=='BF');
   const named=pptPlanNamed(pptFiles.filter(f=>pptParse(f.name).named),dark?PPT_TH.dark:PPT_TH.light);
+  // 환자 요약은 그 환자 슬라이드들 맨 앞에
+  const sums=pptPatientSummary(pptFiles.filter(f=>pptParse(f.name).named),dark?PPT_TH.dark:PPT_TH.light);
+  Object.keys(sums).forEach(pt=>{ const i=named.findIndex(p=>(p.exp||p.title).startsWith(pt+' ')); named.splice(i<0?named.length:i,0,...sums[pt]); });
   const pages=named.concat(model.recs.length?pptPlanAux(model,pptLay):[]);
   pages.forEach(p=>{ const t=p.exp||(p.kind==='grid'&&!p.merged?p.title.replace(/\s+\(\d+\/\d+\)$/,''):'');
     const ds=[...new Set(pptPageFiles(p).map(f=>pptParse(f.name).date).filter(Boolean))].sort();
@@ -5808,6 +5845,8 @@ function pptDrawMatrix(D,p,th){
           const x=x0+c*(colW+gap)+j*(sw+sg), ih=sw*f.aspect, iy=y+(rh-ih)/2;
           D.image(f,x,iy,sw,ih);
           const mg=pptMagOf(f); if(mg) pptBadge(D,mg,x,iy,sw);
+          // 칸마다 P · d (환자 요약): 사진 왼쪽 아래 흰 바탕 작은 글씨
+          const cap=p.caps&&p.caps[r]&&p.caps[r][c0+c]; if(cap&&j===0) D.text(cap,x,iy+ih-0.34,Math.min(sw,1.6),0.34,{fontSize:7,color:'000000',align:'center',valign:'middle',fill:{color:'FFFFFF'}});
         });
       });
       y+=rh+gap;
@@ -5865,7 +5904,7 @@ function pptLayRender(){
   }
   // 열 개수: 규칙 이름(날짜 열) · 제목 자르기(조건 열) · 기타 사진 행×열 배치에 모두 적용
   if(pages.some(p=>p.kind!=='flow')){
-    h+=`<div class="pl-opts"><label>한 슬라이드 열 개수 <select onchange="pptSetCols(+this.value)"><option value="0"${pptCols?'':' selected'}>자동</option>${[2,3,4,5,6,7,8,9,10].map(n=>`<option value="${n}"${pptCols===n?' selected':''}>${n}</option>`).join('')}</select></label></div>${pptMergePts.length?`<div class="pl-opts"><span>한 날짜뿐인 실험을 같은 날끼리 한 장에</span>${pptMergePts.map(pt=>`<label class="pl-ck"><input type="checkbox"${pptMergeOn(pt)?' checked':''} onchange="pptSetMerge('${esc(pt)}',this.checked)">${esc(pt)}</label>`).join('')}</div>`:''}<div class="pl-opts"><span>오른쪽 위 마일스톤</span>${PPT_MS_ACTS.map(k=>`<label class="pl-ck"><input type="checkbox"${pptMsActs().includes(k)?' checked':''} onchange="pptToggleMs('${k}',this.checked)">${pptMsLabel(k)}</label>`).join('')}<span class="pl-mut">사진 기간의 기록 + 그 직전 기록 하나 (라인 기록과 제목이 맞는 실험만)</span><span class="pl-mut">조건 있는 실험은 썸네일 아래 칸에서 실험마다 배치를 고를 수 있어요 (저장됨)</span></div>`;
+    h+=`<div class="pl-opts"><label>한 슬라이드 열 개수 <select onchange="pptSetCols(+this.value)"><option value="0"${pptCols?'':' selected'}>자동</option>${[2,3,4,5,6,7,8,9,10].map(n=>`<option value="${n}"${pptCols===n?' selected':''}>${n}</option>`).join('')}</select></label></div>${pptSumPts.length?`<div class="pl-opts"><span>환자 요약 슬라이드 (그 환자 맨 앞)</span>${pptSumPts.map(pt=>`<label class="pl-ck"><input type="checkbox"${pptSumOn(pt)?' checked':''} onchange="pptSetSum('${esc(pt)}',this.checked)">${esc(pt)}</label>`).join('')}</div>`:''}${pptMergePts.length?`<div class="pl-opts"><span>한 날짜뿐인 실험을 같은 날끼리 한 장에</span>${pptMergePts.map(pt=>`<label class="pl-ck"><input type="checkbox"${pptMergeOn(pt)?' checked':''} onchange="pptSetMerge('${esc(pt)}',this.checked)">${esc(pt)}</label>`).join('')}</div>`:''}<div class="pl-opts"><span>오른쪽 위 마일스톤</span>${PPT_MS_ACTS.map(k=>`<label class="pl-ck"><input type="checkbox"${pptMsActs().includes(k)?' checked':''} onchange="pptToggleMs('${k}',this.checked)">${pptMsLabel(k)}</label>`).join('')}<span class="pl-mut">사진 기간의 기록 + 그 직전 기록 하나 (라인 기록과 제목이 맞는 실험만)</span><span class="pl-mut">조건 있는 실험은 썸네일 아래 칸에서 실험마다 배치를 고를 수 있어요 (저장됨)</span></div>`;
   }
   const notes=[];
   if(model.dropped) notes.push(`겹치는 사진 ${model.dropped}장 뺌`);
