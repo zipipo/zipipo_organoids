@@ -583,6 +583,8 @@ label{font-size:.74rem;font-weight:550;color:var(--sub);}
 .bd-name small{font-weight:500;color:var(--mut);font-size:.72rem;overflow:hidden;text-overflow:ellipsis;}
 .bd-pd,.tl-pd,.tlog-d{color:var(--sub);font-size:.78rem;white-space:nowrap;}
 .bd-pd b,.tl-pd b,.tlog-d b{color:var(--tx);font-weight:600;margin-right:3px;}
+.pd-w{margin-left:6px;color:var(--tx);font-weight:550;}
+.bd-pd .pd-w{display:none;}   /* 넓은 화면은 Well 칸이 따로 있음 */
 .bd-plate{color:var(--sub);font-size:.76rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .bd-well{font-size:.8rem;font-weight:550;text-align:right;}
 .mc{justify-self:end;height:22px;min-width:54px;padding:0 7px;border-radius:4px;border:1px solid transparent;font:inherit;font-size:.7rem;font-weight:600;cursor:pointer;transition:filter .12s,box-shadow .12s;}
@@ -1002,6 +1004,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
   .bd-head{display:none;}
   .bd-row{grid-template-columns:24px 1fr auto 60px 24px;height:auto;min-height:44px;padding:6px 12px 6px 8px;row-gap:0;}
   .bd-plate,.bd-well{display:none;}
+  .bd-pd .pd-w{display:inline;}
   .pl-row{grid-template-columns:44px auto 1fr;}
   .pl-go{display:none;}
   .tl-act{opacity:1;}
@@ -2131,7 +2134,7 @@ function renderDash(){
       return `<div class="bd-row${bulkLines.includes(ll.id)?' sel':''}${open?' open':''}" data-line="${ll.id}" draggable="true" ondragstart="planDragStart(event,'${ll.id}')" onclick="selectLine('${ll.id}')">
         <span class="cbx">${ic('check')}</span>
         <span class="bd-name">${esc(ll.label)}${ll.detail?`<small>${esc(ll.detail)}</small>`:''}${planToday[ll.id]?`<span class="plan-tag" title="오늘 예정">${ic('pin','ic-sm')}${esc(planToday[ll.id])}</span>`:''}</span>
-        <span class="bd-pd"><b>P${ll.p}</b> ${ll.day}</span>
+        <span class="bd-pd"><b>P${ll.p}</b> ${ll.day}${ll.well?`<span class="pd-w">${ll.well} well</span>`:''}</span>
         <span class="bd-plate">${esc(ll.plate||'')}</span>
         <span class="bd-well">${ll.well?ll.well+' well':'<span class="nil">-</span>'}</span>
         ${mcTag}
@@ -2795,7 +2798,7 @@ function renderTimelines(containerId,showDone){
           <i class="tdot"></i>
           <span class="tl-name">${esc(lineTag(line))}</span>
           ${lineFromChip(line)}
-          <span class="tl-pd"><b>P${line.passage}</b> ${calcDayStr(line)}</span>
+          <span class="tl-pd"><b>P${line.passage}</b> ${calcDayStr(line)}${(w=>w?`<span class="pd-w">${w} well</span>`:'')(parseInt(latestWell(line))||0)}</span>
           ${curPlate?`<span class="tl-plate">${esc(curPlate)}</span>`:''}
           <span class="tl-n" title="이 라인의 기록 수">기록 ${nLogs}건</span>
         </div>
