@@ -277,6 +277,29 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
 .sb-clear{background:#FEE2E2;color:#DC2626;border:none;border-radius:5px;padding:4px 10px;font-size:.74rem;font-weight:700;cursor:pointer;}
 .sb-clear:hover{background:#FECACA;}
 .sb-unsel{color:#94A3B8;}
+.sb-row.sb-next{border-color:#6366F1;box-shadow:0 0 0 2px #E0E7FF;}
+/* 직접 입력 샘플 */
+.fs-box{border:1px solid #E2E8F0;border-radius:7px;margin:10px 0 4px;background:#FAFAFF;}
+.fs-hd{display:flex;align-items:center;gap:7px;width:100%;background:none;border:none;padding:9px 12px;cursor:pointer;text-align:left;font-size:.82rem;color:inherit;}
+.fs-hd em{font-style:normal;font-size:.72rem;color:#64748B;}
+.fs-body{padding:0 12px 11px;}
+.fs-chips{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;}
+.fs-chip{display:inline-flex;align-items:center;border:1px solid #C7D2FE;border-radius:6px;background:#fff;overflow:hidden;font-size:.76rem;}
+.fs-chip button{background:none;border:none;padding:4px 8px;cursor:pointer;color:#334155;font-size:.76rem;}
+.fs-chip button i{font-style:normal;color:#64748B;font-size:.7rem;}
+.fs-chip .fs-ed{padding:4px 6px;color:#94A3B8;border-left:1px solid #E0E7FF;}
+.fs-chip.on{background:#4F46E5;border-color:#4F46E5;}
+.fs-chip.on button,.fs-chip.on button i,.fs-chip.on .fs-ed{color:#fff;}
+.fs-form{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px;}
+.fs-form input,.fs-form select{height:32px;font-size:.78rem;}
+.fs-form #fsName{flex:1;min-width:140px;}
+.fs-btns{display:flex;gap:6px;flex-wrap:wrap;}
+.fs-btns .btn{height:34px;padding:0 12px;font-size:.78rem;}
+.fs-btns .btn[disabled]{opacity:.45;cursor:not-allowed;}
+.fs-info{font-size:.74rem;color:#64748B;margin-top:7px;}
+body[data-theme="dark"] .fs-box{background:var(--hov);border-color:var(--bd);}
+body[data-theme="dark"] .fs-chip{background:transparent;border-color:var(--bd);}
+body[data-theme="dark"] .fs-chip button{color:var(--tx);}
 /* 촬영 날짜 묶음 머리 (다른 날짜분이 섞였을 때만 표시) */
 .sb-dgrp{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 2px 6px;padding:6px 10px;border-radius:6px;background:var(--hov);font-size:.78rem;}
 .sb-dgrp b{font-size:.84rem;}
@@ -1470,11 +1493,13 @@ let shotSets    = JSON.parse(localStorage.getItem('orgShotSets')) || [];      //
 let plans       = JSON.parse(localStorage.getItem('orgPlans')) || [];         // 예정 작업 { id, date, action, lineIds, note, done, createdTs }
 let _slRecentIds= JSON.parse(localStorage.getItem('orgSlRecent')||'[]');      // 촬영 순서 기록에서 최근 쓴 라인
 let _slRecentNotes=JSON.parse(localStorage.getItem('orgSlRecentNotes')||'[]'); // 촬영 순서 기록에서 최근 쓴 특이사항
+let freeSamples=JSON.parse(localStorage.getItem('orgFreeSamples')||'[]');   // 라인 등록 없이 사진만 쓸 때 직접 적는 샘플 { id:'fs_…', name, passage, seedDate, kind:'org'|'d2', updatedTs }
 let typeColors  = JSON.parse(localStorage.getItem('orgTypeColors')) || {};    // 종류(type)별로 직접 고른 색상 { type: PAL 인덱스 }
 let pptCuts   = JSON.parse(localStorage.getItem('orgPptCuts')) || {};       // PPT 제목 자르기 { JSON[기본, 조각…]: 1 } — 이 조각까지 제목, 뒤는 조건
 function savePptCuts(){ localStorage.setItem('orgPptCuts', JSON.stringify(pptCuts)); cloudPushDebounced(); }
 function saveTypeColors(){ localStorage.setItem('orgTypeColors', JSON.stringify(typeColors)); cloudPushDebounced(); }
 function saveShotLog(){ localStorage.setItem('orgShotLog', JSON.stringify(shotLog)); syncShotDraft(); }
+function saveFreeSamples(){ localStorage.setItem('orgFreeSamples', JSON.stringify(freeSamples)); cloudPushDebounced(); }
 function saveShotSets(){ localStorage.setItem('orgShotSets', JSON.stringify(shotSets)); cloudPushDebounced(); }
 function savePlans(){ localStorage.setItem('orgPlans', JSON.stringify(plans)); cloudPushDebounced(); }
 function ymdLocal(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -1540,7 +1565,7 @@ let cloudReady=false;      // 로그인 직후 클라우드와 처음 맞추기 
 let cloudApplying=false;   // 받은 데이터를 화면에 반영하는 동안(updateUI→saveData) 다시 올리지 않도록
 let cloudPushing=false, cloudPushAgain=false;
 let cloudBase=null;        // { uid, rev, sig, data } 마지막으로 클라우드와 맞춘 상태
-const SYNC_ARR=['lines','logs','stockChecks','trash','plans','shotSets','shotNotes'];
+const SYNC_ARR=['lines','logs','stockChecks','trash','plans','shotSets','shotNotes','freeSamples'];
 const SYNC_OBJ=['tlCollapsed','typeColors','pptCuts'];
 
 function cloudDocRef(uid){ return fbDb.collection('users').doc(uid).collection('data').doc('appData'); }
@@ -1565,8 +1590,8 @@ function pickSync(d){
 }
 // 깊은 복사: 올리는 도중이나 base로 기억한 뒤에 화면에서 배열을 고쳐도 비교 기준이 같이 바뀌지 않도록
 const syncClone = d => JSON.parse(JSON.stringify(d));
-function localSync(){ return syncClone(pickSync({lines,logs,stockChecks,trash,plans,shotSets,shotNotes:_slRecentNotes,tlCollapsed,typeColors,pptCuts})); }
-const syncHas = d => d.lines.length>0 || d.logs.length>0;
+function localSync(){ return syncClone(pickSync({lines,logs,stockChecks,trash,plans,shotSets,shotNotes:_slRecentNotes,freeSamples,tlCollapsed,typeColors,pptCuts})); }
+const syncHas = d => d.lines.length>0 || d.logs.length>0 || d.freeSamples.length>0;
 
 function loadCloudBase(uid){
   try{ const b=JSON.parse(localStorage.getItem('orgCloudBase')); if(b && b.uid===uid && b.data) return b; }catch(e){}
@@ -1660,7 +1685,7 @@ function applySyncData(d){
   cloudApplying=true;
   try{
     lines=d.lines; logs=d.logs; stockChecks=d.stockChecks; trash=d.trash;
-    plans=d.plans; shotSets=d.shotSets; tlCollapsed=d.tlCollapsed; typeColors=d.typeColors; pptCuts=d.pptCuts; _slRecentNotes=d.shotNotes;
+    plans=d.plans; shotSets=d.shotSets; tlCollapsed=d.tlCollapsed; typeColors=d.typeColors; pptCuts=d.pptCuts; _slRecentNotes=d.shotNotes; freeSamples=d.freeSamples;
     _logSeq=logs.reduce((m,l)=>Math.max(m,l.seq||0),0);
     localStorage.setItem('orgTrash', JSON.stringify(trash));
     localStorage.setItem('orgTlCollapsed', JSON.stringify(tlCollapsed));
@@ -1668,6 +1693,7 @@ function applySyncData(d){
     localStorage.setItem('orgShotSets', JSON.stringify(shotSets));
     localStorage.setItem('orgTypeColors', JSON.stringify(typeColors));
     localStorage.setItem('orgPptCuts', JSON.stringify(pptCuts));
+    localStorage.setItem('orgFreeSamples', JSON.stringify(freeSamples));
     localStorage.setItem('orgSlRecentNotes', JSON.stringify(_slRecentNotes)); slRenderRecentNotes();
     updateUI();   // 안에서 saveData()가 lines/logs/stockChecks를 저장한다
   } finally { cloudApplying=false; }
@@ -2181,18 +2207,18 @@ function slRenderLineOptions(){
     const style=n>0?' style="font-weight:700;background:#EEF2FF;color:#4338CA;"':'';
     const tag=n>0?` (Selected${n>1?' ×'+n:''})`:'';
     return `<option value="${esc(l.id)}"${style}>[${esc(lineTag(l))}]${tag}</option>`;
-  });
+  })+fsOptGroupHTML(id=>usage[id]||0, '');
   sel.value=cur;
 }
 
 function slRenderRecent(){
   const el=document.getElementById('slRecent');
-  const active=new Set(lines.filter(l=>!l.isCompleted).map(l=>l.id));
+  const active=new Set(lines.filter(l=>!l.isCompleted).map(l=>l.id).concat(freeSamples.map(s=>s.id)));
   const ids=_slRecentIds.filter(id=>active.has(id)).slice(0,6);
   el.innerHTML = ids.length ? ids.map(id=>{
-    const l=lines.find(x=>x.id===id); if(!l) return '';
+    const l=sbLine(id); if(!l) return '';
     const cur=document.getElementById('slLine').value===id;
-    return `<button class="tbl-btn" style="${cur?'background:#EEF2FF;color:#4338CA;border-color:#C7D2FE;':''}" onclick="document.getElementById('slLine').value='${l.id}';slRenderRecent();">${esc(lineTag(l))}</button>`;
+    return `<button class="tbl-btn" style="${cur?'background:#EEF2FF;color:#4338CA;border-color:#C7D2FE;':''}" onclick="document.getElementById('slLine').value='${l.id}';slRenderRecent();">${esc(sampleLabel(l.id))}</button>`;
   }).join('') : '';
 }
 function _slTouchRecent(lineId){
@@ -2415,7 +2441,7 @@ function renderShotSets(){
   if(dedupeShotSets()) saveShotSets();
   if(!shotSets.length){ el.innerHTML='<div class="hint" style="padding:4px 2px;">없음</div>'; return; }
   el.innerHTML = shotSets.slice().sort((a,b)=>b.updatedTs-a.updatedTs).map(s=>{
-    const labels=s.items.map(it=>{const l=lines.find(x=>x.id===it.lineId); return l?lineTag(l):'(삭제된 라인)';});
+    const labels=s.items.map(it=>sampleLabel(it.lineId));
     const uniq=[...new Set(labels)];
     const tag=s.draft?'<span style="font-size:.62rem;background:#FEF3C7;color:#B45309;padding:1px 6px;border-radius:8px;font-weight:700;">작성 중</span>'
       :s.autoKey?'<span style="font-size:.62rem;background:#F1F5F9;color:#64748B;padding:1px 6px;border-radius:8px;font-weight:700;">자동 기록</span>':'';
@@ -2447,8 +2473,7 @@ function renderShotLog(){
     else groups.push({lineId:s.lineId, items:[{...s, idx:i}]});
   });
   el.innerHTML=groups.map(g=>{
-    const line=lines.find(l=>l.id===g.lineId);
-    const label=line?esc(lineTag(line)):'(삭제된 라인)';
+    const label=esc(sampleLabel(g.lineId));
     const first=g.items[0], d=new Date(first.ts);
     const today=ymdLocal(new Date())===ymdLocal(d);
     const timeStr=(today?'':(d.getMonth()+1)+'/'+d.getDate()+' ')+d.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
@@ -4664,7 +4689,8 @@ function sbRemove(i){
 function sbClearAll(){ if(sbFiles.length && confirm('추가한 사진 '+sbFiles.length+'장을 모두 지울까요?')){ sbFiles=[]; renderSbarList(); } }
 function sbWbMode(f){
   if(f.wbMode) return f.wbMode;
-  const line=lines.find(l=>l.id===f.lineId);
+  const line=sbLine(f.lineId);
+  if(line && line.free) return line.sample.kind||'org';
   if(line) return wbModeForText((line.type||'')+' '+(line.detail||''));   // 종류나 샘플 세부명에 org · BRCO · CRCO · assembloid가 있으면 오가노이드
   // 라인이 없으면(이미 저장한 사진을 보정만 할 때) 파일 이름으로: org가 있으면 오가노이드,
   // 저장 규칙 이름인데 org가 없으면 2D, 규칙을 모르는 이름은 오가노이드(기본)
@@ -4683,7 +4709,147 @@ function safeFileName(s){
     .replace(/^[.\s]+|[.\s]+$/g,'')
     .trim() || 'untitled';
 }
+// ══════════════════════════════════════════
+//  직접 입력 샘플 (컬처로그 없이 사진 이름만 붙일 때)
+// ══════════════════════════════════════════
+// 라인 등록·일일 로그를 안 쓰는 사람도 2번(이름·스케일바)과 3번(PPT)을 쓸 수 있게,
+// 샘플 이름 + P + 시딩 날짜만 적어 두고 그걸 라인 대신 고른다. d는 촬영 날짜 - 시딩 날짜로 계산.
+// id가 'fs_'로 시작해서 사진·촬영 순서의 lineId 자리에 그대로 들어간다.
+const FS_PREFIX='fs_';
+let _fsSel='', _fsEdit='', _fsUndo=[];
+let _fsOpen=(()=>{ try{ const v=localStorage.getItem('orgFsOpen'); return v==null?null:v==='1'; }catch(e){ return null; } })();
+function isFreeId(id){ return typeof id==='string' && id.startsWith(FS_PREFIX); }
+function freeLine(id){
+  const s=freeSamples.find(x=>x.id===id);
+  return s?{id:s.id, free:true, sample:s, patientId:s.name, type:'', detail:'', passage:s.passage, isCompleted:false}:null;
+}
+function sbLine(id){ if(!id) return null; return isFreeId(id)?freeLine(id):(lines.find(l=>l.id===id)||null); }
+function sampleLabel(id){ const l=sbLine(id); return !l?'(삭제된 라인)':l.free?l.sample.name:lineTag(l); }
+function fsDayDiff(a,b){
+  const pd=x=>{ const [y,m,d]=String(x).split('-').map(Number); return new Date(y,m-1,d); };
+  return Math.round((pd(b)-pd(a))/86400000);
+}
+function fsState(s,date){
+  const p=(s.passage!=null && String(s.passage).trim()!=='')?'p'+String(s.passage).trim():'';
+  let d='';
+  if(s.seedDate && date){ const n=fsDayDiff(s.seedDate,date); if(n>=0) d='d'+n; }
+  return {p,d};
+}
+function fsSorted(){ return freeSamples.slice().sort((a,b)=>(b.updatedTs||0)-(a.updatedTs||0)); }
+// 라인 드롭다운 맨 위에 붙는 "직접 입력" 묶음. usedBy(id) = 다른 사진·컷에 이미 고른 수
+function fsOptGroupHTML(usedBy, selId){
+  if(!freeSamples.length) return '';
+  return '<optgroup label="직접 입력">'+fsSorted().map(s=>{
+    const n=usedBy(s.id);
+    const style=n>0?' style="font-weight:700;background:#EEF2FF;color:#4338CA;"':'';
+    const tag=n>0?` (Selected${n>1?' ×'+n:''})`:'';
+    return `<option value="${esc(s.id)}"${s.id===selId?' selected':''}${style}>${esc(s.name)}${s.passage!==''&&s.passage!=null?' · p'+esc(s.passage):''}${tag}</option>`;
+  }).join('')+'</optgroup>';
+}
+function fsToggle(){
+  _fsOpen=!fsIsOpen();
+  try{ localStorage.setItem('orgFsOpen', _fsOpen?'1':'0'); }catch(e){}
+  renderSbarList();
+}
+// 처음엔 등록된 라인이 없거나 직접 입력 샘플을 써 본 적이 있으면 펼쳐 둔다
+function fsIsOpen(){ return _fsOpen==null ? (!lines.length || freeSamples.length>0) : _fsOpen; }
+function fsPick(id){ _fsSel=(_fsSel===id?'':id); _fsEdit=''; renderSbarList(); }
+function fsStartEdit(id){ _fsEdit=id; _fsSel=id; renderSbarList(); const n=document.getElementById('fsName'); if(n) n.focus(); }
+function fsCancelEdit(){ _fsEdit=''; renderSbarList(); }
+function fsSave(){
+  const name=document.getElementById('fsName').value.trim();
+  const passage=document.getElementById('fsP').value.trim().replace(/^p/i,'');
+  const seedDate=document.getElementById('fsSeed').value;
+  const kind=document.getElementById('fsKind').value;
+  if(!name) return alert('샘플 이름을 적어주세요.');
+  if(FNAME_BAD_RE.test(name)) return alert('샘플 이름에 파일명으로 쓸 수 없는 문자(\\ / : * ? " < > |)가 있습니다.');
+  if(passage && !/^\d+$/.test(passage)) return alert('P는 숫자만 적어주세요.');
+  const now=Date.now();
+  if(_fsEdit){
+    const s=freeSamples.find(x=>x.id===_fsEdit);
+    if(s){ Object.assign(s,{name,passage,seedDate,kind,updatedTs:now}); }
+    _fsSel=_fsEdit; _fsEdit='';
+  } else {
+    const dup=freeSamples.find(x=>x.name===name);
+    if(dup){
+      if(!confirm(`"${name}" 샘플이 이미 있어요. 적은 P·시딩 날짜로 고칠까요?`)) return;
+      Object.assign(dup,{passage,seedDate,kind,updatedTs:now}); _fsSel=dup.id;
+    } else {
+      const s={id:FS_PREFIX+uid(), name, passage, seedDate, kind, updatedTs:now};
+      freeSamples.push(s); _fsSel=s.id;
+    }
+  }
+  saveFreeSamples(); renderSbarList();
+}
+function fsDelete(id){
+  const s=freeSamples.find(x=>x.id===id); if(!s) return;
+  if(!confirm(`"${s.name}" 샘플을 목록에서 지울까요?\n(이미 저장한 사진 이름은 그대로예요)`)) return;
+  freeSamples=freeSamples.filter(x=>x.id!==id);
+  sbFiles.forEach(f=>{ if(f.lineId===id) f.lineId=''; });
+  if(_fsSel===id) _fsSel=''; if(_fsEdit===id) _fsEdit='';
+  saveFreeSamples(); renderSbarList();
+}
+// 고른 샘플을 아직 라인이 안 붙은 사진에 위에서부터 차례로 붙인다 (세트 = 4x·10x·20x 세 장, 배율 버튼 = 한 장)
+function fsAssign(mags){
+  if(!_fsSel) return alert('샘플을 먼저 고르거나 새로 추가하세요.');
+  if(!sbFiles.length) return alert('사진을 먼저 넣어주세요.');
+  const idxs=[];
+  for(let i=0;i<sbFiles.length && idxs.length<mags.length;i++) if(!sbFiles[i].lineId) idxs.push(i);
+  if(!idxs.length) return toast('남은 사진이 없어요. 모든 사진에 이름이 붙었어요',{warn:true});
+  idxs.forEach((i,k)=>{ sbFiles[i].lineId=_fsSel; sbFiles[i].mag=mags[k]; });
+  _fsUndo.push(idxs);
+  const s=freeSamples.find(x=>x.id===_fsSel); if(s){ s.updatedTs=Date.now(); saveFreeSamples(); }
+  renderSbarList();
+  if(idxs.length<mags.length) toast(`남은 사진이 ${idxs.length}장이라 ${idxs.length}장만 채웠어요`,{warn:true});
+}
+function fsUndoLast(){
+  const idxs=_fsUndo.pop(); if(!idxs) return;
+  idxs.forEach(i=>{ if(sbFiles[i]){ sbFiles[i].lineId=''; sbFiles[i].mag='4x'; } });
+  renderSbarList();
+}
+function renderSbFree(){
+  const el=document.getElementById('sbFree'); if(!el) return;
+  const open=fsIsOpen();
+  const head=`<button type="button" class="fs-hd" onclick="fsToggle()"><span>${open?'▾':'▸'}</span><b>직접 입력</b><em>라인 등록·로그 없이 샘플 이름·P·시딩 날짜만 적어서 이름 붙이기</em></button>`;
+  if(!open){ el.innerHTML=head; return; }
+  const today=sbFiles.length?sbEffDate(sbFiles[0]):document.getElementById('sbDate').value;
+  const chips=fsSorted().map(s=>{
+    const st=fsState(s,today);
+    const meta=[st.p, st.d].filter(Boolean).join(' ');
+    return `<span class="fs-chip${s.id===_fsSel?' on':''}"><button type="button" onclick="fsPick('${s.id}')" title="${s.seedDate?'시딩 '+esc(s.seedDate):'시딩 날짜 없음'}">${esc(s.name)}${meta?` <i>${esc(meta)}</i>`:''}</button><button type="button" class="fs-ed" title="P·시딩 날짜 고치기" onclick="fsStartEdit('${s.id}')">✎</button><button type="button" class="fs-ed" title="목록에서 지우기" onclick="fsDelete('${s.id}')">×</button></span>`;
+  }).join('');
+  const e=_fsEdit?freeSamples.find(x=>x.id===_fsEdit):null;
+  const v=k=>e?esc(e[k]||''):'';
+  const form=`<div class="fs-form">
+      <input id="fsName" placeholder="샘플 이름 (예: HCC41_org)" value="${v('name')}" onkeydown="if(event.key==='Enter')fsSave()">
+      <input id="fsP" placeholder="P" inputmode="numeric" value="${v('passage')}" style="width:56px;flex:none;" onkeydown="if(event.key==='Enter')fsSave()">
+      <input id="fsSeed" type="date" title="시딩(또는 마지막 split) 날짜. 비우면 파일명에 d가 빠져요" value="${v('seedDate')}" style="width:auto;flex:none;">
+      <select id="fsKind" title="색 보정 기준" style="width:auto;flex:none;"><option value="org"${!e||e.kind!=='d2'?' selected':''}>오가노이드</option><option value="d2"${e&&e.kind==='d2'?' selected':''}>2D</option></select>
+      <button type="button" class="tbl-btn" onclick="fsSave()">${e?'수정 저장':'+ 샘플 추가'}</button>
+      ${e?'<button type="button" class="tbl-btn" onclick="fsCancelEdit()">취소</button>':''}
+    </div>`;
+  const left=sbFiles.filter(f=>!f.lineId).length;
+  const nextI=sbFiles.findIndex(f=>!f.lineId);
+  const dis=(!_fsSel||!left)?' disabled':'';
+  const btns=`<div class="fs-btns">
+      <button type="button" class="btn btn-pri"${dis} onclick="fsAssign(ALL_MAGS)">4x·10x·20x 세트</button>
+      ${ALL_MAGS.map(m=>`<button type="button" class="btn btn-out"${dis} onclick="fsAssign(['${m}'])">+${m}</button>`).join('')}
+      <button type="button" class="btn btn-out"${_fsUndo.length?'':' disabled'} onclick="fsUndoLast()" title="방금 채운 사진을 다시 비우기">되돌리기</button>
+    </div>
+    <div class="fs-info">${!sbFiles.length?'사진을 넣으면 위에서부터 차례로 채워져요.':!left?'모든 사진에 이름이 붙었어요.':!_fsSel?'샘플을 고르면 버튼이 켜져요.':`다음 칸: <b>${nextI+1}번째 사진</b> · 남은 사진 ${left}장`}</div>`;
+  el.innerHTML=head+`<div class="fs-body">
+    <div class="hint" style="margin:0 0 7px;line-height:1.55;">샘플을 고르고 버튼을 누르면 이름이 안 붙은 사진에 위에서부터 차례로 붙어요. 4x를 더 찍었으면 <b>+4x</b>를 한 번 더 누르면 되고, 같은 배율이 겹치면 저장할 때 <b>4x (1)</b>처럼 번호가 붙어요. passage를 하면 ✎로 P·시딩 날짜만 고치면 돼요.</div>
+    ${chips?`<div class="fs-chips">${chips}</div>`:''}${form}${btns}</div>`;
+}
+
 function sbFullName(line,date,f){
+  if(line.free){
+    // 직접 입력 샘플: 날짜_샘플명[_특이사항][_pN][_dN]_배율 (P·시딩 날짜를 비워두면 그 칸은 빠진다)
+    const s=line.sample, st=fsState(s,date);
+    const nm=s.name.trim().replace(/[\s\/]+/g,'-');
+    const nt=(f.note&&f.note.trim())?'_'+f.note.trim().replace(/[_\s\/]+/g,'-'):'';
+    return safeFileName(`${ymd6(date)}_${nm}${nt}${st.p?'_'+st.p:''}${st.d?'_'+st.d:''}_${f.mag}`);
+  }
   const st=microStateAtDate(line,date);
   // 샘플 세부명(라인에 고정된 이름 일부)은 항상 붙고, 촬영 특이사항(사진마다 따로 적는 값)은 그 뒤에 별도로 붙는다.
   const detail=line.detail?'_'+line.detail.trim().replace(/[_\s\/]+/g,'-'):'';
@@ -4692,7 +4858,7 @@ function sbFullName(line,date,f){
   return safeFileName(n);
 }
 function sbExt(){ return '.png'; }
-function sbSetNote(i,v){ if(!sbFiles[i])return; sbFiles[i].note=v; const f=sbFiles[i],date=sbEffDate(f),line=lines.find(l=>l.id===f.lineId),p=document.getElementById('sbprev'+i); if(p) p.textContent=(line&&date)?sbFullName(line,date,f)+sbExt():'—'; }
+function sbSetNote(i,v){ if(!sbFiles[i])return; sbFiles[i].note=v; const f=sbFiles[i],date=sbEffDate(f),line=sbLine(f.lineId),p=document.getElementById('sbprev'+i); if(p) p.textContent=(line&&date)?sbFullName(line,date,f)+sbExt():'—'; }
 let sbDirHandle=null;
 async function sbGetDir(){
   if(sbDirHandle){
@@ -4704,6 +4870,7 @@ async function sbChangeDir(){ try{ const h=await window.showDirectoryPicker({mod
 function renderSbDir(){ const el=document.getElementById('sbDirInfo'); if(!el) return; el.innerHTML = sbDirHandle? `저장 폴더: <b>${esc(sbDirHandle.name)}</b> <button class="bk-mini" onclick="sbChangeDir()">변경</button>` : `저장 폴더: 저장할 때 선택 <button class="bk-mini" onclick="sbChangeDir()">지금 지정</button>`; }
 
 function renderSbarList(){
+  renderSbFree();
   const el=document.getElementById('sbList');
   sbNormDates();
   // 촬영 날짜에 아직 진행 중이었던 라인은 선택 가능 (그 날짜엔 배양완료 전이었으면 완료된 라인도 포함)
@@ -4728,6 +4895,7 @@ function renderSbarList(){
   // 이 배치 안에서 이미 다른 사진에 배정된 라인 수 (드롭다운에서 이미 고른 라인을 구분해 보여주기 위함)
   const lineUsage={};
   sbFiles.forEach(sf=>{ if(sf.lineId) lineUsage[sf.lineId]=(lineUsage[sf.lineId]||0)+1; });
+  const nextFree=(fsIsOpen()&&_fsSel)?sbFiles.findIndex(x=>!x.lineId):-1;   // 직접 입력 버튼이 다음에 채울 사진
   el.innerHTML = head + sbFiles.map((f,i)=>{
     const date=sbEffDate(f);
     const optLines=activeAt(date);
@@ -4740,9 +4908,10 @@ function renderSbarList(){
       const tag=usedByOthers>0?` (Selected${usedByOthers>1?' ×'+usedByOthers:''})`:'';
       return `<option value="${esc(l.id)}" ${l.id===f.lineId?'selected':''}${style}>[${esc(lineTag(l))}]${l.isCompleted?' (완료)':''}${tag}</option>`;
     });
-    const lineOpts=`<option value="" ${!f.lineId?'selected':''}>라인 선택…</option>`+(_opts||'<option value="" disabled>선택 가능한 라인 없음</option>');
+    const _fsOpts=fsOptGroupHTML(id=>(lineUsage[id]||0)-(id===f.lineId?1:0), f.lineId);
+    const lineOpts=`<option value="" ${!f.lineId?'selected':''}>라인 선택…</option>`+_fsOpts+(_opts||(_fsOpts?'':'<option value="" disabled>선택 가능한 라인 없음</option>'));
     const magOpts=ALL_MAGS.map(m=>`<option value="${m}" ${m===f.mag?'selected':''}>${m}</option>`).join('');
-    const line=lines.find(l=>l.id===f.lineId);
+    const line=sbLine(f.lineId);
     let preview=`보정만 → color-matched 폴더/${wbOutName(f.fname)}`, barInfo='';
     if(line&&date){
       preview=sbFullName(line,date,f)+sbExt();
@@ -4761,7 +4930,7 @@ function renderSbarList(){
     const wbBad=f.wb && !f.an[wbMode].ok;
     const wbCtl=`<span class="wb-ctl"><label><input type="checkbox" style="width:auto;" ${f.wb?'checked':''} onchange="sbSetWb(${i},this.checked)"> 색 보정</label>
       ${f.wb?wbModeSeg(wbMode,m=>`sbSetWbMode(${i},'${m}')`):''}${wbBad?`<span class="wb-skip" title="${esc(f.an[wbMode].why)}">건너뜀</span>`:''}</span>`;
-    return `${grpHd}<div class="sb-row">
+    return `${grpHd}<div class="sb-row${i===nextFree?' sb-next':''}">
       <img class="sb-thumb" src="${thumbSrc}" style="cursor:zoom-in;" title="눌러서 보정 전/후 크게 비교" onclick="wbOpenCompare('sb',${i})">
       <div class="sb-mid">
         <div class="sb-orig">${esc(f.fname)} · ${f.w}×${f.h}px</div>
@@ -4875,7 +5044,7 @@ async function sbarSaveAll(btn){
       saved++; sbLoading(true,`저장 중… (${saved}/${sbFiles.length})`);
     }
     for(const f of named){
-      const line=lines.find(l=>l.id===f.lineId); if(!line) continue;
+      const line=sbLine(f.lineId); if(!line) continue;
       let base=sbFullName(line,sbEffDate(f),f);
       // 같은 샘플·배율로 또 촬영해 이름이 겹치면 뒤에 (1), (2)…를 붙여 저장 (덮어쓰기 방지)
       if(cnt[base]==null){ cnt[base]=0; } else { cnt[base]++; base=base+' ('+cnt[base]+')'; }
@@ -6681,6 +6850,7 @@ function renderAnalytics(){
         · 사진(썸네일)을 누르면 색 보정 전/후를 크게 비교할 수 있어요. 라인 종류나 샘플 세부명에 org가 있으면 오가노이드, 아니면 2D로 보정돼요.<br>
         · 촬영 날짜 옆에서 저장된 순서를 고르면 그 묶음 사진에 바로 채워져요. 사진을 더 넣으면 새 묶음으로 따로 시작하고, "여기부터 다른 날짜"로 직접 나눌 수도 있어요.<br>
         · 라인을 고르지 않은 사진은 원래 파일 이름 그대로 보정만 해서 <b>날짜_color-matched_N장</b> 폴더에 따로 저장돼요.</div>
+      <div id="sbFree" class="fs-box"></div>
       <div id="sbList"></div>
       <div id="sbDirInfo" style="font-size:.74rem;color:#64748B;margin:11px 2px 2px;"></div>
     </div>
