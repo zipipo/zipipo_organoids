@@ -794,6 +794,30 @@ body[data-tab="ana"] .pane[data-pane="ana"]{display:block;animation:paneIn .28s 
 .ana-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;}
 .ana-grid .panel{margin:0;}
 .ana-full{grid-column:1 / -1;}
+/* 이번 주 실험 정리: 요일마다 액션별 블럭이 아래에서 위로 쌓임 */
+.tw-nav{display:flex;align-items:center;gap:6px;}
+.tw-nav b{font-size:.8rem;font-weight:650;min-width:120px;text-align:center;}
+.tw7{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;}
+.tw-day{display:flex;flex-direction:column;gap:5px;min-width:0;}
+.tw-stack{display:flex;flex-direction:column-reverse;justify-content:flex-start;gap:6px;min-height:150px;padding:7px 6px;border-radius:10px;background:var(--hov);}
+.tw-day.tw-now .tw-stack{background:var(--psoft);box-shadow:inset 0 0 0 1.5px var(--pri);}
+.tw-day.rest .tw-stack{opacity:.55;}
+.tw-hd{display:flex;justify-content:space-between;align-items:baseline;gap:4px;white-space:nowrap;overflow:hidden;font-size:.74rem;color:var(--sub);padding:0 2px;}
+.tw-hd b{color:var(--tx);font-size:.8rem;}
+.tw-hd em{font-style:normal;font-size:.7rem;color:var(--mut);}
+.tw-g{display:flex;flex-direction:column-reverse;gap:2px;animation:twIn .35s var(--ease) both;}
+.tw-gl{display:flex;justify-content:space-between;gap:4px;font-size:.66rem;font-weight:650;padding:1px 5px;border-radius:5px;white-space:nowrap;overflow:hidden;}
+.tw-blk{height:11px;border-radius:3px;border:1px solid;font-size:.58rem;line-height:9px;padding:0 3px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+@keyframes twIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+.tw-sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:8px;margin-top:12px;}
+.tw-s{border:1px solid var(--bd);border-radius:8px;padding:8px 10px;}
+.tw-s small{display:block;font-size:.7rem;color:var(--sub);}
+.tw-s b{font-size:1.05rem;}
+.tw-s i{font-style:normal;font-size:.7rem;margin-left:4px;color:var(--mut);}
+.tw-s i.up{color:#16A34A;} .tw-s i.dn{color:#DC2626;}
+.tw-note{margin-top:10px;font-size:.78rem;color:var(--sub);line-height:1.6;}
+.tw-note b{color:var(--tx);}
+@media (max-width:700px){ .tw7{grid-template-columns:repeat(7,minmax(38px,1fr));gap:3px;} .tw-gl span:last-child{display:none;} .tw-blk{font-size:0;} }
 .pbody{padding:12px 14px;}
 .pbody .empty{padding:6px 0;}
 .atbl{display:flex;flex-direction:column;}
@@ -6592,15 +6616,75 @@ function buildWeekday(){
   return `<div class="wkbars">`+order.map(i=>`<div class="wkb"><span class="wkb-n">${cnt[i]}</span><span class="wkb-t"><i style="height:${Math.round(cnt[i]/max*100)}%;"></i></span><span class="wkb-l">${wd[i]}</span></div>`).join('')+`</div>`;
 }
 
+// 0) 이번 주 실험 정리: 월~일 칸마다 그날 한 작업을 액션별로 묶어 블럭(블럭 하나 = 라인 하나)으로 쌓는다
+let _twOff=0;
+function twShift(n){ _twOff = n===0 ? 0 : _twOff+n; renderAnalytics(); }
+function _twStart(off){ const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-((d.getDay()+6)%7)+off*7); return d; }
+const TW_GROUPS=[
+  ['Split',a=>/split/i.test(a)],['Stock',a=>/stock/i.test(a)],['Reseeding',a=>/reseed/i.test(a)],['Pellet',a=>/pellet/i.test(a)],
+  ['새 라인',a=>isSeed(a)],['Media Change',a=>a==='Media Change'],['Media Addition',a=>a==='Media Addition'],
+  ['Fixation',a=>/fixation/i.test(a)],['Harvest',a=>/harvest/i.test(a)],['배양 완료',a=>isFin(a)],['Observation',a=>/observ/i.test(a)],['기타',()=>true]];
+function _twGroup(a){ return (TW_GROUPS.find(g=>g[1](a||''))||TW_GROUPS[TW_GROUPS.length-1])[0]; }
+function _twStats(from,to){
+  const ls=logs.filter(lg=>lg.date>=from&&lg.date<=to);
+  const n=k=>ls.filter(lg=>_twGroup(lg.action)===k).length;
+  const vials=ls.filter(lg=>/stock/i.test(lg.action||'')).reduce((s,lg)=>s+(parseInt(lg.stocks)||0),0);
+  return {all:ls.filter(lg=>!isSeed(lg.action)).length, lines:new Set(ls.map(lg=>lg.lineId)).size, split:n('Split'), mc:n('Media Change')+n('Media Addition'), vials, seed:n('새 라인'), fin:n('배양 완료'), days:new Set(ls.map(lg=>lg.date)).size, ls};
+}
+function buildThisWeek(){
+  const s=_twStart(_twOff), t0=today(), wd=['월','화','수','목','금','토','일'];
+  const days=[...Array(7)].map((_,i)=>{ const d=new Date(s); d.setDate(s.getDate()+i); return ymdLocal(d); });
+  const pS=_twStart(_twOff-1), pDays=[ymdLocal(pS),(()=>{const d=new Date(pS); d.setDate(d.getDate()+6); return ymdLocal(d);})()];
+  const cur=_twStats(days[0],days[6]), prev=_twStats(pDays[0],pDays[1]);
+  const lineOf=id=>lines.find(l=>l.id===id);
+  const cols=days.map((ds,i)=>{
+    const dl=cur.ls.filter(lg=>lg.date===ds);
+    const groups=TW_GROUPS.map(g=>{
+      const items=dl.filter(lg=>_twGroup(lg.action)===g[0]); if(!items.length) return '';
+      const b=badgeCls(g[0]==='새 라인'?'Seeded':g[0]==='배양 완료'?'Finish':g[0]);
+      const blks=items.map(lg=>{ const l=lineOf(lg.lineId); const c=l?getC(l.type,false):PAL[51]||PAL[0];
+        const nm=l?lineTag(l):'(삭제된 라인)';
+        const extra=[lg.details,lg.plate,lg.finalWells?lg.finalWells+' well':'',lg.stocks?lg.stocks+' vial':'',lg.memo].filter(Boolean).join(' · ');
+        return `<div class="tw-blk" style="background:${c.bg};border-color:${c.bd};color:${c.tx};" title="${esc(nm+(extra?'\n'+extra:''))}">${esc(l?l.patientId:'')}</div>`; }).join('');
+      return `<div class="tw-g">${blks}<div class="tw-gl badge ${b}"><span>${esc(g[0])}</span><span>${items.length}</span></div></div>`;
+    }).join('');
+    const cls=(ds===t0?' tw-now':'')+(ds>t0?' rest':'');
+    const pl=plans.filter(p=>!p.done&&p.date===ds&&ds>=t0).length;
+    return `<div class="tw-day${cls}"><div class="tw-hd"><b>${wd[i]}</b><em>${ds.slice(5).replace('-','/')}${pl?` · ${pl}예정`:''}</em></div><div class="tw-stack">${groups}</div></div>`;
+  }).join('');
+  const dlt=(a,b)=>{ const d=a-b; return d? `<i class="${d>0?'up':'dn'}">${d>0?'▲':'▼'}${Math.abs(d)}</i>`:'<i>–</i>'; };
+  const S=(k,v,pv,u)=>`<div class="tw-s"><small>${k}</small><b>${v}</b>${u||''}${pv==null?'':dlt(v,pv)}</div>`;
+  // 가장 바쁜 날, 많이 다룬 종류, 남은 예정
+  const perDay=days.map(ds=>cur.ls.filter(lg=>lg.date===ds&&!isSeed(lg.action)).length);
+  const bi=perDay.indexOf(Math.max(...perDay));
+  const byType={}; cur.ls.forEach(lg=>{ const l=lineOf(lg.lineId); if(l) byType[l.type]=(byType[l.type]||0)+1; });
+  const topT=Object.entries(byType).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([t,n])=>`${esc(t)} ${n}`).join(', ');
+  const restPlans=plans.filter(p=>!p.done&&p.date>=t0&&p.date<=days[6]);
+  const splitNames=[...new Set(cur.ls.filter(lg=>_twGroup(lg.action)==='Split').map(lg=>{const l=lineOf(lg.lineId); return l?lineTag(l):'';}).filter(Boolean))];
+  const notes=[];
+  if(cur.ls.length){
+    notes.push(`가장 바쁜 날 <b>${wd[bi]}요일</b> (${perDay[bi]}건)` + (topT?` · 많이 다룬 종류 <b>${topT}</b>`:''));
+    if(splitNames.length) notes.push(`Split한 라인: ${splitNames.map(esc).join(', ')}`);
+  }
+  if(restPlans.length) notes.push(`이번 주 남은 예정 <b>${restPlans.length}건</b>: `+restPlans.map(p=>`${p.date.slice(5).replace('-','/')} ${esc(p.action)}${p.lineIds&&p.lineIds.length?` (${p.lineIds.length}라인)`:''}`).join(', '));
+  return `<div class="tw7">${cols}</div>
+    <div class="tw-sum">${S('작업',cur.all,prev.all,'건')}${S('다룬 라인',cur.lines,prev.lines,'개')}${S('Split',cur.split,prev.split,'건')}${S('MC · MA',cur.mc,prev.mc,'건')}${S('Stock vial',cur.vials,prev.vials,'개')}${S('새 라인 · 완료',cur.seed+' · '+cur.fin,null)}${S('일한 날',cur.days,prev.days,'일')}</div>
+    ${notes.length?`<div class="tw-note">${notes.join('<br>')}</div>`:''}
+    ${cur.ls.length?'':_anaEmpty('이 주에는 기록이 없어요.')}`;
+}
+function _twTitle(){ const s=_twStart(_twOff), e=new Date(s); e.setDate(s.getDate()+6); const f=d=>(d.getMonth()+1)+'/'+d.getDate();
+  return `${_twOff===0?'이번 주':_twOff===-1?'지난주':_twOff===1?'다음 주':(_twOff<0?-_twOff+'주 전':_twOff+'주 뒤')} <small>${f(s)} – ${f(e)}</small>`; }
+
 function renderAnalytics(){
   const P=(t,body,cls,act)=>`<section class="panel ${cls||''}"><div class="panel-hd"><span>${t}</span>${act?`<span class="panel-act">${act}</span>`:''}</div><div class="pbody">${body}</div></section>`;
   document.getElementById('anaContent').innerHTML=`<div class="ana-grid">
+    ${P(_twTitle(),buildThisWeek(),'ana-full',`<span class="tw-nav"><button class="seg" onclick="twShift(-1)">‹</button><button class="seg" onclick="twShift(0)">이번 주</button><button class="seg" onclick="twShift(1)">›</button></span>`)}
+    ${P('작업량 추이','<div id="volChart"></div>','',`<span class="seg-group"><button class="seg" id="volBtnM" onclick="setVolMode('month')">월별</button><button class="seg" id="volBtnW" onclick="setVolMode('week')">주별</button></span>`)}
+    ${P('요일별 작업량 <small>최근 180일</small>',buildWeekday())}
     ${P('다음 Split 예상',buildNextSplit(),'ana-full')}
     ${P('MC 간격 <small>최근 60일</small>',buildMcGap())}
     ${P('Split 확장 배율 <small>Well 기준</small>',buildExpansion())}
     ${P('작업 캘린더 <small>최근 1년</small>',buildHeatmap(),'ana-full')}
-    ${P('작업량 추이','<div id="volChart"></div>','',`<span class="seg-group"><button class="seg" id="volBtnM" onclick="setVolMode('month')">월별</button><button class="seg" id="volBtnW" onclick="setVolMode('week')">주별</button></span>`)}
-    ${P('요일별 작업량 <small>최근 180일</small>',buildWeekday())}
     ${P('계대 주기 <small>종류별 평균 · 라인별 추이</small>',buildPassageCycle()+buildPassageCycleByLine())}
     ${P('Stock',buildStockTrend()+'<div class="a-sub">라인별 누적</div>'+buildStockByLine())}
   </div>`;
