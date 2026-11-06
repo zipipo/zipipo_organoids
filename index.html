@@ -789,7 +789,8 @@ body[data-lnf="all"] .sec-lbl{display:block;}
 #lineFormPanel.flash{animation:flash 1s var(--ease);}
 @keyframes flash{0%{box-shadow:0 0 0 3px rgba(220,190,40,.35);}100%{box-shadow:0 0 0 0 rgba(220,190,40,0);}}
 body[data-tab="ana"] .pane[data-pane="ana"],
-body[data-tab="diary"] .pane[data-pane="diary"]{display:block;animation:paneIn .28s var(--ease);}
+body[data-tab="diary"] .pane[data-pane="diary"],
+body[data-tab="ln2"] .pane[data-pane="ln2"]{display:block;animation:paneIn .28s var(--ease);}
 
 /* 작업 분석 */
 .ana-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;}
@@ -893,6 +894,8 @@ body[data-theme="dark"] .dy-week-note{background:rgba(90,80,40,.6);}
 .side-incu .incu-l b{font-size:.62rem;}
 .side-incu .incu-feet{padding:0 20px;}
 body[data-theme="dark"] .side-incu .incu-win{background:linear-gradient(to top,transparent 0 26px,var(--shelf) 26px 30px,transparent 30px),rgba(0,0,0,.25);}
+/* LN2 탱크: Explorer를 iframe으로 (CSS · 스크립트가 앱과 안 섞이게) */
+#ln2Frame{display:block;width:100%;height:calc(100vh - 120px);min-height:560px;border:1px solid var(--bd);border-radius:12px;background:#fff;}
 /* 이번 주 실험 정리: 요일마다 액션별 블럭이 아래에서 위로 쌓임 */
 .tw-nav{display:flex;align-items:center;gap:6px;}
 .tw-nav b{font-size:.8rem;font-weight:650;min-width:120px;text-align:center;}
@@ -1261,6 +1264,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
   <symbol id="i-flag" viewBox="0 0 24 24"><path d="M4 22V4M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1"/></symbol>
   <symbol id="i-drop" viewBox="0 0 24 24"><path d="M12 2.7 6.3 8.4a8 8 0 1 0 11.4 0z"/></symbol>
   <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5"/><path d="M8 7h7M8 11h5"/></symbol>
+  <symbol id="i-tank" viewBox="0 0 24 24"><path d="M9 3h6M10 3v3M14 3v3"/><rect x="5" y="6" width="14" height="15" rx="4"/><path d="M9 11v5M12 11v5M15 11v5"/></symbol>
   <symbol id="i-cmd" viewBox="0 0 24 24"><path d="M9 9V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3z"/></symbol>
   </defs>
 </svg>
@@ -1283,6 +1287,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
   <div class="nav-sec">도구</div>
   <nav class="nav">
     <button class="nav-i" onclick="openNoteModal()"><svg class="ic"><use href="#i-print"/></svg><span>연구노트 인쇄</span></button>
+    <button class="nav-i tab" data-tab="ln2" onclick="setTab('ln2')"><svg class="ic"><use href="#i-tank"/></svg><span>LN2 탱크</span></button>
   </nav>
 
   <div class="nav-sec">현미경 사진</div>
@@ -1447,6 +1452,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
   <!-- 작업 분석 -->
   <div class="pane" data-pane="ana"><div id="anaContent"></div></div>
   <div class="pane" data-pane="diary"><div id="diaryContent"></div></div>
+  <div class="pane" data-pane="ln2"><div id="ln2Wrap"></div></div>
 </main>
 </div>
 <div class="side-backdrop" onclick="closeSide()"></div>
@@ -4472,14 +4478,15 @@ let curTab='today';
 try{ curTab=localStorage.getItem('orgTab')||'today'; }catch(e){}
 function setTab(t, instant){
   if(t==='arch'){ t='tl'; setLineFilter('done',true); }   // 예전 [완료된 배양] 탭은 배양 라인의 '완료' 필터로
-  if(!['today','tl','ana','diary'].includes(t)) t='today';
+  if(!['today','tl','ana','diary','ln2'].includes(t)) t='today';
   // 새 라인/라인 수정 창은 다른 탭에 갔다 오면 닫혀 있게
   if(t!=='tl'){ const lf=document.getElementById('lineFormPanel'); if(lf&&lf.style.display!=='none') closeLineModal(); }
   const apply=()=>{
     curTab=t;
     document.body.dataset.tab=t;
     document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
-    document.getElementById('pageTitle').textContent={today:'오늘 작업',tl:'배양 라인',ana:'작업 분석',diary:'다이어리'}[t];
+    document.getElementById('pageTitle').textContent={today:'오늘 작업',tl:'배양 라인',ana:'작업 분석',diary:'다이어리',ln2:'LN2 탱크'}[t];
+    if(t==='ln2') openLn2();
     // 분석 · 다이어리 코드는 스크립트 뒤쪽에 있어서, 첫 로딩 때는 스크립트 끝(_lateReady)에서 다시 그린다
     if(t==='ana'){ if(window._lateReady) renderAnalytics(); } else anaTipHide();
     if(t==='diary' && window._lateReady) renderDiary();
@@ -4496,7 +4503,8 @@ function renderPageSub(){
   const wd=['일','월','화','수','목','금','토'], d=new Date();
   el.textContent = curTab==='today' ? `${d.getMonth()+1}월 ${d.getDate()}일 ${wd[d.getDay()]}요일`
     : curTab==='tl' ? `진행 중 ${lines.filter(l=>!l.isCompleted).length} · 완료 ${lines.filter(l=>l.isCompleted).length}`
-    : curTab==='diary' ? '내 배양 기록 다이어리 · 먼슬리 · 위클리' : '최근 1년 기록 기준';
+    : curTab==='diary' ? '내 배양 기록 다이어리 · 먼슬리 · 위클리'
+    : curTab==='ln2' ? 'LN2 tank 엑셀 검색 · 매칭 · 위치 · Stock 넣기' : '최근 1년 기록 기준';
 }
 // 배양 라인 페이지 필터: 진행 중 / 완료 / 전체
 let lnFilter='active';
@@ -6771,6 +6779,17 @@ function buildWeekday(){
 }
 
 // ══════════════════════════════════════════
+//  LN2 탱크: <template id="ln2Tpl"> 안의 LN2 Tank Explorer를 iframe으로 띄운다 (처음 열 때 한 번)
+//  Explorer 쪽에서는 parent.cclLn2 로 앱 데이터(stock 기록 · 이니셜)를 읽는다
+// ══════════════════════════════════════════
+function openLn2(){
+  const w=document.getElementById('ln2Wrap'); if(!w || document.getElementById('ln2Frame')) return;
+  const f=document.createElement('iframe'); f.id='ln2Frame'; f.title='LN2 Tank Explorer';
+  f.srcdoc='<!DOCTYPE html><html lang="ko">'+document.getElementById('ln2Tpl').innerHTML+'</html>';
+  w.appendChild(f);
+}
+
+// ══════════════════════════════════════════
 //  다이어리: 기록(logs)과 예정(plans)을 먼슬리 · 위클리 다이어리 모양으로 본다 (따로 쓰는 메모 없음)
 // ══════════════════════════════════════════
 let _dyMode='month', _dyAnchor=null;
@@ -7342,5 +7361,1407 @@ if(curTab==='ana'||curTab==='diary') setTab(curTab,true);
 <div id="toastWrap" class="toast-wrap"></div>
 <div id="sbLoading" class="sb-loading"><div class="sb-ring"><svg viewBox="0 0 44 44"><circle class="tr" cx="22" cy="22" r="19"/><circle class="pr" id="sbRingP" cx="22" cy="22" r="19"/></svg><b id="sbPct"></b></div><div class="sb-loadtxt" id="sbLoadTxt">처리 중…</div></div>
 <div id="notePrintArea"></div>
+<!-- LN2 Tank Explorer (원본: tools/ln2/LN2_Tank_Explorer.html). 여기 안을 고치면 앱의 「LN2 탱크」가 바뀜 -->
+<template id="ln2Tpl">
+
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LN2 Tank Explorer · STAR Lab</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/pptxgenjs/3.12.0/pptxgen.bundle.js"></script>
+<style>
+  :root{
+    --bg:#ffffff;
+    --ink:#1f2328;
+    --sub:#6b7280;
+    --faint:#f4f5f7;
+    --line-bg:#eef0f3;
+    --l1-bg:#ffe9ea; --l1-ac:#e69497;
+    --l2-bg:#fff6df; --l2-ac:#d9ae55;
+    --l3-bg:#e7f5ea; --l3-ac:#7fb890;
+    --l4-bg:#e6f1ff; --l4-ac:#7fa4d9;
+    --l5-bg:#f2e9ff; --l5-ac:#a688d6;
+    --l6-bg:#ffe9f7; --l6-ac:#d68cb6;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{ background:#dbe9ff; }
+
+  .wrap{ max-width:980px; margin:0 auto; padding:28px 20px 80px; }
+
+  header.top{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:22px; flex-wrap:wrap;}
+  header.top h1{ font-size:20px; font-weight:800; margin:0; letter-spacing:-0.02em;}
+  header.top .file-tag{ font-size:12.5px; color:var(--sub); }
+  header.top .file-tag b{ color:var(--ink); font-weight:600; }
+  .btn{
+    border:none; background:var(--faint); color:var(--ink); font-family:inherit;
+    font-size:13px; font-weight:600; padding:9px 14px; border-radius:10px; cursor:pointer;
+    transition:background .15s ease;
+  }
+  .btn:hover{ background:#e9ebee; }
+  .btn.primary{ background:#2b2f36; color:#fff; }
+  .btn.primary:hover{ background:#3d434c; }
+
+  /* ---------- Upload zone ---------- */
+  #uploadZone{
+    border:2px dashed #dfe2e7; border-radius:20px; padding:60px 24px;
+    text-align:center; color:var(--sub); cursor:pointer; transition:.15s;
+  }
+  #uploadZone.drag{ background:var(--l4-bg); border-color:var(--l4-ac); }
+  #uploadZone h2{ font-size:17px; color:var(--ink); margin:0 0 8px; font-weight:700;}
+  #uploadZone p{ font-size:13px; margin:4px 0; line-height:1.6; }
+  #fileInput{ display:none; }
+
+  /* ---------- Tabs ---------- */
+  .tabs{ display:flex; gap:6px; margin:18px 0 16px; border-bottom:1px solid #eceef1; }
+  .tab{
+    padding:9px 14px; font-size:13.5px; font-weight:600; color:var(--sub);
+    cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px;
+  }
+  .tab.active{ color:var(--ink); border-bottom-color:#2b2f36; }
+
+  /* ---------- Search ---------- */
+  .searchbar{ position:relative; margin-bottom:14px; }
+  .searchbar input{
+    width:100%; padding:14px 16px; font-size:15px; border-radius:12px; border:1px solid #e6e8eb;
+    background:var(--faint); font-family:inherit; color:var(--ink);
+  }
+  .searchbar input:focus{ outline:none; border-color:#c7cdd6; background:#fff; }
+  .meta-row{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; flex-wrap:wrap; gap:8px;}
+  .result-count{ font-size:12.5px; color:var(--sub); }
+
+  .chips{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
+  .chip{
+    font-size:12.5px; font-weight:600; padding:6px 12px; border-radius:999px;
+    background:var(--line-bg); color:var(--sub); cursor:pointer; user-select:none;
+    border:1px solid transparent;
+  }
+
+  /* ---------- Filter sidebar ---------- */
+  .search-layout{ display:grid; grid-template-columns:190px 1fr; gap:26px; align-items:start; }
+  .filter-sidebar{ position:sticky; top:20px; }
+  .filter-section{ margin-bottom:20px; }
+  .fs-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+  .fs-head h4{ font-size:12px; font-weight:700; color:var(--sub); text-transform:uppercase; letter-spacing:.03em; margin:0; }
+  .fs-clear{ border:none; background:none; color:#9aa0aa; font-size:11px; font-weight:600; cursor:pointer; font-family:inherit; padding:0;}
+  .fs-clear:hover{ color:var(--ink); text-decoration:underline; }
+  .filter-list{ display:flex; flex-direction:column; gap:4px; }
+  .filter-chip{
+    font-size:12.5px; font-weight:600; padding:7px 10px; border-radius:9px;
+    background:var(--faint); color:var(--sub); cursor:pointer; user-select:none;
+  }
+  .filter-chip.active{ color:var(--ink); font-weight:700; }
+  .filter-chip.small{ font-size:11px; font-weight:600; padding:4px 8px; display:inline-block; }
+  .filter-boxes{ max-height:340px; overflow-y:auto; padding-right:2px; }
+  .fb-group{ margin-bottom:10px; }
+  .fb-group-label{ font-size:10.5px; font-weight:800; margin-bottom:5px; }
+  .fb-group-chips{ display:flex; flex-wrap:wrap; gap:4px; }
+  @media (max-width:760px){
+    .search-layout{ grid-template-columns:1fr; }
+    .filter-sidebar{ position:static; }
+    .filter-boxes{ max-height:160px; }
+  }
+
+  /* ---------- Matching tab ---------- */
+  .mini-input{
+    width:100%; padding:8px 10px; font-size:12.5px; border-radius:9px; border:1px solid #e6e8eb;
+    background:#fff; font-family:inherit; color:var(--ink);
+  }
+  .num-row{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .num-row label{ display:block; font-size:10.5px; color:var(--sub); font-weight:600; margin-bottom:4px; }
+  .match-table{ width:100%; border-collapse:collapse; font-size:12.5px; }
+  .match-table th{ text-align:left; font-size:11px; color:var(--sub); font-weight:700; padding:8px 10px; border-bottom:1px solid #eceef1; }
+  .match-table td{ padding:9px 10px; border-bottom:1px solid #f2f3f5; vertical-align:top; }
+  .match-table tr.complete{ background:var(--l3-bg); }
+  .mt-hcc{ font-weight:800; white-space:nowrap; }
+  .mt-check{ color:#3f7350; }
+  .mt-cell b{ font-weight:700; }
+  .mt-empty{ color:#c7cdd6; }
+  .mt-passage{ font-size:11px; color:var(--sub); margin-top:2px; }
+  .mt-loc{ font-size:10.5px; color:var(--sub); margin-top:2px; }
+  .match-note{ font-size:11.5px; color:var(--sub); margin-top:14px; line-height:1.6; }
+  .match-wrap{ margin-bottom:22px; padding-bottom:18px; border-bottom:1px solid #eceef1; }
+  .match-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+  .export-bar{ display:flex; gap:6px; }
+  .btn.sm{ font-size:12px; padding:6px 11px; border-radius:8px; }
+  .btn.sm:disabled{ opacity:.55; cursor:default; }
+
+  .passage-summary{
+    display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin-bottom:14px;
+    padding:10px 12px; background:var(--faint); border-radius:12px;
+  }
+  .ps-label{ font-size:11.5px; font-weight:700; color:var(--sub); margin-right:4px; }
+  .ps-chip{ font-size:12px; font-weight:700; background:#fff; padding:4px 10px; border-radius:999px; }
+
+  .usage-summary{ margin-bottom:14px; padding:12px 14px; background:var(--faint); border-radius:12px; }
+  .us-label{ font-size:11.5px; font-weight:700; color:var(--sub); margin-bottom:8px; }
+  .us-group{ margin-bottom:8px; }
+  .us-group:last-child{ margin-bottom:0; }
+  .us-name{ font-size:12.5px; font-weight:700; margin-bottom:3px; }
+  .us-remain{ font-size:11px; font-weight:700; color:#3f7350; background:var(--l3-bg); padding:2px 8px; border-radius:999px; margin-left:6px; }
+  .us-rec{ font-size:12px; color:#454b53; background:#fff; border-radius:8px; padding:6px 10px; margin-bottom:4px; white-space:pre-line; line-height:1.5; }
+  .us-stocker{ color:var(--sub); font-weight:600; }
+
+  /* ---------- Result cards ---------- */
+  .card{
+    background:var(--faint); border-radius:var(--radius); padding:14px 16px; margin-bottom:10px;
+  }
+  .card .badges{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px; }
+  .badge{ font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; }
+  .badge.loc{ background:#fff; }
+  .badge.well{ background:#fff; color:var(--sub); font-weight:600; }
+  .badge.used{ background:#fff8e1; color:#9a7519; }
+  .card .name{ font-size:14.5px; font-weight:700; margin-bottom:3px; }
+  .card .lines{ font-size:13px; color:#454b53; line-height:1.65; white-space:pre-line; }
+  .card .subloc{ font-size:12px; color:var(--sub); margin-top:6px; }
+  mark{ background:#fff1a8; color:inherit; border-radius:3px; padding:0 1px;}
+
+  .empty{ text-align:center; color:var(--sub); font-size:13.5px; padding:50px 0; }
+
+  /* ---------- Box browser ---------- */
+  .line-group{ margin-bottom:26px; }
+  .line-group h3{ font-size:14px; margin:0 0 10px; display:flex; align-items:center; gap:8px; }
+  .line-dot{ width:9px; height:9px; border-radius:50%; display:inline-block; }
+  .box-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:10px; }
+  .box-card{ border-radius:12px; padding:12px 14px; cursor:pointer; }
+  .box-card .bc-code{ font-size:11.5px; font-weight:800; opacity:.75; }
+  .box-card .bc-title{ font-size:13.5px; font-weight:700; margin:2px 0 8px; line-height:1.35; min-height:36px;}
+  .box-card .bc-fill{ font-size:11.5px; color:#5a5f66; }
+  .box-detail{ margin-top:10px; padding:14px; border-radius:12px; background:#fff; box-shadow:none; }
+  .well-grid{ display:grid; gap:4px; margin-top:10px; }
+  .well-cell{
+    aspect-ratio:1; border-radius:6px; background:var(--faint); font-size:9.5px; color:var(--sub);
+    display:flex; align-items:center; justify-content:center; cursor:default; position:relative; font-weight:700;
+  }
+  .well-cell.filled{ color:#fff; }
+  .well-head{ font-size:10px; font-weight:700; color:var(--sub); display:flex; align-items:center; justify-content:center; }
+  .well-head.warn{ color:#a5474b; }
+  .well-tip{
+    display:none; position:absolute; z-index:5; bottom:110%; left:50%; transform:translateX(-50%);
+    background:#2b2f36; color:#fff; font-size:11px; font-weight:500; padding:8px 10px; border-radius:8px;
+    white-space:pre-line; width:180px; line-height:1.5; text-align:left;
+  }
+  .well-cell:hover .well-tip{ display:block; }
+
+  /* ---------- Summary ---------- */
+  .stat-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-bottom:24px; }
+  .stat-card{ border-radius:14px; padding:16px 16px; }
+  .stat-card .stat-num{ font-size:24px; font-weight:800; letter-spacing:-0.02em; }
+  .stat-card .stat-label{ font-size:12px; color:var(--sub); margin-top:4px; }
+  .summary-block{ margin-bottom:24px; }
+  .summary-block h3{ font-size:13.5px; font-weight:700; margin:0 0 12px; color:#3a3f46; }
+  .line-summary-row{ margin-bottom:12px; }
+  .lsr-head{ display:flex; align-items:center; gap:8px; font-size:13px; margin-bottom:6px; }
+  .lsr-meta{ color:var(--sub); font-weight:500; font-size:12px; margin-left:auto; }
+  .lsr-bar-bg{ height:8px; border-radius:999px; background:var(--faint); overflow:hidden; }
+  .lsr-bar{ height:100%; border-radius:999px; }
+  .summary-note{ font-size:12.5px; color:#a5474b; background:var(--l1-bg); padding:10px 14px; border-radius:12px; }
+
+  /* ---------- Diagnostics ---------- */
+  .diag-item{ background:var(--faint); border-radius:12px; padding:12px 14px; margin-bottom:8px; font-size:13px; line-height:1.6;}
+  .diag-item b{ font-weight:700; }
+  .diag-item .tag{ display:inline-block; font-size:10.5px; font-weight:700; color:#a5474b; background:#ffe9ea; padding:2px 8px; border-radius:999px; margin-right:6px;}
+  .diag-item .tag.info{ color:#38588a; background:#e6f1ff; }
+  footer{ text-align:center; font-size:11.5px; color:#b3b8c0; margin-top:40px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <h1>LN2 Tank Explorer</h1>
+    <div id="fileTag" class="file-tag"></div>
+  </header>
+
+  <div id="uploadZone">
+    <h2>LN2 tank 엑셀 파일을 올려주세요</h2>
+    <p>LN2_tank_STARLAB_ver_...xlsx 파일을 드래그하거나 클릭해서 선택하세요.</p>
+    <p style="margin-top:14px;"><button class="btn primary" type="button" id="pickBtn">파일 선택</button></p>
+    <input type="file" id="fileInput" accept=".xlsx,.xls">
+  </div>
+
+  <div id="app" style="display:none;">
+    <div class="tabs">
+      <div class="tab active" data-tab="summary">요약</div>
+      <div class="tab" data-tab="search">검색 · 매칭</div>
+      <div class="tab" data-tab="browse">박스별 보기</div>
+      <div class="tab" data-tab="diag">점검 내역<span id="diagCount"></span></div>
+    </div>
+
+    <div id="panel-summary"></div>
+
+    <div id="panel-search" style="display:none;">
+      <div class="search-layout">
+        <aside class="filter-sidebar">
+          <div class="filter-section">
+            <div class="fs-head"><h4>카테고리</h4><button class="fs-clear" data-clear="cats" type="button">전체</button></div>
+            <div id="filterCats" class="filter-list"></div>
+          </div>
+          <div class="filter-section">
+            <div class="fs-head"><h4>HCC 번호</h4></div>
+            <input type="text" id="hccSidebarInput" class="mini-input" placeholder="예: 18, 23, 27">
+          </div>
+          <div class="filter-section">
+            <div class="fs-head"><h4>수치 조건</h4></div>
+            <div class="num-row">
+              <div><label>최소 Vial 개수</label><input type="number" id="minVialInput" class="mini-input" min="0" value="0"></div>
+              <div><label>최소 Passage</label><input type="number" id="minPassageInput" class="mini-input" min="0" value="0"></div>
+            </div>
+          </div>
+          <div class="filter-section">
+            <div class="fs-head"><h4>LINE</h4><button class="fs-clear" data-clear="lines" type="button">전체</button></div>
+            <div id="filterLines" class="filter-list"></div>
+          </div>
+          <div class="filter-section">
+            <div class="fs-head"><h4>박스</h4><button class="fs-clear" data-clear="boxes" type="button">전체</button></div>
+            <div id="filterBoxes" class="filter-list filter-boxes"></div>
+          </div>
+        </aside>
+        <main class="search-main">
+          <div class="searchbar">
+            <input type="text" id="searchInput" placeholder="셀 이름, HCC 번호, passage, 날짜, 박스 코드 등으로 검색 (예: HCC28 mesenchymal)">
+          </div>
+          <div class="meta-row">
+            <div class="result-count" id="resultCount"></div>
+          </div>
+          <div id="matchTable"></div>
+          <div id="passageSummary"></div>
+          <div id="usageSummary"></div>
+          <div id="results"></div>
+        </main>
+      </div>
+    </div>
+
+    <div id="panel-browse" style="display:none;"></div>
+    <div id="panel-diag" style="display:none;"></div>
+  </div>
+
+  <footer>모든 데이터는 브라우저 안에서만 처리되며 서버로 전송되지 않습니다.</footer>
+</div>
+
+<script>
+/* ============================================================
+   1. PARSER  —  Black-/Orange-LINE box-grid sheets
+   ============================================================ */
+// Two tanks: Black (LINE 1-6, was "Big") and Orange (LINE 1-4).
+// Line keys are tank letter + number: "B4", "O3".
+const PALETTE = [
+  {bg:'var(--l1-bg)', ac:'#e69497'}, {bg:'var(--l2-bg)', ac:'#d9ae55'},
+  {bg:'var(--l3-bg)', ac:'#7fb890'}, {bg:'var(--l4-bg)', ac:'#7fa4d9'},
+  {bg:'var(--l5-bg)', ac:'#a688d6'}, {bg:'var(--l6-bg)', ac:'#d68cb6'},
+];
+const LINE_COLORS = {};
+for(let i=1;i<=9;i++){
+  const p = PALETTE[(i-1)%PALETTE.length];
+  LINE_COLORS['B'+i] = {bg:p.bg, ac:p.ac, dot:'#3a3d42'};
+  LINE_COLORS['O'+i] = {bg:p.bg, ac:p.ac, dot:'#ec8a3c'};
+}
+const FALLBACK_COLOR = {bg:'#f3f4f6', ac:'#9aa0a8', dot:'#9aa0a8'};
+function lineColor(l){ return LINE_COLORS[l] || FALLBACK_COLOR; }
+function lineName(l){
+  const s = String(l||'');
+  return (s[0]==='O' ? 'Orange' : 'Black') + '-LINE ' + s.slice(1);
+}
+
+// box_code is already "4-D" (line number + box letter). Display it as
+// "Black-LINE4D" / "Orange-LINE3A" so it's unambiguous — never re-prefix the line number in
+// front of it (that produces the confusing "4-4-D" duplication).
+function boxLabel(box_code){
+  const s = String(box_code);
+  return s[0]==='O' ? 'Orange-LINE' + s.slice(1).replace('-', '')
+                    : 'Black-LINE' + s.replace('-', '');
+}
+
+function cellVal(ws, r, c){
+  const cell = ws[XLSX.utils.encode_cell({r,c})];
+  return cell ? cell.v : null;
+}
+// Excel cells in this workbook mix \r\n and \r line endings inside a single
+// cell (multiple fields stacked in one box, e.g. name / passage / date).
+// Normalize to plain \n before splitting or comparing, otherwise stray \r
+// characters silently break header lookups and per-line search matching.
+function normNL(s){
+  return String(s).replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+}
+function isNumberSeq(vals){
+  const present = vals.filter(v=>v!==null&&v!==undefined&&v!=='');
+  const nums = present.filter(v=>typeof v==='number');
+  return present.length>=3 && nums.length===present.length;
+}
+function pushWells(wells, rowLabel, c0, rowVals){
+  rowVals.forEach((v,i)=>{
+    if(v!==null && v!==undefined && String(v).trim()!==''){
+      const norm = normNL(v);
+      const lines = norm.split('\n').map(s=>s.trim()).filter(Boolean);
+      wells.push({well:`${rowLabel}${i+1}`, raw:norm, lines});
+    }
+  });
+}
+function deriveCode(lineNum, familyIdx, slotIdx){
+  const letter = String.fromCharCode('A'.charCodeAt(0) + slotIdx + familyIdx*5);
+  return `${lineNum}-${letter}`;
+}
+
+// Computes the *actual* used range of a sheet from real cell keys,
+// instead of trusting ws['!ref'] — some sheets in this workbook carry a
+// corrupted/oversized declared range (leftover formatting far outside the
+// real data) which makes naive parsers hang or truncate silently.
+function getActualRange(ws){
+  let minR=Infinity,minC=Infinity,maxR=-1,maxC=-1;
+  for(const addr in ws){
+    if(addr[0]==='!') continue;
+    const c = XLSX.utils.decode_cell(addr);
+    if(c.r<minR) minR=c.r; if(c.c<minC) minC=c.c;
+    if(c.r>maxR) maxR=c.r; if(c.c>maxC) maxC=c.c;
+  }
+  if(maxR===-1) return null;
+  return {s:{r:minR,c:minC}, e:{r:maxR,c:maxC}};
+}
+
+function parseBigLine(ws, sheetName, diagnostics){
+  // diagnostic: ghost-range detection
+  const declared = ws['!ref'] ? XLSX.utils.decode_range(ws['!ref']) : null;
+  const actual = getActualRange(ws);
+  if(declared && actual){
+    const declaredCells = (declared.e.r-declared.s.r+1)*(declared.e.c-declared.s.c+1);
+    const actualCells = (actual.e.r-actual.s.r+1)*(actual.e.c-actual.s.c+1);
+    if(declaredCells > actualCells*20 && declaredCells>50000){
+      diagnostics.push({
+        type:'range',
+        text:`「${sheetName}」 시트: 엑셀에 남아있는 서식 잔여물 때문에 선언된 범위가 실제 데이터보다 훨씬 넓게(약 ${declared.e.c-declared.s.c+1}열) 잡혀 있었습니다. 이 범위를 그대로 읽으면 셀 수가 폭증해 파싱이 멈추거나 뒤쪽 데이터가 누락됩니다 → 실제 값이 있는 셀만 기준으로 자동 보정해서 읽었습니다.`
+      });
+    }
+  }
+
+  const lineMatch = sheetName.match(/(Big|Black|Orange)-LINE\s*(\d+)/i);
+  const tank = (lineMatch && /^orange$/i.test(lineMatch[1])) ? 'O' : 'B';
+  const lineNum = lineMatch ? lineMatch[2] : '?';
+  const lineKey = tank + lineNum;
+  const codePrefix = tank==='O' ? 'O' : '';
+  const merges = ws['!merges'] || [];
+  const titleMerges = merges
+    .filter(m=>m.s.r===m.e.r && m.e.c>m.s.c)
+    .sort((a,b)=>a.s.r-b.s.r || a.s.c-b.s.c);
+
+  const families = {};
+  for(const m of titleMerges){
+    const key=m.s.c;
+    if(!families[key]) families[key]=[];
+    families[key].push(m);
+  }
+  const familyKeys = Object.keys(families).map(Number).sort((a,b)=>a-b);
+
+  const boxes = [];
+  const consumed = new Set(); // "r,c" of every cell that belongs to some box
+  const mark = (r,c)=>consumed.add(r+','+c);
+  const isJunk = v => /^\s*[A-Za-z?]{1,2}\s*$/.test(String(v));
+
+  // The title merge is not a reliable column range: in some boxes it is
+  // shifted one column right of the real grid (1-I), or narrower than the
+  // grid (3-E has a 10th column outside the merge). The column-number
+  // header row (1,2,3...) is what the grid actually follows, so find it.
+  function findHeader(titleRow, mc0, mc1){
+    for(let r=titleRow+1; r<=titleRow+2; r++){
+      for(let c=Math.max(0,mc0-2); c<=mc1+1; c++){
+        if(cellVal(ws,r,c)!==1) continue;
+        let last=c;
+        while(cellVal(ws,r,last+1)===last-c+2) last++;
+        if(last-c>=3) return {row:r, c0:c, c1:last};
+      }
+    }
+    return null;
+  }
+
+  familyKeys.forEach((famKey, famIdx)=>{
+    const group = families[famKey].sort((a,b)=>a.s.r-b.s.r);
+    group.forEach((m, slotIdx)=>{
+      const titleRow=m.s.r;
+      const title = cellVal(ws, titleRow, m.s.c) || '(제목 없음)';
+      mark(titleRow, m.s.c);
+      const boundary = (slotIdx+1<group.length) ? group[slotIdx+1].s.r-1 : titleRow+16;
+      const hdr = findHeader(titleRow, m.s.c, m.e.c);
+      const c0 = hdr ? hdr.c0 : m.s.c, c1 = hdr ? hdr.c1 : m.e.c;
+      const labelCol = c0-1;
+      const startRow = hdr ? hdr.row : titleRow+1;
+
+      let boxCode=null, codeOnDataRow=false;
+      const wells=[], rowLabels=[], unlabeledRows=[], junk=[];
+      let blankStreak=0, lastRow=startRow;
+      for(let r=startRow; r<=boundary; r++){
+        const labelRaw = cellVal(ws, r, labelCol);
+        const label = (labelRaw!==null&&labelRaw!==undefined) ? String(labelRaw).trim() : '';
+        const rowVals=[];
+        for(let c=c0;c<=c1;c++){
+          let v = cellVal(ws,r,c);
+          if(v!==null && v!==undefined && String(v).trim()!=='' && isJunk(v)){
+            junk.push(XLSX.utils.encode_cell({r,c})+` "${String(v).trim()}"`); v=null;
+          }
+          rowVals.push(v);
+        }
+        const rowHasContent = rowVals.some(v=>v!==null&&v!==undefined&&String(v).trim()!=='');
+        const isCode = /^[Oo]?\d+-[A-Za-z]+$/.test(label);
+        if(isCode) boxCode = codePrefix + label.replace(/^[Oo]/,'').toUpperCase();
+
+        if(isNumberSeq(rowVals)){ // column header row
+          for(let c=labelCol;c<=c1;c++) mark(r,c);
+          blankStreak=0; lastRow=r; continue;
+        }
+        const isLetter = /^[A-Za-z]{1,2}$/.test(label);
+        if(!rowHasContent && !isLetter){
+          if(isCode){ lastRow=r; for(let c=labelCol;c<=c1;c++) mark(r,c); continue; }
+          blankStreak++;
+          if(blankStreak>=3) break;
+          continue;
+        }
+        blankStreak=0; lastRow=r;
+        for(let c=labelCol;c<=c1;c++) mark(r,c);
+        const rowIdx = rowLabels.length;
+        const rowLabel = isLetter ? label.toUpperCase() : '?';
+        rowLabels.push(rowLabel);
+        if(rowHasContent && !isLetter){
+          if(isCode) codeOnDataRow = true;
+          unlabeledRows.push(r+1);
+        }
+        rowVals.forEach((v,i)=>{
+          if(v===null || v===undefined || String(v).trim()==='') return;
+          const norm = normNL(v);
+          wells.push({
+            well: rowLabel==='?' ? `?${i+1}(${r+1}행)` : `${rowLabel}${i+1}`,
+            rowIdx, col:i+1, raw:norm,
+            lines: norm.split('\n').map(s=>s.trim()).filter(Boolean)
+          });
+        });
+      }
+      // trailing blank letter rows add nothing
+      while(rowLabels.length && !wells.some(w=>w.rowIdx===rowLabels.length-1) && rowLabels.length>10) rowLabels.pop();
+
+      const derivedCode = codePrefix + deriveCode(lineNum, famIdx, slotIdx);
+      const codeSource = boxCode ? 'explicit' : 'derived';
+      if(!boxCode) boxCode = derivedCode;
+      if(codeSource==='derived'){
+        diagnostics.push({ type:'code',
+          text:`「${sheetName}」 · <b>${boxCode}</b> (${title}) 박스: 시트 안에 박스 위치 코드가 아예 입력되어 있지 않았습니다 → 같은 시트 내 배치 순서로 위치를 자동 추정했습니다. 실제 코드가 맞는지 한 번 확인해 주세요.`});
+      } else if(boxCode!==derivedCode){
+        diagnostics.push({ type:'code',
+          text:`「${sheetName}」 · <b>${boxCode}</b> (${title}) 박스: 입력된 코드(${boxCode})가 배치 순서상 예상되는 코드(${derivedCode})와 다릅니다 → 오탈자일 수 있으니 확인해 주세요.`});
+      }
+      if(hdr && (hdr.c0<m.s.c || hdr.c1>m.e.c)){ // only when vials sit outside the title merge
+        diagnostics.push({ type:'layout',
+          text:`「${sheetName}」 · <b>${boxCode}</b> (${title}) 박스: 제목 병합 범위(${XLSX.utils.encode_col(m.s.c)}~${XLSX.utils.encode_col(m.e.c)}열)와 실제 칸 번호 줄(${XLSX.utils.encode_col(c0)}~${XLSX.utils.encode_col(c1)}열)이 어긋나 있었습니다 → 칸 번호 줄 기준으로 읽었습니다.`});
+      }
+      if(unlabeledRows.length){
+        diagnostics.push({ type:'layout',
+          text:`「${sheetName}」 · <b>${boxCode}</b> (${title}) 박스: 행 알파벳 없이 vial이 적힌 줄이 있습니다(엑셀 ${unlabeledRows.join(', ')}행)${codeOnDataRow?'; 박스 코드가 vial 줄에 같이 적혀 있음':''} → 개수에는 포함하고 위치는 "?"로 표시했습니다. 박스별 보기에서 실제 행을 확인해 주세요.`});
+      }
+      if(junk.length){
+        diagnostics.push({ type:'layout',
+          text:`「${sheetName}」 · <b>${boxCode}</b> (${title}) 박스: vial로 보기 어려운 값(${junk.join(', ')})은 개수에서 뺐습니다.`});
+      }
+      boxes.push({sheet:sheetName, line:lineKey, box_code:boxCode, title, well_count:wells.length, wells,
+                  rowLabels, ncols:c1-c0+1});
+    });
+  });
+
+  // Anything written outside every box's grid (e.g. a note to the side of
+  // a box) is not counted; list it so it doesn't silently disappear.
+  if(actual){
+    const stray=[];
+    for(let r=actual.s.r; r<=actual.e.r; r++) for(let c=actual.s.c; c<=Math.min(actual.e.c,80); c++){
+      if(consumed.has(r+','+c)) continue;
+      const v = cellVal(ws,r,c);
+      if(v===null||v===undefined) continue;
+      const s = String(v).trim();
+      if(!s || /^[A-Za-z]{1,2}$/.test(s) || /^[Oo]?\d+(-[A-Za-z]+)?$/.test(s) || /^(Big|Black|Orange) LN2/i.test(s)) continue;
+      stray.push(`${XLSX.utils.encode_cell({r,c})} "${normNL(s).replace(/\n/g,' / ').slice(0,40)}"`);
+    }
+    if(stray.length) diagnostics.push({ type:'range',
+      text:`「${sheetName}」 시트: 어느 박스 칸에도 속하지 않는 위치에 적힌 값 ${stray.length}개는 개수에서 빠져 있습니다 → ${stray.join(', ')}`});
+  }
+  return boxes;
+}
+
+/* ============================================================
+   2. PARSER  —  "cell information" sheet
+   Search results still come only from the box grid (per your request),
+   but a handful of fields from this log — 사용날짜 in particular — get
+   attached to the matching grid entry as extra context, when a confident
+   name match is found.
+   ============================================================ */
+function parseCellInfo(ws){
+  const range = getActualRange(ws);
+  if(!range) return [];
+  const headers = [];
+  for(let c=range.s.c; c<=range.e.c; c++) headers.push(normNL(cellVal(ws,range.s.r,c)||'').replace(/\n/g,' ').trim());
+  const rows=[];
+  for(let r=range.s.r+1; r<=range.e.r; r++){
+    const rec={};
+    let any=false;
+    for(let c=range.s.c;c<=range.e.c;c++){
+      let v = cellVal(ws,r,c);
+      if(v instanceof Date){
+        v = `${v.getFullYear()}.${String(v.getMonth()+1).padStart(2,'0')}.${String(v.getDate()).padStart(2,'0')}`;
+      } else if(typeof v === 'string'){
+        v = normNL(v);
+      }
+      const key = headers[c-range.s.c] || `col${c}`;
+      if(v!==null && v!==undefined && String(v).trim()!=='') any=true;
+      rec[key]=v;
+    }
+    if(any) rows.push(rec);
+  }
+  return rows;
+}
+
+// Builds a name -> [ {passage, usageDate, stocker, loc} ] lookup from the
+// cell information rows, keyed on the first line of STAR_ID (normalized).
+function buildCellInfoIndex(cellInfo){
+  const idx = {};
+  cellInfo.forEach(rec=>{
+    const starId = rec['STAR_ID (Cell name)'];
+    const firstLine = String(starId||'').split('\n')[0].trim().toLowerCase();
+    if(!firstLine) return;
+    const usageDate = rec['사용날짜'];
+    if(!usageDate) return; // only care about rows that actually record a usage date
+    const passage = extractPassage(String(starId||''));
+    (idx[firstLine] = idx[firstLine] || []).push({
+      passage, usageDate: String(usageDate), stocker: rec['stock한 사람']||''
+    });
+  });
+  return idx;
+}
+
+// Attaches a usage-date badge to a well ONLY when the match is unambiguous
+// (passage matches exactly, or there's exactly one candidate record for that
+// sample name). When a name has several cell-information rows and no way to
+// tell which vial they refer to, skip the per-vial badge — that's what the
+// "사용 기록" summary panel is for instead.
+function attachUsageInfo(entries, ciIndex){
+  entries.forEach(e=>{
+    const key = (e.lines[0]||'').trim().toLowerCase();
+    const candidates = ciIndex[key];
+    if(!candidates || !candidates.length) return;
+    const entryPassage = extractPassage(e.raw);
+    let match = entryPassage ? candidates.find(c=>c.passage===entryPassage) : null;
+    if(!match && candidates.length===1) match = candidates[0];
+    if(match){
+      e.usageDate = match.usageDate;
+      e.usageStocker = match.stocker;
+    }
+  });
+}
+
+/* ============================================================
+   3. BUILD SEARCH INDEX  (entries come only from the box grid)
+   ============================================================ */
+let STATE = { boxesByLine:{}, allBoxes:[], entries:[], diagnostics:[], fileName:'', ciIndex:{} };
+
+function buildEntries(cellInfo){
+  const entries=[];
+  STATE.allBoxes.forEach(box=>{
+    box.wells.forEach(w=>{
+      entries.push({
+        source:'grid', line:box.line, box_code:box.box_code, box_title:box.title,
+        well:w.well, lines:w.lines, raw:w.raw,
+        search: (boxLabel(box.box_code)+' '+box.box_code+' '+box.title+' '+w.raw).toLowerCase()
+      });
+    });
+  });
+  STATE.ciIndex = (cellInfo && cellInfo.length) ? buildCellInfoIndex(cellInfo) : {};
+  entries.forEach(e=>{ e.cats = classifyEntry(e); });
+  attachUsageInfo(entries, STATE.ciIndex);
+  STATE.entries = entries;
+}
+
+/* ============================================================
+   4. FILE HANDLING
+   ============================================================ */
+const fileInput = document.getElementById('fileInput');
+const uploadZone = document.getElementById('uploadZone');
+const pickBtn = document.getElementById('pickBtn');
+pickBtn.addEventListener('click', ()=>fileInput.click());
+uploadZone.addEventListener('click', ()=>fileInput.click());
+['dragover','dragenter'].forEach(evt=>uploadZone.addEventListener(evt, e=>{e.preventDefault(); uploadZone.classList.add('drag');}));
+['dragleave','drop'].forEach(evt=>uploadZone.addEventListener(evt, e=>{e.preventDefault(); uploadZone.classList.remove('drag');}));
+uploadZone.addEventListener('drop', e=>{
+  if(e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', e=>{
+  if(e.target.files.length) handleFile(e.target.files[0]);
+});
+
+function handleFile(file){
+  const reader = new FileReader();
+  reader.onload = (e)=>{
+    const data = new Uint8Array(e.target.result);
+    const wb = XLSX.read(data, {type:'array', cellDates:true});
+    const diagnostics=[];
+    const boxesByLine={}, allBoxes=[];
+    wb.SheetNames.forEach(name=>{
+      if(!/^(Big|Black|Orange)-LINE/i.test(name)) return;
+      const boxes = parseBigLine(wb.Sheets[name], name, diagnostics);
+      boxesByLine[name]=boxes;
+      allBoxes.push(...boxes);
+    });
+    let cellInfo = [];
+    const ciSheetName = wb.SheetNames.find(n=>n.trim().toLowerCase()==='cell information');
+    if(ciSheetName) cellInfo = parseCellInfo(wb.Sheets[ciSheetName]);
+
+    STATE = { boxesByLine, allBoxes, entries:[], diagnostics, fileName:file.name };
+    buildEntries(cellInfo);
+
+    const usageCount = STATE.entries.filter(e=>e.usageDate).length;
+    document.getElementById('fileTag').innerHTML = `<b>${file.name}</b> 불러옴 · vial ${STATE.entries.length}개 · 박스 ${allBoxes.length}개 · 사용날짜 매칭 ${usageCount}건`;
+    document.getElementById('uploadZone').style.display='none';
+    document.getElementById('app').style.display='block';
+    renderFilterSidebar();
+    renderResults('');
+    renderDiagnostics();
+    renderBrowse();
+    renderSummary();
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+/* ============================================================
+   5. SEARCH / RENDER
+   ============================================================ */
+let filterState = { lines: new Set(), boxes: new Set(), cats: new Set(), hcc: '', minVial: 0, minPassage: 0 };
+
+function renderFilterSidebar(){
+  const lines = [...new Set(STATE.allBoxes.map(b=>b.line))].sort();
+
+  document.getElementById('filterLines').innerHTML = lines.map(l=>{
+    const c = lineColor(l);
+    const active = filterState.lines.has(l);
+    return `<div class="filter-chip${active?' active':''}" data-kind="lines" data-val="${l}" style="${active?`background:${c.bg}`:''}">${lineName(l)}</div>`;
+  }).join('');
+
+  document.getElementById('filterCats').innerHTML = Object.entries(MATCH_CATEGORIES).map(([id,c])=>{
+    const active = filterState.cats.has(id);
+    return `<div class="filter-chip${active?' active':''}" data-kind="cats" data-val="${id}" title="${c.sub}">${c.label}</div>`;
+  }).join('');
+
+  const boxWrap = document.getElementById('filterBoxes');
+  boxWrap.innerHTML = lines.map(l=>{
+    const c = lineColor(l);
+    const boxes = STATE.allBoxes.filter(b=>b.line===l).sort((a,b)=>a.box_code.localeCompare(b.box_code));
+    return `<div class="fb-group">
+      <div class="fb-group-label" style="color:${c.ac}">${lineName(l)}</div>
+      <div class="fb-group-chips">
+        ${boxes.map(b=>{
+          const active = filterState.boxes.has(b.box_code);
+          return `<div class="filter-chip small${active?' active':''}" data-kind="boxes" data-val="${b.box_code}" style="${active?`background:${c.bg}`:''}" title="${b.title}">${b.box_code}</div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+
+  document.querySelectorAll('.filter-chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      const set = filterState[chip.dataset.kind];
+      const val = chip.dataset.val;
+      if(set.has(val)) set.delete(val); else set.add(val);
+      renderFilterSidebar();
+      renderResults(document.getElementById('searchInput').value);
+    });
+  });
+
+  const hccInput = document.getElementById('hccSidebarInput');
+  hccInput.value = filterState.hcc;
+  hccInput.addEventListener('input', e=>{
+    filterState.hcc = e.target.value;
+    renderResults(document.getElementById('searchInput').value);
+  });
+  const minVialInput = document.getElementById('minVialInput');
+  minVialInput.value = filterState.minVial;
+  minVialInput.addEventListener('input', e=>{
+    filterState.minVial = parseInt(e.target.value,10)||0;
+    renderResults(document.getElementById('searchInput').value);
+  });
+  const minPassageInput = document.getElementById('minPassageInput');
+  minPassageInput.value = filterState.minPassage;
+  minPassageInput.addEventListener('input', e=>{
+    filterState.minPassage = parseInt(e.target.value,10)||0;
+    renderResults(document.getElementById('searchInput').value);
+  });
+}
+
+document.querySelectorAll('.fs-clear').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    filterState[btn.dataset.clear].clear();
+    renderFilterSidebar();
+    renderResults(document.getElementById('searchInput').value);
+  });
+});
+
+function passesFacets(e){
+  if(filterState.lines.size && !filterState.lines.has(e.line)) return false;
+  if(filterState.boxes.size && !filterState.boxes.has(e.box_code)) return false;
+  if(filterState.cats.size && ![...filterState.cats].some(c=>e.cats.has(c))) return false;
+  if(filterState.hcc.trim()){
+    const wanted = new Set(filterState.hcc.split(',').map(s=>s.trim()).filter(Boolean).map(s=>'HCC'+s.replace(/^hcc/i,'')));
+    const hcc = extractHCC(e.raw);
+    if(!hcc || !wanted.has(hcc)) return false;
+  }
+  if(filterState.minPassage>0){
+    const p = extractPassage(e.raw);
+    const pNum = p ? parseInt(p.slice(1),10) : null;
+    if(pNum===null || pNum<filterState.minPassage) return false;
+  }
+  return true;
+}
+
+// Lab naming is inconsistent (mesenchyme vs mesenchymal, typos like
+// "mesecnyme"), so an exact-substring-only search misses real matches.
+// Fall back to a long-prefix match when the exact token isn't found.
+function tokenMatches(haystack, token){
+  if(haystack.includes(token)) return true;
+  if(token.length>=6){
+    const prefixLen = Math.max(5, token.length-3);
+    if(haystack.includes(token.slice(0,prefixLen))) return true;
+  }
+  return false;
+}
+
+function firstDateToken(text){
+  const m = String(text).match(/\d{4}\.\s?\d{1,2}\.\s?\d{1,2}/);
+  if(m) return m[0].replace(/\s/g,'');
+  return String(text).split('\n')[0].trim();
+}
+
+function highlight(text, tokens){
+  let safe = text.replace(/[&<>]/g, s=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[s]));
+  tokens.forEach(t=>{
+    if(!t) return;
+    const esc = t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    safe = safe.replace(new RegExp(esc,'ig'), m=>`<mark>${m}</mark>`);
+  });
+  return safe;
+}
+
+// Detects a passage token like "p5", "P12", "20.08.08 p2" inside a vial's
+// raw text. Heuristic — a bare "p" immediately followed by digits — so it
+// can occasionally catch an unrelated gene name (e.g. "p63"); treat the
+// breakdown as an estimate, not a guaranteed-accurate count.
+function extractPassage(raw){
+  const m = String(raw).match(/\bp\.?\s?(\d{1,3})\b/i);
+  return m ? 'p'+m[1] : null;
+}
+
+/* ============================================================
+   4b. HCC MATCHING  —  pairs sample categories by patient (HCC) number
+   Keyword-based on each vial's raw text. This is a heuristic, not a
+   guaranteed-accurate classification — box titles and cell names in the
+   tank aren't perfectly standardized, so edge cases can be mis-tagged.
+   Verify anything load-bearing against 박스별 보기.
+   ============================================================ */
+// "Adj(N)" = adjacent-NORMAL tissue, genuinely a different sample than the
+// tumor organoid itself, so it's excluded. "Adj(T)" (adjacent-TUMOR) is not
+// excluded — it's still part of the tumor-org lineage.
+function isAdjNormal(t){ return /adj\s*\(?\s*n\)?/i.test(t); }
+function isTumorMargin(t){ return /tumor\s?margin/i.test(t); }
+// A GFP/EGFP-tagged reporter subline (e.g. "GFP-PF") is a genetically modified
+// derivative made for tracking/imaging, not the primary patient-matched stock
+// that Tumor-org/CAF/PF/Adj(N) PHH-org matching is meant to count — e.g. HCC26
+// had 20 "GFP-PF" vials that were inflating its PF count to 21 when only 1
+// vial was actually plain PF. Excluded from every category for consistency.
+function isModified(t){ return /\bgfp\b|egfp/i.test(t); }
+
+const MATCH_CATEGORIES = {
+  tumor:  { label:'Tumor-org',        sub:'종양 오가노이드',                 test:t=>{
+    if(isAdjNormal(t)) return false;
+    if(isTumorMargin(t)) return false; // tumor margin tissue is a genuinely different sample
+    if(isModified(t)) return false;
+    if(/tumor[\s-]?org(anoid)?|tumoroid|\bT[\s-]?org/i.test(t)) return true;
+    if(/tumor/i.test(t) && /phh[\s-]?org/i.test(t)) return true; // "Tumor-PHHorg" style label
+    return false;
+  }},
+  // "CAFp4" (passage glued to CAF) must count too, so no trailing \b.
+  caf:    { label:'CAF',              sub:'종양 유래 섬유아세포',            test:t=>!isModified(t) && /(^|[^a-z])caf(?=$|[^a-z]|p\d)/i.test(t) },
+  // "Liver mesenchyme (HCCxx ADJ(N))" is how older PF stocks were written
+  // (all of them sit in the PF_YJ box), so adj-normal mesenchyme counts as PF.
+  pf:     { label:'PF',               sub:'정상부 섬유아세포',               test:t=>!isModified(t) && (
+            /\bpf\b/i.test(t) || /portal\s?fibro/i.test(t) ||
+            (/mese[nc]{1,2}h?y/i.test(t) && isAdjNormal(t) && !/\bcaf/i.test(t)) ) },
+  // Adj(T) is adjacent-TUMOR, not normal: excluded. A patient PHH-org with no
+  // tumor / margin / Adj(T) wording ("HCC22 PHH org P3") is adj-normal by
+  // default in this tank, so it is counted here as well.
+  adjphh: { label:'Adj(N) PHH-org',   sub:'인접 정상 간세포 오가노이드',      test:t=>{
+            if(isModified(t) || !/phh[\s-]?org/i.test(t)) return false;
+            if(/adj\s*\(?\s*t\b/i.test(t) || /tumor/i.test(t) || /t[\s-]?margin/i.test(t)) return false;
+            return true;
+          }},
+};
+// When a vial's own text names no category (e.g. "HCC22 Tumor p5" sitting in
+// the CAF_YJ box), fall back to the box title. Only for patient (HCC) vials,
+// and never when the text names some other cell type.
+const BOX_TITLE_CATS = [
+  [/\bcaf/i,            'caf',    t=>!isAdjNormal(t)],
+  [/\bpf\b/i,           'pf',     t=>!/tumor/i.test(t)],
+  [/tumor[\s-]?org/i,   'tumor',  t=>!isAdjNormal(t)],
+  [/phh[\s-]?org/i,     'adjphh', t=>!/tumor/i.test(t)],
+];
+const OTHER_TYPE = /chol|margin|adj\s*\(?\s*t\b|tissue|minced|digest|mcherry|progenitor|\bkc\b|\bhsc\b|epcam|brco|hep[\s-]?org/i;
+const CELL_STOCK = /macs|x\s*10\s*\^|\bcells?\b|stock/i;
+function classifyEntry(e){
+  const set = new Set(Object.keys(MATCH_CATEGORIES).filter(c=>MATCH_CATEGORIES[c].test(e.raw)));
+  // Box-title fallback needs a passage number (i.e. a cultured line). Digested
+  // cells / MACS stocks ("1 x 10^7 (MACS X)") carry no passage and stay out.
+  if(!set.size && extractHCC(e.raw) && extractPassage(e.raw) && !isModified(e.raw) && !OTHER_TYPE.test(e.raw) && !CELL_STOCK.test(e.raw)){
+    for(const [re,cat,ok] of BOX_TITLE_CATS){
+      if(re.test(e.box_title||'') && ok(e.raw)){ set.add(cat); e.catFromBox = cat; break; }
+    }
+  }
+  return set;
+}
+function extractHCC(raw){
+  const m = String(raw).match(/HCC\s?0*(\d{1,3})/i);
+  return m ? 'HCC'+m[1] : null;
+}
+
+function renderPassageSummary(gridList){
+  const el = document.getElementById('passageSummary');
+  if(!gridList.length){ el.innerHTML=''; return; }
+  const counts = {};
+  gridList.forEach(e=>{
+    const p = extractPassage(e.raw) || '미상';
+    counts[p] = (counts[p]||0)+1;
+  });
+  const keys = Object.keys(counts).sort((a,b)=>{
+    if(a==='미상') return 1;
+    if(b==='미상') return -1;
+    return parseInt(a.slice(1),10) - parseInt(b.slice(1),10);
+  });
+  if(keys.length<=1 && !counts['미상']){ el.innerHTML=''; return; }
+  el.innerHTML = `<div class="passage-summary">
+    <span class="ps-label">Passage별 개수</span>
+    ${keys.map(k=>`<span class="ps-chip">${k} · ${counts[k]}개</span>`).join('')}
+  </div>`;
+}
+
+// Cell information rows don't map 1:1 to a specific vial (several vials of
+// the same name/passage look identical), so rather than guessing, this
+// lists every recorded usage entry for the sample names present in the
+// current results, grouped by name, exactly as logged.
+function renderUsageSummary(gridList){
+  const el = document.getElementById('usageSummary');
+  const nameMap = new Map(); // lowercased key -> { display, count(=currently in grid) }
+  gridList.forEach(e=>{
+    const key = (e.lines[0]||'').trim().toLowerCase();
+    if(!key) return;
+    if(!nameMap.has(key)) nameMap.set(key, { display: e.lines[0].trim(), count: 0 });
+    nameMap.get(key).count++;
+  });
+  const groups = [...nameMap.entries()]
+    .map(([key,info]) => ({ ...info, records: STATE.ciIndex[key]||[] }))
+    .filter(g => g.records.length);
+  if(!groups.length){ el.innerHTML=''; return; }
+  el.innerHTML = `<div class="usage-summary">
+    <div class="us-label">cell information 탭 사용 기록 · 참고용이며 개수에는 반영 안 됨 (남은 개수는 박스 칸 기준)</div>
+    ${groups.map(g=>`
+      <div class="us-group">
+        <div class="us-name">${g.display} <span class="us-remain">현재 ${g.count}개 남음</span></div>
+        ${g.records.map(r=>`<div class="us-rec">${r.passage?`<b>${r.passage}</b> · `:''}${r.usageDate.replace(/[&<>]/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[s]))}${r.stocker?` <span class="us-stocker">(보관: ${r.stocker})</span>`:''}</div>`).join('')}
+      </div>`).join('')}
+  </div>`;
+}
+
+function renderResults(query){
+  const box = document.getElementById('results');
+  const countEl = document.getElementById('resultCount');
+  const tokens = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+
+  let list = STATE.entries.filter(passesFacets);
+  const facetsActive = filterState.lines.size || filterState.boxes.size || filterState.cats.size || filterState.hcc.trim();
+
+  renderMatchingSection();
+
+  if(tokens.length){
+    list = list.filter(e => tokens.every(t => tokenMatches(e.search, t)));
+  } else if(!facetsActive) {
+    // no query, no filter -> don't dump thousands of cards, prompt instead
+    document.getElementById('passageSummary').innerHTML = '';
+    document.getElementById('usageSummary').innerHTML = '';
+    countEl.textContent = `총 ${STATE.entries.length}건 · 검색어를 입력하거나 왼쪽에서 필터를 선택하세요`;
+    box.innerHTML = `<div class="empty">🔍 셀 이름, HCC 번호, passage, 날짜, 박스 코드로 검색해보세요</div>`;
+    return;
+  }
+
+  if(tokens.length){
+    renderPassageSummary(list);
+    renderUsageSummary(list);
+  } else {
+    document.getElementById('passageSummary').innerHTML = '';
+    document.getElementById('usageSummary').innerHTML = '';
+  }
+
+  countEl.textContent = `${list.length}건`;
+  if(!list.length){
+    box.innerHTML = `<div class="empty">일치하는 결과가 없습니다. 다른 검색어나 필터를 시도해보세요.</div>`;
+    return;
+  }
+  const MAX_RENDER = 300;
+  const shown = list.slice(0, MAX_RENDER);
+
+  box.innerHTML = shown.map(e=>{
+    const colors = lineColor(e.line);
+    const badges = [
+      `<span class="badge loc" style="background:${colors.bg}">${boxLabel(e.box_code)}</span>`,
+      `<span class="badge well">${e.well}</span>`,
+    ];
+    if(e.usageDate){
+      const compact = firstDateToken(e.usageDate);
+      const hasMore = e.usageDate.trim().split('\n').length>1;
+      const titleAttr = e.usageDate.replace(/"/g,'&quot;');
+      badges.push(`<span class="badge used" title="${titleAttr}">사용날짜 ${compact}${hasMore?' 외':''}</span>`);
+    }
+    const nameLine = e.lines[0] || '';
+    const restLines = e.lines.slice(1).join('\n');
+    const sub = e.box_title;
+    return `<div class="card">
+      <div class="badges">${badges.join('')}</div>
+      <div class="name">${highlight(nameLine, tokens)}</div>
+      ${restLines ? `<div class="lines">${highlight(restLines, tokens)}</div>` : ''}
+      ${sub ? `<div class="subloc">${highlight(sub, tokens)}</div>` : ''}
+    </div>`;
+  }).join('');
+  if(list.length>MAX_RENDER){
+    box.innerHTML += `<div class="empty">검색 결과가 많습니다. 검색어를 조금 더 구체적으로 입력하면 정확히 찾을 수 있어요. (${list.length-MAX_RENDER}건 더 있음)</div>`;
+  }
+}
+
+document.getElementById('searchInput').addEventListener('input', e=>renderResults(e.target.value));
+
+/* ============================================================
+   5b. MATCHING  (매칭 콘솔 — pair categories by HCC number)
+   ============================================================ */
+function computeMatchTable(cats){
+  const wells = STATE.entries.filter(passesFacets);
+
+  const table = {}; // hcc -> { cat -> {count, passageCounts:Map(passageNum->vialCount), locations:Set} }
+  wells.forEach(w=>{
+    const hcc = extractHCC(w.raw);
+    if(!hcc) return;
+    const passage = extractPassage(w.raw);
+    const passageNum = passage ? parseInt(passage.slice(1),10) : null;
+
+    cats.forEach(catId=>{
+      if(!w.cats.has(catId)) return;
+      table[hcc] = table[hcc] || {};
+      const cell = table[hcc][catId] = table[hcc][catId] || { count:0, passageCounts:new Map(), locations:new Set() };
+      cell.count++;
+      const key = passageNum===null ? '미상' : passageNum;
+      cell.passageCounts.set(key, (cell.passageCounts.get(key)||0)+1);
+      cell.locations.add(boxLabel(w.box_code));
+    });
+  });
+
+  // apply min-vial filter at row level: keep row only if some category clears the bar
+  const rows = Object.entries(table)
+    .filter(([hcc,cells]) => cats.some(c => (cells[c]?.count||0) >= (filterState.minVial||0) && (cells[c]?.count||0)>0))
+    .map(([hcc,cells])=>({
+      hcc,
+      cells,
+      complete: cats.every(c => (cells[c]?.count||0)>0),
+    }))
+    .sort((a,b)=> parseInt(a.hcc.replace('HCC',''),10) - parseInt(b.hcc.replace('HCC',''),10));
+
+  return rows;
+}
+
+function renderMatchingSection(){
+  const el = document.getElementById('matchTable');
+  const cats = [...filterState.cats];
+  if(!cats.length){ el.innerHTML=''; LAST_MATCH=null; return; }
+
+  const rows = computeMatchTable(cats);
+  LAST_MATCH = rows.length ? { cats, rows } : null;
+  if(!rows.length){
+    el.innerHTML = `<div class="empty">조건에 맞는 HCC 번호가 없습니다.</div>`;
+    return;
+  }
+
+  el.innerHTML = `
+    <div class="match-wrap">
+      <div class="match-head">
+        <div class="result-count">HCC ${rows.length}건 (${rows.filter(r=>r.complete).length}건 전체 조합 보유)</div>
+        <div class="export-bar">
+          <button class="btn sm" type="button" data-exp="copy" title="표를 이미지로 클립보드에 복사; PPT·노션에 바로 붙여넣기">이미지 복사</button>
+          <button class="btn sm" type="button" data-exp="png">PNG 저장</button>
+          <button class="btn sm" type="button" data-exp="ppt" title="편집 가능한 표로 저장; 8행씩 슬라이드 분할">PPT 저장</button>
+        </div>
+      </div>
+      <table class="match-table">
+        <thead><tr>
+          <th>HCC 번호</th>
+          ${cats.map(c=>`<th>${MATCH_CATEGORIES[c].label}</th>`).join('')}
+        </tr></thead>
+        <tbody>
+          ${rows.map(r=>`
+            <tr class="${r.complete?'complete':''}">
+              <td class="mt-hcc">${r.hcc}${r.complete?' <span class="mt-check">✓</span>':''}</td>
+              ${cats.map(c=>{
+                const cell = r.cells[c];
+                if(!cell) return `<td class="mt-empty">—</td>`;
+                const cp = cellParts(cell);
+                return `<td class="mt-cell"><b>${cp.count}</b><div class="mt-passage">${cp.passage}</div><div class="mt-loc">${cp.loc}</div></td>`;
+              }).join('')}
+            </tr>`).join('')}
+        </tbody>
+      </table>
+      <div class="match-note">※ 박스 제목·vial 내용의 키워드(Tumor-org/CAF/PF/PHH-org, Adj 표기)로 자동 분류한 결과라 실제와 다를 수 있어요. vial 이름에 종류가 안 적혀 있으면 박스 제목(CAF_YJ, PF_YJ, PHH-org 등) 기준으로 넣었어. 개수는 박스 칸에 적힌 vial만 세고 cell information 탭은 반영하지 않아. 확실하지 않으면 "박스별 보기"에서 직접 확인해줘. 아래 목록은 같은 조건의 개별 vial이야.</div>
+    </div>
+  `;
+  el.querySelectorAll('[data-exp]').forEach(btn=>{
+    btn.addEventListener('click', ()=>runExport(btn));
+  });
+}
+
+/* ============================================================
+   5c. EXPORT  (매칭 표 -> 클립보드 이미지 / PNG / PPT)
+   ============================================================ */
+let LAST_MATCH = null; // { cats, rows } of the table currently on screen
+
+function yymmdd(){
+  const d=new Date();
+  return String(d.getFullYear()).slice(2)+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
+}
+function escHtml(s){ return String(s).replace(/[&<>"]/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[x])); }
+function cellParts(cell){
+  const entries = [...cell.passageCounts.entries()]
+    .sort((a,b)=> (a[0]==='미상') - (b[0]==='미상') || a[0]-b[0]);
+  return {
+    count: `${cell.count}개`,
+    passage: entries.map(([p,n])=> p==='미상' ? `passage 미상 ${n}개` : `p${p} ${n}개`).join(' · '),
+    loc: [...cell.locations].join(', ')
+  };
+}
+function matchTitle(m){
+  const labels = m.cats.map(c=>MATCH_CATEGORIES[c].label).join(' + ');
+  const done = m.rows.filter(r=>r.complete).length;
+  return m.cats.length>1
+    ? `${labels} 매칭 HCC ${m.rows.length}건 중 ${done}건 전체 조합 보유`
+    : `${labels} 보유 HCC ${m.rows.length}건`;
+}
+function matchConditions(){
+  const parts=[];
+  if(filterState.hcc.trim()) parts.push('HCC '+filterState.hcc.trim());
+  if(filterState.lines.size) parts.push([...filterState.lines].sort().map(lineName).join(', '));
+  if(filterState.boxes.size) parts.push('박스 '+[...filterState.boxes].sort().join(', '));
+  if(filterState.minVial>0) parts.push(`최소 vial ${filterState.minVial}개`);
+  if(filterState.minPassage>0) parts.push(`최소 passage ${filterState.minPassage}`);
+  if(STATE.fileName) parts.push(STATE.fileName);
+  parts.push(yymmdd()+' 기준');
+  return parts.join(' · ');
+}
+function matchFileBase(m){
+  return 'HCC_matching_' + m.cats.map(c=>MATCH_CATEGORIES[c].label.replace(/[^A-Za-z0-9-]+/g,'')).join('_') + '_' + yymmdd();
+}
+
+async function runExport(btn){
+  if(!LAST_MATCH) return;
+  const kind = btn.dataset.exp;
+  const orig = btn.textContent;
+  btn.disabled = true; btn.textContent = '처리 중…';
+  try{
+    if(kind==='ppt') await exportMatchPPT(LAST_MATCH);
+    else {
+      const blob = await renderMatchPNG(LAST_MATCH);
+      if(kind==='png') downloadBlob(blob, matchFileBase(LAST_MATCH)+'.png');
+      else await copyImage(blob);
+    }
+    btn.textContent = kind==='copy' ? '복사됨' : '저장됨';
+  }catch(err){
+    console.error(err);
+    btn.textContent = kind==='copy' ? '복사 실패; PNG 저장 이용' : '실패';
+  }
+  setTimeout(()=>{ btn.textContent = orig; btn.disabled = false; }, 1600);
+}
+
+function downloadBlob(blob, name){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+}
+async function copyImage(blob){
+  if(!navigator.clipboard || !window.ClipboardItem) throw new Error('clipboard unsupported');
+  await navigator.clipboard.write([new ClipboardItem({'image/png': blob})]);
+}
+
+// Builds a clean, fixed-width copy of the table off-screen (no buttons, no
+// note text, no page chrome) and rasterizes it at 2x for sharp slides.
+async function renderMatchPNG(m){
+  if(!window.html2canvas) throw new Error('html2canvas not loaded');
+  const th = 'text-align:left;font-size:12px;font-weight:700;color:#454b53;padding:10px 12px;background:#f4f5f7;';
+  const td = 'padding:10px 12px;border-bottom:1px solid #eceef1;vertical-align:top;';
+  const node = document.createElement('div');
+  node.style.cssText = `position:fixed;left:-20000px;top:0;width:${Math.max(720, 200+m.cats.length*250)}px;background:#fff;padding:28px 30px;font-family:'Pretendard',sans-serif;color:#1f2328;`;
+  node.innerHTML = `
+    <div style="font-size:19px;font-weight:800;letter-spacing:-0.01em;margin-bottom:6px;">${escHtml(matchTitle(m))}</div>
+    <div style="font-size:12px;color:#454b53;margin-bottom:16px;">${escHtml(matchConditions())}</div>
+    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <thead><tr><th style="${th}">HCC 번호</th>${m.cats.map(c=>`<th style="${th}">${escHtml(MATCH_CATEGORIES[c].label)}</th>`).join('')}</tr></thead>
+      <tbody>${m.rows.map(r=>{
+        const bg = r.complete ? 'background:#e7f5ea;' : '';
+        return `<tr><td style="${td}${bg}font-weight:800;white-space:nowrap;">${r.hcc}${r.complete?' <span style="color:#3f7350">✓</span>':''}</td>${
+          m.cats.map(c=>{
+            const cell = r.cells[c];
+            if(!cell) return `<td style="${td}${bg}color:#9aa0aa;">-</td>`;
+            const cp = cellParts(cell);
+            return `<td style="${td}${bg}"><div style="font-weight:700;">${cp.count}</div><div style="font-size:11.5px;color:#454b53;margin-top:2px;">${escHtml(cp.passage)}</div><div style="font-size:11px;color:#454b53;margin-top:2px;">${escHtml(cp.loc)}</div></td>`;
+          }).join('')
+        }</tr>`;
+      }).join('')}</tbody>
+    </table>`;
+  document.body.appendChild(node);
+  try{
+    if(document.fonts && document.fonts.ready) await document.fonts.ready;
+    const canvas = await html2canvas(node, {scale:2, backgroundColor:'#ffffff', logging:false});
+    return await new Promise(res=>canvas.toBlob(res,'image/png'));
+  } finally { node.remove(); }
+}
+
+// Native, editable PowerPoint table (not a pasted picture), 16:9, 8 HCC rows
+// per slide so each cell's 3 lines stay readable; long results split into
+// several slides with (1/n) in the title.
+async function exportMatchPPT(m){
+  if(!window.PptxGenJS) throw new Error('pptxgenjs not loaded');
+  const pptx = new PptxGenJS();
+  pptx.layout = 'LAYOUT_WIDE';
+  const FONT = 'Pretendard';
+  const PER = 8;
+  const pages = Math.ceil(m.rows.length/PER);
+  const X = 0.5, TW = 13.333-1;
+  const hccW = 1.4, catW = (TW-hccW)/m.cats.length;
+  const line = {type:'solid', pt:0.75, color:'E3E6EA'};
+  const none = {type:'none'};
+  const headFill = {color:'F4F5F7'};
+  for(let p=0; p<pages; p++){
+    const s = pptx.addSlide();
+    s.background = {color:'FFFFFF'};
+    s.addText(matchTitle(m)+(pages>1?` (${p+1}/${pages})`:''), {x:X, y:0.35, w:TW, h:0.6, fontFace:FONT, fontSize:22, bold:true, color:'1F2328', margin:0});
+    s.addText(matchConditions(), {x:X, y:0.95, w:TW, h:0.35, fontFace:FONT, fontSize:11, color:'454B53', margin:0});
+    const header = [
+      {text:'HCC 번호', options:{bold:true, fill:headFill, color:'454B53'}},
+      ...m.cats.map(c=>({text:MATCH_CATEGORIES[c].label, options:{bold:true, fill:headFill, color:'454B53'}}))
+    ];
+    const body = m.rows.slice(p*PER, (p+1)*PER).map(r=>{
+      const fill = {color: r.complete ? 'E7F5EA' : 'FFFFFF'};
+      return [
+        {text: r.hcc+(r.complete?' ✓':''), options:{bold:true, fill, fontSize:13}},
+        ...m.cats.map(c=>{
+          const cell = r.cells[c];
+          if(!cell) return {text:'-', options:{fill, color:'9AA0AA'}};
+          const cp = cellParts(cell);
+          return {text:[
+            {text:cp.count, options:{bold:true, fontSize:12, breakLine:true}},
+            {text:cp.passage, options:{fontSize:9, color:'454B53', breakLine:true}},
+            {text:cp.loc, options:{fontSize:8.5, color:'454B53'}}
+          ], options:{fill}};
+        })
+      ];
+    });
+    s.addTable([header, ...body], {
+      x:X, y:1.45, w:TW, colW:[hccW, ...m.cats.map(()=>catW)],
+      fontFace:FONT, fontSize:11, color:'1F2328', valign:'middle',
+      margin:[0.03,0.1,0.03,0.1], border:[none, none, line, none]
+    });
+  }
+  await pptx.writeFile({fileName: matchFileBase(m)+'.pptx'});
+}
+
+/* ============================================================
+   6. TABS
+   ============================================================ */
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    ['summary','search','browse','diag'].forEach(name=>{
+      document.getElementById('panel-'+name).style.display = (name===tab.dataset.tab)?'block':'none';
+    });
+  });
+});
+
+/* ============================================================
+   7. BOX BROWSER
+   ============================================================ */
+function renderBrowse(){
+  const el = document.getElementById('panel-browse');
+  const lines = [...new Set(STATE.allBoxes.map(b=>b.line))].sort();
+  el.innerHTML = lines.map(line=>{
+    const boxes = STATE.allBoxes.filter(b=>b.line===line);
+    const c = lineColor(line);
+    return `<div class="line-group">
+      <h3><span class="line-dot" style="background:${c.dot}"></span> ${lineName(line)}</h3>
+      <div class="box-grid">
+        ${boxes.map(b=>`
+          <div class="box-card" style="background:${c.bg}" data-line="${b.line}" data-code="${b.box_code}">
+            <div class="bc-code">${boxLabel(b.box_code)}</div>
+            <div class="bc-title">${b.title}</div>
+            <div class="bc-fill">vial ${b.well_count}개 사용 중</div>
+          </div>`).join('')}
+      </div>
+      <div class="box-detail-slot" data-line-slot="${line}"></div>
+    </div>`;
+  }).join('');
+
+  el.querySelectorAll('.box-card').forEach(card=>{
+    card.addEventListener('click', ()=>{
+      const line = card.dataset.line, code = card.dataset.code;
+      const b = STATE.allBoxes.find(x=>x.line===line && x.box_code===code);
+      const slot = el.querySelector(`.box-detail-slot[data-line-slot="${line}"]`);
+      slot.innerHTML = renderBoxDetail(b);
+    });
+  });
+}
+
+function renderBoxDetail(b){
+  // Grid follows the physical row order in the sheet; the row header shows
+  // the letter actually written there ("?" when none was written).
+  const ncols = b.ncols || 9;
+  const nrows = Math.max(b.rowLabels ? b.rowLabels.length : 0, ...b.wells.map(w=>w.rowIdx+1), 1);
+  const wellMap = {};
+  b.wells.forEach(w=>{ wellMap[w.rowIdx+','+w.col] = w; });
+  const c = lineColor(b.line);
+  let grid = `<div class="well-grid" style="grid-template-columns:22px repeat(${ncols},1fr); max-width:${ncols*38+26}px;">`;
+  grid += `<div></div>` + Array.from({length:ncols},(_,i)=>`<div class="well-head">${i+1}</div>`).join('');
+  for(let r=0;r<nrows;r++){
+    const lab = (b.rowLabels && b.rowLabels[r]) || '?';
+    grid += `<div class="well-head${lab==='?'?' warn':''}">${lab}</div>`;
+    for(let col=1; col<=ncols; col++){
+      const w = wellMap[r+','+col];
+      if(w){
+        grid += `<div class="well-cell filled" style="background:${c.ac}">${lab==='?'?'?':lab}${col}<div class="well-tip">${w.lines.join('\n')}</div></div>`;
+      } else {
+        grid += `<div class="well-cell"></div>`;
+      }
+    }
+  }
+  grid += `</div>`;
+  return `<div class="box-detail">
+    <div style="font-weight:700; font-size:13.5px; margin-bottom:2px;">${boxLabel(b.box_code)} · ${b.title}</div>
+    <div style="font-size:12px; color:var(--sub);">칸에 마우스를 올리면 내용이 보입니다 · vial ${b.well_count}개${b.rowLabels&&b.rowLabels.includes('?')?' · "?" 행은 엑셀에 행 알파벳이 없는 줄':''}</div>
+    ${grid}
+  </div>`;
+}
+
+/* ============================================================
+   7b. SUMMARY / OVERVIEW
+   ============================================================ */
+function renderSummary(){
+  const el = document.getElementById('panel-summary');
+  const totalVials = STATE.allBoxes.reduce((s,b)=>s+b.well_count,0);
+  const totalBoxes = STATE.allBoxes.length;
+  const lines = [...new Set(STATE.allBoxes.map(b=>b.line))].sort();
+  const maxLineVials = Math.max(1, ...lines.map(l => STATE.allBoxes.filter(b=>b.line===l).reduce((s,b)=>s+b.well_count,0)));
+
+  const statCards = `
+    <div class="stat-grid">
+      <div class="stat-card" style="background:var(--faint)">
+        <div class="stat-num">${totalVials.toLocaleString()}</div>
+        <div class="stat-label">전체 vial 수</div>
+      </div>
+      <div class="stat-card" style="background:var(--faint)">
+        <div class="stat-num">${totalBoxes}</div>
+        <div class="stat-label">전체 박스 수</div>
+      </div>
+      <div class="stat-card" style="background:var(--faint)">
+        <div class="stat-num">${lines.length}</div>
+        <div class="stat-label">LN2 tank LINE 수</div>
+      </div>
+    </div>`;
+
+  const lineRows = lines.map(l=>{
+    const boxes = STATE.allBoxes.filter(b=>b.line===l).sort((a,b)=>a.box_code.localeCompare(b.box_code));
+    const vials = boxes.reduce((s,b)=>s+b.well_count,0);
+    const c = lineColor(l);
+    const pct = Math.round(vials/maxLineVials*100);
+    return `<div class="line-summary-row">
+      <div class="lsr-head">
+        <span class="line-dot" style="background:${c.dot}"></span>
+        <b>${lineName(l)}</b>
+        <span class="lsr-meta">박스 ${boxes.length}개 · vial ${vials.toLocaleString()}개</span>
+      </div>
+      <div class="lsr-bar-bg"><div class="lsr-bar" style="width:${pct}%; background:${c.ac}"></div></div>
+    </div>`;
+  }).join('');
+
+  const emptyBoxes = STATE.allBoxes.filter(b=>b.well_count===0);
+  const emptySection = emptyBoxes.length ? `
+    <div class="summary-block">
+      <h3>빈 박스 (${emptyBoxes.length}개)</h3>
+      <div class="chips">
+        ${emptyBoxes.map(b=>{
+          const c = lineColor(b.line);
+          return `<span class="chip" style="background:${c.bg}">${boxLabel(b.box_code)} · ${b.title}</span>`;
+        }).join('')}
+      </div>
+    </div>` : '';
+
+  const fullest = [...STATE.allBoxes].sort((a,b)=>b.well_count-a.well_count).slice(0,5);
+  const fullestSection = `
+    <div class="summary-block">
+      <h3>vial이 가장 많은 박스 Top 5</h3>
+      <div id="fullestList"></div>
+    </div>`;
+
+  const diagNote = STATE.diagnostics.length
+    ? `<div class="summary-note">⚠ 자동 보정된 항목이 ${STATE.diagnostics.length}건 있습니다 — <b>점검 내역</b> 탭에서 확인하세요.</div>`
+    : '';
+
+  el.innerHTML = `
+    ${statCards}
+    <div class="summary-block">
+      <h3>LINE별 현황</h3>
+      ${lineRows}
+    </div>
+    ${fullestSection}
+    ${emptySection}
+    ${diagNote}
+  `;
+
+  document.getElementById('fullestList').innerHTML = fullest.map(b=>{
+    const c = lineColor(b.line);
+    return `<div class="card" style="background:${c.bg}">
+      <div class="badges"><span class="badge loc" style="background:#fff">${boxLabel(b.box_code)}</span></div>
+      <div class="name">${b.title}</div>
+      <div class="subloc">vial ${b.well_count}개</div>
+    </div>`;
+  }).join('');
+}
+
+
+/* ============================================================
+   8. DIAGNOSTICS
+   ============================================================ */
+function renderDiagnostics(){
+  const el = document.getElementById('panel-diag');
+  const d = STATE.diagnostics;
+  document.getElementById('diagCount').textContent = d.length ? ` (${d.length})` : '';
+  if(!d.length){
+    el.innerHTML = `<div class="empty">자동 보정된 항목이 없습니다.</div>`;
+    return;
+  }
+  const tagLabel = {range:'구조 버그', code:'코드 확인', layout:'레이아웃 보정'};
+  el.innerHTML = `<div style="font-size:12.5px;color:var(--sub);margin-bottom:12px;">
+    이 파일을 읽는 과정에서 자동으로 감지·보정한 항목입니다. 원본 엑셀 자체의 특이사항일 수 있으니 한 번씩 확인해보세요.
+  </div>` + d.map(item=>`<div class="diag-item"><span class="tag ${item.type==='range'?'':'info'}">${tagLabel[item.type]||'참고'}</span>${item.text}</div>`).join('');
+}
+</script>
+</body>
+</html>
+
+</template>
 </body>
 </html>
