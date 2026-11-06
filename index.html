@@ -6782,6 +6782,28 @@ function buildWeekday(){
 //  LN2 탱크: <template id="ln2Tpl"> 안의 LN2 Tank Explorer를 iframe으로 띄운다 (처음 열 때 한 번)
 //  Explorer 쪽에서는 parent.cclLn2 로 앱 데이터(stock 기록 · 이니셜)를 읽는다
 // ══════════════════════════════════════════
+// Explorer(iframe)가 앱 데이터를 읽고 쓰는 창구
+window.cclLn2={
+  getInitials(){ try{ return localStorage.getItem('orgInitials')||''; }catch(e){ return ''; } },
+  setInitials(v){ try{ localStorage.setItem('orgInitials', String(v||'').trim().toUpperCase().slice(0,4)); }catch(e){} },
+  // Stock 기록 → 넣을 바이알 목록 (LN2 이동 체크 안 된 것 먼저)
+  getStocks(){
+    return logs.filter(lg=>/stock/i.test(lg.action||'') && parseInt(lg.stocks)>0).map(lg=>{
+      const l=lines.find(x=>x.id===lg.lineId)||{};
+      const chk=stockChecks.find(c=>c.lineId===lg.lineId && c.date===lg.date);
+      return {logId:lg.id, lineId:lg.lineId, name:l.patientId?lineTag(l):'(삭제된 라인)', patientId:l.patientId||'', type:l.type||'', detail:l.detail||'',
+        date:lg.date, passage:lg.passage, vials:parseInt(lg.stocks)||0, memo:lg.memo||'', plate:lg.plate||'', wells:lg.finalWells||'',
+        ln2Done:!!(chk&&chk.ln2Done), dbDone:!!(chk&&chk.dbDone), checkId:chk?chk.id:null};
+    }).sort((a,b)=>(a.ln2Done-b.ln2Done)||b.date.localeCompare(a.date));
+  },
+  // 엑셀에 넣고 내려받았으면 Stock 후처리의 LN2 이동 · DB 업데이트를 체크
+  markDone(lineId,date){
+    const c=stockChecks.find(x=>x.lineId===lineId && x.date===date);
+    if(c){ c.ln2Done=true; c.dbDone=true; }
+    if(typeof saveData==='function') saveData();
+    try{ updateUI(); }catch(e){}
+  }
+};
 function openLn2(){
   const w=document.getElementById('ln2Wrap'); if(!w || document.getElementById('ln2Frame')) return;
   const f=document.createElement('iframe'); f.id='ln2Frame'; f.title='LN2 Tank Explorer';
@@ -7402,6 +7424,7 @@ if(curTab==='ana'||curTab==='diary') setTab(curTab,true);
   header.top h1{ font-size:20px; font-weight:800; margin:0; letter-spacing:-0.02em;}
   header.top .file-tag{ font-size:12.5px; color:var(--sub); }
   header.top .file-tag b{ color:var(--ink); font-weight:600; }
+  .top-r{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
   .btn{
     border:none; background:var(--faint); color:var(--ink); font-family:inherit;
     font-size:13px; font-weight:600; padding:9px 14px; border-radius:10px; cursor:pointer;
@@ -7520,6 +7543,25 @@ if(curTab==='ana'||curTab==='diary') setTab(curTab,true);
   .badge.loc{ background:#fff; }
   .badge.well{ background:#fff; color:var(--sub); font-weight:600; }
   .badge.used{ background:#fff8e1; color:#9a7519; }
+  .badge.who{ background:#eef2ff; color:#4f46e5; font-size:10.5px; padding:2px 7px; }
+  .locline{ margin-top:8px; font-size:12px; color:#374151; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .locline small{ color:var(--sub); }
+  .loc-btn{ border:1px solid #e3e6ea; background:#fff; border-radius:7px; font-family:inherit; font-size:11px; font-weight:600; line-height:1; padding:5px 8px; cursor:pointer; margin-left:auto; }
+  .loc-btn:hover{ background:var(--faint); }
+  .mini-map{ display:grid; gap:2px; margin-top:8px; width:max-content; }
+  .mini-map i{ width:14px; height:14px; border-radius:50%; background:#eceef1; font-family:inherit; font-size:9px; line-height:14px; font-weight:600; font-style:normal; text-align:center; color:var(--sub); }
+  .mini-map i.mh{ background:none; border-radius:0; }
+  .mini-map i.on{ background:#c9ced6; }
+  .mini-map i.me{ background:#ef4444; box-shadow:0 0 0 3px rgba(239,68,68,.25); animation:mmPulse 1.2s infinite; }
+  @keyframes mmPulse{ 50%{ box-shadow:0 0 0 6px rgba(239,68,68,.08);} }
+  .filter-wrap{ flex-direction:row; flex-wrap:wrap; }
+  .filter-chip em{ font-style:normal; color:#9aa0aa; font-weight:500; margin-left:2px; }
+  .filter-chip.me{ box-shadow:inset 0 0 0 1.5px #a5b4fc; }
+  .filter-chip.active{ background:#e0e7ff; }
+  .date-rows{ display:flex; flex-direction:column; gap:5px; }
+  .date-rows label{ display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--sub); }
+  .date-rows input{ flex:1; min-width:0; }
+  .mine-btn{ width:100%; margin-bottom:6px; padding:7px 10px; font-size:12px; }
   .card .name{ font-size:14.5px; font-weight:700; margin-bottom:3px; }
   .card .lines{ font-size:13px; color:#454b53; line-height:1.65; white-space:pre-line; }
   .card .subloc{ font-size:12px; color:var(--sub); margin-top:6px; }
@@ -7579,7 +7621,7 @@ if(curTab==='ana'||curTab==='diary') setTab(curTab,true);
 
   <header class="top">
     <h1>LN2 Tank Explorer</h1>
-    <div id="fileTag" class="file-tag"></div>
+    <div class="top-r"><div id="fileTag" class="file-tag"></div><button class="btn" type="button" id="changeFileBtn" style="display:none;">파일 바꾸기</button></div>
   </header>
 
   <div id="uploadZone">
@@ -7603,7 +7645,23 @@ if(curTab==='ana'||curTab==='diary') setTab(curTab,true);
       <div class="search-layout">
         <aside class="filter-sidebar">
           <div class="filter-section">
-            <div class="fs-head"><h4>카테고리</h4><button class="fs-clear" data-clear="cats" type="button">전체</button></div>
+            <div class="fs-head"><h4>사람</h4><button class="fs-clear" data-clear="owners" type="button">전체</button></div>
+            <button class="btn mine-btn" type="button" id="mineBtn">내 것만</button>
+            <div id="filterOwners" class="filter-list filter-wrap"></div>
+          </div>
+          <div class="filter-section">
+            <div class="fs-head"><h4>종류</h4><button class="fs-clear" data-clear="kinds" type="button">전체</button></div>
+            <div id="filterKinds" class="filter-list filter-wrap"></div>
+          </div>
+          <div class="filter-section">
+            <div class="fs-head"><h4>날짜 (vial에 적힌)</h4></div>
+            <div class="date-rows">
+              <label>부터 <input type="month" id="dateFromInput" class="mini-input"></label>
+              <label>까지 <input type="month" id="dateToInput" class="mini-input"></label>
+            </div>
+          </div>
+          <div class="filter-section">
+            <div class="fs-head"><h4>HCC 매칭 카테고리</h4><button class="fs-clear" data-clear="cats" type="button">전체</button></div>
             <div id="filterCats" class="filter-list"></div>
           </div>
           <div class="filter-section">
@@ -7615,6 +7673,7 @@ if(curTab==='ana'||curTab==='diary') setTab(curTab,true);
             <div class="num-row">
               <div><label>최소 Vial 개수</label><input type="number" id="minVialInput" class="mini-input" min="0" value="0"></div>
               <div><label>최소 Passage</label><input type="number" id="minPassageInput" class="mini-input" min="0" value="0"></div>
+              <div><label>최대 Passage</label><input type="number" id="maxPassageInput" class="mini-input" min="0" value="0" placeholder="0 = 제한 없음"></div>
             </div>
           </div>
           <div class="filter-section">
@@ -7796,6 +7855,7 @@ function parseBigLine(ws, sheetName, diagnostics){
       let boxCode=null, codeOnDataRow=false;
       const wells=[], rowLabels=[], unlabeledRows=[], junk=[];
       let blankStreak=0, lastRow=startRow;
+      const rowRows=[];   // 박스 행(rowIdx)마다 엑셀 시트의 실제 행 번호 (Stock 넣기에서 빈 칸 주소 계산용)
       for(let r=startRow; r<=boundary; r++){
         const labelRaw = cellVal(ws, r, labelCol);
         const label = (labelRaw!==null&&labelRaw!==undefined) ? String(labelRaw).trim() : '';
@@ -7826,7 +7886,7 @@ function parseBigLine(ws, sheetName, diagnostics){
         for(let c=labelCol;c<=c1;c++) mark(r,c);
         const rowIdx = rowLabels.length;
         const rowLabel = isLetter ? label.toUpperCase() : '?';
-        rowLabels.push(rowLabel);
+        rowLabels.push(rowLabel); rowRows.push(r);
         if(rowHasContent && !isLetter){
           if(isCode) codeOnDataRow = true;
           unlabeledRows.push(r+1);
@@ -7836,13 +7896,13 @@ function parseBigLine(ws, sheetName, diagnostics){
           const norm = normNL(v);
           wells.push({
             well: rowLabel==='?' ? `?${i+1}(${r+1}행)` : `${rowLabel}${i+1}`,
-            rowIdx, col:i+1, raw:norm,
+            rowIdx, col:i+1, raw:norm, r, c:c0+i,
             lines: norm.split('\n').map(s=>s.trim()).filter(Boolean)
           });
         });
       }
       // trailing blank letter rows add nothing
-      while(rowLabels.length && !wells.some(w=>w.rowIdx===rowLabels.length-1) && rowLabels.length>10) rowLabels.pop();
+      while(rowLabels.length && !wells.some(w=>w.rowIdx===rowLabels.length-1) && rowLabels.length>10){ rowLabels.pop(); rowRows.pop(); }
 
       const derivedCode = codePrefix + deriveCode(lineNum, famIdx, slotIdx);
       const codeSource = boxCode ? 'explicit' : 'derived';
@@ -7867,7 +7927,7 @@ function parseBigLine(ws, sheetName, diagnostics){
           text:`「${sheetName}」 · <b>${boxCode}</b> (${title}) 박스: vial로 보기 어려운 값(${junk.join(', ')})은 개수에서 뺐습니다.`});
       }
       boxes.push({sheet:sheetName, line:lineKey, box_code:boxCode, title, well_count:wells.length, wells,
-                  rowLabels, ncols:c1-c0+1});
+                  rowLabels, rowRows, c0, ncols:c1-c0+1});
     });
   });
 
@@ -7970,15 +8030,83 @@ function buildEntries(cellInfo){
     box.wells.forEach(w=>{
       entries.push({
         source:'grid', line:box.line, box_code:box.box_code, box_title:box.title,
-        well:w.well, lines:w.lines, raw:w.raw,
+        well:w.well, lines:w.lines, raw:w.raw, sheet:box.sheet, r:w.r, c:w.c, rowIdx:w.rowIdx, col:w.col,
         search: (boxLabel(box.box_code)+' '+box.box_code+' '+box.title+' '+w.raw).toLowerCase()
       });
     });
   });
   STATE.ciIndex = (cellInfo && cellInfo.length) ? buildCellInfoIndex(cellInfo) : {};
   entries.forEach(e=>{ e.cats = classifyEntry(e); });
+  tagPeopleKinds(entries, cellInfo||[]);
   attachUsageInfo(entries, STATE.ciIndex);
   STATE.entries = entries;
+}
+
+/* ---- 사람 · 종류 · 날짜 (조건 검색용) ---- */
+// 사람: 박스 제목의 이니셜(YW, HG & YJ, …_YJ) → 없으면 시트 이름의 이니셜(LINE 1 YW). vial 글자에 이니셜이 있으면 더함.
+// 이니셜 목록은 시트 이름 + cell information 「stock한 사람」의 두 글자 대문자에서 모음.
+const KIND_RULES = [
+  ['Tumor-org', t=>MATCH_CATEGORIES.tumor.test(t)],
+  ['PHH-org', t=>/phh[\s-]?org/i.test(t)],
+  ['Hep-org', t=>/hep[\s-]?org|hepatocyte[\s-]?org/i.test(t)],
+  ['Chol-org', t=>/chol[\s-]?org|cholangio/i.test(t)],
+  ['CAF', t=>/(^|[^a-z])caf(?=$|[^a-z]|p\d)/i.test(t)],
+  ['PF', t=>MATCH_CATEGORIES.pf.test(t) || /\bpf\b/i.test(t)],
+  ['Fibroblast', t=>/fibro|mese[nc]{1,2}h?y/i.test(t) && !/caf|\bpf\b/i.test(t)],
+  ['iPSC · PSC', t=>/ipsc|hipsc|\bpsc\b|pluripotent|bioni|\bh9\b|eips|cre#/i.test(t)],
+  ['CRC-org', t=>/crc/i.test(t)],
+  ['Cell line', t=>/cell\s?line|hepa\s?1|hepa-1|huh|hepg2|293t|\bsnu|plc\/?prf|hep3b|rspo|r-?spondin|wnt3/i.test(t)],
+  ['조직 · digested', t=>/tissue|minced|digest/i.test(t)],
+  ['Mouse', t=>/mouse|\bmhep|\bmph\b|fah\s?ko|fak\s?ko|hepa\s?1|\bm[A-Z][a-z]*org/i.test(t)],
+  ['GFP · mCherry', t=>/gfp|mcherry/i.test(t)],
+];
+function parseVialDate(raw){
+  const s=String(raw);
+  let m=s.match(/(20\d{2})\s*[.\-/]\s*(\d{1,2})\s*[.\-/]\s*(\d{1,2})/);
+  if(m) return `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;
+  m=s.match(/(?:^|[^\d.])(\d{2})\.(\d{1,2})\.(\d{1,2})(?![\d.])/);
+  if(m && +m[2]>=1 && +m[2]<=12) return `20${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;
+  return '';
+}
+function tagPeopleKinds(entries, cellInfo){
+  const known=new Set();
+  STATE.allBoxes.forEach(b=>{ const m=String(b.sheet).match(/\b([A-Z]{2})\s*$/); if(m) known.add(m[1]); });
+  cellInfo.forEach(r=>String(r['stock한 사람']||'').split(/[^A-Za-z]+/).forEach(t=>{ if(/^[A-Z]{2}$/.test(t)) known.add(t); }));
+  const initialsIn=s=>String(s||'').split(/[^A-Za-z]+/).filter(t=>known.has(t));
+  const ciOwner={};
+  cellInfo.forEach(r=>{ const k=String(r['STAR_ID (Cell name)']||'').split('\n')[0].trim().toLowerCase(); if(!k) return;
+    initialsIn(r['stock한 사람']).forEach(t=>(ciOwner[k]=ciOwner[k]||new Set()).add(t)); });
+  entries.forEach(e=>{
+    const sheetOwner=(String(e.sheet).match(/\b([A-Z]{2})\s*$/)||[])[1];
+    const own=new Set(initialsIn(e.box_title));
+    if(!own.size && sheetOwner) own.add(sheetOwner);
+    initialsIn(e.raw).forEach(t=>own.add(t));
+    (ciOwner[(e.lines[0]||'').trim().toLowerCase()]||[]).forEach(t=>own.add(t));
+    e.owners=own;
+    const txt=e.raw+'\n'+(e.box_title||'');
+    e.kinds=new Set(KIND_RULES.filter(([,f])=>f(e.raw)).map(([k])=>k));
+    if(!e.kinds.size) KIND_RULES.filter(([,f])=>f(e.box_title||'')).forEach(([k])=>e.kinds.add(k));
+    if(!e.kinds.size) e.kinds.add('기타');
+    e.date=parseVialDate(e.raw);
+    const p=extractPassage(e.raw); e.pNum=p?parseInt(p.slice(1),10):null;
+  });
+  STATE.people=[...known].sort();
+}
+function myInitials(){ try{ return (parent.cclLn2&&parent.cclLn2.getInitials())||''; }catch(err){ return ''; } }
+/* 위치를 사람 말로: 박스 그리드에서 행 · 칸을 세서 */
+function locText(e){
+  const b=STATE.allBoxes.find(x=>x.box_code===e.box_code&&x.sheet===e.sheet);
+  const row=(b&&b.rowLabels[e.rowIdx])||'?';
+  return `${boxLabel(e.box_code)} 박스 · ${row}행 ${e.col}번 <small>(위에서 ${e.rowIdx+1}번째 줄, 왼쪽에서 ${e.col}번째)</small>`;
+}
+function miniMap(e){
+  const b=STATE.allBoxes.find(x=>x.box_code===e.box_code&&x.sheet===e.sheet); if(!b) return '';
+  const nrows=Math.max(b.rowLabels.length,1), ncols=b.ncols||9;
+  const filled=new Set(b.wells.map(w=>w.rowIdx+','+w.col));
+  let h=`<div class="mini-map" style="grid-template-columns:14px repeat(${ncols},14px);"><i></i>`+Array.from({length:ncols},(_,i)=>`<i class="mh">${i+1}</i>`).join('');
+  for(let r=0;r<nrows;r++){ h+=`<i class="mh">${b.rowLabels[r]||'?'}</i>`;
+    for(let c=1;c<=ncols;c++){ const k=r+','+c; h+=`<i class="mc${k===e.rowIdx+','+e.col?' me':filled.has(k)?' on':''}"></i>`; } }
+  return h+'</div>';
 }
 
 /* ============================================================
@@ -7998,10 +8126,24 @@ fileInput.addEventListener('change', e=>{
   if(e.target.files.length) handleFile(e.target.files[0]);
 });
 
+/* 마지막으로 올린 엑셀을 이 브라우저(IndexedDB)에 기억해서, 다음에 열 때 바로 불러온다 */
+function idbOpen(){ return new Promise((res,rej)=>{ const q=indexedDB.open('ccl-ln2',1); q.onupgradeneeded=()=>q.result.createObjectStore('f'); q.onsuccess=()=>res(q.result); q.onerror=()=>rej(q.error); }); }
+async function idbPut(v){ try{ const db=await idbOpen(); db.transaction('f','readwrite').objectStore('f').put(v,'last'); }catch(err){} }
+async function idbGet(){ try{ const db=await idbOpen(); return await new Promise(res=>{ const q=db.transaction('f').objectStore('f').get('last'); q.onsuccess=()=>res(q.result); q.onerror=()=>res(null); }); }catch(err){ return null; } }
+document.getElementById('changeFileBtn').addEventListener('click', ()=>fileInput.click());
+
 function handleFile(file){
   const reader = new FileReader();
   reader.onload = (e)=>{
     const data = new Uint8Array(e.target.result);
+    idbPut({name:file.name, buf:data, ts:Date.now()});
+    processBuffer(data, file.name);
+  };
+  reader.readAsArrayBuffer(file);
+}
+function processBuffer(data, fileName, restored){
+  const file={name:fileName};
+  {
     const wb = XLSX.read(data, {type:'array', cellDates:true});
     const diagnostics=[];
     const boxesByLine={}, allBoxes=[];
@@ -8015,11 +8157,12 @@ function handleFile(file){
     const ciSheetName = wb.SheetNames.find(n=>n.trim().toLowerCase()==='cell information');
     if(ciSheetName) cellInfo = parseCellInfo(wb.Sheets[ciSheetName]);
 
-    STATE = { boxesByLine, allBoxes, entries:[], diagnostics, fileName:file.name };
+    STATE = { boxesByLine, allBoxes, entries:[], diagnostics, fileName:file.name, buf:data, sheetNames:wb.SheetNames.slice() };
     buildEntries(cellInfo);
 
     const usageCount = STATE.entries.filter(e=>e.usageDate).length;
-    document.getElementById('fileTag').innerHTML = `<b>${file.name}</b> 불러옴 · vial ${STATE.entries.length}개 · 박스 ${allBoxes.length}개 · 사용날짜 매칭 ${usageCount}건`;
+    document.getElementById('fileTag').innerHTML = `<b>${escHtml(file.name)}</b> ${restored?'(지난번 파일)':'불러옴'} · vial ${STATE.entries.length}개 · 박스 ${allBoxes.length}개 · 사용날짜 매칭 ${usageCount}건`;
+    document.getElementById('changeFileBtn').style.display='';
     document.getElementById('uploadZone').style.display='none';
     document.getElementById('app').style.display='block';
     renderFilterSidebar();
@@ -8027,14 +8170,16 @@ function handleFile(file){
     renderDiagnostics();
     renderBrowse();
     renderSummary();
-  };
-  reader.readAsArrayBuffer(file);
+    if(typeof renderStockPanel==='function') renderStockPanel();
+  }
 }
+idbGet().then(v=>{ if(v && v.buf && !STATE.allBoxes.length){ try{ processBuffer(new Uint8Array(v.buf), v.name, true); }catch(err){} } });
 
 /* ============================================================
    5. SEARCH / RENDER
    ============================================================ */
-let filterState = { lines: new Set(), boxes: new Set(), cats: new Set(), hcc: '', minVial: 0, minPassage: 0 };
+let filterState = { lines: new Set(), boxes: new Set(), cats: new Set(), owners: new Set(), kinds: new Set(), hcc: '', minVial: 0, minPassage: 0, maxPassage: 0, dateFrom:'', dateTo:'' };
+function _countBy(key){ const m={}; STATE.entries.forEach(e=>(e[key]||[]).forEach(v=>m[v]=(m[v]||0)+1)); return m; }
 
 function renderFilterSidebar(){
   const lines = [...new Set(STATE.allBoxes.map(b=>b.line))].sort();
@@ -8049,6 +8194,31 @@ function renderFilterSidebar(){
     const active = filterState.cats.has(id);
     return `<div class="filter-chip${active?' active':''}" data-kind="cats" data-val="${id}" title="${c.sub}">${c.label}</div>`;
   }).join('');
+
+  const oc=_countBy('owners'), me=myInitials();
+  document.getElementById('filterOwners').innerHTML = (STATE.people||[]).filter(p=>oc[p]).map(p=>{
+    const active=filterState.owners.has(p);
+    return `<div class="filter-chip small${active?' active':''}${p===me?' me':''}" data-kind="owners" data-val="${p}" title="${p===me?'나':''}">${p} <em>${oc[p]}</em></div>`;
+  }).join('');
+  const kc=_countBy('kinds');
+  document.getElementById('filterKinds').innerHTML = [...KIND_RULES.map(k=>k[0]),'기타'].filter(k=>kc[k]).map(k=>{
+    const active=filterState.kinds.has(k);
+    return `<div class="filter-chip small${active?' active':''}" data-kind="kinds" data-val="${k}">${k} <em>${kc[k]}</em></div>`;
+  }).join('');
+  const mb=document.getElementById('mineBtn');
+  mb.textContent = me ? `내 것만 (${me})` : '내 이니셜 정하기';
+  mb.onclick=()=>{
+    let ini=myInitials();
+    if(!ini){ ini=(prompt('내 이니셜 (예: YJ) — Stock 넣기 파일 이름에도 쓰여요','')||'').trim().toUpperCase(); if(!ini) return; try{ parent.cclLn2.setInitials(ini); }catch(err){} }
+    const only = filterState.owners.size===1 && filterState.owners.has(ini);
+    filterState.owners.clear(); if(!only) filterState.owners.add(ini);
+    renderFilterSidebar(); renderResults(document.getElementById('searchInput').value);
+  };
+  const dF=document.getElementById('dateFromInput'), dT=document.getElementById('dateToInput'), mxP=document.getElementById('maxPassageInput');
+  dF.value=filterState.dateFrom; dT.value=filterState.dateTo; mxP.value=filterState.maxPassage||'';
+  dF.oninput=e=>{ filterState.dateFrom=e.target.value; renderResults(document.getElementById('searchInput').value); };
+  dT.oninput=e=>{ filterState.dateTo=e.target.value; renderResults(document.getElementById('searchInput').value); };
+  mxP.oninput=e=>{ filterState.maxPassage=parseInt(e.target.value,10)||0; renderResults(document.getElementById('searchInput').value); };
 
   const boxWrap = document.getElementById('filterBoxes');
   boxWrap.innerHTML = lines.map(l=>{
@@ -8107,6 +8277,11 @@ function passesFacets(e){
   if(filterState.lines.size && !filterState.lines.has(e.line)) return false;
   if(filterState.boxes.size && !filterState.boxes.has(e.box_code)) return false;
   if(filterState.cats.size && ![...filterState.cats].some(c=>e.cats.has(c))) return false;
+  if(filterState.owners.size && ![...filterState.owners].some(o=>e.owners&&e.owners.has(o))) return false;
+  if(filterState.kinds.size && ![...filterState.kinds].some(k=>e.kinds&&e.kinds.has(k))) return false;
+  if(filterState.dateFrom && !(e.date && e.date.slice(0,7)>=filterState.dateFrom)) return false;
+  if(filterState.dateTo && !(e.date && e.date.slice(0,7)<=filterState.dateTo)) return false;
+  if(filterState.maxPassage>0 && !(e.pNum!=null && e.pNum<=filterState.maxPassage)) return false;
   if(filterState.hcc.trim()){
     const wanted = new Set(filterState.hcc.split(',').map(s=>s.trim()).filter(Boolean).map(s=>'HCC'+s.replace(/^hcc/i,'')));
     const hcc = extractHCC(e.raw);
@@ -8281,7 +8456,8 @@ function renderResults(query){
   const tokens = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
 
   let list = STATE.entries.filter(passesFacets);
-  const facetsActive = filterState.lines.size || filterState.boxes.size || filterState.cats.size || filterState.hcc.trim();
+  const facetsActive = filterState.lines.size || filterState.boxes.size || filterState.cats.size || filterState.hcc.trim()
+    || filterState.owners.size || filterState.kinds.size || filterState.dateFrom || filterState.dateTo || filterState.maxPassage || filterState.minPassage;
 
   renderMatchingSection();
 
@@ -8327,13 +8503,20 @@ function renderResults(query){
     const nameLine = e.lines[0] || '';
     const restLines = e.lines.slice(1).join('\n');
     const sub = e.box_title;
-    return `<div class="card">
+    const who = e.owners&&e.owners.size ? `<span class="badge who">${[...e.owners].join(' · ')}</span>` : '';
+    return `<div class="card" data-eidx="${STATE.entries.indexOf(e)}">
       <div class="badges">${badges.join('')}</div>
       <div class="name">${highlight(nameLine, tokens)}</div>
       ${restLines ? `<div class="lines">${highlight(restLines, tokens)}</div>` : ''}
       ${sub ? `<div class="subloc">${highlight(sub, tokens)}</div>` : ''}
+      <div class="locline">📍 ${locText(e)} ${who} <button class="loc-btn" type="button">박스에서 보기</button></div>
+      <div class="loc-map"></div>
     </div>`;
   }).join('');
+  box.querySelectorAll('.loc-btn').forEach(btn=>btn.addEventListener('click',()=>{
+    const card=btn.closest('.card'), m=card.querySelector('.loc-map');
+    m.innerHTML = m.innerHTML ? '' : miniMap(STATE.entries[+card.dataset.eidx]);
+  }));
   if(list.length>MAX_RENDER){
     box.innerHTML += `<div class="empty">검색 결과가 많습니다. 검색어를 조금 더 구체적으로 입력하면 정확히 찾을 수 있어요. (${list.length-MAX_RENDER}건 더 있음)</div>`;
   }

@@ -17,7 +17,7 @@
 | 1 | 인큐베이터 (옆면 박스) | ✅ 끝 | **사이드바**(현미경 사진 메뉴 아래) `renderIncubator()`, 「○○의 인큐베이터」 닉네임은 이름 누르면 바꿈(localStorage `orgNick`, 동기화 안 함), `plateKind()`가 plate 글자를 well/dish/flask로 묶음, well plate는 well ÷ 칸 수 올림으로 장 수 |
 | 2 | 이번 주 실험 정리 (분석 탭 맨 위) | ✅ 끝 | `buildThisWeek()`, 요일별 액션 블럭 + 지난주 대비 + 남은 예정. 작업량 추이 · 요일별을 그 아래로 올림 |
 | 3 | 다이어리 (먼슬리 · 위클리) | ✅ 끝 | 사이드바 「다이어리」 탭, `renderDiary()`. 먼슬리 날짜 누르면 그 주 위클리. 손글씨 폰트 Gaegu (Google Fonts, 다이어리 열 때 불러옴). 메모는 기록 memo만 |
-| 4b | LN2 탭: 조건 검색 · 사람별 · Pair · 위치 | ⬜ 안 함 | |
+| 4b | LN2 탭: 조건 검색 · 사람별 · Pair · 위치 | ✅ 끝 | 사이드바 「도구 › LN2 탱크」. Explorer는 index.html 맨 아래 `<template id="ln2Tpl">` 안 (iframe srcdoc). 사람 · 종류 · 날짜 · 최대 passage 조건, 내 것만(이니셜), 카드마다 📍 위치 + 「박스에서 보기」 미니 지도, 마지막 파일 IndexedDB 기억, 파일 바꾸기 |
 | 5 | Stock vial 드래그 → 엑셀 ver+1 다운로드 | ⬜ 안 함 | 제일 어려움, 4b 다음 |
 | 6 | 홈 화면 펫 (다마고치) | ⬜ 안 함 | |
 
@@ -37,6 +37,10 @@
 ---
 
 ## 앱 구조 메모 (index.html)
+
+- **LN2 Explorer 고칠 때**: index.html 맨 아래 `<template id="ln2Tpl">` 안을 고침 (`tools/ln2/LN2_Tank_Explorer.html`은 처음 받은 원본, 참고용). 앱 데이터는 Explorer에서 `parent.cclLn2` (getInitials · setInitials · getStocks · markDone)로 읽음.
+- 테스트: CDN이 막힌 환경이면 `npm pack xlsx@0.18.5`, `npm pack jszip@3.10.1` 받아 Playwright `page.route`로 넣기 (catch-all abort 라우트를 **먼저** 등록해야 나중 라우트가 이김). `?demo`로 예시 데이터.
+- 분석 · 다이어리 렌더는 스크립트 끝의 `window._lateReady` 뒤에만 (첫 로딩 때 TDZ 오류 막음).
 
 - 탭: `setTab('today'|'tl'|'ana'|'arch')`, 탭별 표시는 CSS `body[data-tab=…] .pane[data-pane=…]`. 사이드바 버튼 1153줄 근처, 모바일 하단 탭 1327줄 근처.
 - 데이터: `lines` (배양 라인), `logs` (기록: date, action, passage, plate, finalWells, stocks, memo …), `plans`. 저장은 `saveData()` → `cloudPushDebounced()`.
