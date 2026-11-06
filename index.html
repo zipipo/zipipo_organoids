@@ -875,6 +875,24 @@ body[data-theme="dark"] .dy{--paper:#2B2A27;--ink:#E8E4DA;--ink2:#A39E92;--rule:
 body[data-theme="dark"] .dy-mgrid,body[data-theme="dark"] .dy-wh,body[data-theme="dark"] .dy-d{border-color:#47443D;}
 body[data-theme="dark"] .dy-wh{background:rgba(70,65,55,.5);}
 body[data-theme="dark"] .dy-week-note{background:rgba(90,80,40,.6);}
+/* 사이드바 안 인큐베이터: 작게 */
+.side-incu{padding:14px 8px 4px;}
+.side-incu .incu{margin:0;padding:0 2px 4px;}
+.side-incu .incu-box{padding:7px 8px 8px;border-radius:14px;}
+.side-incu .incu-top{flex-direction:column;align-items:stretch;gap:5px;}
+.side-incu .incu-top>span:first-child{display:flex;align-items:baseline;justify-content:space-between;gap:4px;}
+.side-incu .incu-top b{cursor:pointer;font-size:.76rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.side-incu .incu-top b:hover{color:var(--pri);}
+.side-incu .incu-top em{margin:0;font-size:.66rem;white-space:nowrap;}
+.side-incu .incu-lcd{align-self:flex-start;font-size:.6rem;}
+.side-incu .incu-win{gap:10px;padding:8px 8px 0;min-height:96px;background:linear-gradient(to top,transparent 0 26px,var(--shelf) 26px 30px,transparent 30px),rgba(255,255,255,.8);}
+.side-incu .incu-p{width:34px;}
+.side-incu .incu-p.k-dish{width:30px;}
+.side-incu .incu-p.k-flask{width:24px;}
+.side-incu .incu-l{height:26px;font-size:.58rem;}
+.side-incu .incu-l b{font-size:.62rem;}
+.side-incu .incu-feet{padding:0 20px;}
+body[data-theme="dark"] .side-incu .incu-win{background:linear-gradient(to top,transparent 0 26px,var(--shelf) 26px 30px,transparent 30px),rgba(0,0,0,.25);}
 /* 이번 주 실험 정리: 요일마다 액션별 블럭이 아래에서 위로 쌓임 */
 .tw-nav{display:flex;align-items:center;gap:6px;}
 .tw-nav b{font-size:.8rem;font-weight:650;min-width:120px;text-align:center;}
@@ -1274,6 +1292,8 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
     <button class="nav-i" onclick="openPptModal()"><i class="step">3</i><span>PPT 만들기</span></button>
   </nav>
 
+  <div id="incubator" class="side-incu"></div>
+
   <div class="side-foot">
     <div class="theme-sw" title="화면 테마 (이 브라우저에 저장)">
       <span>테마</span>
@@ -1335,7 +1355,6 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
       <div class="today-main">
         <div id="stats" class="stats"></div>
         <div id="stockBanner"></div>
-        <div id="incubator"></div>
         <div id="dash"></div>
         <section class="panel sec sec-today">
           <div class="panel-hd"><span><i class="sec-ic"><svg class="ic"><use href="#i-list"/></svg></i>오늘 기록</span></div>
@@ -2213,6 +2232,13 @@ function plateKind(str){
   if(!t) return {key:'na',label:'Plate 미기록',cap:1,k:'well',ord:900,h:11};
   return {key:'o_'+t,label:String(str).trim(),cap:1,k:'well',ord:800,h:11};
 }
+function _incuNick(){ try{ return localStorage.getItem('orgNick')||''; }catch(e){ return ''; } }
+function setIncuNick(){
+  const v=prompt('인큐베이터에 붙일 닉네임 (예: 유진)', _incuNick());
+  if(v===null) return;
+  try{ localStorage.setItem('orgNick', v.trim().slice(0,12)); }catch(e){}
+  renderIncubator();
+}
 function renderIncubator(){
   const el=document.getElementById('incubator'); if(!el) return;
   const act=lines.filter(l=>!l.isCompleted);
@@ -2225,7 +2251,7 @@ function renderIncubator(){
   });
   const stacks=Object.values(st).sort((a,b)=>a.pk.ord-b.pk.ord);
   const total=stacks.reduce((a,s)=>a+s.n,0);
-  const MAX=10;
+  const MAX=8;
   const body=stacks.length? stacks.map(s=>{
     const plates=[]; s.items.sort((a,b)=>typeCmp(a.l,b.l)).forEach(it=>{ for(let i=0;i<it.n;i++) plates.push(it); });
     const cols=[]; for(let i=0;i<plates.length;i+=MAX) cols.push(plates.slice(i,i+MAX));
@@ -2233,7 +2259,8 @@ function renderIncubator(){
       return `<div class="incu-p k-${s.pk.k}" style="height:${s.pk.h}px;background:${c2.bg};border-color:${c2.bd};" title="${esc(lineTag(it.l))} · P${esc(it.l.passage)}${it.w?` · ${it.w} well`:''}"></div>`; }).join('')}</div>`).join('')}</div>
       <div class="incu-l"><b>${esc(s.pk.label)}</b><br>${s.n}장${s.pk.k==='well'&&s.w?` · ${s.w}w`:''}</div></div>`;
   }).join('') : `<div class="incu-empty">배양 중인 라인이 없어요. 텅 빈 인큐베이터…</div>`;
-  el.innerHTML=`<div class="incu"><div class="incu-box"><div class="incu-top"><span><b>인큐베이터</b><em>${stacks.length?`${stacks.length}종류 · ${total}장`:''}</em></span><span class="incu-lcd"><i></i>37.0°C · CO₂ 5%</span></div>
+  const nick=_incuNick();
+  el.innerHTML=`<div class="incu"><div class="incu-box"><div class="incu-top"><span><b onclick="setIncuNick()" title="눌러서 닉네임 바꾸기">${esc(nick?nick+'의 인큐베이터':'나의 인큐베이터')} ✎</b><em>${stacks.length?`${stacks.length}종류 · ${total}장`:''}</em></span><span class="incu-lcd"><i></i>37.0°C · CO₂ 5%</span></div>
     <div class="incu-win">${body}</div></div><div class="incu-feet"><i></i><i></i></div></div>`;
 }
 

@@ -14,7 +14,7 @@
 |---|------|------|------|
 | 0 | 요구사항 정리 · 방법 조사 · 인수인계 | ✅ 끝 | 이 문서 |
 | 4a | LN2 Explorer가 최신 엑셀(ver 462)을 맞게 읽는지 확인 | ✅ 끝 | 아래 「4번 확인 결과」 |
-| 1 | 인큐베이터 (옆면 박스) | ✅ 끝 | 오늘 작업 탭 통계 아래 `renderIncubator()`, `plateKind()`가 plate 글자를 well/dish/flask로 묶음, well plate는 well ÷ 칸 수 올림으로 장 수 |
+| 1 | 인큐베이터 (옆면 박스) | ✅ 끝 | **사이드바**(현미경 사진 메뉴 아래) `renderIncubator()`, 「○○의 인큐베이터」 닉네임은 이름 누르면 바꿈(localStorage `orgNick`, 동기화 안 함), `plateKind()`가 plate 글자를 well/dish/flask로 묶음, well plate는 well ÷ 칸 수 올림으로 장 수 |
 | 2 | 이번 주 실험 정리 (분석 탭 맨 위) | ✅ 끝 | `buildThisWeek()`, 요일별 액션 블럭 + 지난주 대비 + 남은 예정. 작업량 추이 · 요일별을 그 아래로 올림 |
 | 3 | 다이어리 (먼슬리 · 위클리) | ✅ 끝 | 사이드바 「다이어리」 탭, `renderDiary()`. 먼슬리 날짜 누르면 그 주 위클리. 손글씨 폰트 Gaegu (Google Fonts, 다이어리 열 때 불러옴). 메모는 기록 memo만 |
 | 4b | LN2 탭: 조건 검색 · 사람별 · Pair · 위치 | ⬜ 안 함 | |
