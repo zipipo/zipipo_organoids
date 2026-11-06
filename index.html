@@ -986,15 +986,16 @@ body[data-art] .main{position:relative;}
 body.incu-off #incubator{display:none;}
 @media (max-width:640px){ .set-box{grid-template-columns:1fr;grid-template-rows:auto 1fr;height:calc(100vh - 40px);} .set-nav{flex-direction:row;overflow-x:auto;border-right:none;border-bottom:1px solid var(--bd);padding:10px;} .set-h{display:none;} .set-nav button{flex:none;} }
 /* 펫 */
-#petLayer{position:fixed;left:236px;right:0;bottom:0;height:70px;pointer-events:none;z-index:40;display:none;}
+#petLayer{position:fixed;left:236px;right:0;top:0;bottom:0;pointer-events:none;z-index:40;display:none;}
 body.pet-on[data-tab="today"] #petLayer{display:block;}
-.pet{position:absolute;bottom:4px;left:0;width:48px;height:48px;pointer-events:auto;cursor:grab;touch-action:none;}
+.pet{position:absolute;top:0;left:0;width:48px;height:48px;pointer-events:auto;cursor:pointer;touch-action:none;transform-origin:24px 24px;transition:transform .2s linear;}
+.pet.drag{transition:none;cursor:grabbing;}
 .pet canvas{display:block;image-rendering:pixelated;}
-.pet-bub{position:absolute;bottom:52px;left:50%;transform:translateX(-50%) scale(.6);opacity:0;white-space:nowrap;background:var(--sur);color:var(--tx);border:1.5px solid var(--bd);border-radius:10px;padding:3px 8px;font-size:.7rem;font-weight:600;transition:all .2s;pointer-events:none;}
-.pet-bub.on{opacity:1;transform:translateX(-50%) scale(1);}
+.pet-bub{position:absolute;transform:translate(-50%,-100%) scale(.6);opacity:0;white-space:nowrap;background:var(--sur);color:var(--tx);border:1.5px solid var(--bd);border-radius:10px;padding:3px 8px;font-size:.7rem;font-weight:600;transition:all .2s;pointer-events:none;}
+.pet-bub.on{opacity:1;transform:translate(-50%,-100%) scale(1);}
 .pet-heart{position:absolute;bottom:46px;font-style:normal;color:#F48FA8;fill:#F9C2CF;animation:petHeart 1.1s ease-out forwards;pointer-events:none;}
 @keyframes petHeart{to{transform:translateY(-34px) scale(1.3);opacity:0;}}
-.pet-item{position:absolute;bottom:4px;border:none;background:none;padding:0;cursor:pointer;pointer-events:auto;line-height:0;animation:petDrop .35s ease-out;}
+.pet-item{position:absolute;border:none;background:none;padding:0;cursor:pointer;pointer-events:auto;line-height:0;animation:petDrop .35s ease-out;}
 .pet-item canvas{image-rendering:pixelated;}
 .pet-item.bye{transform:scale(0);transition:transform .25s;}
 @keyframes petDrop{from{transform:translateY(-14px);opacity:0;}}
@@ -1015,6 +1016,22 @@ body.pet-on[data-tab="today"] #petLayer{display:block;}
 .pg-card b{display:block;font-size:.95rem;margin-bottom:4px;} .pg-card small{display:block;color:var(--sub);font-size:.72rem;min-height:1em;margin-bottom:12px;}
 .pg-card .pm-btns{justify-content:center;}
 @media (max-width:800px){ #petLayer{left:0;bottom:64px;} }
+.pet-pop{position:fixed;z-index:650;background:var(--sur);border:1px solid var(--bd);border-radius:12px;padding:6px;box-shadow:0 10px 28px rgba(0,0,0,.12);display:flex;flex-direction:column;min-width:130px;}
+.pet-pop b{font-size:.74rem;padding:4px 8px 6px;color:var(--sub);}
+.pet-pop button{display:flex;align-items:center;gap:8px;border:none;background:none;font:inherit;font-size:.8rem;color:var(--tx);padding:7px 8px;border-radius:8px;cursor:pointer;text-align:left;}
+.pet-pop button:hover{background:var(--hov);}
+.pet-pop .ic{width:15px;height:15px;color:var(--sub);}
+.pet-draw{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:12px;background:var(--psoft);}
+.pet-draw b{display:block;font-size:.88rem;} .pet-draw small{font-size:.72rem;color:var(--sub);}
+.pet-draw .btn .ic{width:14px;height:14px;margin-right:4px;}
+.pet-draw .btn[disabled]{opacity:.5;cursor:not-allowed;}
+.pet-dex{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:6px;}
+.dex{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;border:1.5px solid var(--bd);border-radius:10px;background:var(--sur);font:inherit;cursor:pointer;position:relative;}
+.dex canvas{image-rendering:pixelated;width:40px;height:40px;}
+.dex span{font-size:.6rem;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+.dex.unk{cursor:default;background:var(--hov);border-style:dashed;} .dex.unk i{font-style:normal;width:40px;height:40px;display:grid;place-items:center;font-weight:700;color:var(--mut);}
+.dex.on{border-color:var(--pri);box-shadow:0 0 0 3px var(--psoft);}
+.dex.walk::after{content:'';position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;background:var(--pri);}
 /* 사이드바 안 인큐베이터: 작게 */
 .side-incu{margin-top:auto;padding:14px 8px 12px;}
 .side-incu+.side-foot{margin-top:0;}
@@ -1678,7 +1695,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
       <button data-st="pet" onclick="renderSettings('pet')"><svg class="ic"><use href="#i-paw"/></svg>펫</button>
       <button data-st="ln2" onclick="renderSettings('ln2')"><svg class="ic"><use href="#i-tank"/></svg>LN2</button>
       <button data-st="mail" onclick="renderSettings('mail')"><svg class="ic"><use href="#i-mail"/></svg>우체통</button>
-      <button onclick="closeSettings();newsShow(true)" style="margin-top:auto;"><svg class="ic"><use href="#i-sparkle"/></svg>새로 생긴 기능</button>
+      <button onclick="closeSettings();newsShow(true)" style="margin-top:auto;"><svg class="ic"><use href="#i-flag"/></svg>새로 생긴 기능</button>
     </nav>
     <section class="set-body" id="setBody"></section>
     <button class="set-x" onclick="closeSettings()" title="닫기 (Esc)"><svg class="ic"><use href="#i-x"/></svg></button>
@@ -1686,7 +1703,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
 </div>
 <div id="newsModal" class="modal" onclick="if(event.target===this)closeNews()">
   <div class="mbox news-box">
-    <div class="news-hd"><span class="news-ic"><svg class="ic"><use href="#i-sparkle"/></svg></span><div><b>새로 생긴 기능</b><small id="newsDate"></small></div></div>
+    <div class="news-hd"><span class="news-ic"><svg class="ic"><use href="#i-flag"/></svg></span><div><b>새로 생긴 기능</b><small id="newsDate"></small></div></div>
     <ul class="news-list" id="newsList"></ul>
     <div class="news-ft"><label><input type="checkbox" id="newsHide"> 다시 보지 않기</label><button class="btn btn-pri" onclick="closeNews()">확인</button></div>
   </div>
@@ -4697,7 +4714,7 @@ function weeklyArt(d){
   const m=d.getMonth()+1, day=d.getDate();
   if(m===12 && day>=18 && day<=26) return 'xmas';
   const mon=new Date(d); mon.setHours(0,0,0,0); mon.setDate(mon.getDate()-((mon.getDay()+6)%7));
-  const wk=Math.round((mon-new Date(2026,0,5))/(7*864e5));   // 2026-01-05(월) 기준 주 번호
+  const wk=Math.round((mon-new Date(2026,10,2))/(7*864e5));   // 2026-11-02(월) 주가 바다(ART_ROTA[0])
   return ART_ROTA[((wk%ART_ROTA.length)+ART_ROTA.length)%ART_ROTA.length];
 }
 const THEME_BASE={};   // 배경만 바뀌는 테마 (화면 색은 파스텔 그대로)
@@ -7409,188 +7426,350 @@ function renderAnalytics(){
 })();
 
 // ══════════════════════════════════════════
-//  펫 (오늘 작업 화면 아래쪽을 돌아다니는 픽셀 세포 친구)
-//  그림은 이미지 파일 없이 16×16 칸에 코드로 그린다. 상태는 이 브라우저에만 저장 (localStorage orgPet)
+//  펫 (오늘 작업 화면 아래를 돌아다니는 세포 · 오가노이드 친구들)
+//  50종을 16×16 칸에 코드로 그림. 하루에 1번 뽑기, 여러 마리 키우기(산책은 최대 3마리)
+//  도감은 뽑기 전에는 「?」(비공개). 상태는 이 브라우저에만 저장 (localStorage orgPets)
 // ══════════════════════════════════════════
+// shape: 그리는 모양, c: 몸 색, d: 테두리, a: 무늬, r: 희귀도(1 흔함 · 2 드묾 · 3 아주 드묾)
 const PET_KINDS=[
-  {id:'cell',  name:'말랑 세포',    col:'#F9B8C6', dk:'#D97A93', acc:'#B9A2E8'},
-  {id:'org',   name:'오가노이드',   col:'#FFD3A1', dk:'#E39A55', acc:'#FFF1D6'},
-  {id:'hep',   name:'간세포',       col:'#E7B8A0', dk:'#B97A5E', acc:'#9C6BD8'},
-  {id:'mito',  name:'미토콘드리아', col:'#FFC48A', dk:'#E08A3C', acc:'#FFE7C4'},
-  {id:'div',   name:'분열 세포',    col:'#B9E6B4', dk:'#6FB46A', acc:'#8CC8F2'},
-  {id:'stem',  name:'줄기세포',     col:'#A9E4E0', dk:'#4FB3AC', acc:'#FFE37A'},
-  {id:'flask', name:'T75 플라스크', col:'#BFDDFB', dk:'#6FA6DE', acc:'#F7A8B8'},
-  {id:'amoeba',name:'아메바',       col:'#D7C6F5', dk:'#9C82D6', acc:'#F6B8D8'},
+  {id:'org',    name:'간 오가노이드',      shape:'bud',     c:'#FFD3A1',d:'#E39A55',a:'#FFF1D6',r:1},
+  {id:'hccorg', name:'HCC 오가노이드',     shape:'bud2',    c:'#F9B8A8',d:'#D9806C',a:'#FFE3DA',r:1},
+  {id:'cholorg',name:'담관 오가노이드',    shape:'cyst',    c:'#BFE3F2',d:'#6FAFD0',a:'#F2FAFD',r:1},
+  {id:'intorg', name:'장 오가노이드',      shape:'crypt',   c:'#F7C6D8',d:'#D987A6',a:'#FFF0F5',r:1},
+  {id:'brainorg',name:'뇌 오가노이드',     shape:'bud3',    c:'#E8C8F0',d:'#B68AC6',a:'#F8EDFB',r:2},
+  {id:'lungorg',name:'폐 오가노이드',      shape:'cyst2',   c:'#FAD0D0',d:'#DB8E8E',a:'#FFF3F3',r:2},
+  {id:'kidorg', name:'신장 오가노이드',    shape:'crypt',   c:'#F3C9A8',d:'#C98C63',a:'#FFF0E4',r:2},
+  {id:'stomorg',name:'위 오가노이드',      shape:'cyst',    c:'#FBE1A6',d:'#D9AE55',a:'#FFF8E3',r:1},
+  {id:'panorg', name:'췌장 오가노이드',    shape:'bud',     c:'#D7EBB5',d:'#93BD62',a:'#F4FAEA',r:2},
+  {id:'crcorg', name:'대장암 오가노이드',  shape:'bud2',    c:'#F6B7C6',d:'#D47A93',a:'#FFE6EC',r:1},
+  {id:'spher',  name:'스페로이드',         shape:'cluster', c:'#FFD9A8',d:'#E0A060',a:'#FFF0D8',r:1},
+  {id:'assem',  name:'어셈블로이드',       shape:'assem',   c:'#FFD3A1',d:'#E39A55',a:'#C9B8F0',r:3},
+  {id:'phhorg', name:'PHH 오가노이드',     shape:'bud3',    c:'#FFE0B5',d:'#E0A868',a:'#FFF5E6',r:2},
+  {id:'tumoroid',name:'튜모로이드',        shape:'cluster', c:'#F7B3B3',d:'#D07272',a:'#FFE0E0',r:2},
+  {id:'cell',   name:'말랑 세포',          shape:'round',   c:'#F9B8C6',d:'#D97A93',a:'#B9A2E8',r:1},
+  {id:'hep',    name:'간세포',             shape:'hex',     c:'#E7B8A0',d:'#B97A5E',a:'#9C6BD8',r:1},
+  {id:'chol',   name:'담관세포',           shape:'cube',    c:'#C4E2F0',d:'#78B0CC',a:'#7D8FD8',r:1},
+  {id:'fib',    name:'섬유아세포',         shape:'spindle', c:'#F3D9B1',d:'#C9A06A',a:'#A889D8',r:1},
+  {id:'caf',    name:'CAF',               shape:'spindle', c:'#F4C1A9',d:'#CC8462',a:'#8C6BC8',r:2},
+  {id:'pf',     name:'문맥 섬유아세포',    shape:'spindle', c:'#D9E8C4',d:'#97B972',a:'#8C7BD0',r:2},
+  {id:'hsc',    name:'성상세포 (HSC)',     shape:'star',    c:'#FFE7A8',d:'#D9B45A',a:'#FFD066',r:2},
+  {id:'mac',    name:'대식세포',           shape:'blob',    c:'#D7C6F5',d:'#9C82D6',a:'#F6B8D8',r:1},
+  {id:'kupffer',name:'쿠퍼세포',           shape:'blob',    c:'#C8D8F5',d:'#7E9BD6',a:'#F6C8A8',r:2},
+  {id:'tcell',  name:'T 세포',             shape:'villi',   c:'#BDE3F7',d:'#6FA8D4',a:'#4F7FC0',r:1},
+  {id:'bcell',  name:'B 세포',             shape:'villi',   c:'#C7F0D8',d:'#6FBF91',a:'#4FA070',r:1},
+  {id:'nk',     name:'NK 세포',            shape:'granule', c:'#E6D4F7',d:'#A487CF',a:'#7C5CB8',r:2},
+  {id:'neut',   name:'호중구',             shape:'lobed',   c:'#F7E1EC',d:'#CF9AB4',a:'#9C6BD8',r:2},
+  {id:'rbc',    name:'적혈구',             shape:'disc',    c:'#F7A8A8',d:'#D06868',a:'#FBD0D0',r:1},
+  {id:'plt',    name:'혈소판',             shape:'platelet',c:'#E8D2F2',d:'#B38BC9',a:'#C9A0DF',r:1},
+  {id:'neuron', name:'뉴런',               shape:'neuron',  c:'#FFE3B8',d:'#D6A75F',a:'#F2C77E',r:2},
+  {id:'astro',  name:'별아교세포',         shape:'star',    c:'#D8E7FA',d:'#86A9D9',a:'#B8CFF0',r:2},
+  {id:'cardio', name:'심근세포',           shape:'cardio',  c:'#F7B9B9',d:'#D07878',a:'#E89898',r:2},
+  {id:'fat',    name:'지방세포',           shape:'fat',     c:'#FFF2C2',d:'#E0C46A',a:'#FFE48A',r:1},
+  {id:'beta',   name:'베타세포',           shape:'granule', c:'#FFF0C8',d:'#DDBE6A',a:'#E8A84A',r:2},
+  {id:'cilia',  name:'섬모세포',           shape:'cilia',   c:'#CDEFE8',d:'#6EBFAE',a:'#6EBFAE',r:2},
+  {id:'stem',   name:'줄기세포',           shape:'stem',    c:'#A9E4E0',d:'#4FB3AC',a:'#FFE37A',r:2},
+  {id:'ipsc',   name:'iPSC 콜로니',        shape:'colony',  c:'#D6F0C8',d:'#86C26A',a:'#9CC982',r:2},
+  {id:'esc',    name:'ES 세포',            shape:'colony',  c:'#F7E3C8',d:'#D3A86E',a:'#D9B888',r:3},
+  {id:'div',    name:'분열 세포',          shape:'div',     c:'#B9E6B4',d:'#6FB46A',a:'#8CC8F2',r:1},
+  {id:'mito',   name:'미토콘드리아',       shape:'mito',    c:'#FFC48A',d:'#E08A3C',a:'#FFE7C4',r:1},
+  {id:'amoeba', name:'아메바',             shape:'amoeba',  c:'#D7C6F5',d:'#9C82D6',a:'#F6B8D8',r:1},
+  {id:'yeast',  name:'효모',               shape:'yeast',   c:'#FBE8C2',d:'#D8B46E',a:'#F2D290',r:1},
+  {id:'ecoli',  name:'대장균',             shape:'rod',     c:'#C8E6B8',d:'#83B86A',a:'#83B86A',r:1},
+  {id:'sperm',  name:'정자',               shape:'sperm',   c:'#E2EAF7',d:'#8FA4CC',a:'#8FA4CC',r:2},
+  {id:'egg',    name:'난자',               shape:'egg',     c:'#FCE3EA',d:'#D9A0B2',a:'#F3C3D0',r:3},
+  {id:'gfp',    name:'GFP 세포',           shape:'round',   c:'#B8F0B0',d:'#5CC458',a:'#E6FFE0',r:3},
+  {id:'mcherry',name:'mCherry 세포',       shape:'round',   c:'#FFB0C0',d:'#E0607C',a:'#FFE0E8',r:3},
+  {id:'hepg2',  name:'HepG2',              shape:'cluster', c:'#F2D1B5',d:'#C79B72',a:'#FBE6D2',r:1},
+  {id:'t293',   name:'293T',               shape:'blob',    c:'#F8E0B8',d:'#D6AE6A',a:'#FBEFD8',r:1},
+  {id:'flask',  name:'T75 플라스크',       shape:'flask',   c:'#BFDDFB',d:'#6FA6DE',a:'#F7A8B8',r:3},
 ];
-const PET_PX=3, PET_N=16;
-// 16×16 칸에 몸을 칠한다: 'b' 몸, 'a' 무늬, 나머지는 빈칸. 테두리는 몸 바깥 칸에 자동으로.
-function petGrid(kind, frame){
+const PET_PX=3, PET_N=16, PET_MAX_WALK=3;
+function petGrid(shape, frame){
   const g=[...Array(PET_N)].map(()=>Array(PET_N).fill(''));
+  const set=(x,y,v)=>{ x=Math.round(x); y=Math.round(y); if(y>=0&&y<PET_N&&x>=0&&x<PET_N) g[y][x]=v; };
   const ell=(cx,cy,rx,ry,v)=>{ for(let y=0;y<PET_N;y++) for(let x=0;x<PET_N;x++){ const dx=(x+.5-cx)/rx, dy=(y+.5-cy)/ry; if(dx*dx+dy*dy<=1) g[y][x]=v; } };
-  const rect=(x0,y0,x1,y1,v)=>{ for(let y=y0;y<=y1;y++) for(let x=x0;x<=x1;x++) if(y>=0&&y<PET_N&&x>=0&&x<PET_N) g[y][x]=v; };
+  const rect=(x0,y0,x1,y1,v)=>{ for(let y=y0;y<=y1;y++) for(let x=x0;x<=x1;x++) set(x,y,v); };
+  const line=(x0,y0,x1,y1,v)=>{ const n=Math.max(Math.abs(x1-x0),Math.abs(y1-y0))*2||1; for(let i=0;i<=n;i++) set(x0+(x1-x0)*i/n, y0+(y1-y0)*i/n, v); };
   const w=frame%2;
-  switch(kind){
-    case 'cell':  ell(8,8.5,6.6,5.8,'b'); ell(11,6,1.9,1.5,'a'); break;
-    case 'org':   ell(8,9,5.6,4.8,'b'); ell(3.5,7,2.4,2.4,'b'); ell(12.5,7,2.4,2.4,'b'); ell(6,4.3,2.4,2.2,'b'); ell(10.5,4.3,2.4,2.2,'b'); ell(8,9.5,1.6,1.2,'a'); break;
-    case 'hep':   for(let y=3;y<=13;y++){ const k=Math.min(y-3,13-y,3); rect(4-k,y,11+k,y,'b'); } ell(6.3,6.3,1.3,1.3,'a'); ell(10,6.3,1.3,1.3,'a'); break;
-    case 'mito':  ell(8,8.5,7.4,4.8,'b'); [[3,8],[5,10],[7,8],[9,10],[11,8],[13,10]].forEach(([x,y])=>g[y-1][x]==='b'&&(g[y-1][x]='a')); break;
-    case 'div':   ell(5,8.5,4.3,4.6,'b'); ell(11,8.5,4.3,4.6,'b'); ell(4.5,6.3,1.2,1,'a'); ell(11.5,6.3,1.2,1,'a'); break;
-    case 'stem':  ell(8,9,5.6,5.2,'b'); g[2][8]='a'; g[3][7]='a'; g[3][8]='a'; g[3][9]='a'; g[4][8]='a'; g[5][2]='a'; g[6][13]='a'; break;
-    case 'flask': rect(3,5,12,13,'b'); rect(9,2,13,4,'b'); rect(10,1,13,1,'a'); rect(4,11,11,13,'a'); break;
-    case 'amoeba':ell(8,9.5,6,4.4,'b'); ell(w?2.5:3.5,8,2.2,1.6,'b'); ell(w?13:12.3,7,2,1.8,'b'); ell(w?9:7.5,4.6,2,1.8,'b'); ell(9,9,1.4,1.2,'a'); break;
+  switch(shape){
+    case 'round':  ell(8,8.5,6.4,5.8,'b'); ell(11,5.8,1.8,1.5,'a'); break;
+    case 'bud':    ell(8,9,5.4,4.8,'b'); [[3.4,7],[12.6,7],[6,4.2],[10.4,4.2],[3.8,11.6],[12.2,11.6]].forEach(([x,y])=>ell(x,y,2.3,2.2,'b')); ell(8,9.6,1.4,1.1,'a'); break;
+    case 'bud2':   ell(8,9,5.2,4.6,'b'); [[3,8],[13,8],[5,4.5],[8,3.2],[11,4.5],[4.5,12.5],[11.5,12.5]].forEach(([x,y],i)=>ell(x,y,1.9+((i+w)%2)*.3,1.9,'b')); [[5,6],[11,6],[8,12]].forEach(([x,y])=>set(x,y,'a')); break;
+    case 'bud3':   ell(8,9,5.6,5,'b'); [[2.8,9],[13.2,9],[4.5,5],[11.5,5],[8,3.4]].forEach(([x,y])=>ell(x,y,2.4,2.4,'b')); [[4.5,5],[11.5,5],[8,3.4],[2.8,9],[13.2,9]].forEach(([x,y])=>set(x,y,'a')); break;
+    case 'cyst':   ell(8,8.5,6.6,6,'b'); ell(8,8.5,3.8,3.3,'a'); break;
+    case 'cyst2':  ell(6.5,8.5,5,5,'b'); ell(11.5,7,3.6,3.6,'b'); ell(6.5,8.5,2.6,2.6,'a'); ell(11.5,7,1.6,1.6,'a'); break;
+    case 'crypt':  ell(8,9,5.4,4.8,'b'); ell(8,9,2.8,2.2,'a'); [[2.6,6],[13.4,6],[3,12],[13,12],[8,3.2]].forEach(([x,y])=>{ ell(x,y,1.6,2.4,'b'); }); break;
+    case 'cluster':for(let i=0;i<9;i++){ const a=i/9*Math.PI*2+(w?.15:0); ell(8+Math.cos(a)*3.6, 8.6+Math.sin(a)*3.2, 2.4,2.4,'b'); } ell(8,8.6,3,2.8,'b'); [[6,6],[10,7],[7,11],[11,11]].forEach(([x,y])=>set(x,y,'a')); break;
+    case 'assem':  ell(7,9,5,4.6,'b'); [[2.8,7],[6,4.4],[9.8,4.6]].forEach(([x,y])=>ell(x,y,2.1,2,'b')); line(11,11,15,7,'a'); line(11,12,15,9,'a'); ell(14,8,1.4,2,'a'); break;
+    case 'hex':    for(let y=3;y<=13;y++){ const k=Math.min(y-3,13-y,3); rect(4-k,y,11+k,y,'b'); } ell(6.3,6.2,1.3,1.3,'a'); ell(10,6.2,1.3,1.3,'a'); break;
+    case 'cube':   rect(3,4,12,13,'b'); ell(8,6,1.6,1.3,'a'); rect(3,4,12,4,'a'); break;
+    case 'spindle':for(let y=4;y<=13;y++){ const t=1-Math.abs(y-8.5)/5; const hw=Math.max(.5,t*3.6); rect(Math.round(8-hw-(y<8?1:-1)*(y-8.5)*.5),y,Math.round(8+hw-(y<8?1:-1)*(y-8.5)*.5),y,'b'); } line(1,13,4,11,'b'); line(15,3,12,5,'b'); ell(8,7,1.4,1.8,'a'); break;
+    case 'star':   ell(8,9,3.8,3.4,'b'); [[1,4],[15,4],[1,14],[15,14],[8,1]].forEach(([x,y])=>line(8,9,x,y,'b')); set(8,8,'a'); set(9,9,'a'); break;
+    case 'blob':   ell(8,9.5,5.8,4.4,'b'); ell(w?2.4:3.4,8,2.2,1.6,'b'); ell(w?13.4:12.6,7.4,2,1.7,'b'); ell(w?9:7.4,4.8,2,1.8,'b'); ell(9.6,9,1.5,1.2,'a'); break;
+    case 'villi':  ell(8,9,5.8,5.4,'b'); for(let i=0;i<14;i++){ const a=i/14*Math.PI*2+(w?.2:0); set(8+Math.cos(a)*6.8,9+Math.sin(a)*6.3,'b'); } ell(8.6,7.4,3.2,2.6,'a'); break;
+    case 'granule':ell(8,9,6,5.4,'b'); [[5,6],[10,5],[12,8],[4,11],[7,12],[11,12],[6,9],[10,10]].forEach(([x,y])=>set(x,y,'a')); break;
+    case 'lobed':  ell(8,9,6,5.4,'b'); ell(6,8,1.6,1.4,'a'); ell(9,7,1.6,1.4,'a'); ell(10.6,10,1.6,1.4,'a'); break;
+    case 'disc':   ell(8,9,6.6,5,'b'); ell(8,9,3,2.2,'a'); break;
+    case 'platelet':ell(8,10,4.2,3.2,'b'); ell(5,8,1.6,1.4,'b'); ell(11,8.6,1.6,1.4,'b'); set(7,10,'a'); set(9,11,'a'); break;
+    case 'neuron': ell(8,9,3.8,3.4,'b'); line(8,9,1,3+w,'b'); line(8,9,15,4-w,'b'); line(8,9,2,15,'b'); line(8,9,14,15,'b'); line(4,5,2,5,'b'); line(12,6,14,7,'b'); set(8,8,'a'); break;
+    case 'cardio': rect(2,5,13,13,'b'); for(let x=3;x<=12;x+=3) rect(x,6,x,12,'a'); rect(14,6,14,8,'b'); rect(1,10,1,12,'b'); break;
+    case 'fat':    ell(8,8.5,6.6,6,'b'); ell(7.4,8,5,4.6,'a'); ell(12.6,11,1.2,1.2,'b'); break;
+    case 'cilia':  ell(8,10,5.6,4.6,'b'); for(let x=3;x<=13;x+=2) line(x,5.6,x+(w?1:-1),2,'b'); ell(8,10.6,1.6,1.3,'a'); break;
+    case 'stem':   ell(8,9,5.6,5.2,'b'); set(8,2,'a'); set(7,3,'a'); set(8,3,'a'); set(9,3,'a'); set(8,4,'a'); set(2,5,'a'); set(13,6,'a'); break;
+    case 'colony': ell(8,9.5,7.4,4.6,'b'); [[3,9],[5,7],[7,10],[9,7],[11,10],[13,9],[6,12],[10,12],[8,8]].forEach(([x,y])=>set(x,y,'a')); break;
+    case 'div':    ell(5,8.5,4.3,4.6,'b'); ell(11,8.5,4.3,4.6,'b'); ell(4.5,6.3,1.2,1,'a'); ell(11.5,6.3,1.2,1,'a'); break;
+    case 'mito':   ell(8,8.5,7.4,4.8,'b'); [[3,7],[5,9],[7,7],[9,9],[11,7],[13,9]].forEach(([x,y])=>{ if(g[y]&&g[y][x]==='b') g[y][x]='a'; }); break;
+    case 'amoeba': ell(8,9.5,6,4.4,'b'); ell(w?2.5:3.5,8,2.2,1.6,'b'); ell(w?13:12.3,7,2,1.8,'b'); ell(w?9:7.5,4.6,2,1.8,'b'); ell(9,9,1.4,1.2,'a'); break;
+    case 'yeast':  ell(7,9.5,5.4,5,'b'); ell(13,5.6,2.4,2.2,'b'); set(6,7,'a'); break;
+    case 'rod':    ell(7,9,6,3.6,'b'); line(13,9,15,7-w,'a'); line(13,10,15,12+w,'a'); line(1,9,0,7+w,'a'); break;
+    case 'sperm':  ell(5,8.5,4,3.4,'b'); for(let x=9;x<=15;x++) set(x, 8.5+Math.sin((x+frame)*1.1)*1.6,'a'); break;
+    case 'egg':    ell(8,8.5,7,6.6,'a'); ell(8,8.5,5.6,5.2,'b'); ell(10.5,6,1.4,1.2,'a'); break;
+    case 'flask':  rect(3,5,12,13,'b'); rect(9,2,13,4,'b'); rect(10,1,13,1,'a'); rect(4,11,11,13,'a'); break;
   }
   return g;
 }
 function drawPet(cv, kindId, st){
   const K=PET_KINDS.find(k=>k.id===kindId)||PET_KINDS[0];
   const ctx=cv.getContext('2d'); ctx.clearRect(0,0,cv.width,cv.height);
-  const g=petGrid(K.id, st.frame), bob=(st.mode==='walk'&&st.frame%2)?1:0, oy=bob+(st.jump||0);
-  const P=(x,y,c)=>{ ctx.fillStyle=c; ctx.fillRect(x*PET_PX,(y-oy)*PET_PX,PET_PX,PET_PX); };
+  const g=petGrid(K.shape, st.frame||0), oy=((st.mode==='walk'&&(st.frame||0)%2)?1:0)+(st.jump||0);
+  const P=(x,y,c)=>{ ctx.fillStyle=c; ctx.fillRect(Math.round(x)*PET_PX,(Math.round(y)-oy)*PET_PX,PET_PX,PET_PX); };
   for(let y=0;y<PET_N;y++) for(let x=0;x<PET_N;x++){
     const v=g[y][x];
-    if(v){ P(x,y, v==='a'?K.acc:K.col); continue; }
-    const nb=[[1,0],[-1,0],[0,1],[0,-1]].some(([dx,dy])=>{ const yy=y+dy, xx=x+dx; return yy>=0&&yy<PET_N&&xx>=0&&xx<PET_N&&g[yy][xx]; });
-    if(nb) P(x,y,K.dk);
+    if(v){ P(x,y, v==='a'?K.a:K.c); continue; }
+    if([[1,0],[-1,0],[0,1],[0,-1]].some(([dx,dy])=>{ const yy=y+dy, xx=x+dx; return yy>=0&&yy<PET_N&&xx>=0&&xx<PET_N&&g[yy][xx]; })) P(x,y,K.d);
   }
-  // 얼굴: 몸 가운데 아래쪽
-  const ink='#3B3346';
-  const ey=9, ex=[6,10];
-  if(st.mode==='sleep' || st.blink) ex.forEach(x=>{ P(x,ey,ink); P(x+1,ey,ink); });
-  else ex.forEach(x=>{ P(x,ey-1,ink); P(x,ey,ink); P(x+1,ey-1,'#fff'); });
-  P(4.5,ey+1.3,'#F4A3B5'); P(11.5,ey+1.3,'#F4A3B5');           // 볼
-  if(st.mode==='happy'){ P(7.5,ey+1.6,ink); P(8.5,ey+1.6,ink); P(8,ey+2.2,ink); }
-  else P(8,ey+1.4,ink);                                          // 입
-  // 발: 걸을 때 번갈아
-  if(K.id!=='flask'){
-    const fy=14.6, f=st.mode==='walk'?st.frame%2:0;
-    P(5+f,fy,K.dk); P(10-f,fy,K.dk);
-  }
+  if(st.silhouette){ ctx.globalCompositeOperation='source-in'; ctx.fillStyle='#CBD2DC'; ctx.fillRect(0,0,cv.width,cv.height); ctx.globalCompositeOperation='source-over'; return; }
+  const ink='#3B3346', ey=9;
+  if(st.mode==='sleep'||(st.blink>0)) [6,10].forEach(x=>{ P(x,ey,ink); P(x+1,ey,ink); });
+  else [6,10].forEach(x=>{ P(x,ey-1,ink); P(x,ey,ink); P(x+1,ey-1,'#fff'); });
+  P(4,ey+1,'#F4A3B5'); P(12,ey+1,'#F4A3B5');
+  if(st.mode==='happy'){ P(7,ey+2,ink); P(9,ey+2,ink); P(8,ey+2,ink); } else P(8,ey+1,ink);
+  if(K.shape!=='flask'&&K.shape!=='sperm'){ const f=st.mode==='walk'?(st.frame||0)%2:0; P(5+f,15,K.d); P(10-f,15,K.d); }
 }
 function petItemSprite(type){
   const cv=document.createElement('canvas'); cv.width=7*PET_PX; cv.height=8*PET_PX;
   const ctx=cv.getContext('2d'); const P=(x,y,c)=>{ ctx.fillStyle=c; ctx.fillRect(x*PET_PX,y*PET_PX,PET_PX,PET_PX); };
   if(type==='poop'){
-    const m=['...b...','..bb...','..bbb..','.bbbbb.','.bwbwb.','bbbbbbb','bbbbbbb'];
-    m.forEach((r,y)=>[...r].forEach((c,x)=>{ if(c==='b') P(x,y+1,'#B98A64'); if(c==='w') P(x,y+1,'#3B3346'); }));
+    ['...b...','..bb...','..bbb..','.bbbbb.','.bwbwb.','bbbbbbb','bbbbbbb'].forEach((r,y)=>[...r].forEach((c,x)=>{ if(c==='b') P(x,y+1,'#B98A64'); if(c==='w') P(x,y+1,'#3B3346'); }));
   } else {
     const pc=['#F7A8B8','#FFD27A','#B9A2E8','#9ED8F0'][Math.floor(Math.random()*4)];
-    const m=['.p.p.','ppppp','.pyp.','ppppp','.p.p.'];
-    m.forEach((r,y)=>[...r].forEach((c,x)=>{ if(c==='p') P(x+1,y,pc); if(c==='y') P(x+1,y,'#FFE37A'); }));
+    ['.p.p.','ppppp','.pyp.','ppppp','.p.p.'].forEach((r,y)=>[...r].forEach((c,x)=>{ if(c==='p') P(x+1,y,pc); if(c==='y') P(x+1,y,'#FFE37A'); }));
     P(3,5,'#7CC08A'); P(3,6,'#7CC08A'); P(4,6,'#7CC08A'); P(3,7,'#7CC08A');
   }
   return cv;
 }
 
-let pet=null;
-try{ pet=JSON.parse(localStorage.getItem('orgPet')||'null'); }catch(e){}
-function savePet(){ try{ localStorage.setItem('orgPet', JSON.stringify(pet)); }catch(e){} }
-const PS={x:80, dir:1, mode:'idle', frame:0, until:0, target:0, blink:false, jump:0, bubbleTo:0, last:0, layer:null, cv:null, el:null};
+// ── 상태: { owned:{id:{n,name,born,hap,fedTs,flowers,pats}}, active:[id…], lastDraw:'YYYY-MM-DD', hidden }
+let petSt=null;
+try{ petSt=JSON.parse(localStorage.getItem('orgPets')||'null'); }catch(e){}
+if(!petSt){
+  petSt={owned:{}, active:[], lastDraw:'', hidden:false};
+  try{ const old=JSON.parse(localStorage.getItem('orgPet')||'null');   // 예전 한 마리 펫 옮기기
+    if(old&&old.kind&&PET_KINDS.some(k=>k.id===old.kind)){ petSt.owned[old.kind]={n:1,name:old.name||'',born:old.born||Date.now(),hap:old.hap||70,fedTs:old.fedTs||Date.now(),flowers:old.flowers||0,pats:old.pats||0}; petSt.active=[old.kind]; petSt.hidden=!!old.hidden; }
+  }catch(e){}
+}
+function savePets(){ try{ localStorage.setItem('orgPets', JSON.stringify(petSt)); }catch(e){} }
+const petKind=id=>PET_KINDS.find(k=>k.id===id);
+const petName=id=>(petSt.owned[id]&&petSt.owned[id].name)||(petKind(id)||{}).name||'';
+function petTodayKey(){ return ymdLocal(new Date()); }
+function petCanDraw(){ return petSt.lastDraw!==petTodayKey(); }
 const petReduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+let PETS=[], petLayer=null;   // 화면에 나와 있는 펫들
 
 function petMount(){
   if(document.getElementById('petLayer')) return;
-  const L=document.createElement('div'); L.id='petLayer'; L.innerHTML=`<div class="pet" id="petEl"><div class="pet-bub" id="petBub"></div><canvas id="petCv" width="${PET_N*PET_PX}" height="${PET_N*PET_PX}"></canvas></div>`;
-  document.body.appendChild(L);
-  PS.layer=L; PS.el=document.getElementById('petEl'); PS.cv=document.getElementById('petCv');
-  // 쓰다듬기: 누르거나, 누른 채로 문지르기
-  let rub=0;
-  PS.el.addEventListener('dblclick',()=>openSettings('pet'));
-  PS.el.title='쓰다듬기 · 두 번 누르면 펫 설정';
-  PS.el.addEventListener('pointerdown',e=>{ e.preventDefault(); rub=1; petPat(); });
-  PS.el.addEventListener('pointermove',()=>{ if(rub && ++rub%6===0) petPat(); });
-  window.addEventListener('pointerup',()=>rub=0);
-  petRender(); requestAnimationFrame(petLoop);
+  petLayer=document.createElement('div'); petLayer.id='petLayer'; document.body.appendChild(petLayer);
+  petSync(); requestAnimationFrame(petLoop);
 }
-function petRender(){
-  const has=!!(pet&&pet.kind);
-  document.body.classList.toggle('pet-on', has && !pet.hidden);
-  if(PS.cv && has) drawPet(PS.cv, pet.kind, PS);
+// active 목록에 맞춰 화면의 펫을 만들거나 없앤다
+function petSync(){
+  if(!petLayer) return;
+  petSt.active=petSt.active.filter(id=>petSt.owned[id]).slice(0,PET_MAX_WALK);
+  PETS.filter(p=>!petSt.active.includes(p.id)).forEach(p=>p.el.remove());
+  PETS=PETS.filter(p=>petSt.active.includes(p.id));
+  petSt.active.forEach((id,i)=>{
+    if(PETS.some(p=>p.id===id)) return;
+    const el=document.createElement('div'); el.className='pet';
+    el.innerHTML=`<canvas width="${PET_N*PET_PX}" height="${PET_N*PET_PX}"></canvas>`;
+    const bub=document.createElement('div'); bub.className='pet-bub';
+    petLayer.appendChild(el); petLayer.appendChild(bub);
+    const o=petSt.owned[id];
+    const a={id, el, cv:el.querySelector('canvas'), bub, s:(o&&o.s!=null)?o.s:60+i*160, dir:1, mode:'idle', frame:i*3, until:0, target:0, blink:0, jump:0, bubbleTo:0, last:0, pinned:!!(o&&o.pinned), x:0, y:0, rot:0};
+    el.title=petName(id);
+    // 누르면 메뉴, 끌면 옮기기 (가장 가까운 화면 가장자리에 붙음)
+    let down=null;
+    el.addEventListener('pointerdown',e=>{ e.preventDefault(); down={x:e.clientX,y:e.clientY,drag:false}; el.setPointerCapture(e.pointerId); });
+    el.addEventListener('pointermove',e=>{ if(!down) return;
+      if(!down.drag && Math.hypot(e.clientX-down.x,e.clientY-down.y)>6){ down.drag=true; petPopClose(); el.classList.add('drag'); }
+      if(down.drag){ const r=petLayer.getBoundingClientRect(); a.x=e.clientX-r.left-24; a.y=e.clientY-r.top-24; a.rot=0; petPlace(a); } });
+    el.addEventListener('pointerup',()=>{ if(!down) return; const d=down.drag; down=null; el.classList.remove('drag');
+      if(d){ a.s=petNearestS(a.x,a.y); a.mode='idle'; a.until=performance.now()+2500; petSave(a); } else petPop(a); });
+    PETS.push(a); drawPet(a.cv,id,a);
+  });
+  document.body.classList.toggle('pet-on', PETS.length>0 && !petSt.hidden);
 }
-function petSay(t,ms){ const b=document.getElementById('petBub'); if(!b) return; b.textContent=t; b.classList.add('on'); PS.bubbleTo=performance.now()+(ms||2200); }
-function petPat(){
-  if(!pet) return;
-  pet.hap=Math.min(100,(pet.hap||60)+4); pet.pats=(pet.pats||0)+1; savePet();
-  PS.mode='happy'; PS.until=performance.now()+1400; PS.jump=2;
-  const h=document.createElement('i'); h.className='pet-heart'; h.innerHTML='<svg class="ic"><use href="#i-heart"/></svg>'; h.style.left=(PS.x+18+Math.random()*12)+'px'; PS.layer.appendChild(h); setTimeout(()=>h.remove(),1100);
-  if(Math.random()<.3) petSay(['헤헤','좋아!','또 해줘','♪','따뜻해~'][Math.floor(Math.random()*5)]);
+function petSay(a,t,ms){ a.bub.textContent=t; a.bub.classList.add('on'); a.bubbleTo=performance.now()+(ms||2200); }
+// 화면 네 모서리를 한 바퀴 도는 길: s(0 ~ 둘레)를 위치 · 회전으로 바꾼다 (아래 → 오른쪽 → 위 → 왼쪽)
+function petDims(){ return {W:Math.max(10,petLayer.clientWidth-48), H:Math.max(10,petLayer.clientHeight-48)}; }
+function petPos(s){
+  const {W,H}=petDims(), P=2*W+2*H; s=((s%P)+P)%P;
+  if(s<W) return {x:s,y:H,rot:0};
+  if(s<W+H) return {x:W,y:H-(s-W),rot:-90};
+  if(s<2*W+H) return {x:W-(s-W-H),y:0,rot:180};
+  return {x:0,y:s-2*W-H,rot:90};
 }
-function petDrop(type){
-  if(PS.layer.querySelectorAll('.pet-item').length>=6) return;
-  const it=document.createElement('button'); it.className='pet-item '+type; it.appendChild(petItemSprite(type));
-  it.style.left=(PS.x+(PS.dir>0?-6:36))+'px'; it.title=type==='poop'?'눌러서 치우기':'눌러서 꽃 받기';
-  it.onclick=()=>{ if(type==='poop'){ pet.hap=Math.min(100,(pet.hap||60)+3); petSay('고마워!'); } else { pet.flowers=(pet.flowers||0)+1; petSay(`꽃 ${pet.flowers}송이째!`); }
-    savePet(); it.classList.add('bye'); setTimeout(()=>it.remove(),300); };
-  PS.layer.appendChild(it);
+function petNearestS(x,y){
+  const {W,H}=petDims(); x=Math.max(0,Math.min(W,x)); y=Math.max(0,Math.min(H,y));
+  const d=[H-y, W-x, y, x], m=d.indexOf(Math.min(...d));
+  return m===0? x : m===1? W+(H-y) : m===2? W+H+(W-x) : 2*W+H+y;
 }
-function petChoose(now){
-  const W=PS.layer.clientWidth-60, r=Math.random();
-  const hungry=pet && Date.now()-(pet.fedTs||0)>6*3600e3;
-  if(r<.45){ PS.mode='walk'; PS.target=Math.max(0,Math.min(W, PS.x+(Math.random()*2-1)*360)); PS.dir=PS.target>PS.x?1:-1; PS.until=now+12000; }
-  else if(r<.62){ PS.mode='idle'; PS.until=now+2500+Math.random()*3000; if(hungry && Math.random()<.5) petSay('배고파…'); }
-  else if(r<.72){ PS.mode='sleep'; PS.until=now+6000+Math.random()*5000; petSay('Zzz',4000); }
-  else if(r<.80){ PS.mode='idle'; PS.until=now+1800; setTimeout(()=>{ if(pet&&!pet.hidden){ petDrop('poop'); petSay('…앗'); } },700); }
-  else if(r<.88){ PS.mode='idle'; PS.until=now+2600; setTimeout(()=>{ if(pet&&!pet.hidden){ petDrop('flower'); petSay(['선물이야!','꽃 주울게~','받아줘!'][Math.floor(Math.random()*3)]); } },600); }
-  else { PS.mode='happy'; PS.until=now+1500; PS.jump=3; petSay(['오늘도 화이팅!','MC 했어?','split 할 때 됐나?','배양 잘 되고 있어!','인큐베이터 따뜻해'][Math.floor(Math.random()*5)]); }
+function petPlace(a){
+  a.el.style.transform=`translate(${a.x}px,${a.y}px) rotate(${a.rot}deg)`;
+  a.cv.style.transform=`scaleX(${a.dir<0?-1:1})`;
+  const bx=a.x+24 + (a.rot===-90?-34:a.rot===90?34:0), by=a.y + (a.rot===180?62:a.rot===0?-8:20);
+  a.bub.style.left=bx+'px'; a.bub.style.top=by+'px';
+}
+function petSave(a){ const o=petSt.owned[a.id]; if(o){ o.s=Math.round(a.s); o.pinned=a.pinned; savePets(); } }
+// 펫을 누르면 나오는 작은 메뉴
+function petPopClose(){ document.getElementById('petPop')?.remove(); }
+function petPop(a){
+  petPopClose();
+  const r=a.el.getBoundingClientRect(), m=document.createElement('div'); m.id='petPop'; m.className='pet-pop';
+  m.innerHTML=`<b>${esc(petName(a.id))}</b>
+    <button onclick="petPin('${a.id}')"><svg class="ic"><use href="#i-${a.pinned?'paw':'pin'}"/></svg>${a.pinned?'움직이기':'멈추기'}</button>
+    <button onclick="petFeed('${a.id}');petPopClose()"><svg class="ic"><use href="#i-cookie"/></svg>밥 주기</button>
+    <button onclick="petPatMany('${a.id}');petPopClose()"><svg class="ic"><use href="#i-heart"/></svg>쓰다듬기</button>
+    <button onclick="petPopClose();openSettings('pet')"><svg class="ic"><use href="#i-sliders"/></svg>설정</button>`;
+  document.body.appendChild(m);
+  const mw=m.offsetWidth, mh=m.offsetHeight;
+  m.style.left=Math.max(8,Math.min(innerWidth-mw-8, r.left+r.width/2-mw/2))+'px';
+  m.style.top=Math.max(8,Math.min(innerHeight-mh-8, r.top>mh+16? r.top-mh-8 : r.bottom+8))+'px';
+  setTimeout(()=>document.addEventListener('pointerdown',function off(e){ if(!m.contains(e.target)){ petPopClose(); document.removeEventListener('pointerdown',off); } }),0);
+}
+function petPin(id){ const a=PETS.find(p=>p.id===id); if(!a) return; a.pinned=!a.pinned; a.mode='idle'; a.until=performance.now()+1500; petSave(a); petSay(a,a.pinned?'여기 있을게':'산책 갈래!'); petPopClose(); }
+function petPatMany(id){ const a=PETS.find(p=>p.id===id); if(!a) return; [0,250,500].forEach(t=>setTimeout(()=>petPat(a),t)); }
+function petPat(a){
+  const o=petSt.owned[a.id]; if(!o) return;
+  o.hap=Math.min(100,(o.hap||60)+4); o.pats=(o.pats||0)+1; savePets();
+  a.mode='happy'; a.until=performance.now()+1400; a.jump=2;
+  const h=document.createElement('i'); h.className='pet-heart'; h.innerHTML='<svg class="ic"><use href="#i-heart"/></svg>'; h.style.left=(a.x+16+Math.random()*12)+'px'; petLayer.appendChild(h); setTimeout(()=>h.remove(),1100);
+  if(Math.random()<.3) petSay(a,['헤헤','좋아!','또 해줘','보글보글','따뜻해~'][Math.floor(Math.random()*5)]);
+}
+function petDrop(a,type){
+  if(petLayer.querySelectorAll('.pet-item').length>=6) return;
+  const it=document.createElement('button'); it.className='pet-item'; it.appendChild(petItemSprite(type));
+  it.style.left=(a.x+(a.dir>0?-6:36))+'px'; it.style.top=(a.y+28)+'px'; it.title=type==='poop'?'눌러서 치우기':'눌러서 꽃 받기';
+  it.onclick=()=>{ const o=petSt.owned[a.id]; if(o){ if(type==='poop'){ o.hap=Math.min(100,(o.hap||60)+3); petSay(a,'고마워!'); } else { o.flowers=(o.flowers||0)+1; petSay(a,`꽃 ${o.flowers}송이째!`); } savePets(); }
+    it.classList.add('bye'); setTimeout(()=>it.remove(),300); };
+  petLayer.appendChild(it);
+}
+function petChoose(a,now){
+  const r=Math.random(), o=petSt.owned[a.id]||{}, onFloor=a.rot===0;
+  const hungry=Date.now()-(o.fedTs||0)>6*3600e3;
+  if(!a.pinned && r<.5){ a.mode='walk'; a.target=a.s+(Math.random()<.5?-1:1)*(120+Math.random()*420); a.dir=a.target>a.s?1:-1; a.until=now+15000; return; }
+  if(onFloor && Date.now()-(o.lastPoop||0)>3*3600e3 && Math.random()<.5){   // 똥은 3시간에 1번
+    a.mode='idle'; a.until=now+1800; o.lastPoop=Date.now(); savePets();
+    setTimeout(()=>{ if(!petSt.hidden){ petDrop(a,'poop'); petSay(a,'…앗'); } },700); return; }
+  if(onFloor && Date.now()-(o.lastFlower||0)>3600e3 && Math.random()<.35){   // 꽃은 1시간에 1번쯤
+    a.mode='idle'; a.until=now+2600; o.lastFlower=Date.now(); savePets();
+    setTimeout(()=>{ if(!petSt.hidden){ petDrop(a,'flower'); petSay(a,['선물이야!','꽃 주울게~','받아줘!'][Math.floor(Math.random()*3)]); } },600); return; }
+  if(r<.68){ a.mode='idle'; a.until=now+2500+Math.random()*3000; if(hungry&&Math.random()<.5) petSay(a,'배고파…'); }
+  else if(r<.8){ a.mode='sleep'; a.until=now+6000+Math.random()*5000; petSay(a,'Zzz',4000); }
+  else { a.mode='happy'; a.until=now+1500; a.jump=3; if(Math.random()<.5) petSay(a,['오늘도 화이팅!','MC 했어?','split 할 때 됐나?','보글보글~','인큐베이터 따뜻해'][Math.floor(Math.random()*5)]); }
 }
 function petLoop(now){
   requestAnimationFrame(petLoop);
-  if(!pet||!pet.kind||pet.hidden||document.body.dataset.tab!=='today'||document.hidden) return;
+  if(!PETS.length||petSt.hidden||document.body.dataset.tab!=='today'||document.hidden) return;
   const step=petReduce?420:220;
-  if(now-PS.last<step) return;
-  PS.last=now; PS.frame++;
-  if(now>PS.until) petChoose(now);
-  if(PS.mode==='walk'){
-    PS.x+=PS.dir*(petReduce?3:6);
-    if((PS.dir>0&&PS.x>=PS.target)||(PS.dir<0&&PS.x<=PS.target)){ PS.mode='idle'; PS.until=now+1500; }
-  }
-  PS.x=Math.max(0,Math.min(PS.layer.clientWidth-50,PS.x));
-  PS.blink = PS.mode!=='sleep' && PS.frame%17===0;
-  if(PS.jump) PS.jump=Math.max(0,PS.jump-1);
-  if(PS.mode==='happy' && PS.frame%3===0) PS.jump=2;
-  PS.el.style.transform=`translateX(${PS.x}px)`;
-  PS.cv.style.transform=`scaleX(${PS.dir<0?-1:1})`;
-  if(now>PS.bubbleTo) document.getElementById('petBub').classList.remove('on');
-  drawPet(PS.cv, pet.kind, PS);
-  // 기분 · 배부름은 시간에 따라 천천히 줄어든다
-  if(PS.frame%300===0){ pet.hap=Math.max(0,(pet.hap||60)-1); savePet(); }
+  PETS.forEach(a=>{
+    if(a.el.classList.contains('drag') || now-a.last<step) return;
+    a.last=now; a.frame++;
+    if(now>a.until) petChoose(a,now);
+    if(a.mode==='walk'){ a.s+=a.dir*(petReduce?3:6); if((a.dir>0&&a.s>=a.target)||(a.dir<0&&a.s<=a.target)){ a.mode='idle'; a.until=now+1500; petSave(a); } }
+    const p=petPos(a.s); a.x=p.x; a.y=p.y; a.rot=p.rot;
+    // 눈은 4~6초마다 천천히(두 칸 동안) 깜빡, 가끔 콩 점프
+    if(a.blink>0) a.blink--; else if(a.mode!=='sleep' && a.frame%(18+(a.id.length%3)*4)===0) a.blink=2;
+    if(a.jump) a.jump=Math.max(0,a.jump-1);
+    else if(a.mode!=='sleep' && Math.random()<.025) a.jump=2;
+    if(a.mode==='happy'&&a.frame%3===0) a.jump=2;
+    petPlace(a);
+    if(now>a.bubbleTo) a.bub.classList.remove('on');
+    drawPet(a.cv,a.id,a);
+    if(a.frame%300===0){ const o=petSt.owned[a.id]; if(o){ o.hap=Math.max(0,(o.hap||60)-1); savePets(); } }
+  });
 }
 
-// ── 펫 설정 (설정 창의 「펫」 탭) · 뽑기 ──
+// ── 설정 창 「펫」 탭: 오늘의 뽑기 · 도감(비공개 ?) · 고른 펫 돌보기
+let _petSel=null;
 function petPanelHTML(){
-  const K=pet&&PET_KINDS.find(k=>k.id===pet.kind);
-  if(!K) return `<div class="set-sec"><h4>펫 키우기</h4><p class="set-p">뽑기로 세포 친구를 데려와요. 오늘 작업 화면 아래를 뚜벅뚜벅 돌아다니고, 응가도 하고 꽃도 선물해요. 쓰다듬으면 좋아해요.</p>
-    <div class="pet-kinds">${PET_KINDS.map(k=>`<canvas data-k="${k.id}" width="48" height="48" title="${esc(k.name)}"></canvas>`).join('')}</div>
-    <button class="btn btn-pri" onclick="petGacha()"><svg class="ic"><use href="#i-sparkle"/></svg>펫 뽑기</button></div>`;
-  const days=pet.born?Math.max(1,Math.round((Date.now()-pet.born)/864e5)+1):1;
-  const full=Math.max(0,Math.round(100-Math.min(100,(Date.now()-(pet.fedTs||0))/864e3*2)));
-  return `<div class="set-sec"><div class="pm-hd"><canvas id="pmCv" width="48" height="48"></canvas><div><b>${esc(pet.name||K.name)}</b><small>${esc(K.name)} · 함께한 지 ${days}일</small></div></div>
-    <div class="pm-bars"><label>기분 <span><i style="width:${pet.hap||0}%"></i></span></label><label>배부름 <span><i style="width:${full}%"></i></span></label></div>
-    <div class="pm-meta"><svg class="ic"><use href="#i-flower"/></svg> 받은 꽃 ${pet.flowers||0}　<svg class="ic"><use href="#i-heart"/></svg> 쓰다듬기 ${pet.pats||0}</div>
-    <div class="pm-btns"><button class="btn btn-out" onclick="petFeed()"><svg class="ic"><use href="#i-cookie"/></svg>밥 주기</button><button class="btn btn-out" onclick="petRename()"><svg class="ic"><use href="#i-edit"/></svg>이름 짓기</button><button class="btn btn-out" onclick="petGacha()"><svg class="ic"><use href="#i-refresh"/></svg>다시 뽑기</button></div></div>
-    <div class="set-sec"><label class="set-row"><span><b>홈 화면에 펫 보이기</b><small>오늘 작업 화면 아래쪽을 돌아다녀요</small></span><input type="checkbox" class="set-tg" ${pet.hidden?'':'checked'} onchange="petHide()"></label></div>
-    <p class="set-p">펫을 누르면 쓰다듬기, 두 번 누르면 이 화면이 열려요. 응가는 눌러서 치우고, 꽃은 눌러서 받아요.</p>`;
+  const own=Object.keys(petSt.owned), can=petCanDraw();
+  const draw=`<div class="set-sec pet-draw"><div><b>오늘의 뽑기</b><small>${can?'하루에 한 번 새 친구를 만날 수 있어요':'오늘은 이미 뽑았어요. 내일 또 만나요'}</small></div><button class="btn ${can?'btn-pri':'btn-out'}" ${can?'':'disabled'} onclick="petGacha()"><svg class="ic"><use href="#i-gift"/></svg>뽑기</button></div>`;
+  const dex=`<div class="set-sec"><h4>도감 <span class="mail-n">${own.length} / ${PET_KINDS.length}</span></h4><div class="pet-dex">${PET_KINDS.map(k=>{ const o=petSt.owned[k.id];
+      return o ? `<button class="dex${_petSel===k.id?' on':''}${petSt.active.includes(k.id)?' walk':''}" onclick="_petSel='${k.id}';renderSettings('pet')" title="${esc(petName(k.id))}"><canvas data-k="${k.id}" width="48" height="48"></canvas><span>${esc(petName(k.id))}</span></button>`
+               : `<div class="dex unk"><i>?</i><span>&nbsp;</span></div>`; }).join('')}</div>
+      <p class="set-p">발자국 표시가 있는 친구가 오늘 작업 화면 가장자리를 산책해요 (최대 ${PET_MAX_WALK}마리). 펫을 누르면 멈추기 · 밥 주기 · 쓰다듬기, 끌면 옮기기.</p></div>`;
+  let det='';
+  const id=_petSel&&petSt.owned[_petSel]?_petSel:own[0];
+  if(id){ _petSel=id; const o=petSt.owned[id], K=petKind(id);
+    const days=Math.max(1,Math.round((Date.now()-(o.born||Date.now()))/864e5)+1);
+    const full=Math.max(0,Math.round(100-Math.min(100,(Date.now()-(o.fedTs||0))/864e3*2)));
+    const walking=petSt.active.includes(id);
+    det=`<div class="set-sec pet-det"><div class="pm-hd"><canvas id="pmCv" width="48" height="48"></canvas><div><b>${esc(petName(id))}</b><small>${esc(K.name)} · ${'★'.repeat(K.r)}${'☆'.repeat(3-K.r)} · 함께한 지 ${days}일${o.n>1?` · ${o.n}번 만남`:''}</small></div></div>
+      <div class="pm-bars"><label>기분 <span><i style="width:${o.hap||0}%"></i></span></label><label>배부름 <span><i style="width:${full}%"></i></span></label></div>
+      <div class="pm-meta"><svg class="ic"><use href="#i-flower"/></svg> 받은 꽃 ${o.flowers||0}　<svg class="ic"><use href="#i-heart"/></svg> 쓰다듬기 ${o.pats||0}</div>
+      <div class="pm-btns"><button class="btn ${walking?'btn-out':'btn-pri'}" onclick="petWalk('${id}')"><svg class="ic"><use href="#i-paw"/></svg>${walking?'쉬게 하기':'산책 보내기'}</button><button class="btn btn-out" onclick="petFeed('${id}')"><svg class="ic"><use href="#i-cookie"/></svg>밥 주기</button><button class="btn btn-out" onclick="petRename('${id}')"><svg class="ic"><use href="#i-edit"/></svg>이름 짓기</button></div></div>`;
+  }
+  const tg=`<div class="set-sec"><label class="set-row"><span><b>홈 화면에 펫 보이기</b><small>응가(3시간에 한 번)는 눌러서 치우고, 꽃은 눌러서 받아요</small></span><input type="checkbox" class="set-tg" ${petSt.hidden?'':'checked'} onchange="petHide()"></label></div>`;
+  return draw+det+dex+tg;
+}
+function petPanelDraw(){
+  const c=document.getElementById('pmCv'); if(c&&_petSel) drawPet(c,_petSel,{frame:0,mode:'happy'});
+  document.querySelectorAll('.pet-dex canvas[data-k]').forEach(c=>drawPet(c,c.dataset.k,{frame:0,mode:'idle'}));
 }
 function petMenu(){ openSettings('pet'); }
-function _petRefresh(){ if(_setTab==='pet' && document.getElementById('setModal').classList.contains('open')) renderSettings('pet'); }
-function petFeed(){ if(!pet) return; pet.fedTs=Date.now(); pet.hap=Math.min(100,(pet.hap||60)+6); savePet(); _petRefresh(); petSay('냠냠! 맛있다',2500); PS.mode='happy'; PS.until=performance.now()+1500; }
-function petRename(){ const v=prompt('펫 이름', pet.name||''); if(v===null) return; pet.name=v.trim().slice(0,12); savePet(); _petRefresh(); }
-function petHide(){ pet.hidden=!pet.hidden; savePet(); petRender(); _petRefresh(); }
+function _petRefresh(){ if(typeof _setTab!=='undefined' && _setTab==='pet' && document.getElementById('setModal').classList.contains('open')) renderSettings('pet'); }
+function petWalk(id){
+  const i=petSt.active.indexOf(id);
+  if(i>=0) petSt.active.splice(i,1);
+  else { if(petSt.active.length>=PET_MAX_WALK) petSt.active.shift(); petSt.active.push(id); }
+  savePets(); petSync(); _petRefresh();
+}
+function petFeed(id){ const o=petSt.owned[id]; if(!o) return; o.fedTs=Date.now(); o.hap=Math.min(100,(o.hap||60)+6); savePets(); _petRefresh(); const a=PETS.find(p=>p.id===id); if(a){ petSay(a,'냠냠! 맛있다',2500); a.mode='happy'; a.until=performance.now()+1500; } }
+function petRename(id){ const v=prompt('펫 이름', petSt.owned[id].name||''); if(v===null) return; petSt.owned[id].name=v.trim().slice(0,12); savePets(); _petRefresh(); }
+function petHide(){ petSt.hidden=!petSt.hidden; savePets(); petSync(); _petRefresh(); }
+function petPick(){
+  // 희귀도: 흔함 62% · 드묾 30% · 아주 드묾 8%. 아직 없는 친구가 조금 더 잘 나옴
+  const rr=Math.random(), tier=rr<.08?3:rr<.38?2:1;
+  const pool=PET_KINDS.filter(k=>k.r===tier);
+  const fresh=pool.filter(k=>!petSt.owned[k.id]);
+  const from=(fresh.length&&Math.random()<.7)?fresh:pool;
+  return from[Math.floor(Math.random()*from.length)];
+}
 function petGacha(){
+  if(!petCanDraw()) return;
   const ov=document.createElement('div'); ov.className='pet-gacha';
-  ov.innerHTML=`<div class="pg-card"><div class="pg-ball"><canvas id="pgCv" width="48" height="48"></canvas></div><b id="pgName">두근두근…</b><small id="pgSub"> </small><div class="pm-btns" id="pgBtns" style="visibility:hidden;"><button class="btn btn-out" id="pgAgain">한 번 더</button><button class="btn btn-pri" id="pgOk">이 친구로!</button></div></div>`;
+  ov.innerHTML=`<div class="pg-card"><div class="pg-ball"><canvas id="pgCv" width="48" height="48"></canvas></div><b id="pgName">두근두근…</b><small id="pgSub"> </small><div class="pm-btns" id="pgBtns" style="visibility:hidden;"><button class="btn btn-pri" id="pgOk">반가워!</button></div></div>`;
   document.body.appendChild(ov);
-  const cv=ov.querySelector('#pgCv'); let i=0, pick=null;
-  const spin=()=>{
-    let n=0; ov.querySelector('#pgBtns').style.visibility='hidden'; ov.querySelector('#pgName').textContent='두근두근…';
-    const t=setInterval(()=>{ i=(i+1)%PET_KINDS.length; drawPet(cv,PET_KINDS[i].id,{frame:n,mode:'idle'});
-      if(++n>14+Math.floor(Math.random()*8)){ clearInterval(t); pick=PET_KINDS[Math.floor(Math.random()*PET_KINDS.length)];
-        drawPet(cv,pick.id,{frame:0,mode:'happy'}); ov.querySelector('#pgName').textContent=`${pick.name}(이)가 나왔어요!`;
-        ov.querySelector('#pgSub').textContent='쓰다듬으면 좋아해요 · 응가는 눌러서 치워 주세요'; ov.querySelector('#pgBtns').style.visibility='visible'; } }, 90);
-  };
-  ov.querySelector('#pgAgain').onclick=spin;
-  ov.querySelector('#pgOk').onclick=()=>{ pet={kind:pick.id, name:'', hap:70, fedTs:Date.now(), flowers:pet?pet.flowers||0:0, pats:pet?pet.pats||0:0, born:pet&&pet.born||Date.now(), hidden:false}; savePet(); ov.remove(); petRender(); _petRefresh(); petSay('안녕! 잘 부탁해',3000); };
-  ov.addEventListener('pointerdown',e=>{ if(e.target===ov) ov.remove(); });
-  spin();
+  const cv=ov.querySelector('#pgCv'); let i=0, n=0;
+  const pick=petPick();
+  petSt.lastDraw=petTodayKey();
+  const isNew=!petSt.owned[pick.id];
+  if(isNew) petSt.owned[pick.id]={n:1,name:'',born:Date.now(),hap:70,fedTs:Date.now(),flowers:0,pats:0};
+  else petSt.owned[pick.id].n=(petSt.owned[pick.id].n||1)+1;
+  if(isNew && petSt.active.length<PET_MAX_WALK) petSt.active.push(pick.id);
+  savePets();
+  const egg=(f)=>{ const x=cv.getContext('2d'); x.clearRect(0,0,48,48); x.save(); x.translate(24,30); x.rotate((f%4<2?-1:1)*0.12*(f>8?2:1));
+      x.fillStyle='#FFF6E4'; x.strokeStyle='#E3C9A4'; x.lineWidth=3; x.beginPath(); x.ellipse(0,0,13,16,0,0,Math.PI*2); x.fill(); x.stroke();
+      x.fillStyle='#F7C6CF'; [[-5,-6],[5,2],[-2,8]].forEach(([a,b])=>{ x.beginPath(); x.arc(a,b,2.6,0,7); x.fill(); });
+      if(f>12){ x.strokeStyle='#C9A47A'; x.lineWidth=2; x.beginPath(); x.moveTo(-12,-2); x.lineTo(-6,-6); x.lineTo(-1,0); x.lineTo(5,-6); x.lineTo(12,-2); x.stroke(); }
+      x.restore(); };
+  const t=setInterval(()=>{ egg(n);
+    if(++n>16){ clearInterval(t); drawPet(cv,pick.id,{frame:0,mode:'happy'});
+      ov.querySelector('#pgName').textContent=`${pick.name}${isNew?'(이)가 나왔어요!':'를 또 만났어요'}`;
+      ov.querySelector('#pgSub').textContent=`${'★'.repeat(pick.r)}${'☆'.repeat(3-pick.r)}${isNew?' · 도감에 새로 등록':' · 기분이 좋아졌어요'}`;
+      if(!isNew){ const o=petSt.owned[pick.id]; o.hap=Math.min(100,(o.hap||60)+10); savePets(); }
+      ov.querySelector('#pgBtns').style.visibility='visible'; } }, 90);
+  ov.querySelector('#pgOk').onclick=()=>{ ov.remove(); _petSel=pick.id; petSync(); _petRefresh(); const a=PETS.find(p=>p.id===pick.id); if(a) petSay(a,'안녕! 잘 부탁해',3000); };
 }
 petMount();
 
@@ -7636,7 +7815,7 @@ function renderSettings(tab){
       return `<button class="font-card${k===cur?' on':''}" data-font="${k}" onclick="setFont('${k}')"><b style="font-family:${esc(f.family)},'Pretendard';font-size:${Math.round(15*(f.scale||1))}px;">${esc(f.label)}</b><span style="font-family:${esc(f.family)},'Pretendard';font-size:${Math.round(12.5*(f.scale||1))}px;">오늘도 배양 화이팅 · HCC26 P3 d5</span></button>`; }).join('')}</div></div>`).join('');
   } else if(_setTab==='home'){
     h=`<h3>홈 화면</h3><div class="set-sec"><label class="set-row"><span><b>Incubator 보이기</b><small>사이드바 왼쪽 아래에 plate가 쌓인 인큐베이터</small></span><input type="checkbox" class="set-tg" ${incuOn()?'checked':''} onchange="setIncu(this.checked)"></label>
-      <label class="set-row"><span><b>펫 보이기</b><small>펫 탭에서 뽑고 돌볼 수 있어요</small></span><input type="checkbox" class="set-tg" ${pet&&pet.kind&&!pet.hidden?'checked':''} ${pet&&pet.kind?'':'disabled'} onchange="petHide()"></label></div>`;
+      <label class="set-row"><span><b>펫 보이기</b><small>펫 탭에서 뽑고 돌볼 수 있어요</small></span><input type="checkbox" class="set-tg" ${!petSt.hidden?'checked':''} onchange="petHide()"></label></div>`;
   } else if(_setTab==='pet'){
     h=`<h3>펫</h3>`+petPanelHTML();
   } else if(_setTab==='mail'){
@@ -7646,10 +7825,7 @@ function renderSettings(tab){
   }
   el.innerHTML=h;
   if(_setTab==='mail') mailLoadInbox();
-  if(_setTab==='pet'){
-    const c=document.getElementById('pmCv'); if(c&&pet) drawPet(c,pet.kind,{frame:0,mode:'happy'});
-    el.querySelectorAll('.pet-kinds canvas').forEach(c=>drawPet(c,c.dataset.k,{frame:0,mode:'idle'}));
-  }
+  if(_setTab==='pet') petPanelDraw();
 }
 setIncu(incuOn());
 
@@ -7712,7 +7888,7 @@ const NEWS={id:'2026-11-06', date:'2026-11-06', days:5, items:[
   ['book','<b>다이어리</b> 탭: 먼슬리 · 위클리로 내 배양 기록 보기'],
   ['tank','도구 › <b>LN2 탱크</b>: 사람 · 종류 · 날짜 조건 검색, 박스 위치, Pair 찾기'],
   ['download','LN2 탱크 › <b>Stock 넣기</b>: 바이알을 박스 칸에 끌어 넣으면 엑셀 ver+1로 내려받기'],
-  ['paw','<b>펫</b>: 설정 › 펫에서 뽑기. 오늘 작업 화면을 돌아다녀요'],
+  ['paw','<b>펫</b>: 하루에 한 번 뽑기, 도감 모으기, 여러 마리가 화면 가장자리를 산책해요. 누르면 멈추기 · 밥 주기 · 쓰다듬기'],
   ['sliders','<b>설정</b>: 테마 · 손글씨 글씨체 · 펫 · <b>우체통</b>을 한곳에서. 그림 배경은 매주 바뀌어요 (무엇이 나올지는 비밀)'],
 ]};
 function newsShow(force){
