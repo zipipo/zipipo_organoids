@@ -798,16 +798,16 @@ body[data-tab="ln2"] .pane[data-pane="ln2"]{display:block;animation:paneIn .28s 
 .ana-full{grid-column:1 / -1;}
 /* 인큐베이터 (옆면) */
 .incu{margin-bottom:14px;padding:0 4px 6px;}
-.incu-box{min-width:0;background:linear-gradient(180deg,#F7F8FA,#ECEEF2);border:2px solid #CBD2DC;border-radius:18px;padding:8px 12px 10px;position:relative;box-shadow:0 3px 0 #CBD2DC;}
+.incu-box{min-width:0;background:var(--psoft);border:1.5px solid var(--bd);border-radius:16px;padding:8px 12px 10px;position:relative;}
 .incu-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:7px;}
 .incu-top em{font-style:normal;font-size:.72rem;color:var(--sub);margin-left:6px;}
 .incu-top b{font-size:.78rem;}
-.incu-lcd{font:600 .66rem/1 ui-monospace,Menlo,monospace;background:#1F2937;color:#86EFAC;padding:3px 7px;border-radius:5px;letter-spacing:.03em;}
-.incu-lcd i{display:inline-block;width:6px;height:6px;border-radius:50%;background:#4ADE80;margin-right:5px;animation:incuBlink 2.4s infinite;}
+.incu-lcd{display:inline-flex;align-items:center;gap:5px;font-size:.66rem;font-weight:600;background:var(--sur);color:var(--pri);border:1px solid var(--bd);padding:2px 8px;border-radius:999px;}
+.incu-lcd i{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--pri);opacity:.7;animation:incuBlink 2.4s infinite;}
 @keyframes incuBlink{0%,90%{opacity:1;}95%{opacity:.2;}}
-.incu-win{--shelf:#C3CBD6;background:linear-gradient(to top,transparent 0 30px,var(--shelf) 30px 35px,transparent 35px),rgba(255,255,255,.8);border:1.5px solid #D5DBE3;border-radius:12px;padding:10px 14px 0;display:flex;gap:20px;align-items:flex-end;overflow-x:auto;min-height:130px;}
+.incu-win{--shelf:var(--bd);background:var(--sur);border:1.5px solid var(--bd);border-radius:12px;padding:10px 0 0;display:flex;gap:0;align-items:flex-end;overflow-x:auto;min-height:130px;}
 .incu-st{display:flex;flex-direction:column;align-items:center;gap:0;flex:0 0 auto;}
-.incu-cols{padding-bottom:5px;}
+.incu-cols{padding:0 10px;}
 .incu-cols{display:flex;gap:4px;align-items:flex-end;}
 .incu-col{display:flex;flex-direction:column-reverse;gap:1px;}
 .incu-p{width:58px;border-radius:2px 2px 1px 1px;border:1px solid;position:relative;cursor:default;transition:transform .15s;}
@@ -815,14 +815,13 @@ body[data-tab="ln2"] .pane[data-pane="ln2"]{display:block;animation:paneIn .28s 
 .incu-p:hover{transform:translateX(3px);}
 .incu-p.k-dish{width:52px;border-radius:2px;}
 .incu-p.k-flask{width:40px;border-radius:3px 6px 6px 3px;}
-.incu-p.k-flask::after{content:'';position:absolute;right:-7px;top:2px;width:6px;height:5px;border-radius:2px;background:#9CA3AF;}
-.incu-l{height:30px;padding-top:3px;box-sizing:border-box;font-size:.64rem;color:var(--sub);white-space:nowrap;text-align:center;line-height:1.2;}
+.incu-p.k-flask::after{content:'';position:absolute;right:-7px;top:2px;width:6px;height:5px;border-radius:2px;background:var(--bd);}
+.incu-l{align-self:stretch;height:34px;padding:4px 6px 0;border-top:4px solid var(--shelf);box-sizing:border-box;font-size:.64rem;color:var(--sub);white-space:nowrap;text-align:center;line-height:1.2;}
+.incu-fill{flex:1 0 6px;align-self:flex-end;height:34px;border-top:4px solid var(--shelf);}
 .incu-l b{color:var(--tx);font-size:.72rem;}
 .incu-feet{display:flex;justify-content:space-between;padding:0 26px;}
-.incu-feet i{width:20px;height:6px;background:#B8C1CD;border-radius:0 0 5px 5px;}
+.incu-feet i{width:20px;height:6px;background:var(--bd);border-radius:0 0 5px 5px;}
 .incu-empty{font-size:.76rem;color:var(--mut);padding:30px 6px;}
-body[data-theme="dark"] .incu-box{background:linear-gradient(180deg,#2A2F38,#22262D);border-color:#3A414C;box-shadow:0 3px 0 #3A414C;}
-body[data-theme="dark"] .incu-win{--shelf:#4B5563;background-color:rgba(0,0,0,.25);border-color:#3A414C;}
 /* 다이어리 (먼슬리 · 위클리) */
 .dy{--paper:#FFFDF6;--ink:#3B3A36;--ink2:#8A857A;--rule:rgba(120,140,170,.16);--hand:'Gaegu','Nanum Pen Script',var(--font,inherit),cursive;}
 .dy-top{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
@@ -877,7 +876,8 @@ body[data-theme="dark"] .dy-mgrid,body[data-theme="dark"] .dy-wh,body[data-theme
 body[data-theme="dark"] .dy-wh{background:rgba(70,65,55,.5);}
 body[data-theme="dark"] .dy-week-note{background:rgba(90,80,40,.6);}
 /* 사이드바 안 인큐베이터: 작게 */
-.side-incu{padding:14px 8px 4px;}
+.side-incu{margin-top:auto;padding:14px 8px 12px;}
+.side-incu+.side-foot{margin-top:0;}
 .side-incu .incu{margin:0;padding:0 2px 4px;}
 .side-incu .incu-box{padding:7px 8px 8px;border-radius:14px;}
 .side-incu .incu-top{flex-direction:column;align-items:stretch;gap:5px;}
@@ -886,14 +886,15 @@ body[data-theme="dark"] .dy-week-note{background:rgba(90,80,40,.6);}
 .side-incu .incu-top b:hover{color:var(--pri);}
 .side-incu .incu-top em{margin:0;font-size:.66rem;white-space:nowrap;}
 .side-incu .incu-lcd{align-self:flex-start;font-size:.6rem;}
-.side-incu .incu-win{gap:10px;padding:8px 8px 0;min-height:96px;background:linear-gradient(to top,transparent 0 26px,var(--shelf) 26px 30px,transparent 30px),rgba(255,255,255,.8);}
+.side-incu .incu-win{padding:8px 0 0;min-height:96px;}
+.side-incu .incu-cols{padding:0 5px;}
 .side-incu .incu-p{width:34px;}
 .side-incu .incu-p.k-dish{width:30px;}
 .side-incu .incu-p.k-flask{width:24px;}
-.side-incu .incu-l{height:26px;font-size:.58rem;}
+.side-incu .incu-l{height:32px;font-size:.58rem;}
+.side-incu .incu-fill{height:32px;}
 .side-incu .incu-l b{font-size:.62rem;}
 .side-incu .incu-feet{padding:0 20px;}
-body[data-theme="dark"] .side-incu .incu-win{background:linear-gradient(to top,transparent 0 26px,var(--shelf) 26px 30px,transparent 30px),rgba(0,0,0,.25);}
 /* LN2 탱크: Explorer를 iframe으로 (CSS · 스크립트가 앱과 안 섞이게) */
 #ln2Frame{display:block;width:100%;height:calc(100vh - 120px);min-height:560px;border:1px solid var(--bd);border-radius:12px;background:#fff;}
 /* 이번 주 실험 정리: 요일마다 액션별 블럭이 아래에서 위로 쌓임 */
@@ -2265,9 +2266,10 @@ function renderIncubator(){
       return `<div class="incu-p k-${s.pk.k}" style="height:${s.pk.h}px;background:${c2.bg};border-color:${c2.bd};" title="${esc(lineTag(it.l))} · P${esc(it.l.passage)}${it.w?` · ${it.w} well`:''}"></div>`; }).join('')}</div>`).join('')}</div>
       <div class="incu-l"><b>${esc(s.pk.label)}</b><br>${s.n}장${s.pk.k==='well'&&s.w?` · ${s.w}w`:''}</div></div>`;
   }).join('') : `<div class="incu-empty">배양 중인 라인이 없어요. 텅 빈 인큐베이터…</div>`;
+  const fill='<span class="incu-fill"></span>';
   const nick=_incuNick();
-  el.innerHTML=`<div class="incu"><div class="incu-box"><div class="incu-top"><span><b onclick="setIncuNick()" title="눌러서 닉네임 바꾸기">${esc(nick?nick+'의 인큐베이터':'나의 인큐베이터')} ✎</b><em>${stacks.length?`${stacks.length}종류 · ${total}장`:''}</em></span><span class="incu-lcd"><i></i>37.0°C · CO₂ 5%</span></div>
-    <div class="incu-win">${body}</div></div><div class="incu-feet"><i></i><i></i></div></div>`;
+  el.innerHTML=`<div class="incu"><div class="incu-box"><div class="incu-top"><span><b onclick="setIncuNick()" title="눌러서 닉네임 바꾸기">${esc(nick?nick+'의 인큐베이터':'나의 인큐베이터')} ✎</b><em>${stacks.length?`${stacks.length}종류 · ${total}장`:''}</em></span><span class="incu-lcd"><i></i>37°C · CO₂ 5%</span></div>
+    <div class="incu-win">${body}${stacks.length?fill:''}</div></div><div class="incu-feet"><i></i><i></i></div></div>`;
 }
 
 // ══════════════════════════════════════════
