@@ -32,7 +32,7 @@ body{font-family:var(--font,'Pretendard'),'Pretendard',sans-serif;background:var
 #stockBanner{margin-bottom:10px;}
 .sc-card{background:#FFF7ED;border:1px solid #FED7AA;border-radius:7px;padding:7px 11px;display:flex;align-items:center;gap:11px;flex-wrap:wrap;}
 .sc-title{font-size:.76rem;font-weight:700;color:#9A3412;white-space:nowrap;display:flex;align-items:center;gap:5px;}
-.sc-title::before{content:"💉";font-size:.9rem;}
+.sc-title::before{content:none;}
 .sc-items{display:flex;flex-direction:column;gap:5px;flex:1;min-width:260px;}
 .sc-item{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #FED7AA;border-radius:6px;padding:4px 6px 4px 11px;flex-wrap:wrap;}
 .sc-head{display:flex;align-items:baseline;gap:7px;flex:1;min-width:150px;}
@@ -802,8 +802,8 @@ body[data-tab="ln2"] .pane[data-pane="ln2"]{display:block;animation:paneIn .28s 
 .incu-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:7px;}
 .incu-top em{font-style:normal;font-size:.72rem;color:var(--sub);margin-left:6px;}
 .incu-top b{font-size:.78rem;}
-.incu-lcd{display:inline-flex;align-items:center;gap:5px;font-size:.66rem;font-weight:600;background:var(--sur);color:var(--pri);border:1px solid var(--bd);padding:2px 8px;border-radius:999px;}
-.incu-lcd i{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--pri);opacity:.7;animation:incuBlink 2.4s infinite;}
+.incu-lcd{display:inline-flex;align-items:center;gap:3px;font-size:.5rem;font-weight:600;color:var(--sub);letter-spacing:.02em;white-space:nowrap;}
+.incu-lcd i{display:inline-block;width:4px;height:4px;border-radius:50%;background:var(--pri);opacity:.7;animation:incuBlink 2.4s infinite;}
 @keyframes incuBlink{0%,90%{opacity:1;}95%{opacity:.2;}}
 .incu-win{--shelf:var(--bd);background:var(--sur);border:1.5px solid var(--bd);border-radius:12px;padding:10px 0 0;display:flex;gap:0;align-items:flex-end;overflow-x:auto;min-height:130px;}
 .incu-st{display:flex;flex-direction:column;align-items:center;gap:0;flex:0 0 auto;}
@@ -875,17 +875,157 @@ body[data-theme="dark"] .dy{--paper:#2B2A27;--ink:#E8E4DA;--ink2:#A39E92;--rule:
 body[data-theme="dark"] .dy-mgrid,body[data-theme="dark"] .dy-wh,body[data-theme="dark"] .dy-d{border-color:#47443D;}
 body[data-theme="dark"] .dy-wh{background:rgba(70,65,55,.5);}
 body[data-theme="dark"] .dy-week-note{background:rgba(90,80,40,.6);}
+
+/* 그림 배경 테마: 밤하늘 (다크 바탕) · 바다 (파스텔 바탕). 그라데이션 없이 단색 + 귀여운 그림 */
+body[data-theme][data-art="night"]{--bg:#CDD3EA;--side:#E3E6F3;--topbar:rgba(205,211,234,.88);--hov:#EDEFF8;--psoft:#E7EAF6;
+  background:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22150%22 height=%22110%22%3E%3Cpath d=%22M60 12a40 40 0 1 0 40 50 33 33 0 1 1-40-50z%22 fill=%22%23FFF0B8%22/%3E%3Cg fill=%22%237A6A8A%22%3E%3Ccircle cx=%2245%22 cy=%2254%22 r=%222.6%22/%3E%3Ccircle cx=%2264%22 cy=%2262%22 r=%222.6%22/%3E%3C/g%3E%3Cpath d=%22M49 67q7 5 12 0%22 stroke=%22%237A6A8A%22 stroke-width=%222.2%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3Ccircle cx=%2240%22 cy=%2262%22 r=%223.5%22 fill=%22%23F7B6C2%22 opacity=%22.8%22/%3E%3Cg fill=%22%23FFFFFF%22 opacity=%22.55%22%3E%3Crect x=%2288%22 y=%2278%22 width=%2254%22 height=%2217%22 rx=%228.5%22/%3E%3Ccircle cx=%22106%22 cy=%2278%22 r=%2211%22/%3E%3Ccircle cx=%22123%22 cy=%2275%22 r=%228%22/%3E%3C/g%3E%3C/svg%3E") no-repeat right 42% top 0 fixed,url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22360%22 height=%22300%22%3E%3Cg fill=%22%23FFFFFF%22 opacity=%22.9%22%3E%3Ccircle cx=%2230%22 cy=%2240%22 r=%221.6%22/%3E%3Ccircle cx=%22120%22 cy=%2218%22 r=%221.2%22/%3E%3Ccircle cx=%22210%22 cy=%2270%22 r=%221.8%22/%3E%3Ccircle cx=%22300%22 cy=%2230%22 r=%221.3%22/%3E%3Ccircle cx=%2270%22 cy=%22150%22 r=%221.2%22/%3E%3Ccircle cx=%22170%22 cy=%22200%22 r=%221.6%22/%3E%3Ccircle cx=%22260%22 cy=%22160%22 r=%221.1%22/%3E%3Ccircle cx=%22330%22 cy=%22240%22 r=%221.7%22/%3E%3Ccircle cx=%2220%22 cy=%22260%22 r=%221.3%22/%3E%3Ccircle cx=%22110%22 cy=%22280%22 r=%221%22/%3E%3C/g%3E%3Cg fill=%22%23FFF0B8%22%3E%3Cpath d=%22M90 90l3 7 7 3-7 3-3 7-3-7-7-3 7-3z%22/%3E%3Cpath d=%22M290 110l2 5 5 2-5 2-2 5-2-5-5-2 5-2z%22/%3E%3Cpath d=%22M200 255l2.5 6 6 2.5-6 2.5-2.5 6-2.5-6-6-2.5 6-2.5z%22/%3E%3C/g%3E%3C/svg%3E") repeat fixed,var(--bg);}
+body[data-theme][data-art="ocean"]{--bg:#DDF0F8;--side:#ECF7FB;--topbar:rgba(221,240,248,.88);--hov:#EEF8FC;--psoft:#E6F5FB;
+  background:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22640%22 height=%22150%22 viewBox=%220 0 640 150%22%3E%3Cg opacity=%22.7%22%3E%3Cpath d=%22M0 60q40-24 80 0t80 0 80 0 80 0 80 0 80 0 80 0 80 0V150H0z%22 fill=%22%23C4E6F3%22/%3E%3Cpath d=%22M0 92q40-22 80 0t80 0 80 0 80 0 80 0 80 0 80 0 80 0V150H0z%22 fill=%22%23AEDCEF%22/%3E%3Cg transform=%22translate%28420 18%29%22%3E%3Cpath d=%22M0 40c0-22 22-36 48-36s50 16 50 36-24 26-50 26S0 60 0 40z%22 fill=%22%239CCFEC%22/%3E%3Cpath d=%22M96 34l18-14v32z%22 fill=%22%239CCFEC%22/%3E%3Cpath d=%22M8 48c14 10 60 10 76 0%22 fill=%22%23EAF6FC%22/%3E%3Ccircle cx=%2226%22 cy=%2232%22 r=%223%22 fill=%22%232E4A5C%22/%3E%3Ccircle cx=%2220%22 cy=%2240%22 r=%224%22 fill=%22%23F7B6C2%22/%3E%3Cpath d=%22M46 0q2-10 8-12M46 0q-4-10-10-10%22 stroke=%22%239CCFEC%22 stroke-width=%223%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat-x left bottom fixed,url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22320%22 height=%22320%22%3E%3Cg fill=%22none%22 stroke=%22%23FFFFFF%22 stroke-width=%222%22 opacity=%22.9%22%3E%3Ccircle cx=%2240%22 cy=%2260%22 r=%228%22/%3E%3Ccircle cx=%2252%22 cy=%2240%22 r=%224%22/%3E%3Ccircle cx=%22250%22 cy=%22120%22 r=%2210%22/%3E%3Ccircle cx=%22262%22 cy=%2296%22 r=%225%22/%3E%3Ccircle cx=%22150%22 cy=%22250%22 r=%227%22/%3E%3Ccircle cx=%22290%22 cy=%22280%22 r=%224%22/%3E%3C/g%3E%3Cg transform=%22translate%28120 120%29%22 opacity=%22.75%22%3E%3Cpath d=%22M0 12c10-14 30-14 38 0-8 14-28 14-38 0z%22 fill=%22%23FFC9A8%22/%3E%3Cpath d=%22M38 12l12-9v18z%22 fill=%22%23FFB38A%22/%3E%3Ccircle cx=%2210%22 cy=%2210%22 r=%222.2%22 fill=%22%234A3B33%22/%3E%3C/g%3E%3Cg transform=%22translate%28230 210%29%22 opacity=%22.75%22%3E%3Cpath d=%22M0 10c8-11 24-11 30 0-6 11-22 11-30 0z%22 fill=%22%23C9C2F5%22/%3E%3Cpath d=%22M30 10l9-7v14z%22 fill=%22%23B3A9F0%22/%3E%3Ccircle cx=%228%22 cy=%228%22 r=%221.8%22 fill=%22%234A3B33%22/%3E%3C/g%3E%3C/svg%3E") repeat fixed,var(--bg);}
+body[data-theme][data-art="freesia"]{--bg:#FFF5D8;--side:#FFF9E8;--hov:#FFFBEE;--psoft:#FFF6DC;--topbar:#FFF5D8e0;
+  background:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22240%22 height=%22170%22%3E%3Cg opacity=%22.85%22%3E%3Cpath d=%22M120 170q-6-60 20-110M120 170q-30-50-60-80M120 170q30-40 80-60%22 stroke=%22%239CCB86%22 stroke-width=%223%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3Cg transform=%22translate%28140 62%29 rotate%28-20%29%22%3E%3Cpath d=%22M0 0c-7 0-9 7-9 11h18c0-4-2-11-9-11z%22 fill=%22%23FFE07A%22/%3E%3Cpath d=%22M-9 11q4 4 9 0 5 4 9 0%22 fill=%22%23FFE07A%22/%3E%3Ccircle cy=%2210%22 r=%221.6%22 fill=%22%23F2B33D%22/%3E%3C/g%3E%3Cg transform=%22translate%28152 46%29 rotate%280%29%22%3E%3Cpath d=%22M0 0c-7 0-9 7-9 11h18c0-4-2-11-9-11z%22 fill=%22%23FFF1B0%22/%3E%3Cpath d=%22M-9 11q4 4 9 0 5 4 9 0%22 fill=%22%23FFF1B0%22/%3E%3Ccircle cy=%2210%22 r=%221.6%22 fill=%22%23F2B33D%22/%3E%3C/g%3E%3Cg transform=%22translate%28166 36%29 rotate%2825%29%22%3E%3Cpath d=%22M0 0c-7 0-9 7-9 11h18c0-4-2-11-9-11z%22 fill=%22%23FFE07A%22/%3E%3Cpath d=%22M-9 11q4 4 9 0 5 4 9 0%22 fill=%22%23FFE07A%22/%3E%3Ccircle cy=%2210%22 r=%221.6%22 fill=%22%23F2B33D%22/%3E%3C/g%3E%3Cg transform=%22translate%2864 92%29 rotate%28-50%29%22%3E%3Cpath d=%22M0 0c-7 0-9 7-9 11h18c0-4-2-11-9-11z%22 fill=%22%23FFFFFF%22/%3E%3Cpath d=%22M-9 11q4 4 9 0 5 4 9 0%22 fill=%22%23FFFFFF%22/%3E%3Ccircle cy=%2210%22 r=%221.6%22 fill=%22%23F2B33D%22/%3E%3C/g%3E%3Cg transform=%22translate%2854 78%29 rotate%28-30%29%22%3E%3Cpath d=%22M0 0c-7 0-9 7-9 11h18c0-4-2-11-9-11z%22 fill=%22%23FFF1B0%22/%3E%3Cpath d=%22M-9 11q4 4 9 0 5 4 9 0%22 fill=%22%23FFF1B0%22/%3E%3Ccircle cy=%2210%22 r=%221.6%22 fill=%22%23F2B33D%22/%3E%3C/g%3E%3Cg transform=%22translate%28198 110%29 rotate%2840%29%22%3E%3Cpath d=%22M0 0c-7 0-9 7-9 11h18c0-4-2-11-9-11z%22 fill=%22%23FFE07A%22/%3E%3Cpath d=%22M-9 11q4 4 9 0 5 4 9 0%22 fill=%22%23FFE07A%22/%3E%3Ccircle cy=%2210%22 r=%221.6%22 fill=%22%23F2B33D%22/%3E%3C/g%3E%3Cg transform=%22translate%28212 100%29 rotate%2860%29%22%3E%3Cpath d=%22M0 0c-7 0-9 7-9 11h18c0-4-2-11-9-11z%22 fill=%22%23FFFFFF%22/%3E%3Cpath d=%22M-9 11q4 4 9 0 5 4 9 0%22 fill=%22%23FFFFFF%22/%3E%3Ccircle cy=%2210%22 r=%221.6%22 fill=%22%23F2B33D%22/%3E%3C/g%3E%3Cpath d=%22M96 150h48l-6 20h-36z%22 fill=%22%23F7C6CF%22/%3E%3C/g%3E%3C/svg%3E") no-repeat right 18px bottom 0 fixed,url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22280%22%3E%3Cg opacity=%22.6%22%3E%3Cg transform=%22translate%2830 40%29 scale%281%29%22%3E%3Cpath d=%22M0 40q4-26 24-34%22 stroke=%22%239CCB86%22 stroke-width=%222.4%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3Cg transform=%22translate%288 14%29 rotate%28-30%29%22%3E%3Cpath d=%22M0 0c-7 0-9 7-9 11h18c0-4-2-11-9-11z%22 fill=%22%23FFE07A%22/%3E%3Cpath d=%22M-9 11q4 4 9 0 5 4 9 0%22 fill=%22%23FFE07A%22/%3E%3Ccircle cy=%2210%22 r=%221.6%22 fill=%22%23F2B33D%22/%3E%3C/g%3E%3Cg transform=%22translate%2816 6%29 rotate%28-10%29%22%3E%3Cpath d=%22M0 0c-7 0-9 7-9 11h18c0-4-2-11-9-11z%22 fill=%22%23FFF1B0%22/%3E%3Cpath d=%22M-9 11q4 4 9 0 5 4 9 0%22 fill=%22%23FFF1B0%22/%3E%3Ccircle cy=%2210%22 r=%221.6%22 fill=%22%23F2B33D%22/%3E%3C/g%3E%3Cg transform=%22translate%2825 2%29 rotate%2815%29%22%3E%3Cpath d=%22M0 0c-7 0-9 7-9 11h18c0-4-2-11-9-11z%22 fill=%22%23FFE07A%22/%3E%3Cpath d=%22M-9 11q4 4 9 0 5 4 9 0%22 fill=%22%23FFE07A%22/%3E%3Ccircle cy=%2210%22 r=%221.6%22 fill=%22%23F2B33D%22/%3E%3C/g%3E%3Cpath d=%22M2 40q-8-8-6-18%22 stroke=%22%239CCB86%22 stroke-width=%222%22 fill=%22none%22/%3E%3C/g%3E%3Cg transform=%22translate%28190 150%29 scale%280.9%29%22%3E%3Cpath d=%22M0 40q4-26 24-34%22 stroke=%22%239CCB86%22 stroke-width=%222.4%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3Cg transform=%22translate%288 14%29 rotate%28-30%29%22%3E%3Cpath d=%22M0 0c-7 0-9 7-9 11h18c0-4-2-11-9-11z%22 fill=%22%23FFE07A%22/%3E%3Cpath d=%22M-9 11q4 4 9 0 5 4 9 0%22 fill=%22%23FFE07A%22/%3E%3Ccircle cy=%2210%22 r=%221.6%22 fill=%22%23F2B33D%22/%3E%3C/g%3E%3Cg transform=%22translate%2816 6%29 rotate%28-10%29%22%3E%3Cpath d=%22M0 0c-7 0-9 7-9 11h18c0-4-2-11-9-11z%22 fill=%22%23FFF1B0%22/%3E%3Cpath d=%22M-9 11q4 4 9 0 5 4 9 0%22 fill=%22%23FFF1B0%22/%3E%3Ccircle cy=%2210%22 r=%221.6%22 fill=%22%23F2B33D%22/%3E%3C/g%3E%3Cg transform=%22translate%2825 2%29 rotate%2815%29%22%3E%3Cpath d=%22M0 0c-7 0-9 7-9 11h18c0-4-2-11-9-11z%22 fill=%22%23FFE07A%22/%3E%3Cpath d=%22M-9 11q4 4 9 0 5 4 9 0%22 fill=%22%23FFE07A%22/%3E%3Ccircle cy=%2210%22 r=%221.6%22 fill=%22%23F2B33D%22/%3E%3C/g%3E%3Cpath d=%22M2 40q-8-8-6-18%22 stroke=%22%239CCB86%22 stroke-width=%222%22 fill=%22none%22/%3E%3C/g%3E%3Cg transform=%22translate%28110 220%29 scale%280.8%29%22%3E%3Cpath d=%22M0 40q4-26 24-34%22 stroke=%22%239CCB86%22 stroke-width=%222.4%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3Cg transform=%22translate%288 14%29 rotate%28-30%29%22%3E%3Cpath d=%22M0 0c-7 0-9 7-9 11h18c0-4-2-11-9-11z%22 fill=%22%23FFE07A%22/%3E%3Cpath d=%22M-9 11q4 4 9 0 5 4 9 0%22 fill=%22%23FFE07A%22/%3E%3Ccircle cy=%2210%22 r=%221.6%22 fill=%22%23F2B33D%22/%3E%3C/g%3E%3Cg transform=%22translate%2816 6%29 rotate%28-10%29%22%3E%3Cpath d=%22M0 0c-7 0-9 7-9 11h18c0-4-2-11-9-11z%22 fill=%22%23FFF1B0%22/%3E%3Cpath d=%22M-9 11q4 4 9 0 5 4 9 0%22 fill=%22%23FFF1B0%22/%3E%3Ccircle cy=%2210%22 r=%221.6%22 fill=%22%23F2B33D%22/%3E%3C/g%3E%3Cg transform=%22translate%2825 2%29 rotate%2815%29%22%3E%3Cpath d=%22M0 0c-7 0-9 7-9 11h18c0-4-2-11-9-11z%22 fill=%22%23FFE07A%22/%3E%3Cpath d=%22M-9 11q4 4 9 0 5 4 9 0%22 fill=%22%23FFE07A%22/%3E%3Ccircle cy=%2210%22 r=%221.6%22 fill=%22%23F2B33D%22/%3E%3C/g%3E%3Cpath d=%22M2 40q-8-8-6-18%22 stroke=%22%239CCB86%22 stroke-width=%222%22 fill=%22none%22/%3E%3C/g%3E%3C/g%3E%3Cg opacity=%22.5%22%3E%3Ccircle cx=%22150%22 cy=%2260%22 r=%222%22 fill=%22%23FFFFFF%22/%3E%3Ccircle cx=%22260%22 cy=%2240%22 r=%222.5%22 fill=%22%23FFE07A%22/%3E%3Ccircle cx=%2260%22 cy=%22170%22 r=%222%22 fill=%22%23FFE07A%22/%3E%3C/g%3E%3C/svg%3E") repeat fixed,var(--bg);}
+.th-prev.art-freesia{background:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22280%22%3E%3Cg opacity=%22.6%22%3E%3Cg transform=%22translate%2830 40%29 scale%281%29%22%3E%3Cpath d=%22M0 40q4-26 24-34%22 stroke=%22%239CCB86%22 stroke-width=%222.4%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3Cg transform=%22translate%288 14%29 rotate%28-30%29%22%3E%3Cpath d=%22M0 0c-7 0-9 7-9 11h18c0-4-2-11-9-11z%22 fill=%22%23FFE07A%22/%3E%3Cpath d=%22M-9 11q4 4 9 0 5 4 9 0%22 fill=%22%23FFE07A%22/%3E%3Ccircle cy=%2210%22 r=%221.6%22 fill=%22%23F2B33D%22/%3E%3C/g%3E%3Cg transform=%22translate%2816 6%29 rotate%28-10%29%22%3E%3Cpath d=%22M0 0c-7 0-9 7-9 11h18c0-4-2-11-9-11z%22 fill=%22%23FFF1B0%22/%3E%3Cpath d=%22M-9 11q4 4 9 0 5 4 9 0%22 fill=%22%23FFF1B0%22/%3E%3Ccircle cy=%2210%22 r=%221.6%22 fill=%22%23F2B33D%22/%3E%3C/g%3E%3Cg transform=%22translate%2825 2%29 rotate%2815%29%22%3E%3Cpath d=%22M0 0c-7 0-9 7-9 11h18c0-4-2-11-9-11z%22 fill=%22%23FFE07A%22/%3E%3Cpath d=%22M-9 11q4 4 9 0 5 4 9 0%22 fill=%22%23FFE07A%22/%3E%3Ccircle cy=%2210%22 r=%221.6%22 fill=%22%23F2B33D%22/%3E%3C/g%3E%3Cpath d=%22M2 40q-8-8-6-18%22 stroke=%22%239CCB86%22 stroke-width=%222%22 fill=%22none%22/%3E%3C/g%3E%3Cg transform=%22translate%28190 150%29 scale%280.9%29%22%3E%3Cpath d=%22M0 40q4-26 24-34%22 stroke=%22%239CCB86%22 stroke-width=%222.4%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3Cg transform=%22translate%288 14%29 rotate%28-30%29%22%3E%3Cpath d=%22M0 0c-7 0-9 7-9 11h18c0-4-2-11-9-11z%22 fill=%22%23FFE07A%22/%3E%3Cpath d=%22M-9 11q4 4 9 0 5 4 9 0%22 fill=%22%23FFE07A%22/%3E%3Ccircle cy=%2210%22 r=%221.6%22 fill=%22%23F2B33D%22/%3E%3C/g%3E%3Cg transform=%22translate%2816 6%29 rotate%28-10%29%22%3E%3Cpath d=%22M0 0c-7 0-9 7-9 11h18c0-4-2-11-9-11z%22 fill=%22%23FFF1B0%22/%3E%3Cpath d=%22M-9 11q4 4 9 0 5 4 9 0%22 fill=%22%23FFF1B0%22/%3E%3Ccircle cy=%2210%22 r=%221.6%22 fill=%22%23F2B33D%22/%3E%3C/g%3E%3Cg transform=%22translate%2825 2%29 rotate%2815%29%22%3E%3Cpath d=%22M0 0c-7 0-9 7-9 11h18c0-4-2-11-9-11z%22 fill=%22%23FFE07A%22/%3E%3Cpath d=%22M-9 11q4 4 9 0 5 4 9 0%22 fill=%22%23FFE07A%22/%3E%3Ccircle cy=%2210%22 r=%221.6%22 fill=%22%23F2B33D%22/%3E%3C/g%3E%3Cpath d=%22M2 40q-8-8-6-18%22 stroke=%22%239CCB86%22 stroke-width=%222%22 fill=%22none%22/%3E%3C/g%3E%3Cg transform=%22translate%28110 220%29 scale%280.8%29%22%3E%3Cpath d=%22M0 40q4-26 24-34%22 stroke=%22%239CCB86%22 stroke-width=%222.4%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3Cg transform=%22translate%288 14%29 rotate%28-30%29%22%3E%3Cpath d=%22M0 0c-7 0-9 7-9 11h18c0-4-2-11-9-11z%22 fill=%22%23FFE07A%22/%3E%3Cpath d=%22M-9 11q4 4 9 0 5 4 9 0%22 fill=%22%23FFE07A%22/%3E%3Ccircle cy=%2210%22 r=%221.6%22 fill=%22%23F2B33D%22/%3E%3C/g%3E%3Cg transform=%22translate%2816 6%29 rotate%28-10%29%22%3E%3Cpath d=%22M0 0c-7 0-9 7-9 11h18c0-4-2-11-9-11z%22 fill=%22%23FFF1B0%22/%3E%3Cpath d=%22M-9 11q4 4 9 0 5 4 9 0%22 fill=%22%23FFF1B0%22/%3E%3Ccircle cy=%2210%22 r=%221.6%22 fill=%22%23F2B33D%22/%3E%3C/g%3E%3Cg transform=%22translate%2825 2%29 rotate%2815%29%22%3E%3Cpath d=%22M0 0c-7 0-9 7-9 11h18c0-4-2-11-9-11z%22 fill=%22%23FFE07A%22/%3E%3Cpath d=%22M-9 11q4 4 9 0 5 4 9 0%22 fill=%22%23FFE07A%22/%3E%3Ccircle cy=%2210%22 r=%221.6%22 fill=%22%23F2B33D%22/%3E%3C/g%3E%3Cpath d=%22M2 40q-8-8-6-18%22 stroke=%22%239CCB86%22 stroke-width=%222%22 fill=%22none%22/%3E%3C/g%3E%3C/g%3E%3Cg opacity=%22.5%22%3E%3Ccircle cx=%22150%22 cy=%2260%22 r=%222%22 fill=%22%23FFFFFF%22/%3E%3Ccircle cx=%22260%22 cy=%2240%22 r=%222.5%22 fill=%22%23FFE07A%22/%3E%3Ccircle cx=%2260%22 cy=%22170%22 r=%222%22 fill=%22%23FFE07A%22/%3E%3C/g%3E%3C/svg%3E") 0 0/150px repeat,#FFF5D8;}
+body[data-theme][data-art="chick"]{--bg:#FFF3D4;--side:#FFF8E6;--hov:#FFFAEC;--psoft:#FFF4D9;--topbar:#FFF3D4e0;
+  background:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22320%22 height=%2290%22%3E%3Cpath d=%22M0 70q80-14 160 0t160 0V90H0z%22 fill=%22%23CFE8B4%22 opacity=%22.8%22/%3E%3Cg transform=%22translate%2860 58%29 scale%281%29%22%3E%3Cellipse cx=%220%22 cy=%220%22 rx=%2213%22 ry=%2212%22 fill=%22%23FFE27A%22/%3E%3Ccircle cx=%227%22 cy=%22-10%22 r=%228%22 fill=%22%23FFE27A%22/%3E%3Cpath d=%22M14 -10l6 2-6 2z%22 fill=%22%23F7A440%22/%3E%3Ccircle cx=%229%22 cy=%22-12%22 r=%221.6%22 fill=%22%234A3B33%22/%3E%3Ccircle cx=%226%22 cy=%22-7%22 r=%222%22 fill=%22%23F7B6A8%22 opacity=%22.8%22/%3E%3Cpath d=%22M-6 -2q-6 4-2 8%22 stroke=%22%23F5CF55%22 stroke-width=%222.5%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M-3 11v4M3 11v4%22 stroke=%22%23F7A440%22 stroke-width=%222%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M5 -18q1-4 4-4%22 stroke=%22%23F5CF55%22 stroke-width=%222%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/g%3E%3Cg transform=%22translate%28120 62%29 scale%280.85%29%22%3E%3Cellipse cx=%220%22 cy=%220%22 rx=%2213%22 ry=%2212%22 fill=%22%23FFE27A%22/%3E%3Ccircle cx=%227%22 cy=%22-10%22 r=%228%22 fill=%22%23FFE27A%22/%3E%3Cpath d=%22M14 -10l6 2-6 2z%22 fill=%22%23F7A440%22/%3E%3Ccircle cx=%229%22 cy=%22-12%22 r=%221.6%22 fill=%22%234A3B33%22/%3E%3Ccircle cx=%226%22 cy=%22-7%22 r=%222%22 fill=%22%23F7B6A8%22 opacity=%22.8%22/%3E%3Cpath d=%22M-6 -2q-6 4-2 8%22 stroke=%22%23F5CF55%22 stroke-width=%222.5%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M-3 11v4M3 11v4%22 stroke=%22%23F7A440%22 stroke-width=%222%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M5 -18q1-4 4-4%22 stroke=%22%23F5CF55%22 stroke-width=%222%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/g%3E%3Cg transform=%22translate%28170 60%29 scale%280.75%29%22%3E%3Cellipse cx=%220%22 cy=%220%22 rx=%2213%22 ry=%2212%22 fill=%22%23FFE27A%22/%3E%3Ccircle cx=%227%22 cy=%22-10%22 r=%228%22 fill=%22%23FFE27A%22/%3E%3Cpath d=%22M14 -10l6 2-6 2z%22 fill=%22%23F7A440%22/%3E%3Ccircle cx=%229%22 cy=%22-12%22 r=%221.6%22 fill=%22%234A3B33%22/%3E%3Ccircle cx=%226%22 cy=%22-7%22 r=%222%22 fill=%22%23F7B6A8%22 opacity=%22.8%22/%3E%3Cpath d=%22M-6 -2q-6 4-2 8%22 stroke=%22%23F5CF55%22 stroke-width=%222.5%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M-3 11v4M3 11v4%22 stroke=%22%23F7A440%22 stroke-width=%222%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M5 -18q1-4 4-4%22 stroke=%22%23F5CF55%22 stroke-width=%222%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/g%3E%3Cg transform=%22translate%28250 56%29 scale%281.05%29 scale%28-1 1%29%22%3E%3Cellipse cx=%220%22 cy=%220%22 rx=%2213%22 ry=%2212%22 fill=%22%23FFE27A%22/%3E%3Ccircle cx=%227%22 cy=%22-10%22 r=%228%22 fill=%22%23FFE27A%22/%3E%3Cpath d=%22M14 -10l6 2-6 2z%22 fill=%22%23F7A440%22/%3E%3Ccircle cx=%229%22 cy=%22-12%22 r=%221.6%22 fill=%22%234A3B33%22/%3E%3Ccircle cx=%226%22 cy=%22-7%22 r=%222%22 fill=%22%23F7B6A8%22 opacity=%22.8%22/%3E%3Cpath d=%22M-6 -2q-6 4-2 8%22 stroke=%22%23F5CF55%22 stroke-width=%222.5%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M-3 11v4M3 11v4%22 stroke=%22%23F7A440%22 stroke-width=%222%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M5 -18q1-4 4-4%22 stroke=%22%23F5CF55%22 stroke-width=%222%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/g%3E%3Cg opacity=%22.9%22%3E%3Ccircle cx=%22210%22 cy=%2272%22 r=%223%22 fill=%22%23FFFFFF%22/%3E%3Ccircle cx=%22214%22 cy=%2268%22 r=%223%22 fill=%22%23FFFFFF%22/%3E%3C/g%3E%3C/svg%3E") no-repeat right 20px bottom 0 fixed,url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22260%22%3E%3Cg opacity=%22.55%22%3E%3Cg transform=%22translate%2850 60%29 scale%280.8%29%22%3E%3Cellipse cx=%220%22 cy=%220%22 rx=%2213%22 ry=%2212%22 fill=%22%23FFE27A%22/%3E%3Ccircle cx=%227%22 cy=%22-10%22 r=%228%22 fill=%22%23FFE27A%22/%3E%3Cpath d=%22M14 -10l6 2-6 2z%22 fill=%22%23F7A440%22/%3E%3Ccircle cx=%229%22 cy=%22-12%22 r=%221.6%22 fill=%22%234A3B33%22/%3E%3Ccircle cx=%226%22 cy=%22-7%22 r=%222%22 fill=%22%23F7B6A8%22 opacity=%22.8%22/%3E%3Cpath d=%22M-6 -2q-6 4-2 8%22 stroke=%22%23F5CF55%22 stroke-width=%222.5%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M-3 11v4M3 11v4%22 stroke=%22%23F7A440%22 stroke-width=%222%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M5 -18q1-4 4-4%22 stroke=%22%23F5CF55%22 stroke-width=%222%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/g%3E%3Cg transform=%22translate%28220 170%29 scale%280.7%29 scale%28-1 1%29%22%3E%3Cellipse cx=%220%22 cy=%220%22 rx=%2213%22 ry=%2212%22 fill=%22%23FFE27A%22/%3E%3Ccircle cx=%227%22 cy=%22-10%22 r=%228%22 fill=%22%23FFE27A%22/%3E%3Cpath d=%22M14 -10l6 2-6 2z%22 fill=%22%23F7A440%22/%3E%3Ccircle cx=%229%22 cy=%22-12%22 r=%221.6%22 fill=%22%234A3B33%22/%3E%3Ccircle cx=%226%22 cy=%22-7%22 r=%222%22 fill=%22%23F7B6A8%22 opacity=%22.8%22/%3E%3Cpath d=%22M-6 -2q-6 4-2 8%22 stroke=%22%23F5CF55%22 stroke-width=%222.5%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M-3 11v4M3 11v4%22 stroke=%22%23F7A440%22 stroke-width=%222%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M5 -18q1-4 4-4%22 stroke=%22%23F5CF55%22 stroke-width=%222%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/g%3E%3Cg transform=%22translate%28150 100%29%22%3E%3Cpath d=%22M-10 0a10 12 0 0 1 20 0z%22 fill=%22%23FFFFFF%22/%3E%3Cpath d=%22M-10 0l4-4 4 4 4-4 4 4 4-4z%22 fill=%22%23FFFFFF%22/%3E%3C/g%3E%3C/g%3E%3Cg fill=%22%23FFFFFF%22 opacity=%22.7%22%3E%3Ccircle cx=%22120%22 cy=%22220%22 r=%222.5%22/%3E%3Ccircle cx=%22270%22 cy=%2250%22 r=%222%22/%3E%3C/g%3E%3C/svg%3E") repeat fixed,var(--bg);}
+.th-prev.art-chick{background:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22260%22%3E%3Cg opacity=%22.55%22%3E%3Cg transform=%22translate%2850 60%29 scale%280.8%29%22%3E%3Cellipse cx=%220%22 cy=%220%22 rx=%2213%22 ry=%2212%22 fill=%22%23FFE27A%22/%3E%3Ccircle cx=%227%22 cy=%22-10%22 r=%228%22 fill=%22%23FFE27A%22/%3E%3Cpath d=%22M14 -10l6 2-6 2z%22 fill=%22%23F7A440%22/%3E%3Ccircle cx=%229%22 cy=%22-12%22 r=%221.6%22 fill=%22%234A3B33%22/%3E%3Ccircle cx=%226%22 cy=%22-7%22 r=%222%22 fill=%22%23F7B6A8%22 opacity=%22.8%22/%3E%3Cpath d=%22M-6 -2q-6 4-2 8%22 stroke=%22%23F5CF55%22 stroke-width=%222.5%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M-3 11v4M3 11v4%22 stroke=%22%23F7A440%22 stroke-width=%222%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M5 -18q1-4 4-4%22 stroke=%22%23F5CF55%22 stroke-width=%222%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/g%3E%3Cg transform=%22translate%28220 170%29 scale%280.7%29 scale%28-1 1%29%22%3E%3Cellipse cx=%220%22 cy=%220%22 rx=%2213%22 ry=%2212%22 fill=%22%23FFE27A%22/%3E%3Ccircle cx=%227%22 cy=%22-10%22 r=%228%22 fill=%22%23FFE27A%22/%3E%3Cpath d=%22M14 -10l6 2-6 2z%22 fill=%22%23F7A440%22/%3E%3Ccircle cx=%229%22 cy=%22-12%22 r=%221.6%22 fill=%22%234A3B33%22/%3E%3Ccircle cx=%226%22 cy=%22-7%22 r=%222%22 fill=%22%23F7B6A8%22 opacity=%22.8%22/%3E%3Cpath d=%22M-6 -2q-6 4-2 8%22 stroke=%22%23F5CF55%22 stroke-width=%222.5%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M-3 11v4M3 11v4%22 stroke=%22%23F7A440%22 stroke-width=%222%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M5 -18q1-4 4-4%22 stroke=%22%23F5CF55%22 stroke-width=%222%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/g%3E%3Cg transform=%22translate%28150 100%29%22%3E%3Cpath d=%22M-10 0a10 12 0 0 1 20 0z%22 fill=%22%23FFFFFF%22/%3E%3Cpath d=%22M-10 0l4-4 4 4 4-4 4 4 4-4z%22 fill=%22%23FFFFFF%22/%3E%3C/g%3E%3C/g%3E%3Cg fill=%22%23FFFFFF%22 opacity=%22.7%22%3E%3Ccircle cx=%22120%22 cy=%22220%22 r=%222.5%22/%3E%3Ccircle cx=%22270%22 cy=%2250%22 r=%222%22/%3E%3C/g%3E%3C/svg%3E") 0 0/150px repeat,#FFF3D4;}
+body[data-theme][data-art="forest"]{--bg:#E2F2D9;--side:#EEF8E9;--hov:#F2FAEE;--psoft:#E8F5E1;--topbar:#E2F2D9e0;
+  background:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22360%22 height=%22140%22%3E%3Cpath d=%22M0 110q90-30 180-6t180-10V140H0z%22 fill=%22%23B8DFA2%22 opacity=%22.85%22/%3E%3Cg transform=%22translate%2890 70%29%22%3E%3Cg%3E%3Crect x=%22-5%22 y=%220%22 width=%2210%22 height=%2226%22 rx=%223%22 fill=%22%23C99A6B%22/%3E%3Ccircle cx=%220%22 cy=%22-14%22 r=%2226%22 fill=%22%238FCB7A%22/%3E%3Ccircle cx=%22-14%22 cy=%22-4%22 r=%2216%22 fill=%22%238FCB7A%22/%3E%3Ccircle cx=%2214%22 cy=%22-4%22 r=%2216%22 fill=%22%238FCB7A%22/%3E%3Ccircle cx=%22-8%22 cy=%22-16%22 r=%224%22 fill=%22%23FF9F80%22/%3E%3Ccircle cx=%2210%22 cy=%22-8%22 r=%224%22 fill=%22%23FF9F80%22/%3E%3Ccircle cx=%224%22 cy=%22-26%22 r=%224%22 fill=%22%23FF9F80%22/%3E%3C/g%3E%3C/g%3E%3Cg transform=%22translate%28250 82%29 scale%28.75%29%22%3E%3Cg%3E%3Crect x=%22-5%22 y=%220%22 width=%2210%22 height=%2226%22 rx=%223%22 fill=%22%23C99A6B%22/%3E%3Ccircle cx=%220%22 cy=%22-14%22 r=%2226%22 fill=%22%238FCB7A%22/%3E%3Ccircle cx=%22-14%22 cy=%22-4%22 r=%2216%22 fill=%22%238FCB7A%22/%3E%3Ccircle cx=%2214%22 cy=%22-4%22 r=%2216%22 fill=%22%238FCB7A%22/%3E%3Ccircle cx=%22-8%22 cy=%22-16%22 r=%224%22 fill=%22%23FF9F80%22/%3E%3Ccircle cx=%2210%22 cy=%22-8%22 r=%224%22 fill=%22%23FF9F80%22/%3E%3Ccircle cx=%224%22 cy=%22-26%22 r=%224%22 fill=%22%23FF9F80%22/%3E%3C/g%3E%3C/g%3E%3Cg stroke=%22%23E3C9A4%22 stroke-width=%224%22 stroke-linecap=%22round%22%3E%3Cpath d=%22M150 118v-18M170 116v-18M190 114v-18M146 104h48%22/%3E%3C/g%3E%3Cg transform=%22translate%2840 120%29%22%3E%3Ccircle r=%224%22 cx=%220%22 cy=%22-4%22 fill=%22%23FFFFFF%22/%3E%3Ccircle r=%224%22 cx=%224%22 cy=%220%22 fill=%22%23FFFFFF%22/%3E%3Ccircle r=%224%22 cx=%220%22 cy=%224%22 fill=%22%23FFFFFF%22/%3E%3Ccircle r=%224%22 cx=%22-4%22 cy=%220%22 fill=%22%23FFFFFF%22/%3E%3Ccircle r=%222.8%22 fill=%22%23FFD85A%22/%3E%3C/g%3E%3Cg transform=%22translate%28320 112%29%22%3E%3Ccircle r=%224%22 cx=%220%22 cy=%22-4%22 fill=%22%23FFD3E0%22/%3E%3Ccircle r=%224%22 cx=%224%22 cy=%220%22 fill=%22%23FFD3E0%22/%3E%3Ccircle r=%224%22 cx=%220%22 cy=%224%22 fill=%22%23FFD3E0%22/%3E%3Ccircle r=%224%22 cx=%22-4%22 cy=%220%22 fill=%22%23FFD3E0%22/%3E%3Ccircle r=%222.8%22 fill=%22%23FFD85A%22/%3E%3C/g%3E%3C/svg%3E") no-repeat right 10px bottom 0 fixed,url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22280%22%3E%3Cg opacity=%22.5%22%3E%3Cg transform=%22translate%2830 40%29 rotate%28-20%29%22%3E%3Cpath d=%22M0 0q10-12 22 0-12 12-22 0z%22 fill=%22%239ED28A%22/%3E%3Cpath d=%22M2 0h18%22 stroke=%22%23FFFFFF%22 stroke-width=%221.2%22 opacity=%22.6%22/%3E%3C/g%3E%3Cg transform=%22translate%28200 90%29 rotate%2830%29%22%3E%3Cpath d=%22M0 0q10-12 22 0-12 12-22 0z%22 fill=%22%23B5DE96%22/%3E%3Cpath d=%22M2 0h18%22 stroke=%22%23FFFFFF%22 stroke-width=%221.2%22 opacity=%22.6%22/%3E%3C/g%3E%3Cg transform=%22translate%28100 200%29 rotate%2810%29%22%3E%3Cpath d=%22M0 0q10-12 22 0-12 12-22 0z%22 fill=%22%239ED28A%22/%3E%3Cpath d=%22M2 0h18%22 stroke=%22%23FFFFFF%22 stroke-width=%221.2%22 opacity=%22.6%22/%3E%3C/g%3E%3Cg transform=%22translate%28250 240%29 rotate%28-40%29%22%3E%3Cpath d=%22M0 0q10-12 22 0-12 12-22 0z%22 fill=%22%23B5DE96%22/%3E%3Cpath d=%22M2 0h18%22 stroke=%22%23FFFFFF%22 stroke-width=%221.2%22 opacity=%22.6%22/%3E%3C/g%3E%3C/g%3E%3Cg opacity=%22.6%22%3E%3Cg transform=%22translate%28150 40%29%22%3E%3Ccircle r=%223.5%22 cx=%220%22 cy=%22-3.5%22 fill=%22%23FFFFFF%22/%3E%3Ccircle r=%223.5%22 cx=%223.5%22 cy=%220%22 fill=%22%23FFFFFF%22/%3E%3Ccircle r=%223.5%22 cx=%220%22 cy=%223.5%22 fill=%22%23FFFFFF%22/%3E%3Ccircle r=%223.5%22 cx=%22-3.5%22 cy=%220%22 fill=%22%23FFFFFF%22/%3E%3Ccircle r=%222.4%22 fill=%22%23FFD85A%22/%3E%3C/g%3E%3Cg transform=%22translate%2860 130%29%22%3E%3Ccircle r=%223%22 cx=%220%22 cy=%22-3%22 fill=%22%23FFD3E0%22/%3E%3Ccircle r=%223%22 cx=%223%22 cy=%220%22 fill=%22%23FFD3E0%22/%3E%3Ccircle r=%223%22 cx=%220%22 cy=%223%22 fill=%22%23FFD3E0%22/%3E%3Ccircle r=%223%22 cx=%22-3%22 cy=%220%22 fill=%22%23FFD3E0%22/%3E%3Ccircle r=%222.1%22 fill=%22%23FFD85A%22/%3E%3C/g%3E%3Cg transform=%22translate%28260 170%29%22%3E%3Ccircle r=%223%22 cx=%220%22 cy=%22-3%22 fill=%22%23FFFFFF%22/%3E%3Ccircle r=%223%22 cx=%223%22 cy=%220%22 fill=%22%23FFFFFF%22/%3E%3Ccircle r=%223%22 cx=%220%22 cy=%223%22 fill=%22%23FFFFFF%22/%3E%3Ccircle r=%223%22 cx=%22-3%22 cy=%220%22 fill=%22%23FFFFFF%22/%3E%3Ccircle r=%222.1%22 fill=%22%23FFD85A%22/%3E%3C/g%3E%3C/g%3E%3Ccircle cx=%22190%22 cy=%22220%22 r=%225%22 fill=%22%23FFB38A%22 opacity=%22.55%22/%3E%3Cpath d=%22M190 215q2-4 5-4%22 stroke=%22%237CB46A%22 stroke-width=%221.5%22 fill=%22none%22 opacity=%22.55%22/%3E%3C/svg%3E") repeat fixed,var(--bg);}
+.th-prev.art-forest{background:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22280%22%3E%3Cg opacity=%22.5%22%3E%3Cg transform=%22translate%2830 40%29 rotate%28-20%29%22%3E%3Cpath d=%22M0 0q10-12 22 0-12 12-22 0z%22 fill=%22%239ED28A%22/%3E%3Cpath d=%22M2 0h18%22 stroke=%22%23FFFFFF%22 stroke-width=%221.2%22 opacity=%22.6%22/%3E%3C/g%3E%3Cg transform=%22translate%28200 90%29 rotate%2830%29%22%3E%3Cpath d=%22M0 0q10-12 22 0-12 12-22 0z%22 fill=%22%23B5DE96%22/%3E%3Cpath d=%22M2 0h18%22 stroke=%22%23FFFFFF%22 stroke-width=%221.2%22 opacity=%22.6%22/%3E%3C/g%3E%3Cg transform=%22translate%28100 200%29 rotate%2810%29%22%3E%3Cpath d=%22M0 0q10-12 22 0-12 12-22 0z%22 fill=%22%239ED28A%22/%3E%3Cpath d=%22M2 0h18%22 stroke=%22%23FFFFFF%22 stroke-width=%221.2%22 opacity=%22.6%22/%3E%3C/g%3E%3Cg transform=%22translate%28250 240%29 rotate%28-40%29%22%3E%3Cpath d=%22M0 0q10-12 22 0-12 12-22 0z%22 fill=%22%23B5DE96%22/%3E%3Cpath d=%22M2 0h18%22 stroke=%22%23FFFFFF%22 stroke-width=%221.2%22 opacity=%22.6%22/%3E%3C/g%3E%3C/g%3E%3Cg opacity=%22.6%22%3E%3Cg transform=%22translate%28150 40%29%22%3E%3Ccircle r=%223.5%22 cx=%220%22 cy=%22-3.5%22 fill=%22%23FFFFFF%22/%3E%3Ccircle r=%223.5%22 cx=%223.5%22 cy=%220%22 fill=%22%23FFFFFF%22/%3E%3Ccircle r=%223.5%22 cx=%220%22 cy=%223.5%22 fill=%22%23FFFFFF%22/%3E%3Ccircle r=%223.5%22 cx=%22-3.5%22 cy=%220%22 fill=%22%23FFFFFF%22/%3E%3Ccircle r=%222.4%22 fill=%22%23FFD85A%22/%3E%3C/g%3E%3Cg transform=%22translate%2860 130%29%22%3E%3Ccircle r=%223%22 cx=%220%22 cy=%22-3%22 fill=%22%23FFD3E0%22/%3E%3Ccircle r=%223%22 cx=%223%22 cy=%220%22 fill=%22%23FFD3E0%22/%3E%3Ccircle r=%223%22 cx=%220%22 cy=%223%22 fill=%22%23FFD3E0%22/%3E%3Ccircle r=%223%22 cx=%22-3%22 cy=%220%22 fill=%22%23FFD3E0%22/%3E%3Ccircle r=%222.1%22 fill=%22%23FFD85A%22/%3E%3C/g%3E%3Cg transform=%22translate%28260 170%29%22%3E%3Ccircle r=%223%22 cx=%220%22 cy=%22-3%22 fill=%22%23FFFFFF%22/%3E%3Ccircle r=%223%22 cx=%223%22 cy=%220%22 fill=%22%23FFFFFF%22/%3E%3Ccircle r=%223%22 cx=%220%22 cy=%223%22 fill=%22%23FFFFFF%22/%3E%3Ccircle r=%223%22 cx=%22-3%22 cy=%220%22 fill=%22%23FFFFFF%22/%3E%3Ccircle r=%222.1%22 fill=%22%23FFD85A%22/%3E%3C/g%3E%3C/g%3E%3Ccircle cx=%22190%22 cy=%22220%22 r=%225%22 fill=%22%23FFB38A%22 opacity=%22.55%22/%3E%3Cpath d=%22M190 215q2-4 5-4%22 stroke=%22%237CB46A%22 stroke-width=%221.5%22 fill=%22none%22 opacity=%22.55%22/%3E%3C/svg%3E") 0 0/150px repeat,#E2F2D9;}
+body[data-theme][data-art="cat"]{--bg:#FBE8EC;--side:#FDF2F4;--hov:#FEF5F7;--psoft:#FCEDF0;--topbar:#FBE8ECe0;
+  background:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22130%22%3E%3Cg transform=%22translate%28120 70%29%22%3E%3Cellipse cx=%220%22 cy=%2218%22 rx=%2262%22 ry=%2226%22 fill=%22%23FFFFFF%22/%3E%3Cellipse cx=%220%22 cy=%2218%22 rx=%2262%22 ry=%2226%22 fill=%22none%22 stroke=%22%23F1D2D8%22 stroke-width=%222%22/%3E%3Cpath d=%22M-50 4l6-20 14 12zM-22 -6l10-14 4 18z%22 fill=%22%23FFFFFF%22 stroke=%22%23F1D2D8%22 stroke-width=%222%22/%3E%3Cpath d=%22M-40 14q5 4 10 0M-20 14q5 4 10 0%22 stroke=%22%235B4A4A%22 stroke-width=%222%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3Ccircle cx=%22-44%22 cy=%2222%22 r=%224%22 fill=%22%23F7B6C2%22/%3E%3Ccircle cx=%22-8%22 cy=%2222%22 r=%224%22 fill=%22%23F7B6C2%22/%3E%3Cpath d=%22M40 30q30 6 20-16%22 stroke=%22%23F1D2D8%22 stroke-width=%2210%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3Ctext x=%2220%22 y=%22-14%22 font-size=%2214%22 fill=%22%23C9A3B5%22 font-family=%22sans-serif%22%3Ez z%3C/text%3E%3C/g%3E%3Cg transform=%22translate%28250 88%29%22%3E%3Ccircle r=%2216%22 fill=%22%23C9C2F5%22/%3E%3Cpath d=%22M-14 -6q14 6 28 0M-12 6q12-8 26 2M-6 -14q4 14 0 28%22 stroke=%22%23FFFFFF%22 stroke-width=%221.6%22 fill=%22none%22 opacity=%22.8%22/%3E%3Cpath d=%22M14 8q20 6 30-6%22 stroke=%22%23C9C2F5%22 stroke-width=%222%22 fill=%22none%22/%3E%3C/g%3E%3C/svg%3E") no-repeat right 16px bottom 6px fixed,url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22280%22%3E%3Cg opacity=%22.45%22%3E%3Cg transform=%22translate%2840 40%29 rotate%28-20%29%22 fill=%22%23F1C3CD%22%3E%3Cellipse cx=%220%22 cy=%224%22 rx=%226%22 ry=%225%22/%3E%3Ccircle cx=%22-6%22 cy=%22-4%22 r=%222.6%22/%3E%3Ccircle cx=%22-2%22 cy=%22-7%22 r=%222.6%22/%3E%3Ccircle cx=%223%22 cy=%22-7%22 r=%222.6%22/%3E%3Ccircle cx=%227%22 cy=%22-4%22 r=%222.6%22/%3E%3C/g%3E%3Cg transform=%22translate%2870 80%29 rotate%28-10%29%22 fill=%22%23F1C3CD%22%3E%3Cellipse cx=%220%22 cy=%224%22 rx=%226%22 ry=%225%22/%3E%3Ccircle cx=%22-6%22 cy=%22-4%22 r=%222.6%22/%3E%3Ccircle cx=%22-2%22 cy=%22-7%22 r=%222.6%22/%3E%3Ccircle cx=%223%22 cy=%22-7%22 r=%222.6%22/%3E%3Ccircle cx=%227%22 cy=%22-4%22 r=%222.6%22/%3E%3C/g%3E%3Cg transform=%22translate%28220 160%29 rotate%2820%29%22 fill=%22%23F1C3CD%22%3E%3Cellipse cx=%220%22 cy=%224%22 rx=%226%22 ry=%225%22/%3E%3Ccircle cx=%22-6%22 cy=%22-4%22 r=%222.6%22/%3E%3Ccircle cx=%22-2%22 cy=%22-7%22 r=%222.6%22/%3E%3Ccircle cx=%223%22 cy=%22-7%22 r=%222.6%22/%3E%3Ccircle cx=%227%22 cy=%22-4%22 r=%222.6%22/%3E%3C/g%3E%3Cg transform=%22translate%28250 200%29 rotate%2830%29%22 fill=%22%23F1C3CD%22%3E%3Cellipse cx=%220%22 cy=%224%22 rx=%226%22 ry=%225%22/%3E%3Ccircle cx=%22-6%22 cy=%22-4%22 r=%222.6%22/%3E%3Ccircle cx=%22-2%22 cy=%22-7%22 r=%222.6%22/%3E%3Ccircle cx=%223%22 cy=%22-7%22 r=%222.6%22/%3E%3Ccircle cx=%227%22 cy=%22-4%22 r=%222.6%22/%3E%3C/g%3E%3C/g%3E%3Cg opacity=%22.55%22%3E%3Cg transform=%22translate%28160 70%29 scale%280.9%29%22%3E%3Cpath d=%22M-12 -6l2-12 8 7h4l8-7 2 12q2 14-12 16-14-2-12-16z%22 fill=%22%23FFFFFF%22/%3E%3Ccircle cx=%22-5%22 cy=%22-1%22 r=%221.6%22 fill=%22%235B4A4A%22/%3E%3Ccircle cx=%225%22 cy=%22-1%22 r=%221.6%22 fill=%22%235B4A4A%22/%3E%3Cpath d=%22M-2 3q2 2 4 0%22 stroke=%22%235B4A4A%22 stroke-width=%221.3%22 fill=%22none%22/%3E%3Ccircle cx=%22-8%22 cy=%223%22 r=%222%22 fill=%22%23F7B6C2%22/%3E%3Ccircle cx=%228%22 cy=%223%22 r=%222%22 fill=%22%23F7B6C2%22/%3E%3C/g%3E%3Cg transform=%22translate%2880 220%29 scale%280.8%29%22%3E%3Cpath d=%22M-12 -6l2-12 8 7h4l8-7 2 12q2 14-12 16-14-2-12-16z%22 fill=%22%23FFE2C6%22/%3E%3Ccircle cx=%22-5%22 cy=%22-1%22 r=%221.6%22 fill=%22%235B4A4A%22/%3E%3Ccircle cx=%225%22 cy=%22-1%22 r=%221.6%22 fill=%22%235B4A4A%22/%3E%3Cpath d=%22M-2 3q2 2 4 0%22 stroke=%22%235B4A4A%22 stroke-width=%221.3%22 fill=%22none%22/%3E%3Ccircle cx=%22-8%22 cy=%223%22 r=%222%22 fill=%22%23F7B6C2%22/%3E%3Ccircle cx=%228%22 cy=%223%22 r=%222%22 fill=%22%23F7B6C2%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat fixed,var(--bg);}
+.th-prev.art-cat{background:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22280%22%3E%3Cg opacity=%22.45%22%3E%3Cg transform=%22translate%2840 40%29 rotate%28-20%29%22 fill=%22%23F1C3CD%22%3E%3Cellipse cx=%220%22 cy=%224%22 rx=%226%22 ry=%225%22/%3E%3Ccircle cx=%22-6%22 cy=%22-4%22 r=%222.6%22/%3E%3Ccircle cx=%22-2%22 cy=%22-7%22 r=%222.6%22/%3E%3Ccircle cx=%223%22 cy=%22-7%22 r=%222.6%22/%3E%3Ccircle cx=%227%22 cy=%22-4%22 r=%222.6%22/%3E%3C/g%3E%3Cg transform=%22translate%2870 80%29 rotate%28-10%29%22 fill=%22%23F1C3CD%22%3E%3Cellipse cx=%220%22 cy=%224%22 rx=%226%22 ry=%225%22/%3E%3Ccircle cx=%22-6%22 cy=%22-4%22 r=%222.6%22/%3E%3Ccircle cx=%22-2%22 cy=%22-7%22 r=%222.6%22/%3E%3Ccircle cx=%223%22 cy=%22-7%22 r=%222.6%22/%3E%3Ccircle cx=%227%22 cy=%22-4%22 r=%222.6%22/%3E%3C/g%3E%3Cg transform=%22translate%28220 160%29 rotate%2820%29%22 fill=%22%23F1C3CD%22%3E%3Cellipse cx=%220%22 cy=%224%22 rx=%226%22 ry=%225%22/%3E%3Ccircle cx=%22-6%22 cy=%22-4%22 r=%222.6%22/%3E%3Ccircle cx=%22-2%22 cy=%22-7%22 r=%222.6%22/%3E%3Ccircle cx=%223%22 cy=%22-7%22 r=%222.6%22/%3E%3Ccircle cx=%227%22 cy=%22-4%22 r=%222.6%22/%3E%3C/g%3E%3Cg transform=%22translate%28250 200%29 rotate%2830%29%22 fill=%22%23F1C3CD%22%3E%3Cellipse cx=%220%22 cy=%224%22 rx=%226%22 ry=%225%22/%3E%3Ccircle cx=%22-6%22 cy=%22-4%22 r=%222.6%22/%3E%3Ccircle cx=%22-2%22 cy=%22-7%22 r=%222.6%22/%3E%3Ccircle cx=%223%22 cy=%22-7%22 r=%222.6%22/%3E%3Ccircle cx=%227%22 cy=%22-4%22 r=%222.6%22/%3E%3C/g%3E%3C/g%3E%3Cg opacity=%22.55%22%3E%3Cg transform=%22translate%28160 70%29 scale%280.9%29%22%3E%3Cpath d=%22M-12 -6l2-12 8 7h4l8-7 2 12q2 14-12 16-14-2-12-16z%22 fill=%22%23FFFFFF%22/%3E%3Ccircle cx=%22-5%22 cy=%22-1%22 r=%221.6%22 fill=%22%235B4A4A%22/%3E%3Ccircle cx=%225%22 cy=%22-1%22 r=%221.6%22 fill=%22%235B4A4A%22/%3E%3Cpath d=%22M-2 3q2 2 4 0%22 stroke=%22%235B4A4A%22 stroke-width=%221.3%22 fill=%22none%22/%3E%3Ccircle cx=%22-8%22 cy=%223%22 r=%222%22 fill=%22%23F7B6C2%22/%3E%3Ccircle cx=%228%22 cy=%223%22 r=%222%22 fill=%22%23F7B6C2%22/%3E%3C/g%3E%3Cg transform=%22translate%2880 220%29 scale%280.8%29%22%3E%3Cpath d=%22M-12 -6l2-12 8 7h4l8-7 2 12q2 14-12 16-14-2-12-16z%22 fill=%22%23FFE2C6%22/%3E%3Ccircle cx=%22-5%22 cy=%22-1%22 r=%221.6%22 fill=%22%235B4A4A%22/%3E%3Ccircle cx=%225%22 cy=%22-1%22 r=%221.6%22 fill=%22%235B4A4A%22/%3E%3Cpath d=%22M-2 3q2 2 4 0%22 stroke=%22%235B4A4A%22 stroke-width=%221.3%22 fill=%22none%22/%3E%3Ccircle cx=%22-8%22 cy=%223%22 r=%222%22 fill=%22%23F7B6C2%22/%3E%3Ccircle cx=%228%22 cy=%223%22 r=%222%22 fill=%22%23F7B6C2%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") 0 0/150px repeat,#FBE8EC;}
+body[data-theme][data-art="autumn"]{--bg:#F8EBDD;--side:#FBF3EA;--hov:#FCF5EE;--psoft:#F9EEE3;--topbar:#F8EBDDe0;
+  background:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22120%22%3E%3Cpath d=%22M0 100q75-14 150 0t150 0V120H0z%22 fill=%22%23EAC9A6%22 opacity=%22.8%22/%3E%3Cg opacity=%22.9%22%3E%3Cg transform=%22translate%2860 92%29 rotate%28-30%29 scale%281.2%29%22%3E%3Cpath d=%22M0-14l3 6 6-3-2 7 7 1-6 4 3 5-7-2-1 7-3-6-3 6-1-7-7 2 3-5-6-4 7-1-2-7 6 3z%22 fill=%22%23F2A27A%22/%3E%3Cpath d=%22M0 2v12%22 stroke=%22%23F2A27A%22 stroke-width=%221.6%22/%3E%3C/g%3E%3Cg transform=%22translate%2895 98%29 rotate%2820%29 scale%281%29%22%3E%3Cpath d=%22M0-14l3 6 6-3-2 7 7 1-6 4 3 5-7-2-1 7-3-6-3 6-1-7-7 2 3-5-6-4 7-1-2-7 6 3z%22 fill=%22%23F5C46E%22/%3E%3Cpath d=%22M0 2v12%22 stroke=%22%23F5C46E%22 stroke-width=%221.6%22/%3E%3C/g%3E%3Cg transform=%22translate%28200 90%29 rotate%2850%29 scale%281.3%29%22%3E%3Cpath d=%22M0-14l3 6 6-3-2 7 7 1-6 4 3 5-7-2-1 7-3-6-3 6-1-7-7 2 3-5-6-4 7-1-2-7 6 3z%22 fill=%22%23E8907A%22/%3E%3Cpath d=%22M0 2v12%22 stroke=%22%23E8907A%22 stroke-width=%221.6%22/%3E%3C/g%3E%3Cg transform=%22translate%28140 96%29%22%3E%3Cellipse cy=%225%22 rx=%226%22 ry=%227%22 fill=%22%23D9A36E%22/%3E%3Cpath d=%22M-7 0q7-8 14 0z%22 fill=%22%23A87A52%22/%3E%3Cpath d=%22M0-6v-3%22 stroke=%22%23A87A52%22 stroke-width=%222%22/%3E%3C/g%3E%3Cg transform=%22translate%28240 98%29%22%3E%3Cellipse cy=%225%22 rx=%226%22 ry=%227%22 fill=%22%23D9A36E%22/%3E%3Cpath d=%22M-7 0q7-8 14 0z%22 fill=%22%23A87A52%22/%3E%3Cpath d=%22M0-6v-3%22 stroke=%22%23A87A52%22 stroke-width=%222%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") no-repeat right 16px bottom 0 fixed,url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22280%22%3E%3Cg opacity=%22.55%22%3E%3Cg transform=%22translate%2840 40%29 rotate%28-20%29 scale%281%29%22%3E%3Cpath d=%22M0-14l3 6 6-3-2 7 7 1-6 4 3 5-7-2-1 7-3-6-3 6-1-7-7 2 3-5-6-4 7-1-2-7 6 3z%22 fill=%22%23F2A27A%22/%3E%3Cpath d=%22M0 2v12%22 stroke=%22%23F2A27A%22 stroke-width=%221.6%22/%3E%3C/g%3E%3Cg transform=%22translate%28220 120%29 rotate%2825%29 scale%280.9%29%22%3E%3Cpath d=%22M0-14l3 6 6-3-2 7 7 1-6 4 3 5-7-2-1 7-3-6-3 6-1-7-7 2 3-5-6-4 7-1-2-7 6 3z%22 fill=%22%23F5C46E%22/%3E%3Cpath d=%22M0 2v12%22 stroke=%22%23F5C46E%22 stroke-width=%221.6%22/%3E%3C/g%3E%3Cg transform=%22translate%28110 220%29 rotate%2810%29 scale%280.8%29%22%3E%3Cpath d=%22M0-14l3 6 6-3-2 7 7 1-6 4 3 5-7-2-1 7-3-6-3 6-1-7-7 2 3-5-6-4 7-1-2-7 6 3z%22 fill=%22%23E8907A%22/%3E%3Cpath d=%22M0 2v12%22 stroke=%22%23E8907A%22 stroke-width=%221.6%22/%3E%3C/g%3E%3C/g%3E%3Cg opacity=%22.5%22%3E%3Cg transform=%22translate%28170 40%29%22%3E%3Cellipse cy=%225%22 rx=%226%22 ry=%227%22 fill=%22%23D9A36E%22/%3E%3Cpath d=%22M-7 0q7-8 14 0z%22 fill=%22%23A87A52%22/%3E%3Cpath d=%22M0-6v-3%22 stroke=%22%23A87A52%22 stroke-width=%222%22/%3E%3C/g%3E%3Cg transform=%22translate%28260 240%29%22%3E%3Cellipse cy=%225%22 rx=%226%22 ry=%227%22 fill=%22%23D9A36E%22/%3E%3Cpath d=%22M-7 0q7-8 14 0z%22 fill=%22%23A87A52%22/%3E%3Cpath d=%22M0-6v-3%22 stroke=%22%23A87A52%22 stroke-width=%222%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat fixed,var(--bg);}
+.th-prev.art-autumn{background:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22280%22%3E%3Cg opacity=%22.55%22%3E%3Cg transform=%22translate%2840 40%29 rotate%28-20%29 scale%281%29%22%3E%3Cpath d=%22M0-14l3 6 6-3-2 7 7 1-6 4 3 5-7-2-1 7-3-6-3 6-1-7-7 2 3-5-6-4 7-1-2-7 6 3z%22 fill=%22%23F2A27A%22/%3E%3Cpath d=%22M0 2v12%22 stroke=%22%23F2A27A%22 stroke-width=%221.6%22/%3E%3C/g%3E%3Cg transform=%22translate%28220 120%29 rotate%2825%29 scale%280.9%29%22%3E%3Cpath d=%22M0-14l3 6 6-3-2 7 7 1-6 4 3 5-7-2-1 7-3-6-3 6-1-7-7 2 3-5-6-4 7-1-2-7 6 3z%22 fill=%22%23F5C46E%22/%3E%3Cpath d=%22M0 2v12%22 stroke=%22%23F5C46E%22 stroke-width=%221.6%22/%3E%3C/g%3E%3Cg transform=%22translate%28110 220%29 rotate%2810%29 scale%280.8%29%22%3E%3Cpath d=%22M0-14l3 6 6-3-2 7 7 1-6 4 3 5-7-2-1 7-3-6-3 6-1-7-7 2 3-5-6-4 7-1-2-7 6 3z%22 fill=%22%23E8907A%22/%3E%3Cpath d=%22M0 2v12%22 stroke=%22%23E8907A%22 stroke-width=%221.6%22/%3E%3C/g%3E%3C/g%3E%3Cg opacity=%22.5%22%3E%3Cg transform=%22translate%28170 40%29%22%3E%3Cellipse cy=%225%22 rx=%226%22 ry=%227%22 fill=%22%23D9A36E%22/%3E%3Cpath d=%22M-7 0q7-8 14 0z%22 fill=%22%23A87A52%22/%3E%3Cpath d=%22M0-6v-3%22 stroke=%22%23A87A52%22 stroke-width=%222%22/%3E%3C/g%3E%3Cg transform=%22translate%28260 240%29%22%3E%3Cellipse cy=%225%22 rx=%226%22 ry=%227%22 fill=%22%23D9A36E%22/%3E%3Cpath d=%22M-7 0q7-8 14 0z%22 fill=%22%23A87A52%22/%3E%3Cpath d=%22M0-6v-3%22 stroke=%22%23A87A52%22 stroke-width=%222%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") 0 0/150px repeat,#F8EBDD;}
+body[data-theme][data-art="winter"]{--bg:#E7EEF7;--side:#F1F5FA;--hov:#F4F7FB;--psoft:#EAF0F8;--topbar:#E7EEF7e0;
+  background:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22130%22%3E%3Cpath d=%22M0 104q75-16 150 0t150 0V130H0z%22 fill=%22%23FFFFFF%22 opacity=%22.9%22/%3E%3Cg transform=%22translate%28220 70%29%22%3E%3Ccircle cy=%2230%22 r=%2224%22 fill=%22%23FFFFFF%22/%3E%3Ccircle cy=%22-4%22 r=%2216%22 fill=%22%23FFFFFF%22/%3E%3Ccircle cx=%22-5%22 cy=%22-6%22 r=%221.8%22 fill=%22%234A5568%22/%3E%3Ccircle cx=%225%22 cy=%22-6%22 r=%221.8%22 fill=%22%234A5568%22/%3E%3Cpath d=%22M0-2l9 2-9 2z%22 fill=%22%23F7A440%22/%3E%3Ccircle cx=%22-9%22 cy=%220%22 r=%222.4%22 fill=%22%23F7B6C2%22/%3E%3Ccircle cx=%229%22 cy=%220%22 r=%222.4%22 fill=%22%23F7B6C2%22/%3E%3Cpath d=%22M-16 8q16 8 32 0%22 stroke=%22%239FC7EA%22 stroke-width=%226%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3Crect x=%22-11%22 y=%22-26%22 width=%2222%22 height=%228%22 rx=%223%22 fill=%22%239FC7EA%22/%3E%3C/g%3E%3Cg transform=%22translate%2880 40%29 scale%281.2%29%22 stroke=%22%23C9DBEF%22 stroke-width=%222%22 stroke-linecap=%22round%22%3E%3Cpath d=%22M0-9v18M-8-4.5l16 9M-8 4.5l16-9%22/%3E%3C/g%3E%3Cg transform=%22translate%28130 70%29 scale%280.8%29%22 stroke=%22%23C9DBEF%22 stroke-width=%222%22 stroke-linecap=%22round%22%3E%3Cpath d=%22M0-9v18M-8-4.5l16 9M-8 4.5l16-9%22/%3E%3C/g%3E%3C/svg%3E") no-repeat right 16px bottom 0 fixed,url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22280%22%3E%3Cg opacity=%22.9%22%3E%3Cg transform=%22translate%2840 40%29 scale%280.8%29%22 stroke=%22%23FFFFFF%22 stroke-width=%222%22 stroke-linecap=%22round%22%3E%3Cpath d=%22M0-9v18M-8-4.5l16 9M-8 4.5l16-9%22/%3E%3C/g%3E%3Cg transform=%22translate%28200 90%29 scale%281%29%22 stroke=%22%23FFFFFF%22 stroke-width=%222%22 stroke-linecap=%22round%22%3E%3Cpath d=%22M0-9v18M-8-4.5l16 9M-8 4.5l16-9%22/%3E%3C/g%3E%3Cg transform=%22translate%28120 190%29 scale%280.7%29%22 stroke=%22%23FFFFFF%22 stroke-width=%222%22 stroke-linecap=%22round%22%3E%3Cpath d=%22M0-9v18M-8-4.5l16 9M-8 4.5l16-9%22/%3E%3C/g%3E%3Cg transform=%22translate%28260 230%29 scale%280.9%29%22 stroke=%22%23FFFFFF%22 stroke-width=%222%22 stroke-linecap=%22round%22%3E%3Cpath d=%22M0-9v18M-8-4.5l16 9M-8 4.5l16-9%22/%3E%3C/g%3E%3C/g%3E%3Cg fill=%22%23FFFFFF%22 opacity=%22.9%22%3E%3Ccircle cx=%2290%22 cy=%22100%22 r=%222.5%22/%3E%3Ccircle cx=%22240%22 cy=%2230%22 r=%222%22/%3E%3Ccircle cx=%2230%22 cy=%22240%22 r=%222.5%22/%3E%3Ccircle cx=%22170%22 cy=%22260%22 r=%222%22/%3E%3C/g%3E%3C/svg%3E") repeat fixed,var(--bg);}
+.th-prev.art-winter{background:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22280%22%3E%3Cg opacity=%22.9%22%3E%3Cg transform=%22translate%2840 40%29 scale%280.8%29%22 stroke=%22%23FFFFFF%22 stroke-width=%222%22 stroke-linecap=%22round%22%3E%3Cpath d=%22M0-9v18M-8-4.5l16 9M-8 4.5l16-9%22/%3E%3C/g%3E%3Cg transform=%22translate%28200 90%29 scale%281%29%22 stroke=%22%23FFFFFF%22 stroke-width=%222%22 stroke-linecap=%22round%22%3E%3Cpath d=%22M0-9v18M-8-4.5l16 9M-8 4.5l16-9%22/%3E%3C/g%3E%3Cg transform=%22translate%28120 190%29 scale%280.7%29%22 stroke=%22%23FFFFFF%22 stroke-width=%222%22 stroke-linecap=%22round%22%3E%3Cpath d=%22M0-9v18M-8-4.5l16 9M-8 4.5l16-9%22/%3E%3C/g%3E%3Cg transform=%22translate%28260 230%29 scale%280.9%29%22 stroke=%22%23FFFFFF%22 stroke-width=%222%22 stroke-linecap=%22round%22%3E%3Cpath d=%22M0-9v18M-8-4.5l16 9M-8 4.5l16-9%22/%3E%3C/g%3E%3C/g%3E%3Cg fill=%22%23FFFFFF%22 opacity=%22.9%22%3E%3Ccircle cx=%2290%22 cy=%22100%22 r=%222.5%22/%3E%3Ccircle cx=%22240%22 cy=%2230%22 r=%222%22/%3E%3Ccircle cx=%2230%22 cy=%22240%22 r=%222.5%22/%3E%3Ccircle cx=%22170%22 cy=%22260%22 r=%222%22/%3E%3C/g%3E%3C/svg%3E") 0 0/150px repeat,#E7EEF7;}
+body[data-theme][data-art="xmas"]{--bg:#F6E9E6;--side:#FAF2F0;--hov:#FBF4F2;--psoft:#F8EDEA;--topbar:#F6E9E6e0;
+  background:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22140%22%3E%3Cg transform=%22translate%2890 20%29%22%3E%3Cpath d=%22M0 0l30 40h-14l24 30h-16l26 30h-100l26-30h-16l24-30h-14z%22 fill=%22%23A8D5B0%22/%3E%3Crect x=%22-7%22 y=%22100%22 width=%2214%22 height=%2214%22 rx=%222%22 fill=%22%23C99A6B%22/%3E%3Cpath d=%22M0-10l3 7 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z%22 fill=%22%23FFD866%22/%3E%3Ccircle cx=%22-10%22 cy=%2250%22 r=%224%22 fill=%22%23F7A8B8%22/%3E%3Ccircle cx=%2214%22 cy=%2264%22 r=%224%22 fill=%22%23FFD866%22/%3E%3Ccircle cx=%22-20%22 cy=%2284%22 r=%224%22 fill=%22%239FC7EA%22/%3E%3Ccircle cx=%2220%22 cy=%2292%22 r=%224%22 fill=%22%23F7A8B8%22/%3E%3C/g%3E%3Cg transform=%22translate%28190 120%29%22%3E%3Crect x=%22-14%22 y=%22-12%22 width=%2228%22 height=%2224%22 rx=%223%22 fill=%22%23F7A8B8%22/%3E%3Crect x=%22-2.5%22 y=%22-12%22 width=%225%22 height=%2224%22 fill=%22%23FFFFFF%22/%3E%3Crect x=%22-14%22 y=%22-3%22 width=%2228%22 height=%225%22 fill=%22%23FFFFFF%22/%3E%3Cpath d=%22M0-12q-10-10-10-2t10 2q10-10 10-2t-10 2%22 fill=%22none%22 stroke=%22%23FFFFFF%22 stroke-width=%222.4%22/%3E%3C/g%3E%3Cg transform=%22translate%28232 124%29%22%3E%3Crect x=%22-14%22 y=%22-12%22 width=%2228%22 height=%2224%22 rx=%223%22 fill=%22%23A8D5B0%22/%3E%3Crect x=%22-2.5%22 y=%22-12%22 width=%225%22 height=%2224%22 fill=%22%23F7A8B8%22/%3E%3Crect x=%22-14%22 y=%22-3%22 width=%2228%22 height=%225%22 fill=%22%23F7A8B8%22/%3E%3Cpath d=%22M0-12q-10-10-10-2t10 2q10-10 10-2t-10 2%22 fill=%22none%22 stroke=%22%23F7A8B8%22 stroke-width=%222.4%22/%3E%3C/g%3E%3Cg transform=%22translate%28212 98%29 scale%28.8%29%22%3E%3Cg transform=%22translate%280 0%29%22%3E%3Crect x=%22-14%22 y=%22-12%22 width=%2228%22 height=%2224%22 rx=%223%22 fill=%22%23FFD866%22/%3E%3Crect x=%22-2.5%22 y=%22-12%22 width=%225%22 height=%2224%22 fill=%22%239FC7EA%22/%3E%3Crect x=%22-14%22 y=%22-3%22 width=%2228%22 height=%225%22 fill=%22%239FC7EA%22/%3E%3Cpath d=%22M0-12q-10-10-10-2t10 2q10-10 10-2t-10 2%22 fill=%22none%22 stroke=%22%239FC7EA%22 stroke-width=%222.4%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") no-repeat right 16px bottom 0 fixed,url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22280%22%3E%3Cg opacity=%22.55%22%3E%3Cg transform=%22translate%2840 40%29%22%3E%3Ccircle r=%228%22 fill=%22%23F7A8B8%22/%3E%3Crect x=%22-3%22 y=%22-11%22 width=%226%22 height=%224%22 rx=%221%22 fill=%22%23E8C77A%22/%3E%3Cpath d=%22M-4-3a5 5 0 0 1 4-2%22 stroke=%22%23FFFFFF%22 stroke-width=%221.6%22 opacity=%22.7%22 fill=%22none%22/%3E%3C/g%3E%3Cg transform=%22translate%28220 120%29%22%3E%3Ccircle r=%228%22 fill=%22%23A8D5B0%22/%3E%3Crect x=%22-3%22 y=%22-11%22 width=%226%22 height=%224%22 rx=%221%22 fill=%22%23E8C77A%22/%3E%3Cpath d=%22M-4-3a5 5 0 0 1 4-2%22 stroke=%22%23FFFFFF%22 stroke-width=%221.6%22 opacity=%22.7%22 fill=%22none%22/%3E%3C/g%3E%3Cg transform=%22translate%28120 230%29%22%3E%3Ccircle r=%228%22 fill=%22%23FFD866%22/%3E%3Crect x=%22-3%22 y=%22-11%22 width=%226%22 height=%224%22 rx=%221%22 fill=%22%23E8C77A%22/%3E%3Cpath d=%22M-4-3a5 5 0 0 1 4-2%22 stroke=%22%23FFFFFF%22 stroke-width=%221.6%22 opacity=%22.7%22 fill=%22none%22/%3E%3C/g%3E%3C/g%3E%3Cg opacity=%22.7%22%3E%3Cg transform=%22translate%28170 40%29 scale%280.6%29%22 stroke=%22%23FFFFFF%22 stroke-width=%222%22 stroke-linecap=%22round%22%3E%3Cpath d=%22M0-9v18M-8-4.5l16 9M-8 4.5l16-9%22/%3E%3C/g%3E%3Cg transform=%22translate%2870 150%29 scale%280.7%29%22 stroke=%22%23FFFFFF%22 stroke-width=%222%22 stroke-linecap=%22round%22%3E%3Cpath d=%22M0-9v18M-8-4.5l16 9M-8 4.5l16-9%22/%3E%3C/g%3E%3Cg transform=%22translate%28270 230%29 scale%280.6%29%22 stroke=%22%23FFFFFF%22 stroke-width=%222%22 stroke-linecap=%22round%22%3E%3Cpath d=%22M0-9v18M-8-4.5l16 9M-8 4.5l16-9%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat fixed,var(--bg);}
+.th-prev.art-xmas{background:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22280%22%3E%3Cg opacity=%22.55%22%3E%3Cg transform=%22translate%2840 40%29%22%3E%3Ccircle r=%228%22 fill=%22%23F7A8B8%22/%3E%3Crect x=%22-3%22 y=%22-11%22 width=%226%22 height=%224%22 rx=%221%22 fill=%22%23E8C77A%22/%3E%3Cpath d=%22M-4-3a5 5 0 0 1 4-2%22 stroke=%22%23FFFFFF%22 stroke-width=%221.6%22 opacity=%22.7%22 fill=%22none%22/%3E%3C/g%3E%3Cg transform=%22translate%28220 120%29%22%3E%3Ccircle r=%228%22 fill=%22%23A8D5B0%22/%3E%3Crect x=%22-3%22 y=%22-11%22 width=%226%22 height=%224%22 rx=%221%22 fill=%22%23E8C77A%22/%3E%3Cpath d=%22M-4-3a5 5 0 0 1 4-2%22 stroke=%22%23FFFFFF%22 stroke-width=%221.6%22 opacity=%22.7%22 fill=%22none%22/%3E%3C/g%3E%3Cg transform=%22translate%28120 230%29%22%3E%3Ccircle r=%228%22 fill=%22%23FFD866%22/%3E%3Crect x=%22-3%22 y=%22-11%22 width=%226%22 height=%224%22 rx=%221%22 fill=%22%23E8C77A%22/%3E%3Cpath d=%22M-4-3a5 5 0 0 1 4-2%22 stroke=%22%23FFFFFF%22 stroke-width=%221.6%22 opacity=%22.7%22 fill=%22none%22/%3E%3C/g%3E%3C/g%3E%3Cg opacity=%22.7%22%3E%3Cg transform=%22translate%28170 40%29 scale%280.6%29%22 stroke=%22%23FFFFFF%22 stroke-width=%222%22 stroke-linecap=%22round%22%3E%3Cpath d=%22M0-9v18M-8-4.5l16 9M-8 4.5l16-9%22/%3E%3C/g%3E%3Cg transform=%22translate%2870 150%29 scale%280.7%29%22 stroke=%22%23FFFFFF%22 stroke-width=%222%22 stroke-linecap=%22round%22%3E%3Cpath d=%22M0-9v18M-8-4.5l16 9M-8 4.5l16-9%22/%3E%3C/g%3E%3Cg transform=%22translate%28270 230%29 scale%280.6%29%22 stroke=%22%23FFFFFF%22 stroke-width=%222%22 stroke-linecap=%22round%22%3E%3Cpath d=%22M0-9v18M-8-4.5l16 9M-8 4.5l16-9%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") 0 0/150px repeat,#F6E9E6;}
+body[data-theme][data-art="plant"]{--bg:#E4EEE3;--side:#EEF4ED;--hov:#F2F7F1;--psoft:#E8F1E7;--topbar:#E4EEE3e0;
+  background:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22140%22%3E%3Cg transform=%22translate%28150 86%29%22%3E%3Cg transform=%22translate%28-6 0%29 rotate%28-30%29 scale%281%29%22%3E%3Cpath d=%22M0 0q-30-10-28-40 20-14 40 0 14 26-12 40z%22 fill=%22%239FCDA0%22/%3E%3Cpath d=%22M0 0q2-20 6-38%22 stroke=%22%23FFFFFF%22 stroke-width=%221.6%22 opacity=%22.6%22 fill=%22none%22/%3E%3Cpath d=%22M-14-14l-8 2M-10-26l-8-2M8-16l8-1M10-28l6-5%22 stroke=%22var%28--bg%29%22 stroke-width=%223%22/%3E%3C/g%3E%3Cg transform=%22translate%286 0%29 rotate%2825%29 scale%281.05%29%22%3E%3Cpath d=%22M0 0q-30-10-28-40 20-14 40 0 14 26-12 40z%22 fill=%22%23B7DAB0%22/%3E%3Cpath d=%22M0 0q2-20 6-38%22 stroke=%22%23FFFFFF%22 stroke-width=%221.6%22 opacity=%22.6%22 fill=%22none%22/%3E%3Cpath d=%22M-14-14l-8 2M-10-26l-8-2M8-16l8-1M10-28l6-5%22 stroke=%22var%28--bg%29%22 stroke-width=%223%22/%3E%3C/g%3E%3Cg transform=%22translate%280 -4%29 rotate%280%29 scale%280.8%29%22%3E%3Cpath d=%22M0 0q-30-10-28-40 20-14 40 0 14 26-12 40z%22 fill=%22%238CC294%22/%3E%3Cpath d=%22M0 0q2-20 6-38%22 stroke=%22%23FFFFFF%22 stroke-width=%221.6%22 opacity=%22.6%22 fill=%22none%22/%3E%3Cpath d=%22M-14-14l-8 2M-10-26l-8-2M8-16l8-1M10-28l6-5%22 stroke=%22var%28--bg%29%22 stroke-width=%223%22/%3E%3C/g%3E%3C/g%3E%3Cg transform=%22translate%28150 90%29%22%3E%3Cpath d=%22M-24 0h48l-6 34h-36z%22 fill=%22%23E8B79A%22/%3E%3Crect x=%22-27%22 y=%22-6%22 width=%2254%22 height=%229%22 rx=%223%22 fill=%22%23DFA585%22/%3E%3C/g%3E%3Cg transform=%22translate%28250 104%29%22%3E%3Cpath d=%22M-12 0h24l-3 18h-18z%22 fill=%22%23F2C9B0%22/%3E%3Cpath d=%22M0 0q-10-16-2-26M0 0q10-14 4-24M0 0q0-14 0-20%22 stroke=%22%238CC294%22 stroke-width=%224%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/g%3E%3C/svg%3E") no-repeat right 16px bottom 0 fixed,url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22320%22 height=%22300%22%3E%3Cg opacity=%22.45%22%3E%3Cg transform=%22translate%2860 90%29 rotate%28-20%29 scale%280.9%29%22%3E%3Cpath d=%22M0 0q-30-10-28-40 20-14 40 0 14 26-12 40z%22 fill=%22%239FCDA0%22/%3E%3Cpath d=%22M0 0q2-20 6-38%22 stroke=%22%23FFFFFF%22 stroke-width=%221.6%22 opacity=%22.6%22 fill=%22none%22/%3E%3Cpath d=%22M-14-14l-8 2M-10-26l-8-2M8-16l8-1M10-28l6-5%22 stroke=%22var%28--bg%29%22 stroke-width=%223%22/%3E%3C/g%3E%3Cg transform=%22translate%28240 200%29 rotate%2830%29 scale%280.8%29%22%3E%3Cpath d=%22M0 0q-30-10-28-40 20-14 40 0 14 26-12 40z%22 fill=%22%23B7DAB0%22/%3E%3Cpath d=%22M0 0q2-20 6-38%22 stroke=%22%23FFFFFF%22 stroke-width=%221.6%22 opacity=%22.6%22 fill=%22none%22/%3E%3Cpath d=%22M-14-14l-8 2M-10-26l-8-2M8-16l8-1M10-28l6-5%22 stroke=%22var%28--bg%29%22 stroke-width=%223%22/%3E%3C/g%3E%3Cg transform=%22translate%28150 290%29 rotate%28-5%29 scale%280.7%29%22%3E%3Cpath d=%22M0 0q-30-10-28-40 20-14 40 0 14 26-12 40z%22 fill=%22%239FCDA0%22/%3E%3Cpath d=%22M0 0q2-20 6-38%22 stroke=%22%23FFFFFF%22 stroke-width=%221.6%22 opacity=%22.6%22 fill=%22none%22/%3E%3Cpath d=%22M-14-14l-8 2M-10-26l-8-2M8-16l8-1M10-28l6-5%22 stroke=%22var%28--bg%29%22 stroke-width=%223%22/%3E%3C/g%3E%3C/g%3E%3Cg opacity=%22.55%22%3E%3Ccircle cx=%22200%22 cy=%2250%22 r=%223%22 fill=%22%23FFFFFF%22/%3E%3Ccircle cx=%2240%22 cy=%22230%22 r=%223%22 fill=%22%23FFFFFF%22/%3E%3Ccircle cx=%22290%22 cy=%2290%22 r=%223%22 fill=%22%23FFFFFF%22/%3E%3C/g%3E%3C/svg%3E") repeat fixed,var(--bg);}
+.th-prev.art-plant{background:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22320%22 height=%22300%22%3E%3Cg opacity=%22.45%22%3E%3Cg transform=%22translate%2860 90%29 rotate%28-20%29 scale%280.9%29%22%3E%3Cpath d=%22M0 0q-30-10-28-40 20-14 40 0 14 26-12 40z%22 fill=%22%239FCDA0%22/%3E%3Cpath d=%22M0 0q2-20 6-38%22 stroke=%22%23FFFFFF%22 stroke-width=%221.6%22 opacity=%22.6%22 fill=%22none%22/%3E%3Cpath d=%22M-14-14l-8 2M-10-26l-8-2M8-16l8-1M10-28l6-5%22 stroke=%22var%28--bg%29%22 stroke-width=%223%22/%3E%3C/g%3E%3Cg transform=%22translate%28240 200%29 rotate%2830%29 scale%280.8%29%22%3E%3Cpath d=%22M0 0q-30-10-28-40 20-14 40 0 14 26-12 40z%22 fill=%22%23B7DAB0%22/%3E%3Cpath d=%22M0 0q2-20 6-38%22 stroke=%22%23FFFFFF%22 stroke-width=%221.6%22 opacity=%22.6%22 fill=%22none%22/%3E%3Cpath d=%22M-14-14l-8 2M-10-26l-8-2M8-16l8-1M10-28l6-5%22 stroke=%22var%28--bg%29%22 stroke-width=%223%22/%3E%3C/g%3E%3Cg transform=%22translate%28150 290%29 rotate%28-5%29 scale%280.7%29%22%3E%3Cpath d=%22M0 0q-30-10-28-40 20-14 40 0 14 26-12 40z%22 fill=%22%239FCDA0%22/%3E%3Cpath d=%22M0 0q2-20 6-38%22 stroke=%22%23FFFFFF%22 stroke-width=%221.6%22 opacity=%22.6%22 fill=%22none%22/%3E%3Cpath d=%22M-14-14l-8 2M-10-26l-8-2M8-16l8-1M10-28l6-5%22 stroke=%22var%28--bg%29%22 stroke-width=%223%22/%3E%3C/g%3E%3C/g%3E%3Cg opacity=%22.55%22%3E%3Ccircle cx=%22200%22 cy=%2250%22 r=%223%22 fill=%22%23FFFFFF%22/%3E%3Ccircle cx=%2240%22 cy=%22230%22 r=%223%22 fill=%22%23FFFFFF%22/%3E%3Ccircle cx=%22290%22 cy=%2290%22 r=%223%22 fill=%22%23FFFFFF%22/%3E%3C/g%3E%3C/svg%3E") 0 0/150px repeat,#E4EEE3;}
+body[data-theme][data-art="dreamy"]{--bg:#F1ECF6;--side:#F7F3FA;--hov:#F8F5FB;--psoft:#F2EDF7;--topbar:#F1ECF6e0;
+  background:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%221400%22 height=%22900%22 viewBox=%220 0 1400 900%22 preserveAspectRatio=%22xMidYMid slice%22%3E%3Cdefs%3E%3Cfilter id=%22b%22 x=%22-50%25%22 y=%22-50%25%22 width=%22200%25%22 height=%22200%25%22%3E%3CfeGaussianBlur stdDeviation=%2290%22/%3E%3C/filter%3E%3C/defs%3E%3Cg filter=%22url%28%2523b%29%22 opacity=%22.75%22%3E%3Ccircle cx=%22250%22 cy=%22200%22 r=%22260%22 fill=%22%23F9D3E3%22/%3E%3Ccircle cx=%221150%22 cy=%22180%22 r=%22280%22 fill=%22%23D6E4FB%22/%3E%3Ccircle cx=%22700%22 cy=%22650%22 r=%22300%22 fill=%22%23E2D7F8%22/%3E%3Ccircle cx=%221250%22 cy=%22780%22 r=%22240%22 fill=%22%23FBE7C8%22/%3E%3Ccircle cx=%22150%22 cy=%22800%22 r=%22220%22 fill=%22%23CFF0E6%22/%3E%3C/g%3E%3C/svg%3E") no-repeat center center / cover fixed,url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22280%22%3E%3Cg fill=%22%23FFFFFF%22 opacity=%22.8%22%3E%3Cpath d=%22M60 50l2 6 6 2-6 2-2 6-2-6-6-2 6-2z%22/%3E%3Cpath d=%22M220 150l1.6 4.4 4.4 1.6-4.4 1.6-1.6 4.4-1.6-4.4-4.4-1.6 4.4-1.6z%22/%3E%3Ccircle cx=%22150%22 cy=%22240%22 r=%222.2%22/%3E%3Ccircle cx=%22270%22 cy=%2240%22 r=%221.8%22/%3E%3C/g%3E%3C/svg%3E") repeat fixed,var(--bg);}
+.th-prev.art-dreamy{background:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22280%22%3E%3Cg fill=%22%23FFFFFF%22 opacity=%22.8%22%3E%3Cpath d=%22M60 50l2 6 6 2-6 2-2 6-2-6-6-2 6-2z%22/%3E%3Cpath d=%22M220 150l1.6 4.4 4.4 1.6-4.4 1.6-1.6 4.4-1.6-4.4-4.4-1.6 4.4-1.6z%22/%3E%3Ccircle cx=%22150%22 cy=%22240%22 r=%222.2%22/%3E%3Ccircle cx=%22270%22 cy=%2240%22 r=%221.8%22/%3E%3C/g%3E%3C/svg%3E") 0 0/150px repeat,#F1ECF6;}
+body[data-art] .main{position:relative;}
+/* Incubator 제목: 점 세 개가 하나씩 통통 */
+.incu-ttl{display:inline-flex;align-items:baseline;}
+.incu-dots{display:inline-flex;margin-left:1px;}
+.incu-dots i{font-style:normal;display:inline-block;animation:incuDot 1.4s infinite ease-in-out;}
+.incu-dots i:nth-child(2){animation-delay:.18s;} .incu-dots i:nth-child(3){animation-delay:.36s;}
+@keyframes incuDot{0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-4px);}}
+@media (prefers-reduced-motion:reduce){ .incu-dots i{animation:none;} }
+.news-box{width:420px;padding:22px;}
+.news-hd{display:flex;gap:12px;align-items:center;margin-bottom:12px;}
+.news-hd>span{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:var(--psoft);}
+.news-hd b{display:block;font-size:1rem;} .news-hd small{color:var(--sub);font-size:.72rem;}
+.news-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;}
+.news-list li{display:flex;gap:10px;align-items:flex-start;font-size:.82rem;line-height:1.45;padding:8px 10px;border-radius:10px;background:var(--psoft);}
+.news-list li span{flex:none;}
+.news-ft{display:flex;align-items:center;justify-content:space-between;margin-top:16px;font-size:.78rem;color:var(--sub);}
+.news-ft label{display:flex;align-items:center;gap:6px;cursor:pointer;}
+.news-ft input{width:auto;}
+.mail-kinds{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
+.mail-kinds .chip-s{cursor:pointer;border:1px solid var(--bd);background:var(--sur);}
+.mail-kinds .chip-s.on{background:var(--psoft);border-color:var(--pri);color:var(--tx);}
+#mailTx{width:100%;box-sizing:border-box;font:inherit;font-size:.82rem;padding:9px 10px;border:1px solid var(--bd);border-radius:10px;resize:vertical;background:var(--sur);color:var(--tx);}
+.mail-ft{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;}
+.mail-ft .btn .ic{width:14px;height:14px;}
+.mail-n{color:var(--pri);margin-left:4px;}
+.mail-item{border:1px solid var(--bd);border-radius:10px;padding:10px 12px;margin-bottom:8px;background:var(--sur);}
+.mail-item.read{opacity:.6;}
+.mail-hd{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;font-size:.8rem;}
+.mail-hd small{color:var(--sub);font-size:.7rem;} .mail-hd .chip-s{margin-left:auto;}
+.mail-tx{font-size:.82rem;line-height:1.5;white-space:pre-wrap;margin:6px 0;}
+.mail-act{display:flex;gap:12px;font-size:.72rem;}
+.set-nav button[data-n]:not([data-n=""])::after{content:attr(data-n);margin-left:auto;font-size:.66rem;font-weight:700;color:#fff;background:var(--pri);border-radius:999px;padding:1px 6px;}
+/* 설정 창 */
+.set-box{width:760px;max-width:100%;height:min(560px,calc(100vh - 40px));padding:0;display:grid;grid-template-columns:180px 1fr;overflow:hidden;position:relative;background:var(--sur);}
+.set-nav{background:var(--side,var(--bg));border-right:1px solid var(--bd);padding:16px 10px;display:flex;flex-direction:column;gap:2px;}
+.set-h{font-size:.95rem;font-weight:700;padding:2px 8px 12px;}
+.set-nav button{display:flex;align-items:center;gap:9px;height:34px;padding:0 10px;border:none;background:none;border-radius:8px;font:inherit;font-size:.82rem;color:var(--sub);cursor:pointer;text-align:left;}
+.set-nav button:hover{background:var(--hov);color:var(--tx);}
+.set-nav button.on{background:var(--psoft);color:var(--tx);font-weight:650;}
+.th-ic{width:26px;height:26px;color:var(--sub);stroke-width:1.4;}
+.news-ic .ic{width:26px;height:26px;color:var(--pri);}
+.news-list li .ic{margin-top:2px;color:var(--sub);}
+.pm-btns .btn .ic{width:14px;height:14px;margin-right:4px;}
+.pm-meta .ic{width:13px;height:13px;vertical-align:-2px;}
+.set-body{overflow-y:auto;padding:22px 26px 26px;}
+.set-body h3{margin:0 0 14px;font-size:1.05rem;}
+.set-sec{margin-bottom:20px;}
+.set-sec h4{margin:0 0 8px;font-size:.78rem;color:var(--sub);font-weight:650;}
+.set-p{font-size:.76rem;color:var(--sub);margin:-2px 0 10px;line-height:1.5;}
+.set-x{position:absolute;top:12px;right:12px;width:30px;height:30px;border:none;background:none;border-radius:8px;cursor:pointer;color:var(--sub);display:grid;place-items:center;}
+.set-x:hover{background:var(--hov);}
+.th-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;}
+.th-card{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:8px;border:1.5px solid var(--bd);border-radius:12px;background:var(--sur);font:inherit;font-size:.78rem;font-weight:600;color:var(--tx);cursor:pointer;text-align:left;}
+.th-card small{font-size:.66rem;color:var(--sub);font-weight:500;margin-top:-4px;}
+.th-card:hover{border-color:var(--pri);}
+.th-card.on{border-color:var(--pri);box-shadow:0 0 0 3px var(--psoft);}
+.th-prev{position:relative;width:100%;height:62px;border-radius:8px;border:1px solid var(--bd);overflow:hidden;display:grid;place-items:center;}
+.th-prev i{position:absolute;left:10px;top:10px;right:26px;bottom:10px;border-radius:5px;}
+.th-prev b{position:absolute;right:8px;top:10px;width:12px;height:12px;border-radius:50%;}
+.th-prev em{font-style:normal;font-size:1.5rem;}
+.th-prev.art-none{background:var(--bg);}
+.th-prev.art-night{background:#CDD3EA;} .th-prev.art-ocean{background:#DCF0F8;}
+.font-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px;}
+.font-card{display:flex;flex-direction:column;gap:3px;align-items:flex-start;padding:10px 12px;border:1.5px solid var(--bd);border-radius:10px;background:var(--sur);color:var(--tx);cursor:pointer;text-align:left;}
+.font-card span{color:var(--sub);}
+.font-card:hover{border-color:var(--pri);}
+.font-card.on{border-color:var(--pri);box-shadow:0 0 0 3px var(--psoft);}
+.set-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;border-bottom:1px solid var(--bd2,var(--bd));cursor:pointer;}
+.set-row b{display:block;font-size:.84rem;} .set-row small{display:block;font-size:.72rem;color:var(--sub);margin-top:2px;}
+.set-tg{appearance:none;-webkit-appearance:none;width:38px;height:22px;border-radius:999px;background:var(--bd);position:relative;cursor:pointer;flex:none;transition:background .2s;}
+.set-tg::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 2px rgba(0,0,0,.2);}
+.set-tg:checked{background:var(--pri);} .set-tg:checked::after{transform:translateX(16px);}
+.set-tg:disabled{opacity:.4;cursor:not-allowed;}
+.pet-kinds{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
+.pet-kinds canvas{image-rendering:pixelated;background:var(--psoft);border-radius:10px;}
+body.incu-off #incubator{display:none;}
+@media (max-width:640px){ .set-box{grid-template-columns:1fr;grid-template-rows:auto 1fr;height:calc(100vh - 40px);} .set-nav{flex-direction:row;overflow-x:auto;border-right:none;border-bottom:1px solid var(--bd);padding:10px;} .set-h{display:none;} .set-nav button{flex:none;} }
+/* 펫 */
+#petLayer{position:fixed;left:236px;right:0;bottom:0;height:70px;pointer-events:none;z-index:40;display:none;}
+body.pet-on[data-tab="today"] #petLayer{display:block;}
+.pet{position:absolute;bottom:4px;left:0;width:48px;height:48px;pointer-events:auto;cursor:grab;touch-action:none;}
+.pet canvas{display:block;image-rendering:pixelated;}
+.pet-bub{position:absolute;bottom:52px;left:50%;transform:translateX(-50%) scale(.6);opacity:0;white-space:nowrap;background:var(--sur);color:var(--tx);border:1.5px solid var(--bd);border-radius:10px;padding:3px 8px;font-size:.7rem;font-weight:600;transition:all .2s;pointer-events:none;}
+.pet-bub.on{opacity:1;transform:translateX(-50%) scale(1);}
+.pet-heart{position:absolute;bottom:46px;font-style:normal;color:#F48FA8;fill:#F9C2CF;animation:petHeart 1.1s ease-out forwards;pointer-events:none;}
+@keyframes petHeart{to{transform:translateY(-34px) scale(1.3);opacity:0;}}
+.pet-item{position:absolute;bottom:4px;border:none;background:none;padding:0;cursor:pointer;pointer-events:auto;line-height:0;animation:petDrop .35s ease-out;}
+.pet-item canvas{image-rendering:pixelated;}
+.pet-item.bye{transform:scale(0);transition:transform .25s;}
+@keyframes petDrop{from{transform:translateY(-14px);opacity:0;}}
+.pet-menu{position:fixed;left:248px;bottom:50px;z-index:600;width:250px;background:var(--sur);border:1px solid var(--bd);border-radius:14px;padding:12px;box-shadow:0 10px 30px rgba(0,0,0,.12);font-size:.78rem;}
+.pm-hd{display:flex;gap:10px;align-items:center;margin-bottom:8px;}
+.pm-hd canvas{image-rendering:pixelated;background:var(--psoft);border-radius:10px;}
+.pm-hd b{display:block;font-size:.9rem;} .pm-hd small{color:var(--sub);font-size:.7rem;}
+.pm-bars label{display:flex;align-items:center;gap:8px;font-size:.72rem;color:var(--sub);margin:4px 0;}
+.pm-bars span{flex:1;height:7px;border-radius:9px;background:var(--hov,#F1F5F9);overflow:hidden;}
+.pm-bars i{display:block;height:100%;background:var(--pri);opacity:.6;border-radius:9px;}
+.pm-meta{font-size:.72rem;color:var(--sub);margin:6px 0 8px;}
+.pm-btns{display:flex;flex-wrap:wrap;gap:5px;}
+.pm-btns .btn{height:28px;font-size:.72rem;}
+.pet-gacha{position:fixed;inset:0;z-index:700;background:rgba(30,30,40,.25);display:grid;place-items:center;}
+.pg-card{background:var(--sur);border-radius:18px;padding:22px 24px;text-align:center;width:270px;box-shadow:0 20px 50px rgba(0,0,0,.18);}
+.pg-ball{width:110px;height:110px;margin:0 auto 12px;border-radius:50%;background:var(--psoft);border:3px solid var(--bd);display:grid;place-items:center;}
+.pg-ball canvas{width:72px;height:72px;image-rendering:pixelated;}
+.pg-card b{display:block;font-size:.95rem;margin-bottom:4px;} .pg-card small{display:block;color:var(--sub);font-size:.72rem;min-height:1em;margin-bottom:12px;}
+.pg-card .pm-btns{justify-content:center;}
+@media (max-width:800px){ #petLayer{left:0;bottom:64px;} }
 /* 사이드바 안 인큐베이터: 작게 */
 .side-incu{margin-top:auto;padding:14px 8px 12px;}
 .side-incu+.side-foot{margin-top:0;}
 .side-incu .incu{margin:0;padding:0 2px 4px;}
 .side-incu .incu-box{padding:7px 8px 8px;border-radius:14px;}
-.side-incu .incu-top{flex-direction:column;align-items:stretch;gap:5px;}
-.side-incu .incu-top>span:first-child{display:flex;align-items:baseline;justify-content:space-between;gap:4px;}
+.side-incu .incu-top{gap:5px;}
+.side-incu .incu-top>span:first-child{display:flex;align-items:baseline;gap:6px;min-width:0;}
 .side-incu .incu-top b{cursor:pointer;font-size:.76rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .side-incu .incu-top b:hover{color:var(--pri);}
 .side-incu .incu-top em{margin:0;font-size:.66rem;white-space:nowrap;}
-.side-incu .incu-lcd{align-self:flex-start;font-size:.6rem;}
+.side-incu .incu-lcd{font-size:.5rem;}
 .side-incu .incu-win{padding:8px 0 0;min-height:96px;}
 .side-incu .incu-cols{padding:0 5px;}
 .side-incu .incu-p{width:34px;}
@@ -1266,6 +1406,24 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
   <symbol id="i-drop" viewBox="0 0 24 24"><path d="M12 2.7 6.3 8.4a8 8 0 1 0 11.4 0z"/></symbol>
   <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5"/><path d="M8 7h7M8 11h5"/></symbol>
   <symbol id="i-tank" viewBox="0 0 24 24"><path d="M9 3h6M10 3v3M14 3v3"/><rect x="5" y="6" width="14" height="15" rx="4"/><path d="M9 11v5M12 11v5M15 11v5"/></symbol>
+  <symbol id="i-paw" viewBox="0 0 24 24"><circle cx="12" cy="15.5" r="3.6"/><circle cx="5.8" cy="10.2" r="1.9"/><circle cx="9.4" cy="6" r="1.9"/><circle cx="14.6" cy="6" r="1.9"/><circle cx="18.2" cy="10.2" r="1.9"/></symbol>
+  <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M11 3l1.8 5.2L18 10l-5.2 1.8L11 17l-1.8-5.2L4 10l5.2-1.8z"/><path d="M19 15v5M16.5 17.5h5"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7.5-4.6-7.5-10.2A4.2 4.2 0 0 1 12 7.2a4.2 4.2 0 0 1 7.5 2.6C19.5 15.4 12 20 12 20z"/></symbol>
+  <symbol id="i-flower" viewBox="0 0 24 24"><circle cx="12" cy="6.2" r="2.6"/><circle cx="16.2" cy="10" r="2.6"/><circle cx="12" cy="13.8" r="2.6"/><circle cx="7.8" cy="10" r="2.6"/><path d="M12 16.4V22M12 19c-1.5-1.6-3.2-2-4.5-1.6"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8.2 8.2 0 1 1 9.5 4a6.6 6.6 0 0 0 10.5 10.5z"/><path d="M17 4.5v2M16 5.5h2"/></symbol>
+  <symbol id="i-wave" viewBox="0 0 24 24"><path d="M2 9c2.5-2.2 4.5-2.2 7 0s4.5 2.2 7 0 4.2-2.2 6 0M2 15c2.5-2.2 4.5-2.2 7 0s4.5 2.2 7 0 4.2-2.2 6 0"/></symbol>
+  <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M5 19c0-8.5 5.8-14 15-14 0 9.2-5.4 15-14 15z"/><path d="M5 19l7.5-7.5"/></symbol>
+  <symbol id="i-cat" viewBox="0 0 24 24"><path d="M5 20v-8.5L4 5l4.6 3h6.8L20 5l-1 6.5V20z"/><circle cx="9.5" cy="13" r=".7"/><circle cx="14.5" cy="13" r=".7"/><path d="M11 16.2q1 .8 2 0"/></symbol>
+  <symbol id="i-snow" viewBox="0 0 24 24"><path d="M12 2.5v19M3.8 7.2l16.4 9.6M3.8 16.8l16.4-9.6M10 4.5l2 2 2-2M10 19.5l2-2 2 2"/></symbol>
+  <symbol id="i-maple" viewBox="0 0 24 24"><path d="M12 3l1.8 3.8 3.6-1-1 3.6 3.8 1.8-3.8 1.8 1 3.6-3.6-1L12 19l-1.8-3.4-3.6 1 1-3.6-3.8-1.8 3.8-1.8-1-3.6 3.6 1z"/><path d="M12 13v8"/></symbol>
+  <symbol id="i-gift" viewBox="0 0 24 24"><rect x="4" y="9.5" width="16" height="10.5" rx="1.6"/><path d="M3 9.5h18M12 9.5V20"/><path d="M12 9.5c-1.8-3.8-6-3.8-5-1s5 1 5 1zm0 0c1.8-3.8 6-3.8 5-1s-5 1-5 1z"/></symbol>
+  <symbol id="i-sprout" viewBox="0 0 24 24"><path d="M12 21v-8.5"/><path d="M12 12.5C12 7.8 8.5 5 4.5 5c0 4.2 3 7.5 7.5 7.5zM12 11c0-3.8 3-6.5 7.5-6.5 0 3.8-3 6.5-7.5 6.5z"/></symbol>
+  <symbol id="i-chick" viewBox="0 0 24 24"><circle cx="11" cy="13" r="7"/><path d="M18 11.5l3 1.2-3 1.2"/><circle cx="13.5" cy="11" r=".7"/><path d="M8 20l-.8 2M12 20v2M9 4.5c.5-1.2 1.6-1.8 2.8-1.6"/></symbol>
+  <symbol id="i-bubble" viewBox="0 0 24 24"><circle cx="9" cy="14.5" r="5.5"/><circle cx="17.5" cy="7" r="3"/><circle cx="18.5" cy="16.5" r="1.6"/><path d="M6.5 12.5a3 3 0 0 1 2-2"/></symbol>
+  <symbol id="i-cookie" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="9" cy="9" r=".9"/><circle cx="15" cy="10.5" r=".9"/><circle cx="10" cy="15" r=".9"/><circle cx="14.5" cy="15.5" r=".6"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.4-5.7L20 8.6M20 4v4.6h-4.6"/></symbol>
+  <symbol id="i-dish" viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="9" ry="8"/><circle cx="9" cy="10" r="2"/><circle cx="14.5" cy="13.5" r="2.4"/><circle cx="14.5" cy="7.8" r="1"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M3.5 7l8.5 6 8.5-6"/></symbol>
   <symbol id="i-cmd" viewBox="0 0 24 24"><path d="M9 9V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3z"/></symbol>
   </defs>
 </svg>
@@ -1301,18 +1459,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
   <div id="incubator" class="side-incu"></div>
 
   <div class="side-foot">
-    <div class="theme-sw" title="화면 테마 (이 브라우저에 저장)">
-      <span>테마</span>
-      <div class="seg-group" id="themeSw">
-        <button class="seg" data-th="pastel" onclick="setTheme('pastel')">파스텔</button>
-        <button class="seg" data-th="dark" onclick="setTheme('dark')">다크</button>
-        <button class="seg" data-th="mono" onclick="setTheme('mono')">모노</button>
-      </div>
-    </div>
-    <div class="theme-sw font-sw" title="화면 글씨체 (이 브라우저에 저장, PPT는 항상 Pretendard)">
-      <span>글씨체</span>
-      <select id="fontSel" onchange="setFont(this.value)"></select>
-    </div>
+    <button class="nav-i" onclick="openSettings()"><svg class="ic"><use href="#i-sliders"/></svg><span>설정</span><em id="setNavN">테마 · 글씨체 · 펫</em></button>
     <input type="file" id="bkFile" style="display:none;" accept=".json,application/json" onchange="restoreBackup(event)">
     <div class="dd dd-up" id="dataDd">
       <button class="nav-i" onclick="toggleDd(event,'dataDd')"><svg class="ic"><use href="#i-db"/></svg><span>데이터</span><span id="bkDot" class="dd-dot" style="display:none;"></span><svg class="ic ic-sm" style="margin-left:auto;"><use href="#i-down"/></svg></button>
@@ -1521,6 +1668,29 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
   </div>
 </div>
 
+<div id="setModal" class="modal" onclick="if(event.target===this)closeSettings()">
+  <div class="mbox set-box">
+    <nav class="set-nav">
+      <div class="set-h">설정</div>
+      <button data-st="look" onclick="renderSettings('look')"><svg class="ic"><use href="#i-palette"/></svg>모양</button>
+      <button data-st="font" onclick="renderSettings('font')"><svg class="ic"><use href="#i-edit"/></svg>글씨체</button>
+      <button data-st="home" onclick="renderSettings('home')"><svg class="ic"><use href="#i-today"/></svg>홈 화면</button>
+      <button data-st="pet" onclick="renderSettings('pet')"><svg class="ic"><use href="#i-paw"/></svg>펫</button>
+      <button data-st="ln2" onclick="renderSettings('ln2')"><svg class="ic"><use href="#i-tank"/></svg>LN2</button>
+      <button data-st="mail" onclick="renderSettings('mail')"><svg class="ic"><use href="#i-mail"/></svg>우체통</button>
+      <button onclick="closeSettings();newsShow(true)" style="margin-top:auto;"><svg class="ic"><use href="#i-sparkle"/></svg>새로 생긴 기능</button>
+    </nav>
+    <section class="set-body" id="setBody"></section>
+    <button class="set-x" onclick="closeSettings()" title="닫기 (Esc)"><svg class="ic"><use href="#i-x"/></svg></button>
+  </div>
+</div>
+<div id="newsModal" class="modal" onclick="if(event.target===this)closeNews()">
+  <div class="mbox news-box">
+    <div class="news-hd"><span class="news-ic"><svg class="ic"><use href="#i-sparkle"/></svg></span><div><b>새로 생긴 기능</b><small id="newsDate"></small></div></div>
+    <ul class="news-list" id="newsList"></ul>
+    <div class="news-ft"><label><input type="checkbox" id="newsHide"> 다시 보지 않기</label><button class="btn btn-pri" onclick="closeNews()">확인</button></div>
+  </div>
+</div>
 <div id="trashModal" class="modal">
   <div class="mbox">
     <h2>휴지통</h2>
@@ -2121,7 +2291,7 @@ function farIdx(used, exclude){
   return pick(PAL.map((_,i)=>i),u=>u) ?? 0;
 }
 // 종류(type)마다 typeColors에 색이 고정 배정돼 있다. 새로 등장한 종류는 여기서 랜덤으로 배정하고 저장한다.
-// (⚙ 배양 현황의 "종류별 색상 설정"에서 수동으로 바꾸거나 다시 랜덤 돌릴 수 있다)
+// (배양 현황의 "종류별 색상 설정"에서 수동으로 바꾸거나 다시 랜덤 돌릴 수 있다)
 function rebuildColors(){
   tcm={};
   let changed=false;
@@ -2241,7 +2411,7 @@ function plateKind(str){
 }
 function _incuNick(){ try{ return localStorage.getItem('orgNick')||''; }catch(e){ return ''; } }
 function setIncuNick(){
-  const v=prompt('인큐베이터에 붙일 닉네임 (예: 유진)', _incuNick());
+  const v=prompt("인큐베이터 이름 앞에 붙일 닉네임 (예: YJ → YJ's Incubator, 비우면 Incubator)", _incuNick());
   if(v===null) return;
   try{ localStorage.setItem('orgNick', v.trim().slice(0,12)); }catch(e){}
   renderIncubator();
@@ -2267,8 +2437,7 @@ function renderIncubator(){
       <div class="incu-l"><b>${esc(s.pk.label)}</b><br>${s.n}장${s.pk.k==='well'&&s.w?` · ${s.w}w`:''}</div></div>`;
   }).join('') : `<div class="incu-empty">배양 중인 라인이 없어요. 텅 빈 인큐베이터…</div>`;
   const fill='<span class="incu-fill"></span>';
-  const nick=_incuNick();
-  el.innerHTML=`<div class="incu"><div class="incu-box"><div class="incu-top"><span><b onclick="setIncuNick()" title="눌러서 닉네임 바꾸기">${esc(nick?nick+'의 인큐베이터':'나의 인큐베이터')} ✎</b><em>${stacks.length?`${stacks.length}종류 · ${total}장`:''}</em></span><span class="incu-lcd"><i></i>37°C · CO₂ 5%</span></div>
+  el.innerHTML=`<div class="incu"><div class="incu-box"><div class="incu-top"><span><b class="incu-ttl">Incubator<span class="incu-dots"><i>.</i><i>.</i><i>.</i></span></b><span class="incu-lcd"><i></i>37°C · 5%</span></span><em>${stacks.length?`${stacks.length}종류 · ${total}장`:''}</em></div>
     <div class="incu-win">${body}${stacks.length?fill:''}</div></div><div class="incu-feet"><i></i><i></i></div></div>`;
 }
 
@@ -4519,11 +4688,27 @@ function setLineFilter(f,silent){
   if(!silent) renderFilterHint();
 }
 // 화면 테마: 파스텔(기본) / 다크 / 모노(흰 바탕 + 검정 글씨, 강조는 차콜 바탕 + 흰 글씨). 데이터와 무관한 화면 설정이라 이 브라우저에만 저장
+// 밤하늘 · 바다는 다크 · 파스텔 위에 색과 그림 배경만 바꾼 테마 (기존 data-theme 규칙을 그대로 씀)
+// 그림 배경은 고르지 않고 매주 월요일마다 자동으로 바뀐다 (모두 같은 순서 · 같은 주에는 같은 그림).
+// 12/18 ~ 12/26은 크리스마스 고정. 파스텔 테마에서만 보이고 다크 · 모노에서는 꺼진다. 어떤 그림이 언제 나오는지는 화면에 안 보여줌(비공개).
+const ART_ROTA=['ocean','freesia','autumn','chick','plant','night','forest','winter','cat','dreamy'];
+function weeklyArt(d){
+  d=d||new Date();
+  const m=d.getMonth()+1, day=d.getDate();
+  if(m===12 && day>=18 && day<=26) return 'xmas';
+  const mon=new Date(d); mon.setHours(0,0,0,0); mon.setDate(mon.getDate()-((mon.getDay()+6)%7));
+  const wk=Math.round((mon-new Date(2026,0,5))/(7*864e5));   // 2026-01-05(월) 기준 주 번호
+  return ART_ROTA[((wk%ART_ROTA.length)+ART_ROTA.length)%ART_ROTA.length];
+}
+const THEME_BASE={};   // 배경만 바뀌는 테마 (화면 색은 파스텔 그대로)
+let _themeKey='pastel';
 function setTheme(t){
   if(!['dark','mono'].includes(t)) t='pastel';
   document.body.dataset.theme=t;
+  if(t==='pastel') document.body.dataset.art=weeklyArt(); else delete document.body.dataset.art;
   if(typeof curTab!=='undefined'&&curTab==='ana'&&window._lateReady) renderAnalytics();   // 캘린더 색 순서가 테마마다 달라서 다시 그림
-  document.querySelectorAll('#themeSw .seg').forEach(b=>b.classList.toggle('on',b.dataset.th===t));
+  _themeKey=t;
+  if(document.getElementById('setModal')?.classList.contains('open') && _setTab==='look') renderSettings('look');
   try{ localStorage.setItem('orgTheme',t); }catch(e){}
 }
 // 화면 글씨체: 고른 것만 그때 불러온다. 불러오기에 실패해도 Pretendard로 자연스럽게 대체된다.
@@ -4540,23 +4725,47 @@ const FONTS={
   nanumgothic:{label:'나눔고딕', family:"'Nanum Gothic'", css:'https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap'},
   nanumbarun:{label:'나눔바른고딕', family:"'NanumBarunGothic'", css:'https://hangeul.pstatic.net/hangeul_static/css/nanum-barun-gothic.css'},
   gowun:{label:'고운돋움', family:"'Gowun Dodum'", css:'https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap', scale:1.02},
+  // 손글씨 (눈누 무료 폰트는 face로 바로 불러옴)
+  omyu:{group:'손글씨', label:'오뮤 다예쁨체', family:"'omyu_pretty'", face:{family:'omyu_pretty', url:'https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2205@1.0/omyu_pretty.woff2'}, scale:1.08},
+  kyobo:{group:'손글씨', label:'교보 손글씨 2019', family:"'KyoboHand'", face:{family:'KyoboHand', url:'https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-04@1.0/KyoboHand.woff'}, scale:1.04},
+  nanumpen:{group:'손글씨', label:'나눔손글씨 펜', family:"'Nanum Pen Script'", css:'https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap', scale:1.28},
+  gaegu:{group:'손글씨', label:'개구체', family:"'Gaegu'", css:'https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap', scale:1.12},
+  gamja:{group:'손글씨', label:'감자꽃', family:"'Gamja Flower'", css:'https://fonts.googleapis.com/css2?family=Gamja+Flower&display=swap', scale:1.06},
+  himelody:{group:'손글씨', label:'하이멜로디', family:"'Hi Melody'", css:'https://fonts.googleapis.com/css2?family=Hi+Melody&display=swap', scale:1.16},
+  poorstory:{group:'손글씨', label:'서툰이야기', family:"'Poor Story'", css:'https://fonts.googleapis.com/css2?family=Poor+Story&display=swap', scale:1.06},
+  cute:{group:'손글씨', label:'귀여운 폰트', family:"'Cute Font'", css:'https://fonts.googleapis.com/css2?family=Cute+Font&display=swap', scale:1.3},
+  yeonsung:{group:'손글씨', label:'연성체', family:"'Yeon Sung'", css:'https://fonts.googleapis.com/css2?family=Yeon+Sung&display=swap', scale:1.05},
+  dongle:{group:'귀여운', label:'동글', family:"'Dongle'", css:'https://fonts.googleapis.com/css2?family=Dongle:wght@400;700&display=swap', scale:1.4},
+  jua:{group:'귀여운', label:'주아체', family:"'Jua'", css:'https://fonts.googleapis.com/css2?family=Jua&display=swap', scale:.98},
 };
-function setFont(k){
-  if(!FONTS[k]) k='pretendard';
-  const f=FONTS[k];
+function loadFont(k){
+  const f=FONTS[k]; if(!f) return;
   if(f.css && !document.getElementById('font-'+k)){
     const l=document.createElement('link'); l.id='font-'+k; l.rel='stylesheet'; l.href=f.css; document.head.appendChild(l);
   }
+  if(f.face && !document.getElementById('font-'+k)){
+    const st=document.createElement('style'); st.id='font-'+k;
+    st.textContent=`@font-face{font-family:'${f.face.family}';src:url('${f.face.url}') format('${/woff2$/.test(f.face.url)?'woff2':'woff'}');font-weight:normal;font-display:swap;}`;
+    document.head.appendChild(st);
+  }
+}
+function setFont(k){
+  if(!FONTS[k]) k='pretendard';
+  const f=FONTS[k];
+  loadFont(k);
   document.documentElement.style.setProperty('--font',f.family);
   // 글자 크기 보정(나눔스퀘어 네오처럼 크게 나오는 글씨체) + 글씨체별 굵기 규칙은 CSS의 data-font로
   document.documentElement.style.setProperty('--fscale',f.scale||1);
   document.documentElement.dataset.font=k;
-  const sel=document.getElementById('fontSel'); if(sel) sel.value=k;
   try{ localStorage.setItem('orgFont',k); }catch(e){}
+  document.querySelectorAll('.font-card').forEach(c=>c.classList.toggle('on',c.dataset.font===k));
 }
 (function(){
   const sel=document.getElementById('fontSel');
-  if(sel) sel.innerHTML=Object.entries(FONTS).map(([k,f])=>`<option value="${k}">${f.label}</option>`).join('');
+  if(!sel) return;
+  const groups={};
+  Object.entries(FONTS).forEach(([k,f])=>(groups[f.group||'기본']=groups[f.group||'기본']||[]).push(`<option value="${k}">${f.label}</option>`));
+  sel.innerHTML=Object.entries(groups).map(([g,o])=>`<optgroup label="${g}">${o.join('')}</optgroup>`).join('');
 })();
 // 모바일: 사이드바를 서랍처럼 열고 닫기
 function openSide(){ document.body.classList.add('side-open'); }
@@ -6276,7 +6485,7 @@ function pptLayRender(){
   const canCut=p=>p.src&&(p.cut||pptPieces(p.src).pieces.length);
   h+=`<div class="pl-sum"><span>슬라이드 <b>${pages.length}</b>장${notes.length?' · '+notes.join(' · '):''}</span><span class="pl-mut">썸네일을 누르면 크게 보여요 · <b>제목 자르기</b>로 같은 실험을 한 장에 모을 수 있어요</span></div>`;
   h+=`<div class="pl-thumbs">`+pages.map((p,i)=>{ const D=pptHtmlBackend(); pptRenderPage(D,p,th);
-    const ed=canCut(p)?`<button class="pl-cutbtn${pptCutEd===p.src?' on':''}${p.cut?' cut':''}" data-src="${esc(p.src)}" title="이 슬라이드 제목을 어디까지 쓸지 고르기">${p.cut?'✂ 자름':'✂ 제목 자르기'}</button>`:'';
+    const ed=canCut(p)?`<button class="pl-cutbtn${pptCutEd===p.src?' on':''}${p.cut?' cut':''}" data-src="${esc(p.src)}" title="이 슬라이드 제목을 어디까지 쓸지 고르기">${p.cut?'✄ 자름':'✄ 제목 자르기'}</button>`:'';
     const md=p.cond&&p.part===0?`<select class="pl-modesel" data-t="${esc(p.exp)}" title="이 실험의 배치 (저장됨)" onchange="pptSetMode(this.dataset.t,this.value)">${PPT_MODES.map(([v,t])=>`<option value="${v}"${p.modeSet===v?' selected':''}>${v==='auto'?`자동 · ${p.autoName}`:t}</option>`).join('')}</select>`:'';
     return `<div class="pl-th" title="${i+1}번 슬라이드">${D.html()}<span class="pl-no">${i+1}</span>${ed}${md}</div>`; }).join('')+`</div>`;
   body.innerHTML=h;
@@ -6892,7 +7101,7 @@ function renderDiary(){
     const from=ymdLocal(days[0]), to=ymdLocal(days[6]), st=_twStats(from,to);
     const typeCnt={}; st.ls.forEach(lg=>{ const l=lineOf(lg.lineId); if(l) typeCnt[l.type]=(typeCnt[l.type]||0)+1; });
     const topT=Object.entries(typeCnt).sort((x,y)=>y[1]-x[1]).slice(0,3).map(([t,n])=>`${esc(t)} ${n}`).join(', ');
-    const note=`<div class="dy-week-note"><h5>이번 주 정리 ✎</h5>작업 ${st.all}건 · 라인 ${st.lines}개<br>Split ${st.split} · MC·MA ${st.mc} · Stock ${st.vials} vial${st.seed?`<br>새 라인 ${st.seed}개`:''}${topT?`<br>많이 본 친구들: ${topT}`:''}</div>`;
+    const note=`<div class="dy-week-note"><h5>이번 주 정리</h5>작업 ${st.all}건 · 라인 ${st.lines}개<br>Split ${st.split} · MC·MA ${st.mc} · Stock ${st.vials} vial${st.seed?`<br>새 라인 ${st.seed}개`:''}${topT?`<br>많이 본 친구들: ${topT}`:''}</div>`;
     const wkNo=Math.ceil(((s-new Date(s.getFullYear(),0,1))/86400000+new Date(s.getFullYear(),0,1).getDay()+1)/7);
     el.innerHTML=`<div class="dy">${head('Week '+wkNo,`${s.getMonth()+1}/${s.getDate()} – ${days[6].getMonth()+1}/${days[6].getDate()}`)}
       <div class="dy-spread"><div class="dy-paper"><i class="dy-tape l"></i>${days.slice(0,3).map((c,i)=>dayBox(c,i)).join('')}${note}</div>
@@ -7199,6 +7408,328 @@ function renderAnalytics(){
   catch(e){ window.cclAgent=Object.freeze(api); }
 })();
 
+// ══════════════════════════════════════════
+//  펫 (오늘 작업 화면 아래쪽을 돌아다니는 픽셀 세포 친구)
+//  그림은 이미지 파일 없이 16×16 칸에 코드로 그린다. 상태는 이 브라우저에만 저장 (localStorage orgPet)
+// ══════════════════════════════════════════
+const PET_KINDS=[
+  {id:'cell',  name:'말랑 세포',    col:'#F9B8C6', dk:'#D97A93', acc:'#B9A2E8'},
+  {id:'org',   name:'오가노이드',   col:'#FFD3A1', dk:'#E39A55', acc:'#FFF1D6'},
+  {id:'hep',   name:'간세포',       col:'#E7B8A0', dk:'#B97A5E', acc:'#9C6BD8'},
+  {id:'mito',  name:'미토콘드리아', col:'#FFC48A', dk:'#E08A3C', acc:'#FFE7C4'},
+  {id:'div',   name:'분열 세포',    col:'#B9E6B4', dk:'#6FB46A', acc:'#8CC8F2'},
+  {id:'stem',  name:'줄기세포',     col:'#A9E4E0', dk:'#4FB3AC', acc:'#FFE37A'},
+  {id:'flask', name:'T75 플라스크', col:'#BFDDFB', dk:'#6FA6DE', acc:'#F7A8B8'},
+  {id:'amoeba',name:'아메바',       col:'#D7C6F5', dk:'#9C82D6', acc:'#F6B8D8'},
+];
+const PET_PX=3, PET_N=16;
+// 16×16 칸에 몸을 칠한다: 'b' 몸, 'a' 무늬, 나머지는 빈칸. 테두리는 몸 바깥 칸에 자동으로.
+function petGrid(kind, frame){
+  const g=[...Array(PET_N)].map(()=>Array(PET_N).fill(''));
+  const ell=(cx,cy,rx,ry,v)=>{ for(let y=0;y<PET_N;y++) for(let x=0;x<PET_N;x++){ const dx=(x+.5-cx)/rx, dy=(y+.5-cy)/ry; if(dx*dx+dy*dy<=1) g[y][x]=v; } };
+  const rect=(x0,y0,x1,y1,v)=>{ for(let y=y0;y<=y1;y++) for(let x=x0;x<=x1;x++) if(y>=0&&y<PET_N&&x>=0&&x<PET_N) g[y][x]=v; };
+  const w=frame%2;
+  switch(kind){
+    case 'cell':  ell(8,8.5,6.6,5.8,'b'); ell(11,6,1.9,1.5,'a'); break;
+    case 'org':   ell(8,9,5.6,4.8,'b'); ell(3.5,7,2.4,2.4,'b'); ell(12.5,7,2.4,2.4,'b'); ell(6,4.3,2.4,2.2,'b'); ell(10.5,4.3,2.4,2.2,'b'); ell(8,9.5,1.6,1.2,'a'); break;
+    case 'hep':   for(let y=3;y<=13;y++){ const k=Math.min(y-3,13-y,3); rect(4-k,y,11+k,y,'b'); } ell(6.3,6.3,1.3,1.3,'a'); ell(10,6.3,1.3,1.3,'a'); break;
+    case 'mito':  ell(8,8.5,7.4,4.8,'b'); [[3,8],[5,10],[7,8],[9,10],[11,8],[13,10]].forEach(([x,y])=>g[y-1][x]==='b'&&(g[y-1][x]='a')); break;
+    case 'div':   ell(5,8.5,4.3,4.6,'b'); ell(11,8.5,4.3,4.6,'b'); ell(4.5,6.3,1.2,1,'a'); ell(11.5,6.3,1.2,1,'a'); break;
+    case 'stem':  ell(8,9,5.6,5.2,'b'); g[2][8]='a'; g[3][7]='a'; g[3][8]='a'; g[3][9]='a'; g[4][8]='a'; g[5][2]='a'; g[6][13]='a'; break;
+    case 'flask': rect(3,5,12,13,'b'); rect(9,2,13,4,'b'); rect(10,1,13,1,'a'); rect(4,11,11,13,'a'); break;
+    case 'amoeba':ell(8,9.5,6,4.4,'b'); ell(w?2.5:3.5,8,2.2,1.6,'b'); ell(w?13:12.3,7,2,1.8,'b'); ell(w?9:7.5,4.6,2,1.8,'b'); ell(9,9,1.4,1.2,'a'); break;
+  }
+  return g;
+}
+function drawPet(cv, kindId, st){
+  const K=PET_KINDS.find(k=>k.id===kindId)||PET_KINDS[0];
+  const ctx=cv.getContext('2d'); ctx.clearRect(0,0,cv.width,cv.height);
+  const g=petGrid(K.id, st.frame), bob=(st.mode==='walk'&&st.frame%2)?1:0, oy=bob+(st.jump||0);
+  const P=(x,y,c)=>{ ctx.fillStyle=c; ctx.fillRect(x*PET_PX,(y-oy)*PET_PX,PET_PX,PET_PX); };
+  for(let y=0;y<PET_N;y++) for(let x=0;x<PET_N;x++){
+    const v=g[y][x];
+    if(v){ P(x,y, v==='a'?K.acc:K.col); continue; }
+    const nb=[[1,0],[-1,0],[0,1],[0,-1]].some(([dx,dy])=>{ const yy=y+dy, xx=x+dx; return yy>=0&&yy<PET_N&&xx>=0&&xx<PET_N&&g[yy][xx]; });
+    if(nb) P(x,y,K.dk);
+  }
+  // 얼굴: 몸 가운데 아래쪽
+  const ink='#3B3346';
+  const ey=9, ex=[6,10];
+  if(st.mode==='sleep' || st.blink) ex.forEach(x=>{ P(x,ey,ink); P(x+1,ey,ink); });
+  else ex.forEach(x=>{ P(x,ey-1,ink); P(x,ey,ink); P(x+1,ey-1,'#fff'); });
+  P(4.5,ey+1.3,'#F4A3B5'); P(11.5,ey+1.3,'#F4A3B5');           // 볼
+  if(st.mode==='happy'){ P(7.5,ey+1.6,ink); P(8.5,ey+1.6,ink); P(8,ey+2.2,ink); }
+  else P(8,ey+1.4,ink);                                          // 입
+  // 발: 걸을 때 번갈아
+  if(K.id!=='flask'){
+    const fy=14.6, f=st.mode==='walk'?st.frame%2:0;
+    P(5+f,fy,K.dk); P(10-f,fy,K.dk);
+  }
+}
+function petItemSprite(type){
+  const cv=document.createElement('canvas'); cv.width=7*PET_PX; cv.height=8*PET_PX;
+  const ctx=cv.getContext('2d'); const P=(x,y,c)=>{ ctx.fillStyle=c; ctx.fillRect(x*PET_PX,y*PET_PX,PET_PX,PET_PX); };
+  if(type==='poop'){
+    const m=['...b...','..bb...','..bbb..','.bbbbb.','.bwbwb.','bbbbbbb','bbbbbbb'];
+    m.forEach((r,y)=>[...r].forEach((c,x)=>{ if(c==='b') P(x,y+1,'#B98A64'); if(c==='w') P(x,y+1,'#3B3346'); }));
+  } else {
+    const pc=['#F7A8B8','#FFD27A','#B9A2E8','#9ED8F0'][Math.floor(Math.random()*4)];
+    const m=['.p.p.','ppppp','.pyp.','ppppp','.p.p.'];
+    m.forEach((r,y)=>[...r].forEach((c,x)=>{ if(c==='p') P(x+1,y,pc); if(c==='y') P(x+1,y,'#FFE37A'); }));
+    P(3,5,'#7CC08A'); P(3,6,'#7CC08A'); P(4,6,'#7CC08A'); P(3,7,'#7CC08A');
+  }
+  return cv;
+}
+
+let pet=null;
+try{ pet=JSON.parse(localStorage.getItem('orgPet')||'null'); }catch(e){}
+function savePet(){ try{ localStorage.setItem('orgPet', JSON.stringify(pet)); }catch(e){} }
+const PS={x:80, dir:1, mode:'idle', frame:0, until:0, target:0, blink:false, jump:0, bubbleTo:0, last:0, layer:null, cv:null, el:null};
+const petReduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function petMount(){
+  if(document.getElementById('petLayer')) return;
+  const L=document.createElement('div'); L.id='petLayer'; L.innerHTML=`<div class="pet" id="petEl"><div class="pet-bub" id="petBub"></div><canvas id="petCv" width="${PET_N*PET_PX}" height="${PET_N*PET_PX}"></canvas></div>`;
+  document.body.appendChild(L);
+  PS.layer=L; PS.el=document.getElementById('petEl'); PS.cv=document.getElementById('petCv');
+  // 쓰다듬기: 누르거나, 누른 채로 문지르기
+  let rub=0;
+  PS.el.addEventListener('dblclick',()=>openSettings('pet'));
+  PS.el.title='쓰다듬기 · 두 번 누르면 펫 설정';
+  PS.el.addEventListener('pointerdown',e=>{ e.preventDefault(); rub=1; petPat(); });
+  PS.el.addEventListener('pointermove',()=>{ if(rub && ++rub%6===0) petPat(); });
+  window.addEventListener('pointerup',()=>rub=0);
+  petRender(); requestAnimationFrame(petLoop);
+}
+function petRender(){
+  const has=!!(pet&&pet.kind);
+  document.body.classList.toggle('pet-on', has && !pet.hidden);
+  if(PS.cv && has) drawPet(PS.cv, pet.kind, PS);
+}
+function petSay(t,ms){ const b=document.getElementById('petBub'); if(!b) return; b.textContent=t; b.classList.add('on'); PS.bubbleTo=performance.now()+(ms||2200); }
+function petPat(){
+  if(!pet) return;
+  pet.hap=Math.min(100,(pet.hap||60)+4); pet.pats=(pet.pats||0)+1; savePet();
+  PS.mode='happy'; PS.until=performance.now()+1400; PS.jump=2;
+  const h=document.createElement('i'); h.className='pet-heart'; h.innerHTML='<svg class="ic"><use href="#i-heart"/></svg>'; h.style.left=(PS.x+18+Math.random()*12)+'px'; PS.layer.appendChild(h); setTimeout(()=>h.remove(),1100);
+  if(Math.random()<.3) petSay(['헤헤','좋아!','또 해줘','♪','따뜻해~'][Math.floor(Math.random()*5)]);
+}
+function petDrop(type){
+  if(PS.layer.querySelectorAll('.pet-item').length>=6) return;
+  const it=document.createElement('button'); it.className='pet-item '+type; it.appendChild(petItemSprite(type));
+  it.style.left=(PS.x+(PS.dir>0?-6:36))+'px'; it.title=type==='poop'?'눌러서 치우기':'눌러서 꽃 받기';
+  it.onclick=()=>{ if(type==='poop'){ pet.hap=Math.min(100,(pet.hap||60)+3); petSay('고마워!'); } else { pet.flowers=(pet.flowers||0)+1; petSay(`꽃 ${pet.flowers}송이째!`); }
+    savePet(); it.classList.add('bye'); setTimeout(()=>it.remove(),300); };
+  PS.layer.appendChild(it);
+}
+function petChoose(now){
+  const W=PS.layer.clientWidth-60, r=Math.random();
+  const hungry=pet && Date.now()-(pet.fedTs||0)>6*3600e3;
+  if(r<.45){ PS.mode='walk'; PS.target=Math.max(0,Math.min(W, PS.x+(Math.random()*2-1)*360)); PS.dir=PS.target>PS.x?1:-1; PS.until=now+12000; }
+  else if(r<.62){ PS.mode='idle'; PS.until=now+2500+Math.random()*3000; if(hungry && Math.random()<.5) petSay('배고파…'); }
+  else if(r<.72){ PS.mode='sleep'; PS.until=now+6000+Math.random()*5000; petSay('Zzz',4000); }
+  else if(r<.80){ PS.mode='idle'; PS.until=now+1800; setTimeout(()=>{ if(pet&&!pet.hidden){ petDrop('poop'); petSay('…앗'); } },700); }
+  else if(r<.88){ PS.mode='idle'; PS.until=now+2600; setTimeout(()=>{ if(pet&&!pet.hidden){ petDrop('flower'); petSay(['선물이야!','꽃 주울게~','받아줘!'][Math.floor(Math.random()*3)]); } },600); }
+  else { PS.mode='happy'; PS.until=now+1500; PS.jump=3; petSay(['오늘도 화이팅!','MC 했어?','split 할 때 됐나?','배양 잘 되고 있어!','인큐베이터 따뜻해'][Math.floor(Math.random()*5)]); }
+}
+function petLoop(now){
+  requestAnimationFrame(petLoop);
+  if(!pet||!pet.kind||pet.hidden||document.body.dataset.tab!=='today'||document.hidden) return;
+  const step=petReduce?420:220;
+  if(now-PS.last<step) return;
+  PS.last=now; PS.frame++;
+  if(now>PS.until) petChoose(now);
+  if(PS.mode==='walk'){
+    PS.x+=PS.dir*(petReduce?3:6);
+    if((PS.dir>0&&PS.x>=PS.target)||(PS.dir<0&&PS.x<=PS.target)){ PS.mode='idle'; PS.until=now+1500; }
+  }
+  PS.x=Math.max(0,Math.min(PS.layer.clientWidth-50,PS.x));
+  PS.blink = PS.mode!=='sleep' && PS.frame%17===0;
+  if(PS.jump) PS.jump=Math.max(0,PS.jump-1);
+  if(PS.mode==='happy' && PS.frame%3===0) PS.jump=2;
+  PS.el.style.transform=`translateX(${PS.x}px)`;
+  PS.cv.style.transform=`scaleX(${PS.dir<0?-1:1})`;
+  if(now>PS.bubbleTo) document.getElementById('petBub').classList.remove('on');
+  drawPet(PS.cv, pet.kind, PS);
+  // 기분 · 배부름은 시간에 따라 천천히 줄어든다
+  if(PS.frame%300===0){ pet.hap=Math.max(0,(pet.hap||60)-1); savePet(); }
+}
+
+// ── 펫 설정 (설정 창의 「펫」 탭) · 뽑기 ──
+function petPanelHTML(){
+  const K=pet&&PET_KINDS.find(k=>k.id===pet.kind);
+  if(!K) return `<div class="set-sec"><h4>펫 키우기</h4><p class="set-p">뽑기로 세포 친구를 데려와요. 오늘 작업 화면 아래를 뚜벅뚜벅 돌아다니고, 응가도 하고 꽃도 선물해요. 쓰다듬으면 좋아해요.</p>
+    <div class="pet-kinds">${PET_KINDS.map(k=>`<canvas data-k="${k.id}" width="48" height="48" title="${esc(k.name)}"></canvas>`).join('')}</div>
+    <button class="btn btn-pri" onclick="petGacha()"><svg class="ic"><use href="#i-sparkle"/></svg>펫 뽑기</button></div>`;
+  const days=pet.born?Math.max(1,Math.round((Date.now()-pet.born)/864e5)+1):1;
+  const full=Math.max(0,Math.round(100-Math.min(100,(Date.now()-(pet.fedTs||0))/864e3*2)));
+  return `<div class="set-sec"><div class="pm-hd"><canvas id="pmCv" width="48" height="48"></canvas><div><b>${esc(pet.name||K.name)}</b><small>${esc(K.name)} · 함께한 지 ${days}일</small></div></div>
+    <div class="pm-bars"><label>기분 <span><i style="width:${pet.hap||0}%"></i></span></label><label>배부름 <span><i style="width:${full}%"></i></span></label></div>
+    <div class="pm-meta"><svg class="ic"><use href="#i-flower"/></svg> 받은 꽃 ${pet.flowers||0}　<svg class="ic"><use href="#i-heart"/></svg> 쓰다듬기 ${pet.pats||0}</div>
+    <div class="pm-btns"><button class="btn btn-out" onclick="petFeed()"><svg class="ic"><use href="#i-cookie"/></svg>밥 주기</button><button class="btn btn-out" onclick="petRename()"><svg class="ic"><use href="#i-edit"/></svg>이름 짓기</button><button class="btn btn-out" onclick="petGacha()"><svg class="ic"><use href="#i-refresh"/></svg>다시 뽑기</button></div></div>
+    <div class="set-sec"><label class="set-row"><span><b>홈 화면에 펫 보이기</b><small>오늘 작업 화면 아래쪽을 돌아다녀요</small></span><input type="checkbox" class="set-tg" ${pet.hidden?'':'checked'} onchange="petHide()"></label></div>
+    <p class="set-p">펫을 누르면 쓰다듬기, 두 번 누르면 이 화면이 열려요. 응가는 눌러서 치우고, 꽃은 눌러서 받아요.</p>`;
+}
+function petMenu(){ openSettings('pet'); }
+function _petRefresh(){ if(_setTab==='pet' && document.getElementById('setModal').classList.contains('open')) renderSettings('pet'); }
+function petFeed(){ if(!pet) return; pet.fedTs=Date.now(); pet.hap=Math.min(100,(pet.hap||60)+6); savePet(); _petRefresh(); petSay('냠냠! 맛있다',2500); PS.mode='happy'; PS.until=performance.now()+1500; }
+function petRename(){ const v=prompt('펫 이름', pet.name||''); if(v===null) return; pet.name=v.trim().slice(0,12); savePet(); _petRefresh(); }
+function petHide(){ pet.hidden=!pet.hidden; savePet(); petRender(); _petRefresh(); }
+function petGacha(){
+  const ov=document.createElement('div'); ov.className='pet-gacha';
+  ov.innerHTML=`<div class="pg-card"><div class="pg-ball"><canvas id="pgCv" width="48" height="48"></canvas></div><b id="pgName">두근두근…</b><small id="pgSub"> </small><div class="pm-btns" id="pgBtns" style="visibility:hidden;"><button class="btn btn-out" id="pgAgain">한 번 더</button><button class="btn btn-pri" id="pgOk">이 친구로!</button></div></div>`;
+  document.body.appendChild(ov);
+  const cv=ov.querySelector('#pgCv'); let i=0, pick=null;
+  const spin=()=>{
+    let n=0; ov.querySelector('#pgBtns').style.visibility='hidden'; ov.querySelector('#pgName').textContent='두근두근…';
+    const t=setInterval(()=>{ i=(i+1)%PET_KINDS.length; drawPet(cv,PET_KINDS[i].id,{frame:n,mode:'idle'});
+      if(++n>14+Math.floor(Math.random()*8)){ clearInterval(t); pick=PET_KINDS[Math.floor(Math.random()*PET_KINDS.length)];
+        drawPet(cv,pick.id,{frame:0,mode:'happy'}); ov.querySelector('#pgName').textContent=`${pick.name}(이)가 나왔어요!`;
+        ov.querySelector('#pgSub').textContent='쓰다듬으면 좋아해요 · 응가는 눌러서 치워 주세요'; ov.querySelector('#pgBtns').style.visibility='visible'; } }, 90);
+  };
+  ov.querySelector('#pgAgain').onclick=spin;
+  ov.querySelector('#pgOk').onclick=()=>{ pet={kind:pick.id, name:'', hap:70, fedTs:Date.now(), flowers:pet?pet.flowers||0:0, pats:pet?pet.pats||0:0, born:pet&&pet.born||Date.now(), hidden:false}; savePet(); ov.remove(); petRender(); _petRefresh(); petSay('안녕! 잘 부탁해',3000); };
+  ov.addEventListener('pointerdown',e=>{ if(e.target===ov) ov.remove(); });
+  spin();
+}
+petMount();
+
+// ══════════════════════════════════════════
+//  설정 창 (Claude 설정처럼 왼쪽 탭): 모양 · 글씨체 · 홈 화면 · 펫 · LN2
+// ══════════════════════════════════════════
+let _setTab='look';
+function openSettings(tab){ document.getElementById('setModal').classList.add('open'); renderSettings(tab||_setTab); }
+function closeSettings(){ document.getElementById('setModal').classList.remove('open'); }
+function incuOn(){ try{ return localStorage.getItem('orgIncuOff')!=='1'; }catch(e){ return true; } }
+function setIncu(on){ try{ localStorage.setItem('orgIncuOff', on?'0':'1'); }catch(e){} document.body.classList.toggle('incu-off',!on); }
+const THEME_CARDS=[
+  {k:'pastel',name:'파스텔',sw:['#F6F6F8','#FFFFFF','#E9D27A']},
+  {k:'dark',  name:'다크',  sw:['#121214','#1B1B1F','#CFC08A']},
+  {k:'mono',  name:'모노',  sw:['#F2F2F3','#FFFFFF','#000000']},
+];
+const ART_CARDS=[
+  {k:'night', name:'밤하늘',   emo:'moon', sub:'연한 남색 · 별 · 달'},
+  {k:'ocean', name:'바다',     emo:'wave', sub:'물방울 · 물고기 · 고래'},
+  {k:'freesia', name:'프리지아', emo:'flower', sub:'연노랑 · 꽃가지'},
+  {k:'chick', name:'병아리', emo:'chick', sub:'크림 · 삐약삐약'},
+  {k:'forest', name:'숲속 마을', emo:'leaf', sub:'연두 · 나무 · 열매'},
+  {k:'cat', name:'고양이', emo:'cat', sub:'연분홍 · 발바닥 · 낮잠'},
+  {k:'autumn', name:'가을', emo:'maple', sub:'베이지 · 단풍 · 도토리'},
+  {k:'winter', name:'겨울', emo:'snow', sub:'하늘색 · 눈송이 · 눈사람'},
+  {k:'xmas', name:'크리스마스', emo:'gift', sub:'12/18 ~ 12/26 고정'},
+  {k:'plant', name:'식물', emo:'sprout', sub:'세이지 · 몬스테라 · 화분'},
+  {k:'dreamy', name:'오묘한 파스텔', emo:'bubble', sub:'번지는 파스텔 빛'},
+
+];
+function renderSettings(tab){
+  _setTab=tab||'look';
+  document.querySelectorAll('.set-nav button').forEach(b=>b.classList.toggle('on',b.dataset.st===_setTab));
+  const el=document.getElementById('setBody'); let h='';
+  if(_setTab==='look'){
+    const base=_themeKey, art='';
+    h=`<h3>모양</h3><div class="set-sec"><h4>테마</h4><div class="th-cards">${THEME_CARDS.map(c=>`<button class="th-card${!art&&base===c.k?' on':''}" onclick="setTheme('${c.k}')"><span class="th-prev" style="background:${c.sw[0]}"><i style="background:${c.sw[1]}"></i><b style="background:${c.sw[2]}"></b></span>${c.name}</button>`).join('')}</div></div>
+`;
+  } else if(_setTab==='font'){
+    const cur=document.documentElement.dataset.font||'pretendard';
+    const groups={}; Object.entries(FONTS).forEach(([k,f])=>(groups[f.group||'기본']=groups[f.group||'기본']||[]).push([k,f]));
+    h=`<h3>글씨체</h3><p class="set-p">이 브라우저에 저장돼요. PPT 만들기는 항상 Pretendard.</p>`+Object.entries(groups).map(([g,list])=>`<div class="set-sec"><h4>${g}</h4><div class="font-cards">${list.map(([k,f])=>{ loadFont(k);
+      return `<button class="font-card${k===cur?' on':''}" data-font="${k}" onclick="setFont('${k}')"><b style="font-family:${esc(f.family)},'Pretendard';font-size:${Math.round(15*(f.scale||1))}px;">${esc(f.label)}</b><span style="font-family:${esc(f.family)},'Pretendard';font-size:${Math.round(12.5*(f.scale||1))}px;">오늘도 배양 화이팅 · HCC26 P3 d5</span></button>`; }).join('')}</div></div>`).join('');
+  } else if(_setTab==='home'){
+    h=`<h3>홈 화면</h3><div class="set-sec"><label class="set-row"><span><b>Incubator 보이기</b><small>사이드바 왼쪽 아래에 plate가 쌓인 인큐베이터</small></span><input type="checkbox" class="set-tg" ${incuOn()?'checked':''} onchange="setIncu(this.checked)"></label>
+      <label class="set-row"><span><b>펫 보이기</b><small>펫 탭에서 뽑고 돌볼 수 있어요</small></span><input type="checkbox" class="set-tg" ${pet&&pet.kind&&!pet.hidden?'checked':''} ${pet&&pet.kind?'':'disabled'} onchange="petHide()"></label></div>`;
+  } else if(_setTab==='pet'){
+    h=`<h3>펫</h3>`+petPanelHTML();
+  } else if(_setTab==='mail'){
+    h=mailHTML();
+  } else if(_setTab==='ln2'){
+    h=`<h3>LN2</h3><div class="set-sec"><label class="set-row"><span><b>내 이니셜</b><small>LN2 탱크 「내 것만」 검색과 Stock 넣기 파일 이름 끝(…_YJ.xlsx)에 쓰여요</small></span><input id="setIni" value="${esc(cclLn2.getInitials())}" placeholder="YJ" maxlength="4" style="width:80px;text-transform:uppercase;" onchange="cclLn2.setInitials(this.value)"></label></div>`;
+  }
+  el.innerHTML=h;
+  if(_setTab==='mail') mailLoadInbox();
+  if(_setTab==='pet'){
+    const c=document.getElementById('pmCv'); if(c&&pet) drawPet(c,pet.kind,{frame:0,mode:'happy'});
+    el.querySelectorAll('.pet-kinds canvas').forEach(c=>drawPet(c,c.dataset.k,{frame:0,mode:'idle'}));
+  }
+}
+setIncu(incuOn());
+
+
+// ══════════════════════════════════════════
+//  우체통: 배경 아이디어 · 기능 요청을 관리자에게 보낸다 (Firestore mailbox 모음)
+//  보내기는 Google 로그인한 사람만 (누가 썼는지 같이 저장). 받은 편지는 관리자만 읽힘 → Firestore 규칙에서 정함
+//  규칙 예시는 docs/HANDOVER.md 「우체통」 참고
+// ══════════════════════════════════════════
+const MAIL_KINDS=['배경 아이디어','기능 요청','불편한 점','기타'];
+let _mailKind=MAIL_KINDS[0], _mailInbox=null, _mailErr='';
+function mailUser(){ return fbAuth&&fbAuth.currentUser ? fbAuth.currentUser : null; }
+function mailHTML(){
+  const u=mailUser();
+  const form = u ? `<div class="set-sec"><h4>보내기</h4><p class="set-p">관리자에게 바로 도착해요. 보내는 사람: <b>${esc(u.displayName||'')}</b> ${esc(u.email||'')}</p>
+      <div class="mail-kinds">${MAIL_KINDS.map(k=>`<button class="chip-s${k===_mailKind?' on':''}" onclick="_mailKind='${k}';renderSettings('mail')">${k}</button>`).join('')}</div>
+      <textarea id="mailTx" rows="5" placeholder="예) 벚꽃 배경 있으면 좋겠어요 / 다이어리에 사진도 붙이고 싶어요"></textarea>
+      <div class="mail-ft"><span id="mailMsg" class="set-p" style="margin:0;"></span><button class="btn btn-pri" onclick="mailSend()"><svg class="ic"><use href="#i-mail"/></svg>&nbsp;보내기</button></div></div>`
+    : `<div class="set-sec"><h4>보내기</h4><p class="set-p">누가 보냈는지 알 수 있게 Google 로그인한 뒤에 보낼 수 있어요.</p><button class="btn btn-pri" onclick="cloudToggle()">Google 로그인</button></div>`;
+  return `<h3>우체통</h3><p class="set-p">배경에 넣고 싶은 그림, 있었으면 하는 기능, 불편한 점을 적어 주세요.</p>${form}<div id="mailInbox"></div>`;
+}
+async function mailSend(){
+  const u=mailUser(), tx=(document.getElementById('mailTx').value||'').trim(), msg=document.getElementById('mailMsg');
+  if(!u){ msg.textContent='로그인이 필요해요.'; return; }
+  if(!tx){ msg.textContent='내용을 적어 주세요.'; return; }
+  try{
+    await fbDb.collection('mailbox').add({uid:u.uid, name:u.displayName||'', email:u.email||'', kind:_mailKind, text:tx.slice(0,2000), ts:Date.now(), read:false});
+    document.getElementById('mailTx').value=''; msg.textContent='보냈어요. 고마워요!';
+    mailLoadInbox();
+  }catch(e){
+    msg.textContent = /permission/i.test(e.code||e.message||'') ? '아직 우체통이 열리지 않았어요 (관리자 설정 필요).' : '보내지 못했어요. 인터넷 연결을 확인해 주세요.';
+  }
+}
+// 받은 편지: 읽기가 허용되는 사람(관리자)에게만 보인다
+async function mailLoadInbox(){
+  const box=document.getElementById('mailInbox'); if(!box || !mailUser() || !fbDb) return;
+  try{
+    const q=await fbDb.collection('mailbox').orderBy('ts','desc').limit(100).get();
+    _mailInbox=q.docs.map(d=>({id:d.id,...d.data()}));
+  }catch(e){ _mailInbox=null; box.innerHTML=''; return; }
+  const n=_mailInbox.filter(m=>!m.read).length;
+  box.innerHTML=`<div class="set-sec"><h4>받은 편지 <span class="mail-n">${n?`안 읽음 ${n}`:''}</span></h4>${_mailInbox.length?_mailInbox.map(m=>`<div class="mail-item${m.read?' read':''}">
+      <div class="mail-hd"><b>${esc(m.name||m.email||'(이름 없음)')}</b><small>${esc(m.email||'')} · ${new Date(m.ts).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}</small><span class="chip-s">${esc(m.kind||'')}</span></div>
+      <div class="mail-tx">${esc(m.text||'')}</div>
+      <div class="mail-act"><button class="link-btn" onclick="mailMark('${m.id}',${!m.read})">${m.read?'안 읽음으로':'읽음'}</button><button class="link-btn" onclick="mailDel('${m.id}')">삭제</button></div></div>`).join(''):'<p class="set-p">아직 받은 편지가 없어요.</p>'}</div>`;
+  mailBadge(n);
+}
+async function mailMark(id,read){ try{ await fbDb.collection('mailbox').doc(id).update({read}); }catch(e){} mailLoadInbox(); }
+async function mailDel(id){ if(!confirm('이 편지를 지울까요?')) return; try{ await fbDb.collection('mailbox').doc(id).delete(); }catch(e){} mailLoadInbox(); }
+function mailBadge(n){ const b=document.querySelector('.set-nav button[data-st="mail"]'); if(b) b.dataset.n=n?n:''; const sb=document.getElementById('setNavN'); if(sb) sb.textContent=n?`편지 ${n}`:'테마 · 글씨체 · 펫'; }
+// 관리자가 로그인하면 안 읽은 편지 수를 사이드바 「설정」 옆에 보여준다
+setTimeout(async()=>{ if(!mailUser()||!fbDb) return; try{ const q=await fbDb.collection('mailbox').where('read','==',false).limit(50).get(); mailBadge(q.size); }catch(e){} }, 4000);
+// ══════════════════════════════════════════
+//  업데이트 안내: 올린 날부터 5일 동안 열 때마다 보여줌 (「다시 보지 않기」 체크하면 이 버전은 끝)
+//  새 기능을 올릴 때 NEWS의 id · date · items만 바꾸면 됨
+// ══════════════════════════════════════════
+const NEWS={id:'2026-11-06', date:'2026-11-06', days:5, items:[
+  ['today','작업 분석 맨 위에 <b>이번 주 실험 정리</b>: 요일마다 Split · MC · Stock 블럭이 쌓여요'],
+  ['dish','사이드바 왼쪽 아래 <b>Incubator</b>: plate 종류별로 몇 장 쌓였는지 한눈에'],
+  ['book','<b>다이어리</b> 탭: 먼슬리 · 위클리로 내 배양 기록 보기'],
+  ['tank','도구 › <b>LN2 탱크</b>: 사람 · 종류 · 날짜 조건 검색, 박스 위치, Pair 찾기'],
+  ['download','LN2 탱크 › <b>Stock 넣기</b>: 바이알을 박스 칸에 끌어 넣으면 엑셀 ver+1로 내려받기'],
+  ['paw','<b>펫</b>: 설정 › 펫에서 뽑기. 오늘 작업 화면을 돌아다녀요'],
+  ['sliders','<b>설정</b>: 테마 · 손글씨 글씨체 · 펫 · <b>우체통</b>을 한곳에서. 그림 배경은 매주 바뀌어요 (무엇이 나올지는 비밀)'],
+]};
+function newsShow(force){
+  let hidden=false; try{ hidden=localStorage.getItem('orgNewsHide')===NEWS.id; }catch(e){}
+  const start=new Date(NEWS.date+'T00:00:00'), end=new Date(start); end.setDate(end.getDate()+NEWS.days);
+  if(!force && (hidden || new Date()>=end)) return;
+  document.getElementById('newsDate').textContent=`${NEWS.date.replace(/-/g,'.')} 업데이트`;
+  document.getElementById('newsList').innerHTML=NEWS.items.map(([i,t])=>`<li><svg class="ic"><use href="#i-${i}"/></svg><div>${t}</div></li>`).join('');
+  document.getElementById('newsHide').checked=false;
+  document.getElementById('newsModal').classList.add('open');
+}
+function closeNews(){
+  if(document.getElementById('newsHide').checked){ try{ localStorage.setItem('orgNewsHide',NEWS.id); }catch(e){} }
+  document.getElementById('newsModal').classList.remove('open');
+}
+if(!DEMO) setTimeout(()=>newsShow(),600);
+
 // 스크립트를 끝까지 읽은 뒤에야 분석 · 다이어리를 그릴 수 있다 (setTab 참고)
 window._lateReady=true;
 if(curTab==='ana'||curTab==='diary') setTab(curTab,true);
@@ -7243,7 +7774,7 @@ if(curTab==='ana'||curTab==='diary') setTab(curTab,true);
   <div class="mbox" style="width:620px;">
     <h2>PPT 만들기</h2>
     <div class="mscroll">
-      <div class="hint" style="margin-bottom:10px;">규칙 이름 <code>날짜_환자_타입_pX_dY_배율</code>은 배율×날짜 그리드로 들어가요. 그 외 이름은 이름 속 단어(조건, 채널, 배율 등)로 나눠서 배치하고, <b>레이아웃 수정 · 미리보기</b>에서 바꿀 수 있어요. 같은 실험인데 슬라이드가 나뉘면 거기서 <b>✂ 제목 자르기</b>를 쓰세요.</div>
+      <div class="hint" style="margin-bottom:10px;">규칙 이름 <code>날짜_환자_타입_pX_dY_배율</code>은 배율×날짜 그리드로 들어가요. 그 외 이름은 이름 속 단어(조건, 채널, 배율 등)로 나눠서 배치하고, <b>레이아웃 수정 · 미리보기</b>에서 바꿀 수 있어요. 같은 실험인데 슬라이드가 나뉘면 거기서 <b>✄ 제목 자르기</b>를 쓰세요.</div>
       <div id="pptDrop" class="sb-drop"><svg class="ic"><use href="#i-image"/></svg>사진을 끌어다 놓거나 클릭<br><span style="font-size:.72rem;color:#A1A1AA;">여러 번 나눠 추가 가능</span>
         <input type="file" id="pptInput" accept="image/*,.tif,.tiff" multiple style="display:none;">
       </div>
@@ -7546,6 +8077,7 @@ if(curTab==='ana'||curTab==='diary') setTab(curTab,true);
   .badge.loc{ background:#fff; }
   .badge.well{ background:#fff; color:var(--sub); font-weight:600; }
   .badge.used{ background:#fff8e1; color:#9a7519; }
+  .xi{ width:14px; height:14px; vertical-align:-2px; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; flex:none; }
   .badge.who{ background:#eef2ff; color:#4f46e5; font-size:10.5px; padding:2px 7px; }
   .locline{ margin-top:8px; font-size:12px; color:#374151; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
   .locline small{ color:var(--sub); }
@@ -7682,7 +8214,7 @@ if(curTab==='ana'||curTab==='diary') setTab(curTab,true);
       <div class="tab" data-tab="search">검색 · 매칭</div>
       <div class="tab" data-tab="browse">박스별 보기</div>
       <div class="tab" data-tab="diag">점검 내역<span id="diagCount"></span></div>
-      <div class="tab" data-tab="stock">🧊 Stock 넣기</div>
+      <div class="tab" data-tab="stock">Stock 넣기</div>
     </div>
 
     <div id="panel-summary"></div>
@@ -8515,7 +9047,7 @@ function renderResults(query){
     document.getElementById('passageSummary').innerHTML = '';
     document.getElementById('usageSummary').innerHTML = '';
     countEl.textContent = `총 ${STATE.entries.length}건 · 검색어를 입력하거나 왼쪽에서 필터를 선택하세요`;
-    box.innerHTML = `<div class="empty">🔍 셀 이름, HCC 번호, passage, 날짜, 박스 코드로 검색해보세요</div>`;
+    box.innerHTML = `<div class="empty"><svg class="xi" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg> 셀 이름, HCC 번호, passage, 날짜, 박스 코드로 검색해보세요</div>`;
     return;
   }
 
@@ -8556,7 +9088,7 @@ function renderResults(query){
       <div class="name">${highlight(nameLine, tokens)}</div>
       ${restLines ? `<div class="lines">${highlight(restLines, tokens)}</div>` : ''}
       ${sub ? `<div class="subloc">${highlight(sub, tokens)}</div>` : ''}
-      <div class="locline">📍 ${locText(e)} ${who} <button class="loc-btn" type="button">박스에서 보기</button></div>
+      <div class="locline"><svg class="xi" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg> ${locText(e)} ${who} <button class="loc-btn" type="button">박스에서 보기</button></div>
       <div class="loc-map"></div>
     </div>`;
   }).join('');
@@ -8948,7 +9480,7 @@ function renderSummary(){
     </div>`;
 
   const diagNote = STATE.diagnostics.length
-    ? `<div class="summary-note">⚠ 자동 보정된 항목이 ${STATE.diagnostics.length}건 있습니다 — <b>점검 내역</b> 탭에서 확인하세요.</div>`
+    ? `<div class="summary-note"><svg class="xi" viewBox="0 0 24 24"><path d="M12 3l9.5 17h-19z"/><path d="M12 10v4M12 17v.5"/></svg> 자동 보정된 항목이 ${STATE.diagnostics.length}건 있습니다 — <b>점검 내역</b> 탭에서 확인하세요.</div>`
     : '';
 
   el.innerHTML = `
