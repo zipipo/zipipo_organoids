@@ -794,6 +794,33 @@ body[data-tab="ana"] .pane[data-pane="ana"]{display:block;animation:paneIn .28s 
 .ana-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;}
 .ana-grid .panel{margin:0;}
 .ana-full{grid-column:1 / -1;}
+/* 인큐베이터 (옆면) */
+.incu{margin-bottom:14px;padding:0 4px 6px;}
+.incu-box{min-width:0;background:linear-gradient(180deg,#F7F8FA,#ECEEF2);border:2px solid #CBD2DC;border-radius:18px;padding:8px 12px 10px;position:relative;box-shadow:0 3px 0 #CBD2DC;}
+.incu-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:7px;}
+.incu-top em{font-style:normal;font-size:.72rem;color:var(--sub);margin-left:6px;}
+.incu-top b{font-size:.78rem;}
+.incu-lcd{font:600 .66rem/1 ui-monospace,Menlo,monospace;background:#1F2937;color:#86EFAC;padding:3px 7px;border-radius:5px;letter-spacing:.03em;}
+.incu-lcd i{display:inline-block;width:6px;height:6px;border-radius:50%;background:#4ADE80;margin-right:5px;animation:incuBlink 2.4s infinite;}
+@keyframes incuBlink{0%,90%{opacity:1;}95%{opacity:.2;}}
+.incu-win{--shelf:#C3CBD6;background:linear-gradient(to top,transparent 0 30px,var(--shelf) 30px 35px,transparent 35px),rgba(255,255,255,.8);border:1.5px solid #D5DBE3;border-radius:12px;padding:10px 14px 0;display:flex;gap:20px;align-items:flex-end;overflow-x:auto;min-height:130px;}
+.incu-st{display:flex;flex-direction:column;align-items:center;gap:0;flex:0 0 auto;}
+.incu-cols{padding-bottom:5px;}
+.incu-cols{display:flex;gap:4px;align-items:flex-end;}
+.incu-col{display:flex;flex-direction:column-reverse;gap:1px;}
+.incu-p{width:58px;border-radius:2px 2px 1px 1px;border:1px solid;position:relative;cursor:default;transition:transform .15s;}
+.incu-p::before{content:'';position:absolute;left:-2px;right:-2px;top:-1px;height:2px;border-radius:2px;background:inherit;filter:brightness(.97);border:inherit;border-width:0 0 1px;}
+.incu-p:hover{transform:translateX(3px);}
+.incu-p.k-dish{width:52px;border-radius:2px;}
+.incu-p.k-flask{width:40px;border-radius:3px 6px 6px 3px;}
+.incu-p.k-flask::after{content:'';position:absolute;right:-7px;top:2px;width:6px;height:5px;border-radius:2px;background:#9CA3AF;}
+.incu-l{height:30px;padding-top:3px;box-sizing:border-box;font-size:.64rem;color:var(--sub);white-space:nowrap;text-align:center;line-height:1.2;}
+.incu-l b{color:var(--tx);font-size:.72rem;}
+.incu-feet{display:flex;justify-content:space-between;padding:0 26px;}
+.incu-feet i{width:20px;height:6px;background:#B8C1CD;border-radius:0 0 5px 5px;}
+.incu-empty{font-size:.76rem;color:var(--mut);padding:30px 6px;}
+body[data-theme="dark"] .incu-box{background:linear-gradient(180deg,#2A2F38,#22262D);border-color:#3A414C;box-shadow:0 3px 0 #3A414C;}
+body[data-theme="dark"] .incu-win{--shelf:#4B5563;background-color:rgba(0,0,0,.25);border-color:#3A414C;}
 /* 이번 주 실험 정리: 요일마다 액션별 블럭이 아래에서 위로 쌓임 */
 .tw-nav{display:flex;align-items:center;gap:6px;}
 .tw-nav b{font-size:.8rem;font-weight:650;min-width:120px;text-align:center;}
@@ -1252,6 +1279,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
       <div class="today-main">
         <div id="stats" class="stats"></div>
         <div id="stockBanner"></div>
+        <div id="incubator"></div>
         <div id="dash"></div>
         <section class="panel sec sec-today">
           <div class="panel-hd"><span><i class="sec-ic"><svg class="ic"><use href="#i-list"/></svg></i>오늘 기록</span></div>
@@ -2112,6 +2140,44 @@ function latestPlate(line){
   const p=logs.filter(l=>l.lineId===line.id&&l.plate)
     .sort((a,b)=>new Date(b.date)-new Date(a.date)||(b.seq||0)-(a.seq||0));
   return p.length?p[0].plate:(line.plateType||'');
+}
+
+// ══════════════════════════════════════════
+//  인큐베이터 (옆면): 배양 중인 라인의 마지막 Plate · Well로 plate 장 수를 세서 종류별로 쌓아 보여준다
+// ══════════════════════════════════════════
+function plateKind(str){
+  const t=String(str||'').toLowerCase().replace(/\s+/g,' ');
+  let m=t.match(/(\d+)\s*-?\s*w(ell)?\b/)||t.match(/(\d+)\s*-?\s*well/);
+  if(m){ const n=+m[1]; return {key:'w'+n,label:n+' well',cap:n,k:'well',ord:n,h:n>=96?9:n>=48?10:n>=24?11:12}; }
+  m=t.match(/t\s*-?\s*(25|75|150|175|225)\b/)||t.match(/(25|75|175)\s*(cm|flask)/);
+  if(m||/flask/.test(t)){ const n=m?m[1]:''; return {key:'t'+n,label:'T'+(n||' flask'),cap:1,k:'flask',ord:300+(+n||0),h:18}; }
+  m=t.match(/(\d+)\s*(pi|mm)\b/)||t.match(/(\d+)\s*(pi|mm)/);
+  if(m||/dish/.test(t)){ const n=m?m[1]:''; return {key:'d'+n,label:(n?n+'π':'')+' dish',cap:1,k:'dish',ord:200+(+n||0),h:8}; }
+  if(!t) return {key:'na',label:'Plate 미기록',cap:1,k:'well',ord:900,h:11};
+  return {key:'o_'+t,label:String(str).trim(),cap:1,k:'well',ord:800,h:11};
+}
+function renderIncubator(){
+  const el=document.getElementById('incubator'); if(!el) return;
+  const act=lines.filter(l=>!l.isCompleted);
+  const st={};
+  act.forEach(l=>{
+    const pk=plateKind(latestPlate(l)); const w=parseInt(latestWell(l))||0;
+    const n=pk.k==='well'&&pk.cap>1 ? Math.max(1,Math.ceil(w/pk.cap)) : Math.max(1,w||1);
+    const s=st[pk.key]=st[pk.key]||{pk,items:[],n:0,w:0};
+    s.items.push({l,n,w}); s.n+=n; s.w+=w;
+  });
+  const stacks=Object.values(st).sort((a,b)=>a.pk.ord-b.pk.ord);
+  const total=stacks.reduce((a,s)=>a+s.n,0);
+  const MAX=10;
+  const body=stacks.length? stacks.map(s=>{
+    const plates=[]; s.items.sort((a,b)=>typeCmp(a.l,b.l)).forEach(it=>{ for(let i=0;i<it.n;i++) plates.push(it); });
+    const cols=[]; for(let i=0;i<plates.length;i+=MAX) cols.push(plates.slice(i,i+MAX));
+    return `<div class="incu-st"><div class="incu-cols">${cols.map(c=>`<div class="incu-col">${c.map(it=>{ const c2=getC(it.l.type,false);
+      return `<div class="incu-p k-${s.pk.k}" style="height:${s.pk.h}px;background:${c2.bg};border-color:${c2.bd};" title="${esc(lineTag(it.l))} · P${esc(it.l.passage)}${it.w?` · ${it.w} well`:''}"></div>`; }).join('')}</div>`).join('')}</div>
+      <div class="incu-l"><b>${esc(s.pk.label)}</b><br>${s.n}장${s.pk.k==='well'&&s.w?` · ${s.w}w`:''}</div></div>`;
+  }).join('') : `<div class="incu-empty">배양 중인 라인이 없어요. 텅 빈 인큐베이터…</div>`;
+  el.innerHTML=`<div class="incu"><div class="incu-box"><div class="incu-top"><span><b>인큐베이터</b><em>${stacks.length?`${stacks.length}종류 · ${total}장`:''}</em></span><span class="incu-lcd"><i></i>37.0°C · CO₂ 5%</span></div>
+    <div class="incu-win">${body}</div></div><div class="incu-feet"><i></i><i></i></div></div>`;
 }
 
 // ══════════════════════════════════════════
@@ -2980,6 +3046,7 @@ function updateUI(){
   renderTimelines('doneTL',true);
   renderLineList();
   renderDash();
+  renderIncubator();
   renderStockBanner();
   const dc=lines.filter(l=>l.isCompleted).length;
   document.getElementById('tlCount').textContent=activeLines.length||'';
