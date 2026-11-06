@@ -7395,6 +7395,7 @@ if(curTab==='ana'||curTab==='diary') setTab(curTab,true);
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pptxgenjs/3.12.0/pptxgen.bundle.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
   :root{
     --bg:#ffffff;
@@ -7561,6 +7562,48 @@ if(curTab==='ana'||curTab==='diary') setTab(curTab,true);
   .date-rows{ display:flex; flex-direction:column; gap:5px; }
   .date-rows label{ display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--sub); }
   .date-rows input{ flex:1; min-width:0; }
+  /* Stock 넣기 */
+  .st-top{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:14px; font-size:12.5px; color:var(--sub); }
+  .st-top label{ display:flex; align-items:center; gap:6px; }
+  .st-fn b{ color:var(--ink); }
+  .st-top .btn.primary{ margin-left:auto; }
+  .btn[disabled]{ opacity:.4; cursor:not-allowed; }
+  .st-layout{ display:grid; grid-template-columns:250px 1fr; gap:20px; align-items:start; }
+  .st-src{ position:sticky; top:10px; max-height:calc(100vh - 40px); overflow-y:auto; }
+  .st-chk{ font-size:11px; color:var(--sub); display:flex; gap:4px; align-items:center; }
+  .src-card{ background:var(--faint); border-radius:12px; padding:9px 10px; margin-bottom:8px; }
+  .src-card.done{ opacity:.55; }
+  .src-hd b{ display:block; font-size:12.5px; } .src-hd small{ font-size:11px; color:var(--sub); }
+  .vials{ display:flex; flex-wrap:wrap; gap:3px; margin-top:6px; }
+  .vial{ cursor:grab; transition:transform .15s; display:inline-block; line-height:0; border-radius:6px; }
+  .vial:hover{ transform:translateY(-3px) rotate(-4deg); }
+  .vial.picked{ outline:2px solid #6366f1; outline-offset:1px; transform:translateY(-3px); }
+  .vial.used{ opacity:.25; cursor:default; transform:none; }
+  .st-pick select{ font:inherit; font-size:13px; padding:7px 10px; border-radius:9px; border:1px solid #e3e6ea; margin-bottom:8px; }
+  .st-boxes{ display:flex; flex-wrap:wrap; gap:5px; margin-bottom:12px; }
+  .st-bx{ border:1px solid #e3e6ea; background:#fff; border-radius:9px; padding:5px 9px; font-family:inherit; font-size:12px; font-weight:700; cursor:pointer; max-width:220px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .st-bx small{ font-weight:500; color:var(--sub); } .st-bx em{ font-style:normal; font-weight:500; color:#9aa0aa; font-size:10.5px; }
+  .st-bx.on{ background:#2b2f36; color:#fff; border-color:#2b2f36; } .st-bx.on small,.st-bx.on em{ color:#cfd3da; }
+  .st-boxhd{ font-size:13px; margin-bottom:8px; } .st-boxhd small{ color:var(--sub); margin-left:6px; }
+  .st-grid{ display:grid; gap:4px; overflow-x:auto; padding-bottom:4px; }
+  .st-grid .sh{ font-style:normal; font-size:10.5px; font-weight:700; color:var(--sub); text-align:center; align-self:center; }
+  .sc{ width:48px; height:48px; box-sizing:border-box; border-radius:50%; font-size:8.5px; line-height:1.1; display:flex; align-items:center; justify-content:center; text-align:center; overflow:hidden; padding:3px; position:relative; word-break:break-all; }
+  .sc.full{ background:#e3e6ea; color:#6b7280; }
+  .sc.sc-e{ background:#fff; border:2px dashed #d5d9df; cursor:pointer; }
+  .sc.sc-e:hover,.sc.sc-e.over{ border-color:#6366f1; background:#eef2ff; }
+  .sc.na{ background:transparent; }
+  .sc.new{ background:var(--vc); color:#1f2328; font-weight:700; cursor:pointer; box-shadow:0 0 0 2px #fff,0 0 0 4px var(--vc); animation:popIn .3s; }
+  .sc.new em{ position:absolute; top:0; right:4px; font-style:normal; font-size:10px; opacity:0; } .sc.new:hover em{ opacity:.7; }
+  @keyframes popIn{ from{ transform:scale(.4); } to{ transform:scale(1); } }
+  .ci-title{ font-size:12px; font-weight:700; color:var(--sub); margin:22px 0 8px; }
+  .ci-card{ border:1px solid #eceef1; border-radius:12px; padding:12px; margin-bottom:10px; }
+  .ci-hd{ font-size:12.5px; margin-bottom:8px; }
+  .ci-grid{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+  .ci-f{ display:flex; flex-direction:column; gap:3px; font-size:11px; color:var(--sub); }
+  .ci-f.wide{ grid-row:span 2; }
+  .ci-f input,.ci-f textarea{ font:inherit; font-size:12.5px; color:var(--ink); border:1px solid #e3e6ea; border-radius:8px; padding:6px 8px; resize:vertical; }
+  .empty.small{ font-size:12px; padding:14px; }
+  @media (max-width:760px){ .st-layout{ grid-template-columns:1fr; } .st-src{ position:static; max-height:none; } .ci-grid{ grid-template-columns:1fr 1fr; } }
   .mine-btn{ width:100%; margin-bottom:6px; padding:7px 10px; font-size:12px; }
   .card .name{ font-size:14.5px; font-weight:700; margin-bottom:3px; }
   .card .lines{ font-size:13px; color:#454b53; line-height:1.65; white-space:pre-line; }
@@ -7637,6 +7680,7 @@ if(curTab==='ana'||curTab==='diary') setTab(curTab,true);
       <div class="tab" data-tab="search">검색 · 매칭</div>
       <div class="tab" data-tab="browse">박스별 보기</div>
       <div class="tab" data-tab="diag">점검 내역<span id="diagCount"></span></div>
+      <div class="tab" data-tab="stock">🧊 Stock 넣기</div>
     </div>
 
     <div id="panel-summary"></div>
@@ -7702,6 +7746,7 @@ if(curTab==='ana'||curTab==='diary') setTab(curTab,true);
 
     <div id="panel-browse" style="display:none;"></div>
     <div id="panel-diag" style="display:none;"></div>
+    <div id="panel-stock" style="display:none;"></div>
   </div>
 
   <footer>모든 데이터는 브라우저 안에서만 처리되며 서버로 전송되지 않습니다.</footer>
@@ -8157,7 +8202,7 @@ function processBuffer(data, fileName, restored){
     const ciSheetName = wb.SheetNames.find(n=>n.trim().toLowerCase()==='cell information');
     if(ciSheetName) cellInfo = parseCellInfo(wb.Sheets[ciSheetName]);
 
-    STATE = { boxesByLine, allBoxes, entries:[], diagnostics, fileName:file.name, buf:data, sheetNames:wb.SheetNames.slice() };
+    STATE = { boxesByLine, allBoxes, entries:[], diagnostics, fileName:file.name, buf:data, sheetNames:wb.SheetNames.slice(), cellInfo };
     buildEntries(cellInfo);
 
     const usageCount = STATE.entries.filter(e=>e.usageDate).length;
@@ -8770,7 +8815,8 @@ document.querySelectorAll('.tab').forEach(tab=>{
   tab.addEventListener('click', ()=>{
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
     tab.classList.add('active');
-    ['summary','search','browse','diag'].forEach(name=>{
+    if(tab.dataset.tab==='stock') renderStockPanel();
+    ['summary','search','browse','diag','stock'].forEach(name=>{
       document.getElementById('panel-'+name).style.display = (name===tab.dataset.tab)?'block':'none';
     });
   });
@@ -8924,6 +8970,279 @@ function renderSummary(){
   }).join('');
 }
 
+
+/* ============================================================
+   9. STOCK 넣기  —  앱의 Stock 기록(바이알)을 박스 빈 칸에 드래그 → 원본 서식 그대로 엑셀 ver+1 내려받기
+   엑셀은 JSZip으로 열어 바뀐 칸의 XML만 고친다 (SheetJS로 다시 쓰면 서식이 사라져서).
+   ============================================================ */
+const ST = { sel:{sheet:'', code:''}, placed:[], forms:{}, custom:[], showDone:false, pick:null };
+function stInitials(){ try{ return parent.cclLn2.getInitials()||''; }catch(err){ return ''; } }
+function stSources(){
+  let src=[]; try{ src=parent.cclLn2.getStocks(); }catch(err){}
+  return src.concat(ST.custom);
+}
+const pad2=n=>String(n).padStart(2,'0');
+function stYmd(ds){ const [y,m,d]=String(ds).split('-'); return y? `${y.slice(2)}.${m}.${d}`:''; }
+function stCellText(s){
+  if(s.text) return s.text;
+  const p = s.passage!==''&&s.passage!=null ? 'p'+s.passage : '';
+  return [s.patientId||s.name, [s.type,s.detail].filter(Boolean).join(' '), p, stYmd(s.date)].filter(Boolean).join('\n');
+}
+function stVialKey(s,i){ return s.logId+'#'+i; }
+function stNewFileName(){
+  const now=new Date(), dots=`${now.getFullYear()}.${pad2(now.getMonth()+1)}.${pad2(now.getDate())}`, ini=stInitials()||'XX';
+  let n=STATE.fileName||'LN2_tank_STARLAB_ver_0_2000.01.01_XX.xlsx';
+  n=n.replace(/^[0-9a-f]{8}-(?=LN2)/i,'');   // 업로드 때 붙은 앞 글자 제거
+  if(/ver[_\s-]?\d+/i.test(n)) n=n.replace(/ver([_\s-]?)(\d+)/i,(a,s,v)=>'ver'+s+(+v+1)); else n=n.replace(/\.xlsx$/i,'_ver_1.xlsx');
+  n=/\d{4}\.\d{2}\.\d{2}/.test(n)? n.replace(/\d{4}\.\d{2}\.\d{2}/,dots) : n.replace(/\.xlsx$/i,'_'+dots+'.xlsx');
+  n=/_[A-Za-z]{1,4}\.xlsx$/i.test(n)? n.replace(/_[A-Za-z]{1,4}(\.xlsx)$/i,'_'+ini+'$1') : n.replace(/\.xlsx$/i,'_'+ini+'.xlsx');
+  return n;
+}
+function stBox(){ return STATE.allBoxes.find(b=>b.sheet===ST.sel.sheet && b.box_code===ST.sel.code); }
+function tankLineText(sheet){ const m=String(sheet).match(/(Big|Black|Orange)-LINE\s*(\d+)/i); return m? `${/orange/i.test(m[1])?'Orange':'Black'}-LINE${m[2]}` : sheet; }
+function vialSVG(color,label){
+  return `<svg class="vial-svg" viewBox="0 0 22 40" width="22" height="40" aria-hidden="true"><rect x="4" y="1" width="14" height="8" rx="2" fill="${color}"/><rect x="3" y="8" width="16" height="3" rx="1" fill="${color}" opacity=".7"/><path d="M5 11h12v20a6 6 0 0 1-12 0z" fill="#fff" stroke="#c4c9d1"/><rect x="6.5" y="14" width="9" height="9" rx="1" fill="#eef2ff"/><path d="M6 27h10v4a5 5 0 0 1-10 0z" fill="${color}" opacity=".35"/></svg>`;
+}
+const VIAL_COLS=['#f59e9e','#f6c66b','#8fd19e','#86b7f0','#c3a3f3','#f3a3d4','#7fd6d0','#f0a575'];
+function stColor(s){ let h=0; const k=s.name||''; for(let i=0;i<k.length;i++) h=(h*31+k.charCodeAt(i))|0; return VIAL_COLS[Math.abs(h)%VIAL_COLS.length]; }
+
+function renderStockPanel(){
+  const el=document.getElementById('panel-stock'); if(!el || !STATE.allBoxes.length) return;
+  const ini=stInitials();
+  const src=stSources().filter(s=>ST.showDone || !s.ln2Done || ST.placed.some(p=>p.src.logId===s.logId));
+  const placedKeys=new Set(ST.placed.map(p=>p.key));
+  const srcHTML = src.length ? src.map(s=>{
+    const col=stColor(s);
+    const vials=Array.from({length:s.vials},(_,i)=>{ const k=stVialKey(s,i), pl=ST.placed.find(p=>p.key===k);
+      return `<span class="vial${pl?' used':''}${ST.pick===k?' picked':''}" draggable="${pl?'false':'true'}" data-key="${k}" title="${pl?escHtml(pl.where):'끌어서 박스 빈 칸에 놓기 (또는 눌러서 고른 뒤 칸 누르기)'}">${vialSVG(col)}</span>`; }).join('');
+    return `<div class="src-card${s.ln2Done?' done':''}"><div class="src-hd"><b>${escHtml(s.name)}</b><small>${escHtml(s.date||'')}${s.passage!==''&&s.passage!=null?' · P'+escHtml(s.passage):''} · ${s.vials} vial${s.ln2Done?' · LN2 넣음':''}</small></div><div class="vials">${vials}</div></div>`;
+  }).join('') : `<div class="empty small">앱에 Stock 기록(vial 수 포함)이 없어요. 아래에서 직접 추가할 수 있어요.</div>`;
+
+  const sheets=[...new Set(STATE.allBoxes.map(b=>b.sheet))];
+  if(!ST.sel.sheet){ const mine=sheets.find(n=>ini && new RegExp('\\b'+ini+'\\s*$').test(n)); ST.sel.sheet=mine||sheets[0]; }
+  const boxes=STATE.allBoxes.filter(b=>b.sheet===ST.sel.sheet);
+  if(!boxes.some(b=>b.box_code===ST.sel.code)) ST.sel.code=(boxes[0]||{}).box_code||'';
+  const b=stBox();
+  let grid='';
+  if(b){
+    const ncols=b.ncols||9, nrows=b.rowLabels.length;
+    const wm={}; b.wells.forEach(w=>wm[w.rowIdx+','+w.col]=w);
+    grid=`<div class="st-grid" style="grid-template-columns:20px repeat(${ncols},48px);"><i></i>`+Array.from({length:ncols},(_,i)=>`<i class="sh">${i+1}</i>`).join('');
+    for(let r=0;r<nrows;r++){
+      const lab=b.rowLabels[r]||'?'; grid+=`<i class="sh">${lab}</i>`;
+      for(let c=1;c<=ncols;c++){
+        const w=wm[r+','+c], pl=ST.placed.find(p=>p.sheet===b.sheet&&p.code===b.box_code&&p.rowIdx===r&&p.col===c);
+        if(w) grid+=`<div class="sc full" title="${escHtml(w.raw)}">${escHtml(w.lines[0]||'')}</div>`;
+        else if(pl) grid+=`<div class="sc new" data-pid="${pl.id}" title="${escHtml(pl.text)}\n(눌러서 빼기)" style="--vc:${stColor(pl.src)}">${escHtml((pl.text.split('\n')[0]||''))}<em>×</em></div>`;
+        else if(lab==='?' || b.rowRows[r]==null) grid+=`<div class="sc na"></div>`;
+        else grid+=`<div class="sc sc-e" data-r="${r}" data-c="${c}"></div>`;
+      }
+    }
+    grid+='</div>';
+  }
+  const groups=stGroups();
+  const formHTML = groups.length ? groups.map(g=>{
+    const f=stForm(g);
+    const inp=(k,label,ta)=>`<label class="ci-f${ta?' wide':''}"><span>${label}</span>${ta?`<textarea data-g="${g.key}" data-k="${k}" rows="3">${escHtml(f[k]||'')}</textarea>`:`<input data-g="${g.key}" data-k="${k}" value="${escHtml(f[k]||'')}">`}</label>`;
+    return `<div class="ci-card"><div class="ci-hd"><b>${escHtml(g.src.name)}</b> → ${escHtml(boxLabel(g.code))} · ${escHtml(g.posText)} (${g.items.length} vial)</div>
+      <div class="ci-grid">${inp('star','STAR_ID (Cell name) · 박스 칸에도 이 글자',true)}${inp('full','Full name')}${inp('date','Date (YYYY-MM-DD)')}${inp('passage','Passage')}${inp('from','from')}${inp('cat','Catalog number (From)')}${inp('info','Information',true)}${inp('loc','위치',true)}${inp('who','stock한 사람')}${inp('used','사용날짜')}${inp('note','비고')}</div></div>`;
+  }).join('') : `<div class="empty small">바이알을 박스 칸에 넣으면 여기에 Cell information 줄이 자동으로 채워져요.</div>`;
+
+  el.innerHTML=`<div class="st-top">
+      <label>내 이니셜 <input id="stIni" class="mini-input" value="${escHtml(ini)}" placeholder="YJ" style="width:70px;"></label>
+      <span class="st-fn">내려받을 파일: <b>${escHtml(stNewFileName())}</b></span>
+      <button class="btn primary" id="stDl" type="button" ${ST.placed.length?'':'disabled'}>엑셀 내려받기 (${ST.placed.length} vial)</button>
+    </div>
+    <div class="st-layout">
+      <aside class="st-src"><div class="fs-head"><h4>넣을 바이알</h4><label class="st-chk"><input type="checkbox" id="stShowDone" ${ST.showDone?'checked':''}> 넣은 것도</label></div>
+        ${srcHTML}
+        <button class="btn" id="stAddCustom" type="button" style="width:100%;margin-top:8px;">+ 앱에 없는 바이알 직접 추가</button>
+      </aside>
+      <main class="st-main">
+        <div class="st-pick"><select id="stSheet">${sheets.map(n=>`<option ${n===ST.sel.sheet?'selected':''}>${escHtml(n)}</option>`).join('')}</select>
+          <div class="st-boxes">${boxes.map(x=>`<button type="button" class="st-bx${x.box_code===ST.sel.code?' on':''}" data-code="${escHtml(x.box_code)}" title="${escHtml(x.title)}">${escHtml(x.box_code)} <small>${escHtml(x.title)}</small> <em>${x.well_count}${(x.ncols||9)*x.rowLabels.length?'/'+(x.ncols||9)*x.rowLabels.length:''}</em></button>`).join('')}</div></div>
+        ${b?`<div class="st-boxhd"><b>${escHtml(boxLabel(b.box_code))}</b> · ${escHtml(b.title)} <small>빈 칸에 바이알을 놓으세요 · 새로 넣은 칸을 누르면 빠져요</small></div>${grid}`:''}
+        <h4 class="ci-title">Cell information에 추가될 줄</h4>${formHTML}
+      </main></div>`;
+
+  // 이벤트
+  el.querySelector('#stIni').onchange=e=>{ try{ parent.cclLn2.setInitials(e.target.value); }catch(err){} ST.groupsDirty=true; Object.values(ST.forms).forEach(f=>{ if(!f._whoEdited) f.who=stInitials(); }); renderStockPanel(); };
+  el.querySelector('#stShowDone').onchange=e=>{ ST.showDone=e.target.checked; renderStockPanel(); };
+  el.querySelector('#stSheet').onchange=e=>{ ST.sel.sheet=e.target.value; ST.sel.code=''; renderStockPanel(); };
+  el.querySelectorAll('.st-bx').forEach(x=>x.onclick=()=>{ ST.sel.code=x.dataset.code; renderStockPanel(); });
+  el.querySelectorAll('.vial[draggable=true]').forEach(v=>{
+    v.addEventListener('dragstart',e=>{ e.dataTransfer.setData('text/plain',v.dataset.key); e.dataTransfer.effectAllowed='move'; });
+    v.addEventListener('click',()=>{ ST.pick = ST.pick===v.dataset.key?null:v.dataset.key; renderStockPanel(); });
+  });
+  el.querySelectorAll('.sc.sc-e').forEach(c=>{
+    c.addEventListener('dragover',e=>{ e.preventDefault(); c.classList.add('over'); });
+    c.addEventListener('dragleave',()=>c.classList.remove('over'));
+    c.addEventListener('drop',e=>{ e.preventDefault(); stPlace(e.dataTransfer.getData('text/plain'), +c.dataset.r, +c.dataset.c); });
+    c.addEventListener('click',()=>{ if(ST.pick) stPlace(ST.pick, +c.dataset.r, +c.dataset.c); });
+  });
+  el.querySelectorAll('.sc.new').forEach(c=>c.onclick=()=>{ ST.placed=ST.placed.filter(p=>p.id!==c.dataset.pid); renderStockPanel(); });
+  el.querySelectorAll('.ci-grid [data-g]').forEach(i=>i.oninput=e=>{ const f=ST.forms[i.dataset.g]; f[i.dataset.k]=e.target.value; f['_'+i.dataset.k+'Edited']=true;
+    if(i.dataset.k==='star'){ ST.placed.filter(p=>p.gkey===i.dataset.g).forEach(p=>p.text=e.target.value); document.querySelectorAll('.sc.new').forEach(()=>{}); } });
+  el.querySelectorAll('.ci-grid textarea[data-k=star]').forEach(t=>t.onchange=()=>renderStockPanel());
+  el.querySelector('#stAddCustom').onclick=()=>{
+    const name=prompt('바이알 이름 (박스 칸 첫 줄, 예: HCC40 Tumor-org)'); if(!name) return;
+    const n=parseInt(prompt('바이알 수','1'),10)||1;
+    const d=new Date(), ds=`${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+    ST.custom.push({logId:'custom_'+Date.now(), name, patientId:name, type:'', detail:'', date:ds, passage:'', vials:n, memo:'', custom:true});
+    renderStockPanel();
+  };
+  const dl=el.querySelector('#stDl'); if(dl) dl.onclick=stDownload;
+}
+function stPlace(key,rowIdx,col){
+  if(!key) return;
+  const b=stBox(); if(!b) return;
+  if(ST.placed.some(p=>p.key===key)) return;
+  const [logId,i]=key.split('#'); const src=stSources().find(s=>s.logId===logId); if(!src) return;
+  const gkey=logId+'@'+b.sheet+'@'+b.box_code;
+  const f=ST.forms[gkey];
+  const text=f&&f.star?f.star:stCellText(src);
+  ST.placed.push({id:'p'+Date.now()+Math.random().toString(36).slice(2,6), key, src, sheet:b.sheet, code:b.box_code, title:b.title, rowIdx, col,
+    rowLabel:b.rowLabels[rowIdx], r:b.rowRows[rowIdx], c:b.c0+col-1, text, gkey, where:`${boxLabel(b.box_code)} ${b.rowLabels[rowIdx]}-${col}`});
+  ST.pick=null;
+  renderStockPanel();
+}
+function stGroups(){
+  const m={};
+  ST.placed.forEach(p=>{ (m[p.gkey]=m[p.gkey]||{key:p.gkey, src:p.src, sheet:p.sheet, code:p.code, title:p.title, items:[]}).items.push(p); });
+  return Object.values(m).map(g=>{
+    g.items.sort((a,b)=>a.rowIdx-b.rowIdx||a.col-b.col);
+    // 같은 행에 이어진 칸은 B-4~B-6 으로
+    const parts=[]; let run=null;
+    g.items.forEach(p=>{ if(run && run.row===p.rowLabel && p.col===run.end+1){ run.end=p.col; } else { run={row:p.rowLabel,start:p.col,end:p.col}; parts.push(run); } });
+    g.posText=parts.map(r=>r.start===r.end?`${r.row}-${r.start}`:`${r.row}-${r.start}~${r.row}-${r.end}`).join(', ');
+    return g;
+  });
+}
+function stGuess(field, pred){
+  const rows=STATE.cellInfo||[];
+  for(let i=rows.length-1;i>=0;i--){ const r=rows[i]; if(pred(String(r['STAR_ID (Cell name)']||''), r) && r[field]) return String(r[field]); }
+  return '';
+}
+function stForm(g){
+  const s=g.src, f=ST.forms[g.key]=ST.forms[g.key]||{};
+  const n=g.items.length;
+  const box=STATE.allBoxes.find(b=>b.sheet===g.sheet&&b.box_code===g.code)||{};
+  const letter=String(g.code).split('-').pop();
+  const typeTok=String(s.type||'').toLowerCase();
+  const auto={
+    star: stCellText(s),
+    full: typeTok? stGuess('Full name', t=>t.toLowerCase().includes(typeTok)) : '',
+    date: s.date||'',
+    passage: s.passage!==''&&s.passage!=null ? 'p'+s.passage : '',
+    from: '',
+    cat: s.patientId? stGuess('Catalog number (From)', t=>t.toLowerCase().startsWith(String(s.patientId).toLowerCase())) : '',
+    info: `${n} vial${s.memo?'\n'+s.memo:''}`,
+    loc: `${tankLineText(g.sheet)}-${letter}\n${box.title||''}\n${g.posText} (${n} vial${n>1?'s':''})`,
+    who: stInitials(), used:'', note:'',
+  };
+  Object.keys(auto).forEach(k=>{ if(!f['_'+k+'Edited']) f[k]=auto[k]; });
+  // 박스 칸 글자 = STAR_ID
+  g.items.forEach(p=>p.text=f.star);
+  return f;
+}
+
+/* ---- 엑셀 XML 고치기 ---- */
+function xmlEsc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function colName(c){ return XLSX.utils.encode_col(c); }
+function colIdx(ref){ return XLSX.utils.decode_cell(ref).c; }
+function cellXml(ref, s, val){
+  const sa = s!=null&&s!=='' ? ` s="${s}"` : '';
+  if(val && typeof val==='object' && 'num' in val) return `<c r="${ref}"${sa}><v>${val.num}</v></c>`;
+  if(val===''||val==null) return `<c r="${ref}"${sa}/>`;
+  return `<c r="${ref}"${sa} t="inlineStr"><is><t xml:space="preserve">${xmlEsc(val)}</t></is></c>`;
+}
+const CELL_RE = ref => new RegExp(`<c r="${ref}"(?:\\s[^>]*?)?(?:/>|>[\\s\\S]*?</c>)`);
+function setCellInXml(xml, r0, c0, val){
+  const ref=colName(c0)+(r0+1), rowNo=r0+1;
+  const m=xml.match(CELL_RE(ref));
+  if(m){ const s=(m[0].match(/\ss="(\d+)"/)||[])[1]; return xml.replace(m[0], cellXml(ref,s,val)); }
+  const rowRe=new RegExp(`(<row r="${rowNo}"[^>]*?)(/>|>([\\s\\S]*?)</row>)`);
+  const rm=xml.match(rowRe);
+  if(rm){
+    const inner=rm[3]||'';
+    const cells=[...inner.matchAll(/<c r="([A-Z]+)\d+"[\s\S]*?(?:\/>|<\/c>)/g)];
+    // 같은 행 이웃 칸의 서식을 빌린다
+    let s=null, best=1e9; cells.forEach(cm=>{ const d=Math.abs(colIdx(cm[1]+'1')-c0); const ss=(cm[0].match(/\ss="(\d+)"/)||[])[1]; if(ss&&d<best){best=d;s=ss;} });
+    const nc=cellXml(ref,s,val);
+    const after=cells.find(cm=>colIdx(cm[1]+'1')>c0);
+    const newInner = after ? inner.replace(after[0], nc+after[0]) : inner+nc;
+    return xml.replace(rm[0], rm[1].replace(/\/$/,'')+'>'+newInner+'</row>');
+  }
+  // 행이 아예 없으면 순서에 맞춰 새로 만든다
+  const rows=[...xml.matchAll(/<row r="(\d+)"/g)];
+  const next=rows.find(x=>+x[1]>rowNo);
+  const nr=`<row r="${rowNo}">${cellXml(ref,null,val)}</row>`;
+  return next ? xml.slice(0,next.index)+nr+xml.slice(next.index) : xml.replace('</sheetData>', nr+'</sheetData>');
+}
+function excelSerial(ds){ const [y,m,d]=ds.split('-').map(Number); if(!y) return null; return Math.round((Date.UTC(y,m-1,d)-Date.UTC(1899,11,30))/86400000); }
+async function sheetPaths(zip){
+  const wb=await zip.file('xl/workbook.xml').async('string');
+  const rels=await zip.file('xl/_rels/workbook.xml.rels').async('string');
+  const relMap={}; for(const m of rels.matchAll(/<Relationship\b[^>]*>/g)){ const id=(m[0].match(/Id="([^"]+)"/)||[])[1], t=(m[0].match(/Target="([^"]+)"/)||[])[1]; if(id&&t) relMap[id]=t; }
+  const out={};
+  for(const m of wb.matchAll(/<sheet\b[^>]*>/g)){
+    const name=(m[0].match(/name="([^"]*)"/)||[])[1], rid=(m[0].match(/r:id="([^"]+)"/)||[])[1];
+    let t=relMap[rid]; if(!t) continue;
+    t=t.replace(/^\//,''); if(!t.startsWith('xl/')) t='xl/'+t;
+    out[name.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'")]=t;
+  }
+  return out;
+}
+async function buildPatched(){
+  const zip=await JSZip.loadAsync(STATE.buf);
+  const paths=await sheetPaths(zip);
+  const bySheet={}; ST.placed.forEach(p=>(bySheet[p.sheet]=bySheet[p.sheet]||[]).push(p));
+  for(const [sheet,list] of Object.entries(bySheet)){
+    const path=paths[sheet]; if(!path) throw new Error('시트를 못 찾음: '+sheet);
+    let xml=await zip.file(path).async('string');
+    list.forEach(p=>{ xml=setCellInXml(xml, p.r, p.c, p.text); });
+    zip.file(path, xml);
+  }
+  // cell information: 마지막 줄 서식을 복사해 줄 추가
+  const ciName=Object.keys(paths).find(n=>n.trim().toLowerCase()==='cell information');
+  if(ciName){
+    const path=paths[ciName]; let xml=await zip.file(path).async('string');
+    const rows=[...xml.matchAll(/<row r="(\d+)"([^>]*?)(?:\/>|>([\s\S]*?)<\/row>)/g)];
+    const last=rows[rows.length-1]; let rn=last?+last[1]:1;
+    const rowAttr=(last?last[2]:'').replace(/\s*spans="[^"]*"/,'');
+    const styleOf={};   // 열마다 최근 줄의 서식
+    rows.slice(-40).forEach(r=>{ for(const cm of (r[3]||'').matchAll(/<c r="([A-Z]+)\d+"([^>]*?)(?:\/>|>)/g)){ const s=(cm[2].match(/\ss="(\d+)"/)||[])[1]; if(s!=null) styleOf[cm[1]]=s; } });
+    const order=['star','full','date','passage','from','cat','info','loc','who','used','note'];
+    let add='';
+    stGroups().forEach(g=>{
+      const f=stForm(g); rn++;
+      add+=`<row r="${rn}"${rowAttr}>`+order.map((k,i)=>{ const cl=colName(i), ref=cl+rn;
+        let v=f[k]||'';
+        if(k==='date'){ const n=/^\d{4}-\d{2}-\d{2}$/.test(v)?excelSerial(v):null; if(n!=null) v={num:n}; }
+        return cellXml(ref, styleOf[cl], v); }).join('')+`</row>`;
+    });
+    xml=xml.replace('</sheetData>', add+'</sheetData>');
+    xml=xml.replace(/<dimension ref="([A-Z]+\d+):([A-Z]+)(\d+)"\s*\/>/, (a,s,c,r)=>`<dimension ref="${s}:${c}${Math.max(+r,rn)}"/>`);
+    zip.file(path, xml);
+  }
+  return await zip.generateAsync({type:'uint8array', compression:'DEFLATE', mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+}
+async function stDownload(){
+  if(!stInitials()){ const v=(prompt('내 이니셜 (파일 이름 끝에 붙어요, 예: YJ)','')||'').trim(); if(!v) return; try{ parent.cclLn2.setInitials(v); }catch(err){} }
+  if(typeof JSZip==='undefined'){ alert('엑셀 저장 도구(JSZip)를 불러오지 못했어요. 인터넷 연결을 확인하고 새로고침해 주세요.'); return; }
+  try{
+    const name=stNewFileName();
+    const out=await buildPatched();
+    downloadBlob(new Blob([out],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}), name);
+    const used=[...new Map(ST.placed.filter(p=>!p.src.custom).map(p=>[p.src.logId,p.src])).values()];
+    used.forEach(s=>{ try{ parent.cclLn2.markDone(s.lineId, s.date); }catch(err){} });
+    ST.placed=[]; ST.forms={}; ST.custom=[];
+    idbPut({name, buf:out, ts:Date.now()});
+    processBuffer(out, name);
+    document.querySelector('.tab[data-tab="stock"]').click();
+    alert(`${name} 내려받았어요.\n앱의 Stock 후처리에서 LN2 이동 · DB 업데이트도 체크했어요.`);
+  }catch(err){ console.error(err); alert('엑셀 만들기 실패: '+err.message); }
+}
 
 /* ============================================================
    8. DIAGNOSTICS
