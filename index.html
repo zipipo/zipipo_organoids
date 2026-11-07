@@ -874,7 +874,7 @@ body[data-tab="ln2"] .pane[data-pane="ln2"]{display:block;animation:paneIn .28s 
 .dy-rec.plan{color:var(--ink2);} .dy-rec.plan .dot{border:1px dashed var(--ink2);background:transparent!important;}
 .dy-empty{font-size:.74rem;color:#C2BAA6;}
 .dy-week-note{border-top:1px dashed var(--line);margin-top:6px;padding-top:8px;font-size:.76rem;line-height:1.6;color:var(--ink2);}
-.dy-week-note b{color:var(--ink);}
+.dy-week-note b{color:var(--ink);} .dy-week-note em{font-style:normal;font-size:.68rem;} .dy-week-note em.up{color:#16A34A;} .dy-week-note em.dn{color:#DC2626;} .dy-week-note small{font-size:.66rem;}
 @media (max-width:820px){ .dy-spread{grid-template-columns:1fr;gap:0;} .dy-spread .dy-paper+.dy-paper{border-top:none;border-radius:0 0 14px 14px;padding-top:0;} .dy-spread .dy-paper:first-child{border-radius:14px 14px 0 0;border-bottom:none;} }
 @media (max-width:640px){ .dy-paper{padding:12px 8px;} .dy-d{min-height:58px;align-items:center;padding:4px 1px;} .dy-stk{display:none;} .dy-dots{display:flex;} .dy-title{font-size:1.15rem;} }
 body[data-theme="dark"] .dy{--paper:#2B2A27;--ink:#E8E4DA;--ink2:#A39E92;--line:#47443D;}
@@ -7253,7 +7253,9 @@ function renderDiary(){
     const from=ymdLocal(days[0]), to=ymdLocal(days[6]), st=_twStats(from,to);
     const typeCnt={}; st.ls.forEach(lg=>{ const l=lineOf(lg.lineId); if(l) typeCnt[l.type]=(typeCnt[l.type]||0)+1; });
     const topT=Object.entries(typeCnt).sort((x,y)=>y[1]-x[1]).slice(0,3).map(([t,n])=>`${esc(t)} ${n}`).join(', ');
-    const note=`<div class="dy-week-note">작업 <b>${st.all}</b> · 라인 <b>${st.lines}</b> · Split <b>${st.split}</b> · MC <b>${st.mc}</b> · Stock <b>${st.vials}</b> vial${st.seed?` · 새 라인 <b>${st.seed}</b>`:''}${topT?`<br>${topT}`:''}</div>`;
+    const ps=new Date(days[0]); ps.setDate(ps.getDate()-7); const pe=new Date(days[0]); pe.setDate(pe.getDate()-1);
+    const pv=_twStats(ymdLocal(ps),ymdLocal(pe)), dl=(a,b)=>{ const d=a-b; return d?` <em class="${d>0?'up':'dn'}">${d>0?'+':'−'}${Math.abs(d)}</em>`:''; };
+    const note=`<div class="dy-week-note">작업 <b>${st.all}</b>${dl(st.all,pv.all)} · 라인 <b>${st.lines}</b> · Split <b>${st.split}</b>${dl(st.split,pv.split)} · MC <b>${st.mc}</b>${dl(st.mc,pv.mc)} · Stock <b>${st.vials}</b> vial${dl(st.vials,pv.vials)}${st.seed?` · 새 라인 <b>${st.seed}</b>`:''}<br><small>지난주와 비교</small>${topT?`<br>${topT}`:''}</div>`;
     const wkNo=Math.ceil(((s-new Date(s.getFullYear(),0,1))/86400000+new Date(s.getFullYear(),0,1).getDay()+1)/7);
     el.innerHTML=`<div class="dy">${head('Week '+wkNo,`${s.getMonth()+1}/${s.getDate()} – ${days[6].getMonth()+1}/${days[6].getDate()}`)}
       <div class="dy-spread"><div class="dy-paper">${days.slice(0,4).map((c,i)=>dayBox(c,i)).join('')}</div>
@@ -7303,13 +7305,12 @@ function _twTitle(){ const s=_twStart(_twOff), e=new Date(s); e.setDate(s.getDat
   return `${_twOff===0?'이번 주':_twOff===-1?'지난주':_twOff===1?'다음 주':(_twOff<0?-_twOff+'주 전':_twOff+'주 뒤')} <small>${f(s)} – ${f(e)}</small>`; }
 
 // 스크롤을 줄이려고 이번 주만 펼쳐 두고, 나머지 패널은 제목만 (누르면 펼침, 펼친 상태는 이 브라우저에 기억)
-let _anaOpen={}; try{ _anaOpen=JSON.parse(localStorage.getItem('orgAnaOpen')||'{}'); }catch(e){}
+let _anaOpen={next:true}; try{ _anaOpen=Object.assign(_anaOpen,JSON.parse(localStorage.getItem('orgAnaOpen')||'{}')); }catch(e){}   // 이번 주 기록은 다이어리 위클리에 있으니 분석은 통계만
 function anaFold(k,el){ _anaOpen[k]=el.open; try{ localStorage.setItem('orgAnaOpen',JSON.stringify(_anaOpen)); }catch(e){} if(k==='vol'&&el.open) setVolMode(_volMode); }
 function renderAnalytics(){
   const P=(t,body,cls,act)=>`<section class="panel ${cls||''}"><div class="panel-hd"><span>${t}</span>${act?`<span class="panel-act">${act}</span>`:''}</div><div class="pbody">${body}</div></section>`;
   const F=(k,t,body,cls,act)=>`<details class="panel ${cls||''}" ${_anaOpen[k]?'open':''} ontoggle="anaFold('${k}',this)"><summary class="panel-hd"><span>${t}</span>${act?`<span class="panel-act" onclick="event.preventDefault();event.stopPropagation()">${act}</span>`:''}<span class="fold-ic">${ic('right')}</span></summary><div class="pbody">${body}</div></details>`;
   document.getElementById('anaContent').innerHTML=`<div class="ana-grid">
-    ${P(_twTitle(),buildThisWeek(),'ana-full',`<span class="tw-nav"><button class="seg" onclick="twShift(-1)">‹</button><button class="seg" onclick="twShift(0)">이번 주</button><button class="seg" onclick="twShift(1)">›</button></span>`)}
     ${F('next','다음 Split 예상',buildNextSplit(),'ana-full')}
     ${F('vol','작업량 추이','<div id="volChart"></div>','',`<span class="seg-group"><button class="seg" id="volBtnM" onclick="setVolMode('month')">월별</button><button class="seg" id="volBtnW" onclick="setVolMode('week')">주별</button></span>`)}
     ${F('mc','MC 간격 <small>최근 60일</small>',buildMcGap())}
@@ -8037,7 +8038,7 @@ setTimeout(async()=>{ if(!mailUser()||!fbDb) return; try{ const q=await fbDb.col
 //  새 기능을 올릴 때 NEWS의 id · date · items만 바꾸면 됨
 // ══════════════════════════════════════════
 const NEWS={id:'2026-11-07', date:'2026-11-07', days:5, items:[
-  ['book','<b>기록</b> · 다이어리(먼슬리 · 위클리)와 분석을 한 메뉴에'],
+  ['book','<b>기록</b> · 다이어리(먼슬리 · 위클리) · 분석'],
   ['branch','<b>Tree</b> · passage별로 나뉜 모양'],
   ['dish','<b>Incubator</b> · 키우는 plate 한눈에'],
   ['tank','<b>LN2 탱크</b> · 검색, Stock 넣고 엑셀 내려받기'],
