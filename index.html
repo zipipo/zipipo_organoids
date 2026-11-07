@@ -8298,8 +8298,8 @@ if(curTab==='ana'||curTab==='diary') setTab(curTab,true);
   /* ---------- Search ---------- */
   .searchbar{ position:relative; margin-bottom:14px; }
   .searchbar input{
-    width:100%; padding:14px 16px; font-size:15px; border-radius:12px; border:1px solid #e6e8eb;
-    background:var(--faint); font-family:inherit; color:var(--ink);
+    width:100%; padding:12px 14px; font-size:14px; border-radius:12px; border:1px solid #d5d9df;
+    background:#fff; font-family:inherit; color:var(--ink);
   }
   .searchbar input:focus{ outline:none; border-color:#c7cdd6; background:#fff; }
   .meta-row{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; flex-wrap:wrap; gap:8px;}
@@ -8982,12 +8982,27 @@ function tagPeopleKinds(entries, cellInfo){
   const ciOwner={};
   cellInfo.forEach(r=>{ const k=String(r['STAR_ID (Cell name)']||'').split('\n')[0].trim().toLowerCase(); if(!k) return;
     initialsIn(r['stock한 사람']).forEach(t=>(ciOwner[k]=ciOwner[k]||new Set()).add(t)); });
+  // Cell information의 「stock한 사람」은 이름으로만 이어져서, SMC08처럼 여러 사람이 같은 이름으로 넣은 바이알이 한 사람 것으로 잡힐 수 있음
+  // → 박스 제목 · 시트 이름 · 바이알 글자에 사람이 없을 때만, 그리고 탱크에 그 이름이 몇 개 안 될 때만 씀
+  // 위치 칸(「Orange-LINE3-A … F-8, F-9 (2 vial)」)으로 바이알 칸과 정확히 이어 줌
+  const locOwner={};
+  cellInfo.forEach(r=>{ const who=initialsIn(r['stock한 사람']); if(!who.length) return; const loc=String(r['위치']||'');
+    const m=loc.match(/(Black|Big|Orange)-LINE\s*(\d+)\s*-\s*([A-Z]{1,2})\b/i); if(!m) return;
+    const code=(/orange/i.test(m[1])?'O':'')+m[2]+'-'+m[3].toUpperCase();
+    const add=w=>who.forEach(t=>(locOwner[code+'|'+w]=locOwner[code+'|'+w]||new Set()).add(t));
+    for(const g of loc.matchAll(/\b([A-J])\s*-\s*(\d{1,2})(?:\s*[~∼-]\s*([A-J])?\s*-?\s*(\d{1,2}))?/g)){
+      const r1=g[1], c1=+g[2], r2=g[3]||g[1], c2=g[4]?+g[4]:c1;
+      if(r1===r2){ for(let c=Math.min(c1,c2);c<=Math.max(c1,c2);c++) add(r1+c); } else { add(r1+c1); add(r2+c2); }
+    } });
+  const nameCnt={}; entries.forEach(e=>{ const k=(e.lines[0]||'').trim().toLowerCase(); if(k) nameCnt[k]=(nameCnt[k]||0)+1; });
   entries.forEach(e=>{
     const sheetOwner=(String(e.sheet).match(/\b([A-Z]{2})\s*$/)||[])[1];
     const own=new Set(initialsIn(e.box_title));
     if(!own.size && sheetOwner) own.add(sheetOwner);
     initialsIn(e.raw).forEach(t=>own.add(t));
-    (ciOwner[(e.lines[0]||'').trim().toLowerCase()]||[]).forEach(t=>own.add(t));
+    (locOwner[e.box_code+'|'+e.well]||[]).forEach(t=>own.add(t));
+    const k=(e.lines[0]||'').trim().toLowerCase();
+    if(!own.size && ciOwner[k] && nameCnt[k]<=12) ciOwner[k].forEach(t=>own.add(t));
     e.owners=own;
     const txt=e.raw+'\n'+(e.box_title||'');
     e.kinds=new Set(KIND_RULES.filter(([,f])=>f(e.raw)).map(([k])=>k));
@@ -9784,7 +9799,7 @@ function renderSummary(){
         <b>${lineName(l)}</b>
         <span class="lsr-meta">박스 ${boxes.length}개 · vial ${vials.toLocaleString()}개</span>
       </div>
-      <div class="lsr-bar-bg"><div class="lsr-bar" style="width:${pct}%; background:${c.ac}"></div></div>
+      <div class="lsr-bar-bg"><div class="lsr-bar" style="width:${pct}%; background:${c.dot==='#ec8a3c'?'#F6B97A':'#AEB6C2'}"></div></div>
     </div>`;
   }).join('');
 
