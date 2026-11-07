@@ -4738,8 +4738,7 @@ function renderPageSub(){
   const wd=['일','월','화','수','목','금','토'], d=new Date();
   el.textContent = curTab==='today' ? `${d.getMonth()+1}월 ${d.getDate()}일 ${wd[d.getDay()]}요일`
     : curTab==='tl' ? `진행 중 ${lines.filter(l=>!l.isCompleted).length} · 완료 ${lines.filter(l=>l.isCompleted).length}`
-    : curTab==='diary' ? '내 배양 기록 다이어리 · 먼슬리 · 위클리'
-    : curTab==='ln2' ? 'LN2 tank 엑셀 검색 · 매칭 · 위치 · Stock 넣기' : '최근 1년 기록 기준';
+    : '';
 }
 // 배양 라인 페이지 필터: 진행 중 / 완료 / 전체
 let lnFilter='active';
@@ -4793,19 +4792,13 @@ const FONTS={
   ridibatang:{label:'리디바탕', family:"'RIDIBatang'", face:NN('noonfonts_twelve','RIDIBatang.woff')},
   // 손글씨 (눈누 · 온글잎)
   parkdahyun:{group:'손글씨', label:'온글잎 박다현체', family:"'Ownglyph_ParkDaHyun'", face:NN('2411-3','Ownglyph_ParkDaHyun.woff2'), scale:1.15},
-  wiseelist:{group:'손글씨', label:'온글잎 위씨리스트', family:"'Ownglyph_wiseelist'", face:NN('2501-1','Ownglyph_wiseelist-Rg.woff2'), scale:1.15},
   corncorn:{group:'손글씨', label:'온글잎 콘콘', family:"'Ownglyph_corncorn'", face:NN('2412-1','Ownglyph_corncorn-Rg.woff2'), scale:1.15},
-  ryurue:{group:'손글씨', label:'온글잎 류뤼', family:"'Ownglyph_ryurue'", face:NN('2405-2','Ownglyph_ryurue-Rg.woff2'), scale:1.15},
   eunbyul:{group:'손글씨', label:'온글잎 은별', family:"'Ownglyph_eunbyul21'", face:NN('2405-2','Ownglyph_eunbyul21-Rg.woff2'), scale:1.15},
   kimkonghae:{group:'손글씨', label:'온글잎 김콩해', family:"'Ownglyph_kimkonghae'", face:NN('2408','Ownglyph_kimkonghae.woff2'), scale:1.15},
   dailyokja:{group:'손글씨', label:'온글잎 데일리옥자', family:"'Ownglyph_Dailyokja'", face:NN('2403','Ownglyph_Dailyokja-Rg.woff2'), scale:1.15},
   sehyun:{group:'손글씨', label:'어비 세현체', family:"'UhBeeSe_hyun'", face:NN('noonfonts_five','UhBeeSe_hyun.woff'), scale:1.12},
-  mysen:{group:'손글씨', label:'어비 마이센체', family:"'UhBeemysen'", face:NN('noonfonts_five','UhBeemysen.woff'), scale:1.12},
-  zziba:{group:'손글씨', label:'어비 찌바체', family:"'UhBeeZZIBA'", face:NN('noonfonts_2104','UhBeeZZIBA-Regular.woff'), scale:1.1},
   barunpen:{group:'손글씨', label:'나눔바른펜', family:"'NanumBarunpen'", face:NN('noonfonts_two','NanumBarunpen.woff')},
   room703:{group:'손글씨', label:'703호체', family:"'establishRoomNo703'", face:NN('noonfonts_2112','establishRoomNo703OTF.woff'), scale:1.05},
-  saeeum:{group:'손글씨', label:'강원교육새음', family:"'GangwonEduSaeeum'", face:NN('noonfonts_2201-2','GangwonEduSaeeum_OTFMediumA.woff'), scale:1.1},
-  chilgok:{group:'손글씨', label:'칠곡할매 이원순체', family:"'Chilgok_lws'", face:NN('noonfonts_2106','Chilgok_lws.woff'), scale:1.05},
   meetme:{group:'손글씨', label:'온글잎 밋미', family:"'Ownglyph_meetme'", face:NN('noonfonts_2402_1','Ownglyph_meetme-Rg.woff2'), scale:1.15},
   soojin:{group:'손글씨', label:'임크리 수진체', family:"'ImcreSoojin'", face:NN('noonfonts_20-04','ImcreSoojin.woff'), scale:1.05},
   hambak:{group:'손글씨', label:'함박눈', family:"'SF_HambakSnow'", face:NN('noonfonts_2106','SF_HambakSnow.woff')},
@@ -7926,7 +7919,7 @@ function renderSettings(tab){
   } else if(_setTab==='font'){
     const cur=document.documentElement.dataset.font||'pretendard';
     const groups={}; Object.entries(FONTS).forEach(([k,f])=>(groups[f.group||'기본']=groups[f.group||'기본']||[]).push([k,f]));
-    h=`<h3>글씨체</h3><p class="set-p">눈누 무료 글씨체예요. PPT 만들기는 항상 Pretendard.</p>`+Object.entries(groups).map(([g,list])=>`<div class="set-sec"><h4>${g==='기본'?'깔끔한':g}</h4><div class="font-cards">${list.map(([k,f])=>{ loadFont(k);
+    h=`<h3>글씨체</h3>`+Object.entries(groups).map(([g,list])=>`<div class="set-sec"><h4>${g==='기본'?'깔끔한':g}</h4><div class="font-cards">${list.map(([k,f])=>{ loadFont(k);
       return `<button class="font-card${k===cur?' on':''}" data-font="${k}" ${_fontFail[k]?'hidden':''} onclick="setFont('${k}')"><b style="font-family:${esc(f.family)},'Pretendard';font-size:${(15*(f.scale||1)).toFixed(1)}px;">${esc(f.label)}</b><span style="font-family:${esc(f.family)},'Pretendard';font-size:${(12.5*(f.scale||1)).toFixed(1)}px;">오늘도 배양 파이팅! HCC26 P3</span></button>`; }).join('')}</div></div>`).join('');
   } else if(_setTab==='home'){
     h=`<h3>홈 화면</h3><div class="set-sec"><label class="set-row"><span><b>Incubator 보이기</b></span><input type="checkbox" class="set-tg" ${incuOn()?'checked':''} onchange="setIncu(this.checked)"></label>
@@ -7955,12 +7948,12 @@ let _mailKind=MAIL_KINDS[0], _mailInbox=null, _mailErr='';
 function mailUser(){ return fbAuth&&fbAuth.currentUser ? fbAuth.currentUser : null; }
 function mailHTML(){
   const u=mailUser();
-  const form = u ? `<div class="set-sec"><h4>보내기</h4><p class="set-p">관리자에게 바로 도착해요. 보내는 사람: <b>${esc(u.displayName||'')}</b> ${esc(u.email||'')}</p>
+  const form = u ? `<div class="set-sec"><h4>보내기</h4>
       <div class="mail-kinds">${MAIL_KINDS.map(k=>`<button class="chip-s${k===_mailKind?' on':''}" onclick="_mailKind='${k}';renderSettings('mail')">${k}</button>`).join('')}</div>
       <textarea id="mailTx" rows="5" placeholder="예) 벚꽃 배경 있으면 좋겠어요 / 다이어리에 사진도 붙이고 싶어요"></textarea>
       <div class="mail-ft"><span id="mailMsg" class="set-p" style="margin:0;"></span><button class="btn btn-pri" onclick="mailSend()"><svg class="ic"><use href="#i-mail"/></svg>&nbsp;보내기</button></div></div>`
-    : `<div class="set-sec"><h4>보내기</h4><p class="set-p">누가 보냈는지 알 수 있게 Google 로그인한 뒤에 보낼 수 있어요.</p><button class="btn btn-pri" onclick="cloudToggle()">Google 로그인</button></div>`;
-  return `<h3>우체통</h3><p class="set-p">배경에 넣고 싶은 그림, 있었으면 하는 기능, 불편한 점을 적어 주세요.</p>${form}<div id="mailInbox"></div>`;
+    : `<div class="set-sec"><h4>보내기</h4><button class="btn btn-pri" onclick="cloudToggle()">Google 로그인</button></div>`;
+  return `<h3>우체통</h3>${form}<div id="mailInbox"></div>`;
 }
 async function mailSend(){
   const u=mailUser(), tx=(document.getElementById('mailTx').value||'').trim(), msg=document.getElementById('mailMsg');
