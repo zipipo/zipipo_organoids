@@ -1299,8 +1299,8 @@ body[data-theme="mono"] input:focus,body[data-theme="mono"] select:focus,body[da
 
 
 /* ═══ 글씨체별 보정 ═══ */
-html{font-size:calc(16px * var(--fscale,1));}
-body{font-size:calc(13.5px * var(--fscale,1));}
+html{font-size:calc(16px * var(--fscale,1) * var(--usize,1));}
+body{font-size:calc(13.5px * var(--fscale,1) * var(--usize,1));}
 /* 굵기가 400/700처럼 띄엄띄엄 있는 글씨체는 550~650 굵기가 전부 700으로 뭉개진다 →
    본문·버튼·라벨은 보통(400/500), 제목·이름·숫자만 굵게(700) 두 단계로 정리 */
 html[data-font="nanumneo"] body,html[data-font="spoqa"] body{font-weight:400;}
@@ -1327,7 +1327,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
   .composer{position:static;max-height:none;}
 }
 @media (max-width: 800px){
-  body{padding:0;font-size:calc(14px * var(--fscale,1));}
+  body{padding:0;font-size:calc(14px * var(--fscale,1) * var(--usize,1));}
   .main{padding:0 14px 96px;}
   .side{position:fixed;left:0;top:0;bottom:0;z-index:500;transform:translateX(-102%);transition:transform .25s var(--ease);box-shadow:0 0 40px rgba(0,0,0,.12);}
   body.side-open .side{transform:none;}
@@ -1953,7 +1953,7 @@ const syncClone = d => JSON.parse(JSON.stringify(d));
 // 펫은 Google 계정에 같이 저장 (펫 코드가 뒤에 있어서 window._petsOut / _petsIn으로 이어 줌)
 function localSync(){ return syncClone(pickSync({lines,logs,stockChecks,trash,plans,shotSets,shotNotes:_slRecentNotes,freeSamples,tlCollapsed,typeColors,pptCuts,pets:window._petsOut?window._petsOut():{}, prefs:_prefsOut()})); }
 // 이니셜처럼 기기마다 다시 입력하기 귀찮은 설정은 계정에 같이 저장
-function _prefsOut(){ const o={}; try{ const v=localStorage.getItem('orgInitials'); if(v) o.ini=v; const ml=localStorage.getItem('orgMyLine'); if(ml) o.myLine=ml; }catch(e){} return o; }
+function _prefsOut(){ const o={}; try{ const v=localStorage.getItem('orgInitials'); if(v) o.ini=v; const fz=localStorage.getItem('orgFontSize'); if(fz) o.size=fz; const ml=localStorage.getItem('orgMyLine'); if(ml) o.myLine=ml; }catch(e){} return o; }
 const syncHas = d => d.lines.length>0 || d.logs.length>0 || d.freeSamples.length>0;
 
 function loadCloudBase(uid){
@@ -2060,6 +2060,7 @@ function applySyncData(d){
     localStorage.setItem('orgSlRecentNotes', JSON.stringify(_slRecentNotes)); slRenderRecentNotes();
     if(window._petsIn) window._petsIn(d.pets);
     if(d.prefs&&d.prefs.ini) try{ localStorage.setItem('orgInitials',d.prefs.ini); }catch(e){}
+    if(d.prefs&&d.prefs.size) try{ setFontSize(d.prefs.size,true); }catch(e){}
     if(d.prefs&&d.prefs.myLine) try{ localStorage.setItem('orgMyLine',d.prefs.myLine); }catch(e){}
     updateUI();   // 안에서 saveData()가 lines/logs/stockChecks를 저장한다
   } finally { cloudApplying=false; }
@@ -4857,6 +4858,13 @@ function loadFont(k){
   f._p.then(ok=>{ if(!ok){ _fontFail[k]=1; document.querySelectorAll(`.font-card[data-font="${k}"]`).forEach(c=>c.hidden=true); } });
   return f._p;
 }
+// 글씨 크기: 글씨체 보정(--fscale)에 곱해짐. 이 기기에 저장 + 계정 동기화(prefs.size)
+const FONT_SIZES=[[.9,'작게'],[1,'보통'],[1.1,'크게'],[1.2,'아주 크게']];
+function setFontSize(v,silent){ v=+v||1; document.documentElement.style.setProperty('--usize',v);
+  try{ if(v===1) localStorage.removeItem('orgFontSize'); else localStorage.setItem('orgFontSize',v); }catch(e){}
+  document.querySelectorAll('.fsz button').forEach(b=>b.classList.toggle('on',+b.dataset.v===v));
+  if(!silent&&typeof cloudPushDebounced==='function') cloudPushDebounced(); }
+try{ setFontSize(localStorage.getItem('orgFontSize')||1,true); }catch(e){}
 function setFont(k){
   if(!FONTS[k]) k='pretendard';
   const f=FONTS[k];
@@ -7950,7 +7958,8 @@ function renderSettings(tab){
   } else if(_setTab==='font'){
     const cur=document.documentElement.dataset.font||'pretendard';
     const groups={}; Object.entries(FONTS).forEach(([k,f])=>(groups[f.group||'기본']=groups[f.group||'기본']||[]).push([k,f]));
-    h=`<h3>글씨체</h3>`+Object.entries(groups).map(([g,list])=>`<div class="set-sec"><h4>${g}</h4><div class="font-cards">${list.map(([k,f])=>{ loadFont(k);
+    const us=+(localStorage.getItem('orgFontSize')||1);
+    h=`<h3>글씨체</h3><div class="set-sec"><h4>크기</h4><div class="fsz seg-group">${FONT_SIZES.map(([v,t])=>`<button class="seg${us===v?' on':''}" data-v="${v}" onclick="setFontSize(${v})">${t}</button>`).join('')}</div></div>`+Object.entries(groups).map(([g,list])=>`<div class="set-sec"><h4>${g}</h4><div class="font-cards">${list.map(([k,f])=>{ loadFont(k);
       return `<button class="font-card${k===cur?' on':''}" data-font="${k}" ${_fontFail[k]?'hidden':''} onclick="setFont('${k}')"><b style="font-family:${esc(f.family)},'Pretendard';font-size:${(15*(f.scale||1)).toFixed(1)}px;">${esc(f.label)}</b><span style="font-family:${esc(f.family)},'Pretendard';font-size:${(12.5*(f.scale||1)).toFixed(1)}px;">오늘도 배양 파이팅! HCC26 P3</span></button>`; }).join('')}</div></div>`).join('');
   } else if(_setTab==='home'){
     h=`<h3>홈 화면</h3><div class="set-sec"><label class="set-row"><span><b>Incubator 보이기</b></span><input type="checkbox" class="set-tg" ${incuOn()?'checked':''} onchange="setIncu(this.checked)"></label>
