@@ -107,6 +107,8 @@ body{font-family:var(--font,'Pretendard'),'Pretendard',sans-serif;background:var
 .r1{grid-template-columns:1.6fr 1.6fr 1fr;}
 .r2{grid-template-columns:1fr .9fr .7fr .7fr 1.6fr 64px;}
 label{display:block;font-size:.72rem;color:#475569;margin-bottom:3px;font-weight:600;}
+/* 버튼 · 표는 브라우저 기본 글씨체로 나오지 않게 고른 글씨체를 따름 */
+button,table,optgroup,option{font-family:inherit;}
 input,select,textarea{width:100%;padding:4px 8px;border:1px solid #CBD5E1;border-radius:4px;font-family:inherit;font-size:.83rem;}
 input,select{height:31px;}
 textarea{resize:vertical;min-height:31px;line-height:1.45;}
@@ -5328,7 +5330,7 @@ function fsUndoLast(){
 function renderSbFree(){
   const el=document.getElementById('sbFree'); if(!el) return;
   const open=fsIsOpen();
-  const head=`<button type="button" class="fs-hd" onclick="fsToggle()"><span>${open?'▾':'▸'}</span><b>직접 입력</b><em>라인 등록·로그 없이 샘플 이름·P·시딩 날짜만 적어서 이름 붙이기</em></button>`;
+  const head=`<button type="button" class="fs-hd" onclick="fsToggle()"><span>${open?'▾':'▸'}</span><b>직접 입력</b></button>`;
   if(!open){ el.innerHTML=head; return; }
   const today=sbFiles.length?sbEffDate(sbFiles[0]):document.getElementById('sbDate').value;
   const chips=fsSorted().map(s=>{
