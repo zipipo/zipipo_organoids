@@ -823,10 +823,10 @@ body[data-tab="ln2"] .pane[data-pane="ln2"]{display:block;animation:paneIn .28s 
 .incu-feet i{width:20px;height:6px;background:var(--bd);border-radius:0 0 5px 5px;}
 .incu-empty{font-size:.76rem;color:var(--mut);padding:30px 6px;}
 /* 다이어리 (먼슬리 · 위클리): 종이 한 장 + 손글씨(어비 세현체), 꾸밈은 최소로 */
-.dy{--paper:#FFFDF8;--ink:#3B3A36;--ink2:#8A857A;--line:#ECE6D8;--hand:'UhBeeSe_hyun',var(--font,inherit),cursive;}
+.dy{--paper:#FFFDF8;--ink:#3B3A36;--ink2:#8A857A;--line:#ECE6D8;--hand:'Ownglyph_ryuttung',var(--font,inherit),cursive;}
 .dy-top{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
-.dy-title{font-family:var(--hand);font-size:1.9rem;line-height:1;color:var(--tx);font-synthesis:none;}
-.dy-title small{font-size:.95rem;color:var(--sub);margin-left:8px;}
+.dy-title{font-family:var(--hand);font-size:1.3rem;line-height:1;color:var(--tx);font-synthesis:none;}
+.dy-title small{font-size:.9rem;color:var(--sub);margin-left:6px;}
 .dy-ctl{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
 .dy-paper{position:relative;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:16px 16px 14px;color:var(--ink);}
 .dy-sum{display:flex;gap:4px 14px;flex-wrap:wrap;margin-bottom:12px;font-size:.78rem;color:var(--ink2);}
@@ -856,7 +856,7 @@ body[data-tab="ln2"] .pane[data-pane="ln2"]{display:block;animation:paneIn .28s 
 .dy-wd h4 small{font-size:.85rem;color:var(--ink2);}
 .dy-wd.now h4 span{background:#F9D9D6;border-radius:6px;padding:0 4px;}
 .dy-wd.sun h4{color:#D9534F;} .dy-wd.sat h4{color:#3B82C4;}
-.dy-rec{display:grid;grid-template-columns:7px 64px 1fr;gap:7px;align-items:baseline;font-size:.78rem;line-height:1.45;padding:1px 0;}
+.dy-rec{display:grid;grid-template-columns:7px 84px 1fr;gap:7px;align-items:baseline;font-size:.78rem;line-height:1.45;padding:1px 0;}
 .dy-rec .dot{width:7px;height:7px;border-radius:50%;align-self:center;}
 .dy-rec b{font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .dy-rec details summary{cursor:pointer;font-size:.72rem;color:var(--ink2);list-style:none;} .dy-rec details summary::-webkit-details-marker{display:none;}
@@ -870,7 +870,7 @@ body[data-tab="ln2"] .pane[data-pane="ln2"]{display:block;animation:paneIn .28s 
 .dy-week-note{border-top:1px dashed var(--line);margin-top:6px;padding-top:8px;font-size:.76rem;line-height:1.6;color:var(--ink2);}
 .dy-week-note b{color:var(--ink);}
 @media (max-width:820px){ .dy-spread{grid-template-columns:1fr;gap:0;} .dy-spread .dy-paper+.dy-paper{border-top:none;border-radius:0 0 14px 14px;padding-top:0;} .dy-spread .dy-paper:first-child{border-radius:14px 14px 0 0;border-bottom:none;} }
-@media (max-width:640px){ .dy-paper{padding:12px 8px;} .dy-d{min-height:58px;align-items:center;padding:4px 1px;} .dy-stk{display:none;} .dy-dots{display:flex;} .dy-title{font-size:1.6rem;} }
+@media (max-width:640px){ .dy-paper{padding:12px 8px;} .dy-d{min-height:58px;align-items:center;padding:4px 1px;} .dy-stk{display:none;} .dy-dots{display:flex;} .dy-title{font-size:1.15rem;} }
 body[data-theme="dark"] .dy{--paper:#2B2A27;--ink:#E8E4DA;--ink2:#A39E92;--line:#47443D;}
 body[data-theme="dark"] .dy-d.now .dy-n,body[data-theme="dark"] .dy-wd.now h4 span{background:#5A3533;color:#F3B7B1;}
 
@@ -1075,6 +1075,18 @@ body.pet-on[data-tab="today"] #petLayer{display:block;}
 .tw-nav{display:flex;align-items:center;gap:6px;}
 .tw-nav b{font-size:.8rem;font-weight:650;min-width:120px;text-align:center;}
 .tw7{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;}
+.twl-sum{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:.8rem;color:var(--sub);margin-bottom:10px;}
+.twl-sum b{color:var(--tx);font-weight:700;margin-left:2px;} .twl-sum em{font-style:normal;font-size:.7rem;margin-left:3px;} .twl-sum em.up{color:#16A34A;} .twl-sum em.dn{color:#DC2626;}
+.twl{border-top:1px solid var(--bd);}
+.twl-r{display:grid;grid-template-columns:64px 1fr;gap:10px;padding:7px 0;border-bottom:1px solid var(--bd);font-size:.78rem;align-items:baseline;}
+.twl-r.now .twl-d{color:var(--pri);}
+.twl-d{font-weight:700;} .twl-d small{font-weight:400;color:var(--sub);font-size:.7rem;}
+.twl-b{display:flex;flex-wrap:wrap;gap:3px 14px;min-width:0;}
+.twl-i{display:inline-flex;align-items:baseline;gap:5px;color:var(--sub);} .twl-i b{color:var(--tx);font-weight:650;}
+.twl-i i{width:7px;height:7px;border-radius:50%;align-self:center;} .twl-i.plan i{border:1px dashed var(--sub);}
+details.panel>summary{list-style:none;cursor:pointer;} details.panel>summary::-webkit-details-marker{display:none;}
+details.panel:not([open])>summary{border-bottom:none;}
+details.panel>summary .fold-ic{margin-left:auto;color:var(--sub);transition:transform .2s;} details.panel[open]>summary .fold-ic{transform:rotate(90deg);}
 .tw-day{display:flex;flex-direction:column;gap:5px;min-width:0;}
 .tw-stack{display:flex;flex-direction:column-reverse;justify-content:flex-start;gap:6px;min-height:150px;padding:7px 6px;border-radius:10px;background:var(--hov);}
 .tw-day.tw-now .tw-stack{background:var(--psoft);box-shadow:inset 0 0 0 1.5px var(--pri);}
@@ -1357,8 +1369,8 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
 .sl-note-x{border:none;background:none;color:var(--mut,#94A3B8);cursor:pointer;font-size:.8rem;padding:0 3px;line-height:1;}
 .sl-note-x:hover{color:#DC2626;}
 /* 라인 나누기 · Tree */
-.tl-from{font-size:.72rem;color:var(--sub);background:var(--sur2,#F8FAFC);border:1px solid var(--bd);border-radius:4px;padding:1px 6px;cursor:pointer;display:inline-flex;align-items:center;gap:3px;white-space:nowrap;}
-.tl-from:hover{border-color:var(--sub);}
+.tl-from{font-size:.7rem;color:var(--mut,var(--sub));cursor:pointer;display:inline-flex;align-items:center;gap:2px;white-space:nowrap;}
+.tl-from:hover{color:var(--tx);}
 .tl-from .ic{width:12px;height:12px;}
 .br-src{background:var(--sur2,#F8FAFC);border:1px solid var(--bd);border-radius:6px;padding:9px 11px;font-size:.82rem;margin-bottom:10px;line-height:1.55;}
 .br-row{display:grid;grid-template-columns:1.2fr 70px 1.6fr 28px;gap:6px;align-items:center;margin-bottom:6px;}
@@ -1907,7 +1919,7 @@ let cloudApplying=false;   // 받은 데이터를 화면에 반영하는 동안(
 let cloudPushing=false, cloudPushAgain=false;
 let cloudBase=null;        // { uid, rev, sig, data } 마지막으로 클라우드와 맞춘 상태
 const SYNC_ARR=['lines','logs','stockChecks','trash','plans','shotSets','shotNotes','freeSamples'];
-const SYNC_OBJ=['tlCollapsed','typeColors','pptCuts','pets'];
+const SYNC_OBJ=['tlCollapsed','typeColors','pptCuts','pets','prefs'];
 
 function cloudDocRef(uid){ return fbDb.collection('users').doc(uid).collection('data').doc('appData'); }
 
@@ -1932,7 +1944,9 @@ function pickSync(d){
 // 깊은 복사: 올리는 도중이나 base로 기억한 뒤에 화면에서 배열을 고쳐도 비교 기준이 같이 바뀌지 않도록
 const syncClone = d => JSON.parse(JSON.stringify(d));
 // 펫은 Google 계정에 같이 저장 (펫 코드가 뒤에 있어서 window._petsOut / _petsIn으로 이어 줌)
-function localSync(){ return syncClone(pickSync({lines,logs,stockChecks,trash,plans,shotSets,shotNotes:_slRecentNotes,freeSamples,tlCollapsed,typeColors,pptCuts,pets:window._petsOut?window._petsOut():{}})); }
+function localSync(){ return syncClone(pickSync({lines,logs,stockChecks,trash,plans,shotSets,shotNotes:_slRecentNotes,freeSamples,tlCollapsed,typeColors,pptCuts,pets:window._petsOut?window._petsOut():{}, prefs:_prefsOut()})); }
+// 이니셜처럼 기기마다 다시 입력하기 귀찮은 설정은 계정에 같이 저장
+function _prefsOut(){ const o={}; try{ const v=localStorage.getItem('orgInitials'); if(v) o.ini=v; }catch(e){} return o; }
 const syncHas = d => d.lines.length>0 || d.logs.length>0 || d.freeSamples.length>0;
 
 function loadCloudBase(uid){
@@ -2038,6 +2052,7 @@ function applySyncData(d){
     localStorage.setItem('orgFreeSamples', JSON.stringify(freeSamples));
     localStorage.setItem('orgSlRecentNotes', JSON.stringify(_slRecentNotes)); slRenderRecentNotes();
     if(window._petsIn) window._petsIn(d.pets);
+    if(d.prefs&&d.prefs.ini) try{ localStorage.setItem('orgInitials',d.prefs.ini); }catch(e){}
     updateUI();   // 안에서 saveData()가 lines/logs/stockChecks를 저장한다
   } finally { cloudApplying=false; }
 }
@@ -3215,7 +3230,6 @@ function renderTimelines(containerId,showDone){
           ${lineFromChip(line)}
           <span class="tl-pd"><b>P${line.passage}</b> ${calcDayStr(line)}${(w=>w?`<span class="pd-w">${w} well</span>`:'')(parseInt(latestWell(line))||0)}</span>
           ${curPlate?`<span class="tl-plate">${esc(curPlate)}</span>`:''}
-          <span class="tl-n" title="이 라인의 기록 수">기록 ${nLogs}건</span>
         </div>
         <div class="tl-act" onclick="event.stopPropagation()">
           <button class="btn btn-ghost" onclick="startLogForLine('${line.id}')">${ic('plus')}기록</button>
@@ -4245,7 +4259,7 @@ function lineRoot(l){
 }
 function lineFromChip(l){
   const p=l.parentId&&lineById(l.parentId); if(!p) return '';
-  return `<span class="tl-from" onclick="event.stopPropagation();openLineage('${l.id}')" title="${esc(lineTag(p))}에서 ${esc(l.branchDate||'')} 분기">${ic('branch')}${esc(p.detail||lineTag(p))}에서</span>`;
+  return `<span class="tl-from" onclick="event.stopPropagation();openLineage('${l.id}')" title="${esc(lineTag(p))}에서 ${esc(l.branchDate||'')} 분기">${ic('branch')}${esc(p.detail||lineTag(p))}</span>`;
 }
 // 나눈 날짜 '처리 후' 상태 (같은 날 Split이 있으면 이미 P+1 된 것으로 본다)
 function stateAfter(line, date){
@@ -4406,13 +4420,14 @@ function lineageNode(l, isRoot){
   const c=getC(l.type,false), segs=lineSegs(l), kids=lineKids(l.id), md=d=>d?String(d).slice(5).replace('-','/'):'';
   // 분기한 라인은 분기 날짜가 들어간 passage 칸 뒤에 붙인다
   const at=segs.map(()=>[]);
-  kids.forEach(k=>{ let i=segs.length-1; while(i>0 && String(segs[i].from)>String(k.branchDate||'')) i--; at[i].push(k); });
+  // Split한 날 바로 나눴으면 앞 passage 칸에서 두 갈래로 (P6 → P7 · P7)
+  kids.forEach(k=>{ let i=segs.length-1; while(i>0 && String(segs[i].from)>=String(k.branchDate||'')) i--; at[i].push(k); });
   const fin=logs.find(lg=>lg.lineId===l.id&&isFin(lg.action));
   const seg=(i)=>{
     const g=segs[i], last=i===segs.length-1;
     const edge = i>0 ? `${esc(g.via.action.replace(/\s*\(.*\)$/,''))}${g.via.details?' '+esc(g.via.details):''} · ${md(g.via.date)}`
       : isRoot ? (l.parentId?'원래 라인 삭제됨':'처음 seeding '+md(g.from)) : `${md(l.branchDate)} 분기${l.initialWells?' · '+esc(l.initialWells)+' well':''}`;
-    const extra=[g.mc?`MC ${g.mc}`:'', ...[...new Set(g.acts)]].filter(Boolean).join(' · ');
+    const extra=[...new Set(g.acts)].filter(Boolean).join(' · ');
     const node=`<div class="lt-node lt-seg${l.isCompleted?' done':''}${l.id===_lgSel&&last?' sel':''}" style="${toneVars(c)}" onclick="_lgSel='${l.id}';renderLineage();">
       <div class="lt-edge">${edge}</div>
       ${i===0?`<div class="lt-name">${esc(l.detail||lineTag(l))}</div>`:''}
@@ -4793,6 +4808,7 @@ const FONTS={
   ridibatang:{label:'리디바탕', family:"'RIDIBatang'", face:NN('noonfonts_twelve','RIDIBatang.woff')},
   // 손글씨 (눈누 · 온글잎)
   parkdahyun:{group:'손글씨', label:'온글잎 박다현체', family:"'Ownglyph_ParkDaHyun'", face:NN('2411-3','Ownglyph_ParkDaHyun.woff2'), scale:1.15},
+  ryuttung:{group:'손글씨', label:'온글잎 류뚱체', family:"'Ownglyph_ryuttung'", face:NN('2405-2','Ownglyph_ryuttung-Rg.woff2'), scale:1.15},
   corncorn:{group:'손글씨', label:'온글잎 콘콘', family:"'Ownglyph_corncorn'", face:NN('2412-1','Ownglyph_corncorn-Rg.woff2'), scale:1.15},
   eunbyul:{group:'손글씨', label:'온글잎 은별', family:"'Ownglyph_eunbyul21'", face:NN('2405-2','Ownglyph_eunbyul21-Rg.woff2'), scale:1.15},
   kimkonghae:{group:'손글씨', label:'온글잎 김콩해', family:"'Ownglyph_kimkonghae'", face:NN('2408','Ownglyph_kimkonghae.woff2'), scale:1.15},
@@ -7081,7 +7097,7 @@ function buildWeekday(){
 // Explorer(iframe)가 앱 데이터를 읽고 쓰는 창구
 window.cclLn2={
   getInitials(){ try{ return localStorage.getItem('orgInitials')||''; }catch(e){ return ''; } },
-  setInitials(v){ try{ localStorage.setItem('orgInitials', String(v||'').trim().toUpperCase().slice(0,4)); }catch(e){} },
+  setInitials(v){ try{ localStorage.setItem('orgInitials', String(v||'').trim().toUpperCase().slice(0,4)); }catch(e){} if(typeof cloudPushDebounced==='function') cloudPushDebounced(); },
   // 넣을 바이알 = 오늘 작업 위에 뜨는 Stock 후처리 목록(stockChecks) 그대로. LN2 이동 체크 안 된 것이 「넣을 것」
   getStocks(){
     return stockChecks.filter(sc=>parseInt(sc.stocks)>0).map(sc=>{
@@ -7113,7 +7129,7 @@ function openLn2(){
 // ══════════════════════════════════════════
 let _dyMode='month', _dyAnchor=null;
 try{ _dyMode=localStorage.getItem('orgDiaryMode')||'month'; }catch(e){}
-function _dyFont(){ loadFont('sehyun'); }
+function _dyFont(){ loadFont('ryuttung'); }
 function dySetMode(m){ _dyMode=m; try{ localStorage.setItem('orgDiaryMode',m); }catch(e){} renderDiary(); }
 function dyMove(n){
   const a=new Date(_dyAnchor||new Date());
@@ -7218,62 +7234,46 @@ function _twStats(from,to){
   const vials=ls.filter(lg=>/stock/i.test(lg.action||'')).reduce((s,lg)=>s+(parseInt(lg.stocks)||0),0);
   return {all:ls.filter(lg=>!isSeed(lg.action)).length, lines:new Set(ls.map(lg=>lg.lineId)).size, split:n('Split'), mc:n('Media Change'), vials, seed:n('새 라인'), fin:n('배양 완료'), days:new Set(ls.map(lg=>lg.date)).size, ls};
 }
+// 이번 주: 도형 없이 요일마다 한 줄 「Split HCC27 Tumor-CAF · MC 17라인 …」
 function buildThisWeek(){
   const s=_twStart(_twOff), t0=today(), wd=['월','화','수','목','금','토','일'];
   const days=[...Array(7)].map((_,i)=>{ const d=new Date(s); d.setDate(s.getDate()+i); return ymdLocal(d); });
   const pS=_twStart(_twOff-1), pDays=[ymdLocal(pS),(()=>{const d=new Date(pS); d.setDate(d.getDate()+6); return ymdLocal(d);})()];
   const cur=_twStats(days[0],days[6]), prev=_twStats(pDays[0],pDays[1]);
-  const lineOf=id=>lines.find(l=>l.id===id);
-  const cols=days.map((ds,i)=>{
+  const lineOf=id=>lines.find(l=>l.id===id), short=l=>l?`${l.patientId} ${l.type}`:'(삭제)';
+  const rows=days.map((ds,i)=>{
     const dl=cur.ls.filter(lg=>lg.date===ds);
-    const groups=TW_GROUPS.map(g=>{
-      const items=dl.filter(lg=>_twGroup(lg.action)===g[0]); if(!items.length) return '';
-      const b=badgeCls(g[0]==='새 라인'?'Seeded':g[0]==='배양 완료'?'Finish':g[0]);
-      // Media Change(MA 포함)는 라인마다 블럭을 쌓지 않고 한 칸으로
-      if(g[0]==='Media Change'){ const nm=items.map(lg=>{const l=lineOf(lg.lineId); return l?lineTag(l):'';}).filter(Boolean).join('\n');
-        return `<div class="tw-g"><div class="tw-gl badge ${b}" title="${esc(nm)}"><span>MC</span><span>${items.length}</span></div></div>`; }
-      const blks=items.map(lg=>{ const l=lineOf(lg.lineId); const c=l?getC(l.type,false):PAL[51]||PAL[0];
-        const nm=l?lineTag(l):'(삭제된 라인)';
-        const extra=[lg.details,lg.plate,lg.finalWells?lg.finalWells+' well':'',lg.stocks?lg.stocks+' vial':'',lg.memo].filter(Boolean).join(' · ');
-        return `<div class="tw-blk" style="background:${c.bg};border-color:${c.bd};color:${c.tx};" title="${esc(nm+(extra?'\n'+extra:''))}">${esc(l?l.patientId:'')}</div>`; }).join('');
-      return `<div class="tw-g">${blks}<div class="tw-gl badge ${b}"><span>${esc(g[0])}</span><span>${items.length}</span></div></div>`;
-    }).join('');
-    const cls=(ds===t0?' tw-now':'')+(ds>t0?' rest':'');
-    const pl=plans.filter(p=>!p.done&&p.date===ds&&ds>=t0).length;
-    return `<div class="tw-day${cls}"><div class="tw-hd"><b>${wd[i]}</b><em>${ds.slice(5).replace('-','/')}${pl?` · ${pl}예정`:''}</em></div><div class="tw-stack">${groups}</div></div>`;
+    const pl=plans.filter(p=>!p.done&&p.date===ds&&ds>=t0);
+    if(!dl.length&&!pl.length) return '';
+    const items=TW_GROUPS.map(g=>{ const ls=dl.filter(lg=>_twGroup(lg.action)===g[0]); if(!ls.length) return '';
+      const names=[...new Set(ls.map(lg=>short(lineOf(lg.lineId))))];
+      const lab=g[0]==='Media Change'?'MC':g[0];
+      const body=g[0]==='Media Change'||names.length>3?`<span title="${esc(names.join('\n'))}">${names.length}라인</span>`:names.map(esc).join(', ');
+      return `<span class="twl-i"><i style="background:${_dyGc(g[0])}"></i><b>${esc(lab)}</b> ${body}</span>`; }).join('')
+      + pl.map(p=>`<span class="twl-i plan"><i></i><b>${esc(p.action)}</b> 예정</span>`).join('');
+    return `<div class="twl-r${ds===t0?' now':''}"><span class="twl-d">${wd[i]} <small>${ds.slice(5).replace('-','/')}</small></span><div class="twl-b">${items}</div></div>`;
   }).join('');
-  const dlt=(a,b)=>{ const d=a-b; return d? `<i class="${d>0?'up':'dn'}">${d>0?'▲':'▼'}${Math.abs(d)}</i>`:'<i>–</i>'; };
-  const S=(k,v,pv,u)=>`<div class="tw-s"><small>${k}</small><b>${v}</b>${u||''}${pv==null?'':dlt(v,pv)}</div>`;
-  // 가장 바쁜 날, 많이 다룬 종류, 남은 예정
-  const perDay=days.map(ds=>cur.ls.filter(lg=>lg.date===ds&&!isSeed(lg.action)).length);
-  const bi=perDay.indexOf(Math.max(...perDay));
-  const byType={}; cur.ls.forEach(lg=>{ const l=lineOf(lg.lineId); if(l) byType[l.type]=(byType[l.type]||0)+1; });
-  const topT=Object.entries(byType).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([t,n])=>`${esc(t)} ${n}`).join(', ');
-  const restPlans=plans.filter(p=>!p.done&&p.date>=t0&&p.date<=days[6]);
-  const splitNames=[...new Set(cur.ls.filter(lg=>_twGroup(lg.action)==='Split').map(lg=>{const l=lineOf(lg.lineId); return l?lineTag(l):'';}).filter(Boolean))];
-  const notes=[];
-  if(cur.ls.length){
-    if(splitNames.length) notes.push(`Split: ${splitNames.map(esc).join(', ')}`);
-  }
-  if(restPlans.length) notes.push(`이번 주 남은 예정 <b>${restPlans.length}건</b>: `+restPlans.map(p=>`${p.date.slice(5).replace('-','/')} ${esc(p.action)}${p.lineIds&&p.lineIds.length?` (${p.lineIds.length}라인)`:''}`).join(', '));
-  return `<div class="tw7">${cols}</div>
-    <div class="tw-sum">${S('작업',cur.all,prev.all,'건')}${S('다룬 라인',cur.lines,prev.lines,'개')}${S('Split',cur.split,prev.split,'건')}${S('MC',cur.mc,prev.mc,'건')}${S('Stock vial',cur.vials,prev.vials,'개')}</div>
-    ${notes.length?`<div class="tw-note">${notes.join('<br>')}</div>`:''}
-    ${cur.ls.length?'':_anaEmpty('이 주에는 기록이 없어요.')}`;
+  const dlt=(a,b)=>{ const d=a-b; return d?`<em class="${d>0?'up':'dn'}">${d>0?'+':'−'}${Math.abs(d)}</em>`:''; };
+  const sum=`<div class="twl-sum"><span>작업 <b>${cur.all}</b>${dlt(cur.all,prev.all)}</span><span>라인 <b>${cur.lines}</b></span><span>Split <b>${cur.split}</b>${dlt(cur.split,prev.split)}</span><span>MC <b>${cur.mc}</b></span><span>Stock <b>${cur.vials}</b> vial</span></div>`;
+  return sum+(rows?`<div class="twl">${rows}</div>`:_anaEmpty('이 주에는 기록이 없어요.'));
 }
 function _twTitle(){ const s=_twStart(_twOff), e=new Date(s); e.setDate(s.getDate()+6); const f=d=>(d.getMonth()+1)+'/'+d.getDate();
   return `${_twOff===0?'이번 주':_twOff===-1?'지난주':_twOff===1?'다음 주':(_twOff<0?-_twOff+'주 전':_twOff+'주 뒤')} <small>${f(s)} – ${f(e)}</small>`; }
 
+// 스크롤을 줄이려고 이번 주만 펼쳐 두고, 나머지 패널은 제목만 (누르면 펼침, 펼친 상태는 이 브라우저에 기억)
+let _anaOpen={}; try{ _anaOpen=JSON.parse(localStorage.getItem('orgAnaOpen')||'{}'); }catch(e){}
+function anaFold(k,el){ _anaOpen[k]=el.open; try{ localStorage.setItem('orgAnaOpen',JSON.stringify(_anaOpen)); }catch(e){} if(k==='vol'&&el.open) setVolMode(_volMode); }
 function renderAnalytics(){
   const P=(t,body,cls,act)=>`<section class="panel ${cls||''}"><div class="panel-hd"><span>${t}</span>${act?`<span class="panel-act">${act}</span>`:''}</div><div class="pbody">${body}</div></section>`;
+  const F=(k,t,body,cls,act)=>`<details class="panel ${cls||''}" ${_anaOpen[k]?'open':''} ontoggle="anaFold('${k}',this)"><summary class="panel-hd"><span>${t}</span>${act?`<span class="panel-act" onclick="event.preventDefault();event.stopPropagation()">${act}</span>`:''}<span class="fold-ic">${ic('right')}</span></summary><div class="pbody">${body}</div></details>`;
   document.getElementById('anaContent').innerHTML=`<div class="ana-grid">
     ${P(_twTitle(),buildThisWeek(),'ana-full',`<span class="tw-nav"><button class="seg" onclick="twShift(-1)">‹</button><button class="seg" onclick="twShift(0)">이번 주</button><button class="seg" onclick="twShift(1)">›</button></span>`)}
-    ${P('작업량 추이','<div id="volChart"></div>','',`<span class="seg-group"><button class="seg" id="volBtnM" onclick="setVolMode('month')">월별</button><button class="seg" id="volBtnW" onclick="setVolMode('week')">주별</button></span>`)}
-    ${P('다음 Split 예상',buildNextSplit(),'ana-full')}
-    ${P('MC 간격 <small>최근 60일</small>',buildMcGap())}
-    ${P('Split 확장 배율 <small>Well 기준</small>',buildExpansion())}
-    ${P('계대 주기 <small>종류별 평균 · 라인별 추이</small>',buildPassageCycle()+buildPassageCycleByLine())}
-    ${P('Stock',buildStockTrend()+'<div class="a-sub">라인별 누적</div>'+buildStockByLine())}
+    ${F('next','다음 Split 예상',buildNextSplit(),'ana-full')}
+    ${F('vol','작업량 추이','<div id="volChart"></div>','',`<span class="seg-group"><button class="seg" id="volBtnM" onclick="setVolMode('month')">월별</button><button class="seg" id="volBtnW" onclick="setVolMode('week')">주별</button></span>`)}
+    ${F('mc','MC 간격 <small>최근 60일</small>',buildMcGap())}
+    ${F('exp','Split 확장 배율 <small>Well 기준</small>',buildExpansion())}
+    ${F('cyc','계대 주기 <small>종류별 평균 · 라인별 추이</small>',buildPassageCycle()+buildPassageCycleByLine())}
+    ${F('stock','Stock',buildStockTrend()+'<div class="a-sub">라인별 누적</div>'+buildStockByLine())}
   </div>`;
   setVolMode(_volMode);
 }
@@ -8407,6 +8407,8 @@ if(curTab==='ana'||curTab==='diary') setTab(curTab,true);
   .st-chk{ font-size:11px; color:var(--sub); display:flex; gap:4px; align-items:center; }
   .src-card{ background:var(--faint); border-radius:12px; padding:9px 10px; margin-bottom:8px; }
   .src-card.done{ opacity:.55; }
+  .src-name{ font:inherit; font-weight:700; font-size:13px; color:var(--ink); border:1px solid transparent; background:transparent; border-radius:6px; padding:2px 4px; margin-left:-5px; width:100%; }
+  .src-name:hover,.src-name:focus{ border-color:#e3e6ea; background:#fff; outline:none; }
   .src-hd b{ display:block; font-size:12.5px; } .src-hd small{ font-size:11px; color:var(--sub); }
   .vials{ display:flex; flex-wrap:wrap; gap:3px; margin-top:6px; }
   .vial{ cursor:grab; transition:transform .15s; display:inline-block; line-height:0; border-radius:6px; }
@@ -9816,7 +9818,10 @@ const ST = { sel:{sheet:'', code:''}, placed:[], forms:{}, custom:[], showDone:f
 function stInitials(){ try{ return parent.cclLn2.getInitials()||''; }catch(err){ return ''; } }
 function stSources(){
   let src=[]; try{ src=parent.cclLn2.getStocks(); }catch(err){}
-  return src.concat(ST.custom);
+  ST.names=ST.names||{};
+  // 이름을 고쳤으면 박스 칸 글자도 「고친 이름 / p / 날짜」로
+  return src.concat(ST.custom).map(s=>{ const n=ST.names[s.logId]; if(!n) return s;
+    const p=s.passage!==''&&s.passage!=null?'p'+s.passage:''; return Object.assign({},s,{name:n, text:[n,p,stYmd(s.date)].filter(Boolean).join('\n')}); });
 }
 const pad2=n=>String(n).padStart(2,'0');
 function stYmd(ds){ const [y,m,d]=String(ds).split('-'); return y? `${y.slice(2)}.${m}.${d}`:''; }
@@ -9841,7 +9846,7 @@ function vialSVG(color,label){
   return `<svg class="vial-svg" viewBox="0 0 22 40" width="22" height="40" aria-hidden="true"><rect x="4" y="1" width="14" height="8" rx="2" fill="${color}"/><rect x="3" y="8" width="16" height="3" rx="1" fill="${color}" opacity=".7"/><path d="M5 11h12v20a6 6 0 0 1-12 0z" fill="#fff" stroke="#c4c9d1"/><rect x="6.5" y="14" width="9" height="9" rx="1" fill="#eef2ff"/><path d="M6 27h10v4a5 5 0 0 1-10 0z" fill="${color}" opacity=".35"/></svg>`;
 }
 const VIAL_COLS=['#f59e9e','#f6c66b','#8fd19e','#86b7f0','#c3a3f3','#f3a3d4','#7fd6d0','#f0a575'];
-function stColor(s){ let h=0; const k=s.name||''; for(let i=0;i<k.length;i++) h=(h*31+k.charCodeAt(i))|0; return VIAL_COLS[Math.abs(h)%VIAL_COLS.length]; }
+function stColor(s){ return '#F59E3B'; }   // cryovial은 주황색 하나로
 
 function renderStockPanel(){
   const el=document.getElementById('panel-stock'); if(!el || !STATE.allBoxes.length) return;
@@ -9852,7 +9857,7 @@ function renderStockPanel(){
     const col=stColor(s);
     const vials=Array.from({length:s.vials},(_,i)=>{ const k=stVialKey(s,i), pl=ST.placed.find(p=>p.key===k);
       return `<span class="vial${pl?' used':''}${ST.pick===k?' picked':''}" draggable="${pl?'false':'true'}" data-key="${k}" title="${pl?escHtml(pl.where):'끌어서 박스 빈 칸에 놓기 (또는 눌러서 고른 뒤 칸 누르기)'}">${vialSVG(col)}</span>`; }).join('');
-    return `<div class="src-card${s.ln2Done?' done':''}"><div class="src-hd"><b>${escHtml(s.name)}</b><small>${escHtml(s.date||'')}${s.passage!==''&&s.passage!=null?' · P'+escHtml(s.passage):''} · ${s.vials} vial${s.ln2Done?' · LN2 넣음':''}</small></div><div class="vials">${vials}</div></div>`;
+    return `<div class="src-card${s.ln2Done?' done':''}"><div class="src-hd"><input class="src-name" data-log="${escHtml(s.logId)}" value="${escHtml(s.name)}" title="눌러서 이름 고치기"><small>${escHtml(s.date||'')}${s.passage!==''&&s.passage!=null?' · P'+escHtml(s.passage):''} · ${s.vials} vial${s.ln2Done?' · LN2 넣음':''}</small></div><div class="vials">${vials}</div></div>`;
   }).join('') : `<div class="empty small">앱에 Stock 기록(vial 수 포함)이 없어요. 아래에서 직접 추가할 수 있어요.</div>`;
 
   const sheets=[...new Set(STATE.allBoxes.map(b=>b.sheet))];
@@ -9904,6 +9909,7 @@ function renderStockPanel(){
 
   // 이벤트
   el.querySelector('#stIni').onchange=e=>{ try{ parent.cclLn2.setInitials(e.target.value); }catch(err){} ST.groupsDirty=true; Object.values(ST.forms).forEach(f=>{ if(!f._whoEdited) f.who=stInitials(); }); renderStockPanel(); };
+  el.querySelectorAll('.src-name').forEach(i=>i.onchange=()=>{ ST.names[i.dataset.log]=i.value.trim(); Object.keys(ST.forms).filter(k=>k.startsWith(i.dataset.log+'@')).forEach(k=>{ delete ST.forms[k]._starEdited; }); ST.placed.forEach(p=>{ if(p.src.logId===i.dataset.log) p.src=stSources().find(x=>x.logId===p.src.logId)||p.src; }); renderStockPanel(); });
   el.querySelector('#stShowDone').onchange=e=>{ ST.showDone=e.target.checked; renderStockPanel(); };
   el.querySelector('#stSheet').onchange=e=>{ ST.sel.sheet=e.target.value; ST.sel.code=''; renderStockPanel(); };
   el.querySelectorAll('.st-bx').forEach(x=>x.onclick=()=>{ ST.sel.code=x.dataset.code; renderStockPanel(); });
@@ -9960,6 +9966,13 @@ function stGuess(field, pred){
   for(let i=rows.length-1;i>=0;i--){ const r=rows[i]; if(pred(String(r['STAR_ID (Cell name)']||''), r) && r[field]) return String(r[field]); }
   return '';
 }
+// Full name: Cell information에서 같은 종류를 적은 가장 최근 줄의 Full name을 가져온다. 종류 이름이 앱과 엑셀에서 조금 달라도 찾도록 핵심 낱말로 한 번 더
+function stGuessFull(typeTok){
+  if(!typeTok) return '';
+  const keys=[typeTok, ...(typeTok.match(/tumor[\s-]?org|phh[\s-]?org|hep[\s-]?org|chol[\s-]?org|caf|\bpf\b|organoid|fibroblast/g)||[]), typeTok.split(/[\s_-]+/).pop()];
+  for(const k of keys){ if(!k) continue; const v=stGuess('Full name', t=>t.toLowerCase().replace(/_/g,' ').includes(k)); if(v) return v; }
+  return '';
+}
 function stForm(g){
   const s=g.src, f=ST.forms[g.key]=ST.forms[g.key]||{};
   const n=g.items.length;
@@ -9968,12 +9981,12 @@ function stForm(g){
   const typeTok=String(s.type||'').toLowerCase();
   const auto={
     star: stCellText(s),
-    full: typeTok? stGuess('Full name', t=>t.toLowerCase().includes(typeTok)) : '',
+    full: stGuessFull(typeTok),
     date: s.date||'',
     passage: s.passage!==''&&s.passage!=null ? 'p'+s.passage : '',
     from: '',
     cat: s.patientId? stGuess('Catalog number (From)', t=>t.toLowerCase().startsWith(String(s.patientId).toLowerCase())) : '',
-    info: `${n} vial${s.memo?'\n'+s.memo:''}`,
+    info: `Total: ${n} vial${n===1?'':'s'}`,
     loc: `${tankLineText(g.sheet)}-${letter}\n${box.title||''}\n${g.posText} (${n} vial${n>1?'s':''})`,
     who: stInitials(), used:'', note:'',
   };
