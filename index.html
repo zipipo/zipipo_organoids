@@ -4778,7 +4778,7 @@ function setTheme(t){
 // 화면 글씨체: 고른 것만 그때 불러온다. 불러오기에 실패해도 Pretendard로 자연스럽게 대체된다.
 // (PPT 만들기는 이 설정과 무관하게 항상 Pretendard)
 // 눈누(projectnoonnu) 무료 폰트는 jsDelivr에서 받고, 안 되면 GitHub 원본에서 받는다. 둘 다 안 되면 그 카드는 숨김
-const NN=(repo,file)=>[`https://cdn.jsdelivr.net/gh/projectnoonnu/${repo}/${file}`,`https://raw.githubusercontent.com/projectnoonnu/${repo}/master/${file}`];
+const NN=(repo,file)=>[`https://cdn.jsdelivr.net/gh/projectnoonnu/${repo}/${file}`,`https://raw.githubusercontent.com/projectnoonnu/${repo}/main/${file}`,`https://raw.githubusercontent.com/projectnoonnu/${repo}/master/${file}`];
 const FONTS={
   pretendard:{label:'Pretendard', family:"'Pretendard'", css:null},
   suit:{label:'SUIT', family:"'SUIT'", css:'https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/static/woff2/SUIT.css'},
@@ -4791,7 +4791,14 @@ const FONTS={
   gowun:{label:'고운돋움', family:"'Gowun Dodum'", css:'https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap', scale:1.02},
   maruburi:{label:'마루부리', family:"'MaruBuri'", face:NN('noonfonts_20-10','MaruBuri-Regular.woff')},
   ridibatang:{label:'리디바탕', family:"'RIDIBatang'", face:NN('noonfonts_twelve','RIDIBatang.woff')},
-  // 손글씨 (눈누)
+  // 손글씨 (눈누 · 온글잎)
+  parkdahyun:{group:'손글씨', label:'온글잎 박다현체', family:"'Ownglyph_ParkDaHyun'", face:NN('2411-3','Ownglyph_ParkDaHyun.woff2'), scale:1.15},
+  wiseelist:{group:'손글씨', label:'온글잎 위씨리스트', family:"'Ownglyph_wiseelist'", face:NN('2501-1','Ownglyph_wiseelist-Rg.woff2'), scale:1.15},
+  corncorn:{group:'손글씨', label:'온글잎 콘콘', family:"'Ownglyph_corncorn'", face:NN('2412-1','Ownglyph_corncorn-Rg.woff2'), scale:1.15},
+  ryurue:{group:'손글씨', label:'온글잎 류뤼', family:"'Ownglyph_ryurue'", face:NN('2405-2','Ownglyph_ryurue-Rg.woff2'), scale:1.15},
+  eunbyul:{group:'손글씨', label:'온글잎 은별', family:"'Ownglyph_eunbyul21'", face:NN('2405-2','Ownglyph_eunbyul21-Rg.woff2'), scale:1.15},
+  kimkonghae:{group:'손글씨', label:'온글잎 김콩해', family:"'Ownglyph_kimkonghae'", face:NN('2408','Ownglyph_kimkonghae.woff2'), scale:1.15},
+  dailyokja:{group:'손글씨', label:'온글잎 데일리옥자', family:"'Ownglyph_Dailyokja'", face:NN('2403','Ownglyph_Dailyokja-Rg.woff2'), scale:1.15},
   sehyun:{group:'손글씨', label:'어비 세현체', family:"'UhBeeSe_hyun'", face:NN('noonfonts_five','UhBeeSe_hyun.woff'), scale:1.12},
   mysen:{group:'손글씨', label:'어비 마이센체', family:"'UhBeemysen'", face:NN('noonfonts_five','UhBeemysen.woff'), scale:1.12},
   zziba:{group:'손글씨', label:'어비 찌바체', family:"'UhBeeZZIBA'", face:NN('noonfonts_2104','UhBeeZZIBA-Regular.woff'), scale:1.1},
@@ -4804,8 +4811,6 @@ const FONTS={
   hambak:{group:'손글씨', label:'함박눈', family:"'SF_HambakSnow'", face:NN('noonfonts_2106','SF_HambakSnow.woff')},
   // 귀여운 (눈누)
   tmoney:{group:'귀여운', label:'티머니 둥근바람', family:"'TmoneyRoundWind'", face:NN('noonfonts_20-07','TmoneyRoundWindRegular.woff'), scale:.95},
-  cookierun:{group:'귀여운', label:'쿠키런', family:"'CookieRun'", face:NN('noonfonts_2001','CookieRun-Regular.woff'), scale:.95},
-  maple:{group:'귀여운', label:'메이플스토리', family:"'Maplestory'", face:NN('noonfonts_20-04','MaplestoryOTFLight.woff'), scale:.95},
   hanna:{group:'귀여운', label:'배민 한나Pro', family:"'BMHANNAPro'", face:NN('noonfonts_seven','BMHANNAPro.woff'), scale:.98},
   kirang:{group:'귀여운', label:'배민 기랑해랑', family:"'BMKIRANGHAERANG'", face:NN('noonfonts_one','BMKIRANGHAERANG.woff'), scale:1.1},
   dunggeun:{group:'귀여운', label:'둥근모꼴 (픽셀)', family:"'DungGeunMo'", face:NN('noonfonts_six','DungGeunMo.woff'), scale:.95},
@@ -8436,6 +8441,7 @@ if(curTab==='ana'||curTab==='diary') setTab(curTab,true);
   .ci-f.wide{ grid-row:span 2; }
   .ci-f input,.ci-f textarea{ font:inherit; font-size:12.5px; color:var(--ink); border:1px solid #e3e6ea; border-radius:8px; padding:6px 8px; resize:vertical; }
   .empty.small{ font-size:12px; padding:14px; }
+  .st-layout>*{ min-width:0; }
   @media (max-width:760px){ .st-layout{ grid-template-columns:1fr; gap:14px; } .st-src{ position:static; max-height:none; } .ci-grid{ grid-template-columns:1fr 1fr; }
     .st-grid{ grid-template-columns:16px repeat(var(--nc,9),minmax(0,1fr))!important; gap:3px; } .sc{ width:auto; height:auto; aspect-ratio:1; font-size:7px; }
     .st-top .btn.primary{ margin-left:0; width:100%; } .st-fn{ word-break:break-all; } }
