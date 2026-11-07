@@ -1069,8 +1069,10 @@ body.pet-on[data-tab="today"] #petLayer{display:block;}
 .side-incu .incu-win{padding:6px 0 2px;min-height:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));row-gap:6px;overflow:hidden;align-items:end;}
 /* 사이드바: 선반 2층 (한 층에 plate 종류 3개), plate는 작게 */
 .side-incu .incu-fill{display:none;}
-.side-incu .incu-st{min-width:0;}
-.side-incu .incu-cols{padding:0 3px;gap:2px;}
+.side-incu .incu-st{min-width:0;align-items:stretch;}
+.side-incu .incu-cols{padding:0 3px;gap:2px;justify-content:center;width:100%;box-sizing:border-box;}
+/* 한 종류가 많아 줄이 여러 개가 되면 칸 안에서 plate를 가늘게 (넘쳐서 잘리지 않게) */
+.side-incu .incu-col{flex:0 1 30px;min-width:0;} .side-incu .incu-p{width:100%!important;max-width:30px;}
 .side-incu .incu-p{height:calc(var(--h) * .7)!important;}
 .side-incu .incu-l{height:auto;padding:3px 2px 5px;font-size:.58rem;line-height:1.3;border-top-width:3px;}
 .side-incu .incu-l b{font-size:.64rem;}
