@@ -829,7 +829,7 @@ body[data-tab="ln2"] .pane[data-pane="ln2"]{display:block;animation:paneIn .28s 
 .incu-feet i{width:20px;height:6px;background:var(--bd);border-radius:0 0 5px 5px;}
 .incu-empty{font-size:.76rem;color:var(--mut);padding:30px 6px;}
 /* 다이어리 (먼슬리 · 위클리): 종이 한 장 + 손글씨(어비 세현체), 꾸밈은 최소로 */
-.dy{--paper:#FFFDF8;--ink:#3B3A36;--ink2:#8A857A;--line:#ECE6D8;--hand:'Ownglyph_ryuttung',var(--font,inherit),cursive;}
+.dy{--paper:#FFFDF8;--ink:#3B3A36;--ink2:#8A857A;--line:#ECE6D8;--hand:var(--font,'Pretendard'),sans-serif;   /* 다이어리도 설정에서 고른 글씨체 */}
 .dy-top{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
 .dy-title{font-family:var(--hand);font-size:1.3rem;line-height:1;color:var(--tx);font-synthesis:none;}
 .dy-title small{font-size:.9rem;color:var(--sub);margin-left:6px;}
@@ -7178,7 +7178,7 @@ function openLn2(){
 // ══════════════════════════════════════════
 let _dyMode='month', _dyAnchor=null;
 try{ _dyMode=localStorage.getItem('orgDiaryMode')||'month'; }catch(e){}
-function _dyFont(){ loadFont('ryuttung'); }
+function _dyFont(){}
 function dySetMode(m){ _dyMode=m; try{ localStorage.setItem('orgDiaryMode',m); }catch(e){} renderDiary(); }
 function dyMove(n){
   const a=new Date(_dyAnchor||new Date());
