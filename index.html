@@ -1009,7 +1009,8 @@ body.pet-on[data-tab="today"] #petLayer{display:block;}
 .pet canvas{display:block;image-rendering:pixelated;}
 .pet-bub{position:absolute;transform:translate(-50%,-100%) scale(.6);opacity:0;white-space:nowrap;background:var(--sur);color:var(--tx);border:1.5px solid var(--bd);border-radius:10px;padding:3px 8px;font-size:.7rem;font-weight:600;transition:all .2s;pointer-events:none;}
 .pet-bub.on{opacity:1;transform:translate(-50%,-100%) scale(1);}
-.pet-heart{position:absolute;bottom:46px;font-style:normal;color:#F48FA8;fill:#F9C2CF;animation:petHeart 1.1s ease-out forwards;pointer-events:none;}
+.pet-bub.below{transform:translate(-50%,0) scale(.6);} .pet-bub.below.on{transform:translate(-50%,0) scale(1);}
+.pet-heart{position:absolute;font-style:normal;color:#F48FA8;fill:#F9C2CF;animation:petHeart 1.1s ease-out forwards;pointer-events:none;}
 @keyframes petHeart{to{transform:translateY(-34px) scale(1.3);opacity:0;}}
 .pet-item{position:absolute;border:none;background:none;padding:0;cursor:pointer;pointer-events:auto;line-height:0;animation:petDrop .35s ease-out;}
 .pet-item canvas{image-rendering:pixelated;}
@@ -7718,8 +7719,10 @@ function petNearestS(x,y){
 function petPlace(a){
   a.el.style.transform=`translate(${a.x}px,${a.y}px) rotate(${a.rot}deg)`;
   a.cv.style.transform=`scaleX(${a.dir<0?-1:1})`;
-  const bx=a.x+24 + (a.rot===-90?-34:a.rot===90?34:0), by=a.y + (a.rot===180?62:a.rot===0?-8:20);
-  a.bub.style.left=bx+'px'; a.bub.style.top=by+'px';
+  // 말풍선은 늘 펫 바로 위 (화면 위쪽 가장자리에 붙어 있을 때만 바로 아래)
+  const below=a.y<40, lw=petLayer?petLayer.clientWidth:9999;
+  a.bub.classList.toggle('below',below);
+  a.bub.style.left=Math.max(40,Math.min(lw-40,a.x+24))+'px'; a.bub.style.top=(below?a.y+52:a.y-4)+'px';
 }
 function petSave(a){ const o=petSt.owned[a.id]; if(o){ o.s=Math.round(a.s); o.pinned=a.pinned; savePets(); } }
 // 펫을 누르면 나오는 작은 메뉴
@@ -7744,7 +7747,7 @@ function petPat(a){
   const o=petSt.owned[a.id]; if(!o) return;
   o.hap=Math.min(100,(o.hap||60)+4); o.pats=(o.pats||0)+1; savePets();
   a.mode='happy'; a.until=performance.now()+1400; a.jump=2;
-  const h=document.createElement('i'); h.className='pet-heart'; h.innerHTML='<svg class="ic"><use href="#i-heart"/></svg>'; h.style.left=(a.x+16+Math.random()*12)+'px'; petLayer.appendChild(h); setTimeout(()=>h.remove(),1100);
+  const h=document.createElement('i'); h.className='pet-heart'; h.innerHTML='<svg class="ic"><use href="#i-heart"/></svg>'; h.style.left=(a.x+16+Math.random()*12)+'px'; h.style.top=(a.y<40?a.y+40:a.y-10)+'px'; petLayer.appendChild(h); setTimeout(()=>h.remove(),1100);
   if(Math.random()<.3) petSay(a,['헤헤','좋아!','또 해줘','보글보글','따뜻해~'][Math.floor(Math.random()*5)]);
 }
 function petDrop(a,type){
