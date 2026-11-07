@@ -857,12 +857,12 @@ body[data-tab="ln2"] .pane[data-pane="ln2"]{display:block;animation:paneIn .28s 
 .dy-wd h4 small{font-size:.85rem;color:var(--ink2);}
 .dy-wd.now h4 span{background:#F9D9D6;border-radius:6px;padding:0 4px;}
 .dy-wd.sun h4{color:#D9534F;} .dy-wd.sat h4{color:#3B82C4;}
-.dy-rec{display:grid;grid-template-columns:7px 84px 1fr;gap:7px;align-items:baseline;font-size:.78rem;line-height:1.45;padding:1px 0;}
-.dy-rec .dot{width:7px;height:7px;border-radius:50%;align-self:center;}
+.dy-rec{display:grid;grid-template-columns:7px 84px 1fr;gap:7px;align-items:start;font-size:.78rem;line-height:1.45;padding:1px 0;}
+.dy-rec .dot{width:7px;height:7px;border-radius:50%;align-self:start;margin-top:calc(.725em - 3.5px);}
 .dy-rec b{font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .dy-rec details summary{cursor:pointer;font-size:.72rem;color:var(--ink2);list-style:none;} .dy-rec details summary::-webkit-details-marker{display:none;}
 .dy-rec details[open] summary{margin-bottom:2px;}
-.dy-rec small{display:block;}
+.dy-rec small{display:block;} .dy-rec small,.dy-rec details summary{line-height:1.131rem;}
 .dy-rec>span{display:block;min-width:0;}
 .dy-rec small{font-size:.72rem;color:var(--ink2);}
 .dy-rec .m{display:block;font-family:var(--hand);font-size:.86rem;color:var(--ink2);line-height:1.3;font-synthesis:none;}
