@@ -1537,7 +1537,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
   <div id="incubator" class="side-incu"></div>
 
   <div class="side-foot">
-    <button class="nav-i" onclick="openSettings()"><svg class="ic"><use href="#i-sliders"/></svg><span>설정</span><em id="setNavN">테마 · 글씨체 · 펫</em></button>
+    <button class="nav-i" onclick="openSettings()"><svg class="ic"><use href="#i-sliders"/></svg><span>설정</span><em id="setNavN">테마 · 글씨체 · 세포</em></button>
     <input type="file" id="bkFile" style="display:none;" accept=".json,application/json" onchange="restoreBackup(event)">
     <div class="dd dd-up" id="dataDd">
       <button class="nav-i" onclick="toggleDd(event,'dataDd')"><svg class="ic"><use href="#i-db"/></svg><span>데이터</span><span id="bkDot" class="dd-dot" style="display:none;"></span><svg class="ic ic-sm" style="margin-left:auto;"><use href="#i-down"/></svg></button>
@@ -1754,7 +1754,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
       <button data-st="look" onclick="renderSettings('look')"><svg class="ic"><use href="#i-palette"/></svg>모양</button>
       <button data-st="font" onclick="renderSettings('font')"><svg class="ic"><use href="#i-edit"/></svg>글씨체</button>
       <button data-st="home" onclick="renderSettings('home')"><svg class="ic"><use href="#i-today"/></svg>홈 화면</button>
-      <button data-st="pet" onclick="renderSettings('pet')"><svg class="ic"><use href="#i-paw"/></svg>펫</button>
+      <button data-st="pet" onclick="renderSettings('pet')"><svg class="ic"><use href="#i-paw"/></svg>세포</button>
       <button data-st="ln2" onclick="renderSettings('ln2')"><svg class="ic"><use href="#i-tank"/></svg>LN2</button>
       <button data-st="mail" onclick="renderSettings('mail')"><svg class="ic"><use href="#i-mail"/></svg>우체통</button>
       <button onclick="closeSettings();newsShow(true)" style="margin-top:auto;"><svg class="ic"><use href="#i-flag"/></svg>새로 생긴 기능</button>
@@ -7897,7 +7897,7 @@ function petPanelHTML(){
       <div class="pm-meta"><svg class="ic"><use href="#i-flower"/></svg> 받은 꽃 ${o.flowers||0}　<svg class="ic"><use href="#i-heart"/></svg> 쓰다듬기 ${o.pats||0}</div>
       <div class="pm-btns"><button class="btn ${walking?'btn-out':'btn-pri'}" onclick="petWalk('${id}')"><svg class="ic"><use href="#i-paw"/></svg>${walking?'쉬게 하기':'산책 보내기'}</button><button class="btn btn-out" onclick="petFeed('${id}')"><svg class="ic"><use href="#i-cookie"/></svg>밥 주기</button><button class="btn btn-out" onclick="petRename('${id}')"><svg class="ic"><use href="#i-edit"/></svg>이름 짓기</button></div></div>`;
   }
-  const tg=`<div class="set-sec"><label class="set-row"><span><b>홈 화면에 펫 보이기</b></span><input type="checkbox" class="set-tg" ${petSt.hidden?'':'checked'} onchange="petHide()"></label></div>`;
+  const tg=`<div class="set-sec"><label class="set-row"><span><b>홈 화면에 세포 보이기</b></span><input type="checkbox" class="set-tg" ${petSt.hidden?'':'checked'} onchange="petHide()"></label></div>`;
   return draw+det+dex+tg;
 }
 function petPanelDraw(){
@@ -7913,7 +7913,7 @@ function petWalk(id){
   savePets(); petSync(); _petRefresh();
 }
 function petFeed(id){ const o=petSt.owned[id]; if(!o) return; o.fedTs=Date.now(); o.hap=Math.min(100,(o.hap||60)+6); savePets(); _petRefresh(); const a=PETS.find(p=>p.id===id); if(a){ petSay(a,'냠냠! 맛있다',2500); a.mode='happy'; a.until=performance.now()+1500; } }
-function petRename(id){ const v=prompt('펫 이름', petSt.owned[id].name||''); if(v===null) return; petSt.owned[id].name=v.trim().slice(0,12); savePets(); _petRefresh(); }
+function petRename(id){ const v=prompt('세포 이름', petSt.owned[id].name||''); if(v===null) return; petSt.owned[id].name=v.trim().slice(0,12); savePets(); _petRefresh(); }
 function petHide(){ petSt.hidden=!petSt.hidden; savePets(); petSync(); _petRefresh(); }
 function petPick(){
   // 희귀도: 흔함 62% · 드묾 30% · 아주 드묾 8%. 아직 없는 친구가 조금 더 잘 나옴
@@ -7994,9 +7994,9 @@ function renderSettings(tab){
       return `<button class="font-card${k===cur?' on':''}" data-font="${k}" ${_fontFail[k]?'hidden':''} onclick="setFont('${k}')"><b style="font-family:${esc(f.family)},'Pretendard';font-size:${(15*(f.scale||1)).toFixed(1)}px;">${esc(f.label)}</b><span style="font-family:${esc(f.family)},'Pretendard';font-size:${(12.5*(f.scale||1)).toFixed(1)}px;">오늘도 배양 파이팅! HCC26 P3</span></button>`; }).join('')}</div></div>`).join('');
   } else if(_setTab==='home'){
     h=`<h3>홈 화면</h3><div class="set-sec"><label class="set-row"><span><b>Incubator 보이기</b></span><input type="checkbox" class="set-tg" ${incuOn()?'checked':''} onchange="setIncu(this.checked)"></label>
-      <label class="set-row"><span><b>펫 보이기</b></span><input type="checkbox" class="set-tg" ${!petSt.hidden?'checked':''} onchange="petHide()"></label></div>`;
+      <label class="set-row"><span><b>세포 보이기</b></span><input type="checkbox" class="set-tg" ${!petSt.hidden?'checked':''} onchange="petHide()"></label></div>`;
   } else if(_setTab==='pet'){
-    h=`<h3>펫</h3>`+petPanelHTML();
+    h=`<h3>세포</h3>`+petPanelHTML();
   } else if(_setTab==='mail'){
     h=mailHTML();
   } else if(_setTab==='ln2'){
@@ -8054,7 +8054,7 @@ async function mailLoadInbox(){
 }
 async function mailMark(id,read){ try{ await fbDb.collection('mailbox').doc(id).update({read}); }catch(e){} mailLoadInbox(); }
 async function mailDel(id){ if(!confirm('이 편지를 지울까요?')) return; try{ await fbDb.collection('mailbox').doc(id).delete(); }catch(e){} mailLoadInbox(); }
-function mailBadge(n){ const b=document.querySelector('.set-nav button[data-st="mail"]'); if(b) b.dataset.n=n?n:''; const sb=document.getElementById('setNavN'); if(sb) sb.textContent=n?`편지 ${n}`:'테마 · 글씨체 · 펫'; }
+function mailBadge(n){ const b=document.querySelector('.set-nav button[data-st="mail"]'); if(b) b.dataset.n=n?n:''; const sb=document.getElementById('setNavN'); if(sb) sb.textContent=n?`편지 ${n}`:'테마 · 글씨체 · 세포'; }
 // 관리자가 로그인하면 안 읽은 편지 수를 사이드바 「설정」 옆에 보여준다
 setTimeout(async()=>{ if(!mailUser()||!fbDb) return; try{ const q=await fbDb.collection('mailbox').where('read','==',false).limit(50).get(); mailBadge(q.size); }catch(e){} }, 4000);
 // ══════════════════════════════════════════
@@ -8067,7 +8067,7 @@ const NEWS={id:'2026-11-07', date:'2026-11-07', days:5, items:[
   ['dish','<b>Incubator</b> · 키우는 plate 한눈에'],
   ['tank','<b>LN2 탱크</b> · 검색, Stock 넣고 엑셀 내려받기'],
   ['image','<b>PPT</b> · 조건별 · 날짜별 배치'],
-  ['paw','<b>펫</b> · 하루 한 번 뽑기'],
+  ['paw','<b>세포</b> · 하루 한 번 뽑기'],
   ['sliders','<b>설정</b> · 왼쪽 아래 (테마 · 글씨체 · 글씨 크기 · 우체통)'],
 ]};
 function newsShow(force){
