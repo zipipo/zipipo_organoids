@@ -1064,7 +1064,18 @@ body.pet-on[data-tab="today"] #petLayer{display:block;}
 .side-incu .incu-top b:hover{color:var(--pri);}
 .side-incu .incu-top em{margin:0;font-size:.66rem;white-space:nowrap;}
 .side-incu .incu-lcd{font-size:.5rem;}
-.side-incu .incu-win{padding:8px 0 0;min-height:96px;}
+.side-incu .incu-win{padding:8px 0 0;min-height:96px;cursor:zoom-in;}
+.incu-big{width:760px;max-width:100%;position:relative;padding:18px 18px 14px;}
+.incu-big .incu{margin:0;padding:0;}
+.incu-big .incu-win{min-height:200px;padding-top:16px;}
+.incu-big .incu-fill{height:40px;} .incu-big .incu-top{margin-right:34px;}
+.incu-list{margin-top:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px 16px;font-size:.78rem;}
+.incu-list h5{margin:0 0 3px;font-size:.78rem;} .incu-list div{color:var(--sub);line-height:1.6;} .incu-list i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;border:1px solid;vertical-align:0;}
+.incu-big .incu-p{width:76px;} .incu-big .incu-p.k-dish{width:68px;} .incu-big .incu-p.k-flask{width:54px;}
+.incu-big .incu-cols{padding:0 16px;gap:6px;}
+.incu-big .incu-top b{font-size:.95rem;} .incu-big .incu-top em{font-size:.8rem;} .incu-big .incu-lcd{font-size:.66rem;}
+.incu-big .incu-l{font-size:.74rem;height:40px;} .incu-big .incu-l b{font-size:.84rem;}
+.incu-big .set-x{z-index:2;}
 .side-incu .incu-cols{padding:0 5px;}
 .side-incu .incu-p{width:34px;}
 .side-incu .incu-p.k-dish{width:30px;}
@@ -2476,8 +2487,20 @@ function setIncuNick(){
   try{ localStorage.setItem('orgNick', v.trim().slice(0,12)); }catch(e){}
   renderIncubator();
 }
+// 사이드바는 작게, 누르면 큰 창으로 (같은 그림을 크게)
+function openIncuBig(){
+  let m=document.getElementById('incuModal');
+  if(!m){ m=document.createElement('div'); m.id='incuModal'; m.className='modal'; m.onclick=e=>{ if(e.target===m) m.classList.remove('open'); };
+    m.innerHTML='<div class="mbox incu-big"><button class="set-x" onclick="document.getElementById(\'incuModal\').classList.remove(\'open\')" title="닫기"><svg class="ic"><use href="#i-x"/></svg></button><div id="incubatorBig"></div></div>'; document.body.appendChild(m); }
+  m.classList.add('open'); renderIncubator();
+}
 function renderIncubator(){
+  const big=document.getElementById('incubatorBig');
+  if(big && document.getElementById('incuModal').classList.contains('open')) _renderIncu(big);
   const el=document.getElementById('incubator'); if(!el) return;
+  _renderIncu(el);
+}
+function _renderIncu(el){
   const act=lines.filter(l=>!l.isCompleted);
   const st={};
   act.forEach(l=>{
@@ -2493,12 +2516,12 @@ function renderIncubator(){
     const plates=[]; s.items.sort((a,b)=>typeCmp(a.l,b.l)).forEach(it=>{ for(let i=0;i<it.n;i++) plates.push(it); });
     const cols=[]; for(let i=0;i<plates.length;i+=MAX) cols.push(plates.slice(i,i+MAX));
     return `<div class="incu-st"><div class="incu-cols">${cols.map(c=>`<div class="incu-col">${c.map(it=>{ const c2=getC(it.l.type,false);
-      return `<div class="incu-p k-${s.pk.k}" style="height:${s.pk.h}px;background:${c2.bg};border-color:${c2.bd};" title="${esc(lineTag(it.l))} · P${esc(it.l.passage)}${it.w?` · ${it.w} well`:''}"></div>`; }).join('')}</div>`).join('')}</div>
+      return `<div class="incu-p k-${s.pk.k}" style="height:${s.pk.h*(el.id==='incubatorBig'?1.5:1)}px;background:${c2.bg};border-color:${c2.bd};" title="${esc(lineTag(it.l))} · P${esc(it.l.passage)}${it.w?` · ${it.w} well`:''}"></div>`; }).join('')}</div>`).join('')}</div>
       <div class="incu-l"><b>${esc(s.pk.label)}</b><br>${s.n}장${s.pk.k==='well'&&s.w?` · ${s.w}w`:''}</div></div>`;
   }).join('') : `<div class="incu-empty">배양 중인 라인이 없어요. 텅 빈 인큐베이터…</div>`;
   const fill='<span class="incu-fill"></span>';
   el.innerHTML=`<div class="incu"><div class="incu-box"><div class="incu-top"><span><b class="incu-ttl">Incubator<span class="incu-dots"><i>.</i><i>.</i><i>.</i></span></b><span class="incu-lcd"><i></i>37°C · 5%</span></span><em>${stacks.length?`${stacks.length}종류 · ${total}장`:''}</em></div>
-    <div class="incu-win">${body}${stacks.length?fill:''}</div></div><div class="incu-feet"><i></i><i></i></div></div>`;
+    <div class="incu-win"${el.id==='incubator'?' onclick="openIncuBig()" title="크게 보기"':''}>${body}${stacks.length?fill:''}</div>${el.id==='incubatorBig'&&stacks.length?`<div class="incu-list">${stacks.map(s=>`<div><h5>${esc(s.pk.label)} · ${s.n}장</h5>${s.items.map(it=>{ const c2=getC(it.l.type,false); return `<i style="background:${c2.bg};border-color:${c2.bd}"></i>${esc(lineTag(it.l))} <small>P${esc(it.l.passage)}${it.w?` · ${it.w} well`:''}</small>`; }).join('<br>')}</div>`).join('')}</div>`:''}</div><div class="incu-feet"><i></i><i></i></div></div>`;
 }
 
 // ══════════════════════════════════════════
