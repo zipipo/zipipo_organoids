@@ -4259,7 +4259,7 @@ function lineRoot(l){
 }
 function lineFromChip(l){
   const p=l.parentId&&lineById(l.parentId); if(!p) return '';
-  return `<span class="tl-from" onclick="event.stopPropagation();openLineage('${l.id}')" title="${esc(lineTag(p))}에서 ${esc(l.branchDate||'')} 분기">${ic('branch')}${esc(p.detail||lineTag(p))}</span>`;
+  return `<span class="tl-from" onclick="event.stopPropagation();openLineage('${l.id}')" title="Tree · ${esc(lineTag(p))}에서 ${esc(l.branchDate||'')}에 나눔">${ic('branch')}${esc(p.detail||lineTag(p))}</span>`;
 }
 // 나눈 날짜 '처리 후' 상태 (같은 날 Split이 있으면 이미 P+1 된 것으로 본다)
 function stateAfter(line, date){
@@ -4358,7 +4358,7 @@ function confirmBranch(){
       parentId:l.id,branchDate:date,branchNote:r.memo};
     lines.push(nl);
     logs.push({id:uid()+'_sd',seq:nextSeq(),lineId:nl.id,date,action:'Seeded',passage:st.P,dayInfo:dStr,details:'',plate,
-      finalWells:r.wells,stocks:'',memo:`${lineTag(l)}에서 분기`+(r.memo?' · '+r.memo:''),printedToNotebook:false});
+      finalWells:r.wells,stocks:'',memo:`${lineTag(l)}에서 나눔`+(r.memo?' · '+r.memo:''),printedToNotebook:false});
     recalcLogsForLine(nl.id);
     return nl;
   });
@@ -4372,7 +4372,7 @@ function confirmBranch(){
     const ds=calcDayStr(l,date);
     l.isCompleted=true; l.finishDate=date; l.finishDayStr=ds;
     logs.push({id:uid(),seq:nextSeq(),lineId:l.id,date,action:'Finish (완료)',passage:l.passage,dayInfo:ds,details:'',
-      finalWells:'',stocks:'',memo:'분기로 종료 → '+to,branchTo:kids.map(k=>k.id),printedToNotebook:false});
+      finalWells:'',stocks:'',memo:'나눠서 종료 → '+to,branchTo:kids.map(k=>k.id),printedToNotebook:false});
     bulkLines=bulkLines.filter(x=>x!==l.id);
   }
   closeBranchModal();
@@ -4426,7 +4426,7 @@ function lineageNode(l, isRoot){
   const seg=(i)=>{
     const g=segs[i], last=i===segs.length-1;
     const edge = i>0 ? `${esc(g.via.action.replace(/\s*\(.*\)$/,''))}${g.via.details?' '+esc(g.via.details):''} · ${md(g.via.date)}`
-      : isRoot ? (l.parentId?'원래 라인 삭제됨':'처음 seeding '+md(g.from)) : `${md(l.branchDate)} 분기${l.initialWells?' · '+esc(l.initialWells)+' well':''}`;
+      : isRoot ? (l.parentId?'원래 라인 삭제됨':'처음 seeding '+md(g.from)) : `${md(l.branchDate)} 나눔${l.initialWells?' · '+esc(l.initialWells)+' well':''}`;
     const extra=[...new Set(g.acts)].filter(Boolean).join(' · ');
     const node=`<div class="lt-node lt-seg${l.isCompleted?' done':''}${l.id===_lgSel&&last?' sel':''}" style="${toneVars(c)}" onclick="_lgSel='${l.id}';renderLineage();">
       <div class="lt-edge">${edge}</div>
@@ -4435,7 +4435,7 @@ function lineageNode(l, isRoot){
       <div class="lt-meta">${md(g.from)}${g.to&&g.to!==g.from?'–'+md(g.to):''}${g.wells?' · '+esc(g.wells)+' well':''}</div>
       ${extra?`<div class="lt-acts">${esc(extra)}</div>`:''}
       ${i===0&&l.branchNote?`<div class="lt-why">${esc(l.branchNote)}</div>`:''}
-      ${last&&fin&&fin.memo&&!/^분기로 종료/.test(fin.memo)?`<div class="lt-acts">끝: ${esc(fin.memo)}</div>`:''}
+      ${last&&fin&&fin.memo&&!/^(분기로|나눠서) 종료/.test(fin.memo)?`<div class="lt-acts">끝: ${esc(fin.memo)}</div>`:''}
     </div>`;
     const ch=[...(last?[]:[seg(i+1)]), ...at[i].map(k=>lineageNode(k,false))];
     return `<div class="lt-li${i===0&&isRoot?' lt-root':''}">${node}${ch.length?`<div class="lt-ch">${ch.join('')}</div>`:''}</div>`;
@@ -4449,7 +4449,7 @@ function renderLineage(){
   document.getElementById('lgTree').innerHTML=lineageNode(root,true);
   const p=sel.parentId&&lineById(sel.parentId);
   document.getElementById('lgDetail').innerHTML=`<div class="lt-detail-hd"><span>${esc(lineTag(sel))}
-      <em style="font-weight:400;color:var(--sub);font-size:.76rem;">${p?` · ${esc(lineTag(p))}에서 ${esc(sel.branchDate||'')} 분기`:''} · ${esc(lineDateRange(sel))}</em></span>
+      <em style="font-weight:400;color:var(--sub);font-size:.76rem;">${p?` · ${esc(lineTag(p))}에서 ${esc(sel.branchDate||'')}에 나눔`:''} · ${esc(lineDateRange(sel))}</em></span>
       ${sel.isCompleted?'':`<button class="btn btn-ghost" onclick="closeLineage();startLogForLine('${sel.id}')">${ic('plus')}기록</button>
       <button class="btn btn-ghost" onclick="closeLineage();openBranchModal('${sel.id}')">${ic('branch')}나누기</button>`}
       <button class="btn btn-ghost" onclick="closeLineage();editLine('${sel.id}')">${ic('edit')}수정</button>
@@ -4803,11 +4803,14 @@ const FONTS={
   lineseed:{label:'LINE Seed', family:"'LINESeedKR'", face:NN('noonfonts_11-01','LINESeedKR-Rg.woff2'), scale:.96},
   nexon:{label:'넥슨 Lv1 고딕', family:"'NEXONLv1Gothic'", face:NN('noonfonts_20-04','NEXON%20Lv1%20Gothic%20OTF.woff'), scale:.96},
   dovegothic:{label:'도브메이요 고딕', family:"'DovemayoGothic'", face:NN('noonfonts_2302','Dovemayo_gothic.woff2')},
+  noonnubasic:{label:'눈누 기초고딕', family:"'NoonnuBasicGothic'", face:NN('noon-2410','NoonnuBasicGothicRegular.woff2')},
+  neolli:{label:'엘리스 DX 널리체', family:"'Elice DX Neolli'", css:'https://font.elice.io/css?family=Elice+DX+Neolli', scale:.96},
   gowun:{label:'고운돋움', family:"'Gowun Dodum'", css:'https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap', scale:1.02},
   maruburi:{label:'마루부리', family:"'MaruBuri'", face:NN('noonfonts_20-10','MaruBuri-Regular.woff')},
   ridibatang:{label:'리디바탕', family:"'RIDIBatang'", face:NN('noonfonts_twelve','RIDIBatang.woff')},
   // 손글씨 (눈누 · 온글잎)
   parkdahyun:{group:'손글씨', label:'온글잎 박다현체', family:"'Ownglyph_ParkDaHyun'", face:NN('2411-3','Ownglyph_ParkDaHyun.woff2'), scale:1.15},
+  kkakdugi:{group:'손글씨', label:'깍두기 제도체', family:"'KkakdugiDrafting'", face:['https://cdn.jsdelivr.net/gh/Project-Noonnu/2610102356@kkakdugidrafting-extralight/kkakdugidrafting-extralight/KkakdugiDrafting-Regular.woff2','https://raw.githubusercontent.com/Project-Noonnu/2610102356/kkakdugidrafting-extralight/kkakdugidrafting-extralight/KkakdugiDrafting-Regular.woff2']},
   ryuttung:{group:'손글씨', label:'온글잎 류뚱체', family:"'Ownglyph_ryuttung'", face:NN('2405-2','Ownglyph_ryuttung-Rg.woff2'), scale:1.15},
   corncorn:{group:'손글씨', label:'온글잎 콘콘', family:"'Ownglyph_corncorn'", face:NN('2412-1','Ownglyph_corncorn-Rg.woff2'), scale:1.15},
   eunbyul:{group:'손글씨', label:'온글잎 은별', family:"'Ownglyph_eunbyul21'", face:NN('2405-2','Ownglyph_eunbyul21-Rg.woff2'), scale:1.15},
