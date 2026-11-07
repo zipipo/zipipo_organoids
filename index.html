@@ -426,7 +426,7 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.92em;bac
 
 /* 셸 */
 .app{display:flex;min-height:100vh;}
-.side{width:236px;flex:none;position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column;
+.side{width:268px;flex:none;position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column;
   background:var(--side);border-right:1px solid var(--bd);padding:14px 10px 12px;}
 .main{flex:1;min-width:0;padding:0 28px 60px;}
 
@@ -1006,7 +1006,7 @@ body.incu-off #incubator{display:none;}
   .set-row input:not(.set-tg){flex:none;}
 }
 /* 펫 */
-#petLayer{position:fixed;left:236px;right:0;top:0;bottom:0;pointer-events:none;z-index:160;display:none;}
+#petLayer{position:fixed;left:268px;right:0;top:0;bottom:0;pointer-events:none;z-index:160;display:none;}
 body.pet-on[data-tab="today"] #petLayer{display:block;}
 .pet{position:absolute;top:0;left:0;width:48px;height:48px;pointer-events:auto;cursor:pointer;touch-action:none;transform-origin:24px 24px;transition:transform .2s linear;}
 .pet.drag{transition:none;cursor:grabbing;}
@@ -1064,21 +1064,11 @@ body.pet-on[data-tab="today"] #petLayer{display:block;}
 .side-incu .incu-top b:hover{color:var(--pri);}
 .side-incu .incu-top em{margin:0;font-size:.66rem;white-space:nowrap;}
 .side-incu .incu-lcd{font-size:.5rem;}
-.side-incu .incu-win{padding:8px 0 0;min-height:96px;cursor:zoom-in;}
-.incu-big{width:760px;max-width:100%;position:relative;padding:18px 18px 14px;}
-.incu-big .incu{margin:0;padding:0;}
-.incu-big .incu-win{min-height:200px;padding-top:16px;}
-.incu-big .incu-fill{height:40px;} .incu-big .incu-top{margin-right:34px;}
-.incu-list{margin-top:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px 16px;font-size:.78rem;}
-.incu-list h5{margin:0 0 3px;font-size:.78rem;} .incu-list div{color:var(--sub);line-height:1.6;} .incu-list i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;border:1px solid;vertical-align:0;}
-.incu-big .incu-p{width:76px;} .incu-big .incu-p.k-dish{width:68px;} .incu-big .incu-p.k-flask{width:54px;}
-.incu-big .incu-cols{padding:0 16px;gap:6px;}
-.incu-big .incu-top b{font-size:.95rem;} .incu-big .incu-top em{font-size:.8rem;} .incu-big .incu-lcd{font-size:.66rem;}
-.incu-big .incu-l{font-size:.74rem;height:40px;} .incu-big .incu-l b{font-size:.84rem;}
-.incu-big .set-x{z-index:2;}
+.side-incu .incu-win{padding:8px 0 0;min-height:96px;}
 .side-incu .incu-cols{padding:0 5px;}
-.side-incu .incu-p{width:34px;}
-.side-incu .incu-p.k-dish{width:30px;}
+.side-incu .incu-p{width:42px;}
+.rec-sw{display:none;margin-left:6px;} body:is([data-tab="ana"],[data-tab="diary"]) .rec-sw{display:inline-flex;}
+.side-incu .incu-p.k-dish{width:38px;}
 .side-incu .incu-p.k-flask{width:24px;}
 .side-incu .incu-l{height:32px;font-size:.58rem;}
 .side-incu .incu-fill{height:32px;}
@@ -1502,8 +1492,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
   <nav class="nav" id="tabs">
     <button class="nav-i tab" data-tab="today" onclick="setTab('today')"><svg class="ic"><use href="#i-today"/></svg><span>오늘 작업</span></button>
     <button class="nav-i tab" data-tab="tl" onclick="setTab('tl')"><svg class="ic"><use href="#i-flask"/></svg><span>배양 라인</span><em id="tlCount"></em></button>
-    <button class="nav-i tab" data-tab="ana" onclick="setTab('ana')"><svg class="ic"><use href="#i-chart"/></svg><span>작업 분석</span></button>
-    <button class="nav-i tab" data-tab="diary" onclick="setTab('diary')"><svg class="ic"><use href="#i-book"/></svg><span>다이어리</span></button>
+    <button class="nav-i tab" data-tab="ana" data-rec="1" onclick="setTab(recTab())"><svg class="ic"><use href="#i-book"/></svg><span>기록</span></button>
   </nav>
 
   <div class="nav-sec">도구</div>
@@ -1547,6 +1536,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
     <div class="tb-l">
       <button class="btn btn-icon menu-btn" onclick="openSide()" title="메뉴"><svg class="ic" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
       <h1 id="pageTitle">오늘 작업</h1>
+      <span class="seg-group rec-sw"><button class="seg" data-r="diary" onclick="setTab('diary')">다이어리</button><button class="seg" data-r="ana" onclick="setTab('ana')">분석</button></span>
       <span id="pageSub" class="tb-sub"></span>
     </div>
     <div class="tb-r">
@@ -1671,7 +1661,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
 <nav class="mtabs">
   <button class="tab" data-tab="today" onclick="setTab('today')"><svg class="ic"><use href="#i-today"/></svg>오늘</button>
   <button class="tab" data-tab="tl" onclick="setTab('tl')"><svg class="ic"><use href="#i-flask"/></svg>라인</button>
-  <button class="tab" data-tab="ana" onclick="setTab('ana')"><svg class="ic"><use href="#i-chart"/></svg>분석</button>
+  <button class="tab" data-tab="ana" data-rec="1" onclick="setTab(recTab())"><svg class="ic"><use href="#i-book"/></svg>기록</button>
   <button onclick="openSide()"><svg class="ic" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>메뉴</button>
 </nav>
 
@@ -2487,16 +2477,7 @@ function setIncuNick(){
   try{ localStorage.setItem('orgNick', v.trim().slice(0,12)); }catch(e){}
   renderIncubator();
 }
-// 사이드바는 작게, 누르면 큰 창으로 (같은 그림을 크게)
-function openIncuBig(){
-  let m=document.getElementById('incuModal');
-  if(!m){ m=document.createElement('div'); m.id='incuModal'; m.className='modal'; m.onclick=e=>{ if(e.target===m) m.classList.remove('open'); };
-    m.innerHTML='<div class="mbox incu-big"><button class="set-x" onclick="document.getElementById(\'incuModal\').classList.remove(\'open\')" title="닫기"><svg class="ic"><use href="#i-x"/></svg></button><div id="incubatorBig"></div></div>'; document.body.appendChild(m); }
-  m.classList.add('open'); renderIncubator();
-}
 function renderIncubator(){
-  const big=document.getElementById('incubatorBig');
-  if(big && document.getElementById('incuModal').classList.contains('open')) _renderIncu(big);
   const el=document.getElementById('incubator'); if(!el) return;
   _renderIncu(el);
 }
@@ -2516,12 +2497,12 @@ function _renderIncu(el){
     const plates=[]; s.items.sort((a,b)=>typeCmp(a.l,b.l)).forEach(it=>{ for(let i=0;i<it.n;i++) plates.push(it); });
     const cols=[]; for(let i=0;i<plates.length;i+=MAX) cols.push(plates.slice(i,i+MAX));
     return `<div class="incu-st"><div class="incu-cols">${cols.map(c=>`<div class="incu-col">${c.map(it=>{ const c2=getC(it.l.type,false);
-      return `<div class="incu-p k-${s.pk.k}" style="height:${s.pk.h*(el.id==='incubatorBig'?1.5:1)}px;background:${c2.bg};border-color:${c2.bd};" title="${esc(lineTag(it.l))} · P${esc(it.l.passage)}${it.w?` · ${it.w} well`:''}"></div>`; }).join('')}</div>`).join('')}</div>
+      return `<div class="incu-p k-${s.pk.k}" style="height:${s.pk.h}px;background:${c2.bg};border-color:${c2.bd};" title="${esc(lineTag(it.l))} · P${esc(it.l.passage)}${it.w?` · ${it.w} well`:''}"></div>`; }).join('')}</div>`).join('')}</div>
       <div class="incu-l"><b>${esc(s.pk.label)}</b><br>${s.n}장${s.pk.k==='well'&&s.w?` · ${s.w}w`:''}</div></div>`;
   }).join('') : `<div class="incu-empty">배양 중인 라인이 없어요. 텅 빈 인큐베이터…</div>`;
   const fill='<span class="incu-fill"></span>';
   el.innerHTML=`<div class="incu"><div class="incu-box"><div class="incu-top"><span><b class="incu-ttl">Incubator<span class="incu-dots"><i>.</i><i>.</i><i>.</i></span></b><span class="incu-lcd"><i></i>37°C · 5%</span></span><em>${stacks.length?`${stacks.length}종류 · ${total}장`:''}</em></div>
-    <div class="incu-win"${el.id==='incubator'?' onclick="openIncuBig()" title="크게 보기"':''}>${body}${stacks.length?fill:''}</div>${el.id==='incubatorBig'&&stacks.length?`<div class="incu-list">${stacks.map(s=>`<div><h5>${esc(s.pk.label)} · ${s.n}장</h5>${s.items.map(it=>{ const c2=getC(it.l.type,false); return `<i style="background:${c2.bg};border-color:${c2.bd}"></i>${esc(lineTag(it.l))} <small>P${esc(it.l.passage)}${it.w?` · ${it.w} well`:''}</small>`; }).join('<br>')}</div>`).join('')}</div>`:''}</div><div class="incu-feet"><i></i><i></i></div></div>`;
+    <div class="incu-win">${body}${stacks.length?fill:''}</div></div><div class="incu-feet"><i></i><i></i></div></div>`;
 }
 
 // ══════════════════════════════════════════
@@ -4757,6 +4738,8 @@ function toast(msg,opt){
 // ══════════════════════════════════════════
 let curTab='today';
 try{ curTab=localStorage.getItem('orgTab')||'today'; }catch(e){}
+// 다이어리 · 분석은 「기록」 한 메뉴 안에서 위쪽 버튼으로 오감. 마지막에 본 쪽으로 열림
+function recTab(){ try{ return localStorage.getItem('orgRecTab')||'diary'; }catch(e){ return 'diary'; } }
 function setTab(t, instant){
   if(t==='arch'){ t='tl'; setLineFilter('done',true); }   // 예전 [완료된 배양] 탭은 배양 라인의 '완료' 필터로
   if(!['today','tl','ana','diary','ln2'].includes(t)) t='today';
@@ -4765,8 +4748,11 @@ function setTab(t, instant){
   const apply=()=>{
     curTab=t;
     document.body.dataset.tab=t;
-    document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
-    document.getElementById('pageTitle').textContent={today:'오늘 작업',tl:'배양 라인',ana:'작업 분석',diary:'다이어리',ln2:'LN2 탱크'}[t];
+    const rec=t==='ana'||t==='diary';
+    document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.tab===t||(rec&&!!b.dataset.rec)));
+    document.querySelectorAll('.rec-sw .seg').forEach(b=>b.classList.toggle('on',b.dataset.r===t));
+    if(rec) try{ localStorage.setItem('orgRecTab',t); }catch(e){}
+    document.getElementById('pageTitle').textContent={today:'오늘 작업',tl:'배양 라인',ana:'기록',diary:'기록',ln2:'LN2 탱크'}[t];
     if(t==='ln2') openLn2();
     // 분석 · 다이어리 코드는 스크립트 뒤쪽에 있어서, 첫 로딩 때는 스크립트 끝(_lateReady)에서 다시 그린다
     if(t==='ana'){ if(window._lateReady) renderAnalytics(); } else anaTipHide();
@@ -8049,8 +8035,7 @@ setTimeout(async()=>{ if(!mailUser()||!fbDb) return; try{ const q=await fbDb.col
 //  새 기능을 올릴 때 NEWS의 id · date · items만 바꾸면 됨
 // ══════════════════════════════════════════
 const NEWS={id:'2026-11-07', date:'2026-11-07', days:5, items:[
-  ['today','<b>이번 주</b> · 작업 분석 맨 위에 요일별 기록'],
-  ['book','<b>다이어리</b> · 먼슬리 · 위클리'],
+  ['book','<b>기록</b> · 다이어리(먼슬리 · 위클리)와 분석을 한 메뉴에'],
   ['branch','<b>Tree</b> · passage별로 나뉜 모양'],
   ['dish','<b>Incubator</b> · 키우는 plate 한눈에'],
   ['tank','<b>LN2 탱크</b> · 검색, Stock 넣고 엑셀 내려받기'],
