@@ -1008,6 +1008,8 @@ html:is([data-fgroup="hand"],[data-fgroup="cute"]) *{font-synthesis:none;}
 .set-tg::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 2px rgba(0,0,0,.2);}
 .set-tg:checked{background:var(--pri);} .set-tg:checked::after{transform:translateX(16px);}
 .set-tg:disabled{opacity:.4;cursor:not-allowed;}
+.pstars{display:inline-flex;gap:1px;vertical-align:-3px;margin-right:4px;} .pstar{width:15px;height:15px;fill:#EFE7D2;} .pstar.on{fill:#FFCF4A;filter:drop-shadow(0 1px 0 #E9A928);}
+#pgSub .pstars{display:flex;justify-content:center;margin:2px auto 4px;} #pgSub .pstar{width:22px;height:22px;}
 .pet-kinds{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
 .pet-kinds canvas{image-rendering:pixelated;background:var(--psoft);border-radius:10px;}
 body.incu-off #incubator{display:none;}
@@ -7576,7 +7578,7 @@ function renderAnalytics(){
 
 // ══════════════════════════════════════════
 //  펫 (오늘 작업 화면 아래를 돌아다니는 세포 · 오가노이드 친구들)
-//  50종을 16×16 칸에 코드로 그림. 하루에 1번 뽑기, 여러 마리 키우기(산책은 최대 3마리)
+//  70종(세포 50 + 실험실 친구 20)을 16×16 칸에 코드로 그림. 하루에 1번 뽑기, 여러 마리 키우기(산책은 최대 5마리)
 //  도감은 뽑기 전에는 「?」(비공개). 상태는 이 브라우저에만 저장 (localStorage orgPets)
 // ══════════════════════════════════════════
 // shape: 그리는 모양, c: 몸 색, d: 테두리, a: 무늬, r: 희귀도(1 흔함 · 2 드묾 · 3 아주 드묾)
@@ -7631,6 +7633,28 @@ const PET_KINDS=[
   {id:'hepg2',  name:'HepG2',              shape:'cluster', c:'#F2D1B5',d:'#C79B72',a:'#FBE6D2',r:1},
   {id:'t293',   name:'293T',               shape:'blob',    c:'#F8E0B8',d:'#D6AE6A',a:'#FBEFD8',r:1},
   {id:'flask',  name:'T75 플라스크',       shape:'flask',   c:'#BFDDFB',d:'#6FA6DE',a:'#F7A8B8',r:3},
+
+  // 실험실 친구들 (2026-11-07 추가)
+  {id:'prof',   name:'교수님',           shape:'prof',    c:'#FFE0C8',d:'#C9946E',a:'#E2E2EC',r:3},
+  {id:'phd',    name:'척척박사',          shape:'phd',     c:'#FFE0C8',d:'#C9946E',a:'#4B4B63',r:3},
+  {id:'mouse',  name:'실험쥐',            shape:'mouse',   c:'#F7F4F6',d:'#BDB3BD',a:'#F7B6C8',r:2},
+  {id:'pipette',name:'파이펫',            shape:'pipette', c:'#E8EEF6',d:'#8FA0B8',a:'#7EB6F0',r:1},
+  {id:'conical',name:'코니컬 튜브',       shape:'conical', c:'#F4F8FC',d:'#A7B6C8',a:'#6FA8E8',r:1},
+  {id:'etube',  name:'E-tube',            shape:'etube',   c:'#F8F3FA',d:'#B9A6C6',a:'#F4A8C8',r:1},
+  {id:'petri',  name:'페트리 디시',       shape:'petri',   c:'#EAF6F8',d:'#97C4CC',a:'#FBE7B5',r:1},
+  {id:'wp96',   name:'96 well plate',     shape:'wellplate',c:'#F2F4F8',d:'#A3ADBF',a:'#F6C3CF',r:1},
+  {id:'scope',  name:'현미경',            shape:'scope',   c:'#EDF0F5',d:'#8E99AA',a:'#B9C3D3',r:2},
+  {id:'centri', name:'원심분리기',        shape:'centri',  c:'#E6EEF5',d:'#8EA0B4',a:'#B8D4EE',r:2},
+  {id:'cryo',   name:'크라이오바이알',    shape:'cryo',    c:'#FBFBFD',d:'#B3B8C4',a:'#F59E3B',r:1},
+  {id:'ln2',    name:'LN2 탱크',          shape:'ln2',     c:'#DDE6EE',d:'#8B9AAA',a:'#BFD8EE',r:2},
+  {id:'beaker', name:'비커',              shape:'beaker',  c:'#EEF7FC',d:'#93B9CF',a:'#FFB5C4',r:1},
+  {id:'erlen',  name:'삼각 플라스크',     shape:'erlen',   c:'#EEF7FC',d:'#93B9CF',a:'#BDE6B0',r:1},
+  {id:'hemo',   name:'혈구계산판',        shape:'hemo',    c:'#EAF4FB',d:'#9FB9CC',a:'#C7DDEE',r:2},
+  {id:'tipbox', name:'팁 박스',           shape:'tipbox',  c:'#BFE3F7',d:'#78AFCF',a:'#FFF4B8',r:1},
+  {id:'incub',  name:'인큐베이터',        shape:'incub',   c:'#F3F4F7',d:'#9EA6B4',a:'#D7ECF6',r:2},
+  {id:'media',  name:'배지병',            shape:'bottle',  c:'#FCD9C2',d:'#D8A27A',a:'#F28C8C',r:1},
+  {id:'glove',  name:'니트릴 장갑',       shape:'glove',   c:'#C9E4FB',d:'#7FAFD8',a:'#A9CFF2',r:1},
+  {id:'labnote',name:'랩노트',            shape:'labnote', c:'#FFE9A8',d:'#D6AE52',a:'#F4C26A',r:2},
 ];
 const PET_PX=3, PET_N=16, PET_MAX_WALK=5;
 function petGrid(shape, frame){
@@ -7674,6 +7698,26 @@ function petGrid(shape, frame){
     case 'sperm':  ell(5,8.5,4,3.4,'b'); for(let x=9;x<=15;x++) set(x, 8.5+Math.sin((x+frame)*1.1)*1.6,'a'); break;
     case 'egg':    ell(8,8.5,7,6.6,'a'); ell(8,8.5,5.6,5.2,'b'); ell(10.5,6,1.4,1.2,'a'); break;
     case 'flask':  rect(3,5,12,13,'b'); rect(9,2,13,4,'b'); rect(10,1,13,1,'a'); rect(4,11,11,13,'a'); break;
+    case 'prof':   ell(8,9.5,5.8,5.2,'b'); ell(8,4.8,6,2.6,'a'); ell(8,6.6,4.4,1.6,'b'); ell(2.6,7.6,1.4,2,'a'); ell(13.4,7.6,1.4,2,'a'); line(5,7,11,7,'a'); ell(8,13.2,2.4,1.2,'a'); break;
+    case 'phd':    ell(8,9.6,5.6,5,'b'); rect(1,3,15,4,'a'); rect(5,5,11,5,'a'); set(8,2,'a'); line(14,4,14,8,'a'); set(14,9,'a'); break;
+    case 'mouse':  ell(8,9.8,6,4.6,'b'); ell(3.4,4.6,2.6,2.6,'b'); ell(12.6,4.6,2.6,2.6,'b'); ell(3.4,4.6,1.3,1.3,'a'); ell(12.6,4.6,1.3,1.3,'a'); line(13,13,15,15-w,'a'); set(8,11,'a'); break;
+    case 'pipette':rect(7,0,9,1,'a'); rect(4,2,12,11,'b'); rect(5,3,11,4,'a'); rect(7,12,9,13,'b'); set(8,14,'b'); break;
+    case 'conical':rect(4,1,12,3,'a'); rect(5,4,11,11,'b'); rect(6,12,10,12,'b'); rect(7,13,9,13,'b'); set(8,14,'b'); line(5,6,6,6,'a'); line(5,10,6,10,'a'); break;
+    case 'etube':  rect(4,2,11,3,'a'); set(12,3,'a'); set(13,4,'a'); set(13,5,'a'); rect(5,4,11,10,'b'); rect(6,11,10,12,'b'); rect(7,13,9,13,'b'); break;
+    case 'petri':  ell(8,10,7.4,4.6,'b'); ell(8,10,6,3.4,'a'); [[4,9],[11,11],[6,12],[12,8]].forEach(([x,y])=>set(x,y,'b')); break;
+    case 'wellplate': rect(1,5,14,13,'b'); for(let y=6;y<=12;y+=2) for(let x=2;x<=13;x+=2) set(x,y,'a'); break;
+    case 'scope':  rect(4,5,12,12,'b'); rect(6,1,9,4,'a'); rect(10,12,11,13,'a'); rect(2,13,14,14,'a'); break;
+    case 'centri': rect(2,6,14,13,'b'); ell(8,6,5.6,2.6,'a'); rect(3,12,13,12,'a'); set(12,8,'a'); break;
+    case 'cryo':   rect(5,1,11,4,'a'); rect(4,4,12,4,'a'); rect(5,5,11,13,'b'); rect(6,14,10,14,'b'); line(6,12,10,12,'a'); break;
+    case 'ln2':    ell(8,10,6.4,5.2,'b'); rect(2,8,14,12,'b'); rect(6,2,10,5,'b'); rect(5,1,11,2,'a'); line(3,13,13,13,'a'); break;
+    case 'beaker': rect(3,3,12,13,'b'); set(2,3,'b'); rect(4,10,11,13,'a'); set(12,6,'a'); set(12,8,'a'); break;
+    case 'erlen':  rect(6,1,10,4,'b'); for(let y=5;y<=13;y++){ const hw=2+(y-5)*.62; rect(Math.round(8-hw),y,Math.round(8+hw),y,y>=11?'a':'b'); } rect(5,0,11,0,'b'); break;
+    case 'hemo':   rect(0,5,15,13,'b'); rect(3,6,12,7,'a'); rect(3,12,12,12,'a'); for(let x=3;x<=12;x+=3) set(x,11,'a'); break;
+    case 'tipbox': rect(2,7,13,14,'b'); rect(2,5,13,6,'a'); for(let x=3;x<=12;x+=2){ set(x,4,'a'); set(x,3,'a'); } break;
+    case 'incub':  rect(2,2,13,14,'b'); rect(4,5,12,12,'a'); rect(4,3,6,3,'a'); set(13,8,'a'); set(13,9,'a'); break;
+    case 'bottle': rect(6,1,10,3,'a'); rect(6,4,10,5,'b'); rect(3,6,13,14,'b'); rect(4,12,12,14,'a'); break;
+    case 'glove':  rect(4,6,12,13,'b'); rect(4,2,5,6,'b'); rect(6,1,7,6,'b'); rect(8,1,9,6,'b'); rect(10,2,11,6,'b'); rect(13,8,14,10,'b'); rect(4,14,12,15,'a'); break;
+    case 'labnote':rect(3,1,13,14,'b'); rect(3,1,4,14,'a'); rect(6,3,12,5,'a'); line(6,12,12,12,'a'); line(6,13,11,13,'a'); break;
   }
   return g;
 }
@@ -7693,7 +7737,7 @@ function drawPet(cv, kindId, st){
   else [6,10].forEach(x=>{ P(x,ey-1,ink); P(x,ey,ink); P(x+1,ey-1,'#fff'); });
   P(4,ey+1,'#F4A3B5'); P(12,ey+1,'#F4A3B5');
   if(st.mode==='happy'){ P(7,ey+2,ink); P(9,ey+2,ink); P(8,ey+2,ink); } else P(8,ey+1,ink);
-  if(K.shape!=='flask'&&K.shape!=='sperm'){ const f=st.mode==='walk'?(st.frame||0)%2:0; P(5+f,15,K.d); P(10-f,15,K.d); }
+  if(!['flask','sperm','pipette','conical','etube','cryo','glove','wellplate','petri','hemo','scope','tipbox','incub','labnote','bottle','ln2','centri','beaker','erlen'].includes(K.shape)){ const f=st.mode==='walk'?(st.frame||0)%2:0; P(5+f,15,K.d); P(10-f,15,K.d); }
 }
 function petItemSprite(type){
   const cv=document.createElement('canvas'); cv.width=7*PET_PX; cv.height=8*PET_PX;
@@ -7897,7 +7941,7 @@ function petPanelHTML(){
     const days=Math.max(1,Math.round((Date.now()-(o.born||Date.now()))/864e5)+1);
     const full=Math.max(0,Math.round(100-Math.min(100,(Date.now()-(o.fedTs||0))/864e3*2)));
     const walking=petSt.active.includes(id);
-    det=`<div class="set-sec pet-det"><div class="pm-hd"><canvas id="pmCv" width="48" height="48"></canvas><div><b>${esc(petName(id))}</b><small>${esc(K.name)} · ${'★'.repeat(K.r)}${'☆'.repeat(3-K.r)} · 함께한 지 ${days}일${o.n>1?` · ${o.n}번 만남`:''}</small></div></div>
+    det=`<div class="set-sec pet-det"><div class="pm-hd"><canvas id="pmCv" width="48" height="48"></canvas><div><b>${esc(petName(id))}</b><small>${esc(K.name)} ${petStars(K.r)} · 함께한 지 ${days}일${o.n>1?` · ${o.n}번 만남`:''}</small></div></div>
       <div class="pm-bars"><label>기분 <span><i style="width:${o.hap||0}%"></i></span></label><label>배부름 <span><i style="width:${full}%"></i></span></label></div>
       <div class="pm-meta"><svg class="ic"><use href="#i-flower"/></svg> 받은 꽃 ${o.flowers||0}　<svg class="ic"><use href="#i-heart"/></svg> 쓰다듬기 ${o.pats||0}</div>
       <div class="pm-btns"><button class="btn ${walking?'btn-out':'btn-pri'}" onclick="petWalk('${id}')"><svg class="ic"><use href="#i-paw"/></svg>${walking?'쉬게 하기':'산책 보내기'}</button><button class="btn btn-out" onclick="petFeed('${id}')"><svg class="ic"><use href="#i-cookie"/></svg>밥 주기</button><button class="btn btn-out" onclick="petRename('${id}')"><svg class="ic"><use href="#i-edit"/></svg>이름 짓기</button></div></div>`;
@@ -7922,12 +7966,18 @@ function petRename(id){ const v=prompt('세포 이름', petSt.owned[id].name||''
 function petHide(){ petSt.hidden=!petSt.hidden; savePets(); petSync(); _petRefresh(); }
 function petPick(){
   // 희귀도: 흔함 62% · 드묾 30% · 아주 드묾 8%. 아직 없는 친구가 조금 더 잘 나옴
-  const rr=Math.random(), tier=rr<.08?3:rr<.38?2:1;
-  const pool=PET_KINDS.filter(k=>k.r===tier);
-  const fresh=pool.filter(k=>!petSt.owned[k.id]);
-  const from=(fresh.length&&Math.random()<.7)?fresh:pool;
-  return from[Math.floor(Math.random()*from.length)];
+  // 아직 없는 친구만 나옴 (다 모은 뒤에는 아무나). 희귀도 확률은 그대로, 다 모은 희귀도는 건너뜀
+  const fresh=PET_KINDS.filter(k=>!petSt.owned[k.id]);
+  const src=fresh.length?fresh:PET_KINDS;
+  const W={1:.62,2:.30,3:.08}, tiers=[1,2,3].filter(t=>src.some(k=>k.r===t));
+  let rr=Math.random()*tiers.reduce((a,t)=>a+W[t],0), tier=tiers[tiers.length-1];
+  for(const t of tiers){ if(rr<W[t]){ tier=t; break; } rr-=W[t]; }
+  const pool=src.filter(k=>k.r===tier);
+  return pool[Math.floor(Math.random()*pool.length)];
 }
+// 희귀도 별: 동글동글한 노란 별 (못 채운 칸은 연한 별)
+function petStars(r){ const st=on=>`<svg class="pstar${on?' on':''}" viewBox="0 0 24 24"><path d="M12 2.8c.5 0 .9.3 1.1.7l2.2 4.6 5 .7c1 .1 1.3 1.3.6 2l-3.6 3.5.9 5c.2 1-.9 1.7-1.7 1.2L12 18.1l-4.5 2.4c-.9.5-1.9-.3-1.7-1.2l.9-5-3.6-3.5c-.7-.7-.3-1.9.6-2l5-.7 2.2-4.6c.2-.4.6-.7 1.1-.7z"/></svg>`;
+  return `<span class="pstars">${[1,2,3].map(i=>st(i<=r)).join('')}</span>`; }
 function petGacha(){
   if(!petCanDraw()) return;
   const ov=document.createElement('div'); ov.className='pet-gacha';
@@ -7949,7 +7999,7 @@ function petGacha(){
   const t=setInterval(()=>{ egg(n);
     if(++n>16){ clearInterval(t); drawPet(cv,pick.id,{frame:0,mode:'happy'});
       ov.querySelector('#pgName').textContent=`${pick.name}${isNew?'(이)가 나왔어요!':'를 또 만났어요'}`;
-      ov.querySelector('#pgSub').textContent=`${'★'.repeat(pick.r)}${'☆'.repeat(3-pick.r)}${isNew?' · 도감에 새로 등록':' · 기분이 좋아졌어요'}`;
+      ov.querySelector('#pgSub').innerHTML=`${petStars(pick.r)}${isNew?' 도감에 새로 등록':' 기분이 좋아졌어요'}`;
       if(!isNew){ const o=petSt.owned[pick.id]; o.hap=Math.min(100,(o.hap||60)+10); savePets(); }
       ov.querySelector('#pgBtns').style.visibility='visible'; } }, 90);
   ov.querySelector('#pgOk').onclick=()=>{ ov.remove(); _petSel=pick.id; petSync(); _petRefresh(); const a=PETS.find(p=>p.id===pick.id); if(a) petSay(a,'안녕! 잘 부탁해',3000); };
