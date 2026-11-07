@@ -1008,6 +1008,7 @@ html:is([data-fgroup="hand"],[data-fgroup="cute"]) *{font-synthesis:none;}
 .set-tg::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 2px rgba(0,0,0,.2);}
 .set-tg:checked{background:var(--pri);} .set-tg:checked::after{transform:translateX(16px);}
 .set-tg:disabled{opacity:.4;cursor:not-allowed;}
+.dex-hd{display:flex;align-items:center;gap:4px;} .dex-all{margin-left:auto;display:flex;gap:10px;font-size:.72rem;}
 .pstars{display:inline-flex;gap:1px;vertical-align:-3px;margin-right:4px;} .pstar{width:15px;height:15px;fill:#EFE7D2;} .pstar.on{fill:#FFCF4A;filter:drop-shadow(0 1px 0 #E9A928);}
 #pgSub .pstars{display:flex;justify-content:center;margin:2px auto 4px;} #pgSub .pstar{width:22px;height:22px;}
 .pet-kinds{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
@@ -7656,7 +7657,7 @@ const PET_KINDS=[
   {id:'glove',  name:'니트릴 장갑',       shape:'glove',   c:'#C9E4FB',d:'#7FAFD8',a:'#A9CFF2',r:1},
   {id:'labnote',name:'랩노트',            shape:'labnote', c:'#FFE9A8',d:'#D6AE52',a:'#F4C26A',r:2},
 ];
-const PET_PX=3, PET_N=16, PET_MAX_WALK=5;
+const PET_PX=3, PET_N=16, PET_MAX_WALK=Infinity;   // 산책은 원하는 만큼
 function petGrid(shape, frame){
   const g=[...Array(PET_N)].map(()=>Array(PET_N).fill(''));
   const set=(x,y,v)=>{ x=Math.round(x); y=Math.round(y); if(y>=0&&y<PET_N&&x>=0&&x<PET_N) g[y][x]=v; };
@@ -7931,7 +7932,7 @@ let _petSel=null;
 function petPanelHTML(){
   const own=Object.keys(petSt.owned), can=petCanDraw();
   const draw=`<div class="set-sec pet-draw"><div><b>오늘의 뽑기</b><small>${can?'':'내일 또 만나요'}</small></div><button class="btn ${can?'btn-pri':'btn-out'}" ${can?'':'disabled'} onclick="petGacha()"><svg class="ic"><use href="#i-gift"/></svg>뽑기</button></div>`;
-  const dex=`<div class="set-sec"><h4>도감 <span class="mail-n">${own.length} / ${PET_KINDS.length}</span></h4><div class="pet-dex">${PET_KINDS.map(k=>{ const o=petSt.owned[k.id];
+  const dex=`<div class="set-sec"><h4 class="dex-hd">도감 <span class="mail-n">${own.length} / ${PET_KINDS.length}</span>${own.length?`<span class="dex-all"><button class="link-btn" onclick="petWalkAll(true)">모두 산책</button><button class="link-btn" onclick="petWalkAll(false)">모두 쉬기</button></span>`:''}</h4><div class="pet-dex">${PET_KINDS.map(k=>{ const o=petSt.owned[k.id];
       return o ? `<button class="dex${_petSel===k.id?' on':''}${petSt.active.includes(k.id)?' walk':''}" onclick="_petSel='${k.id}';renderSettings('pet')" title="${esc(petName(k.id))}"><canvas data-k="${k.id}" width="48" height="48"></canvas><span>${esc(petName(k.id))}</span></button>`
                : `<div class="dex unk"><i>?</i><span>&nbsp;</span></div>`; }).join('')}</div>
 </div>`;
@@ -7955,6 +7956,7 @@ function petPanelDraw(){
 }
 function petMenu(){ openSettings('pet'); }
 function _petRefresh(){ if(typeof _setTab!=='undefined' && _setTab==='pet' && document.getElementById('setModal').classList.contains('open')) renderSettings('pet'); }
+function petWalkAll(on){ petSt.active=on?Object.keys(petSt.owned):[]; savePets(); petSync(); _petRefresh(); }
 function petWalk(id){
   const i=petSt.active.indexOf(id);
   if(i>=0) petSt.active.splice(i,1);
@@ -7966,9 +7968,10 @@ function petRename(id){ const v=prompt('세포 이름', petSt.owned[id].name||''
 function petHide(){ petSt.hidden=!petSt.hidden; savePets(); petSync(); _petRefresh(); }
 function petPick(){
   // 희귀도: 흔함 62% · 드묾 30% · 아주 드묾 8%. 아직 없는 친구가 조금 더 잘 나옴
-  // 아직 없는 친구만 나옴 (다 모은 뒤에는 아무나). 희귀도 확률은 그대로, 다 모은 희귀도는 건너뜀
+  // 희귀도 확률은 그대로, 고를 수 있는 친구가 없는 희귀도는 건너뜀
+  // 대부분은 아직 없는 친구, 가끔(15%)은 이미 만난 친구도 다시 나옴
   const fresh=PET_KINDS.filter(k=>!petSt.owned[k.id]);
-  const src=fresh.length?fresh:PET_KINDS;
+  const src=(fresh.length&&Math.random()<.85)?fresh:PET_KINDS;
   const W={1:.62,2:.30,3:.08}, tiers=[1,2,3].filter(t=>src.some(k=>k.r===t));
   let rr=Math.random()*tiers.reduce((a,t)=>a+W[t],0), tier=tiers[tiers.length-1];
   for(const t of tiers){ if(rr<W[t]){ tier=t; break; } rr-=W[t]; }
