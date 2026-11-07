@@ -451,6 +451,9 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.92em;bac
 .step{width:16px;height:16px;flex:none;display:inline-flex;align-items:center;justify-content:center;font-style:normal;font-size:.62rem;font-weight:700;
   color:var(--sub);border:1.3px solid #C9C9CF;border-radius:4px;}
 .side-foot{margin-top:auto;padding-top:14px;border-top:1px solid var(--bd);display:flex;flex-direction:column;gap:4px;}
+/* 창이 낮아져도 설정 · 데이터 · 로그인은 사이드바 아래에 붙어 있게 (위쪽 메뉴 · 인큐베이터만 스크롤) */
+.side-foot{position:sticky;bottom:0;z-index:3;background:var(--side,var(--bg));margin-bottom:-12px;padding-bottom:12px;}
+@media (max-height:720px){ .side-incu .incu-win{min-height:70px;} }
 .acct{display:flex;align-items:center;gap:10px;height:34px;padding:0 10px;border:1px solid var(--bd);background:var(--sur);border-radius:var(--r-sm);
   font:inherit;font-size:.82rem;font-weight:600;color:var(--tx);cursor:pointer;transition:border-color .12s,background .12s;}
 .acct:hover{border-color:#D4D4D8;}
