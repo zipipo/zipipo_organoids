@@ -1066,11 +1066,18 @@ body.pet-on[data-tab="today"] #petLayer{display:block;}
 .side-incu .incu-top b:hover{color:var(--pri);}
 .side-incu .incu-top em{margin:0;font-size:.66rem;white-space:nowrap;}
 .side-incu .incu-lcd{font-size:.5rem;}
-.side-incu .incu-win{padding:8px 0 0;min-height:96px;}
+.side-incu .incu-win{padding:6px 0 0;min-height:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));row-gap:6px;overflow:hidden;align-items:end;}
+/* 사이드바: 선반 2층 (한 층에 plate 종류 3개), plate는 작게 */
+.side-incu .incu-fill{display:none;}
+.side-incu .incu-st{min-width:0;}
+.side-incu .incu-cols{padding:0 3px;gap:2px;}
+.side-incu .incu-p{height:calc(var(--h) * .7)!important;}
+.side-incu .incu-l{height:28px;padding:3px 2px 0;font-size:.58rem;border-top-width:3px;}
+.side-incu .incu-l b{font-size:.64rem;}
 .side-incu .incu-cols{padding:0 5px;}
-.side-incu .incu-p{width:42px;}
+.side-incu .incu-p{width:30px;}
 .rec-sw{display:none;margin-left:6px;} body:is([data-tab="ana"],[data-tab="diary"]) .rec-sw{display:inline-flex;}
-.side-incu .incu-p.k-dish{width:38px;}
+.side-incu .incu-p.k-dish{width:28px;}
 .side-incu .incu-p.k-flask{width:24px;}
 .side-incu .incu-l{height:32px;font-size:.58rem;}
 .side-incu .incu-fill{height:32px;}
@@ -2494,12 +2501,12 @@ function _renderIncu(el){
   });
   const stacks=Object.values(st).sort((a,b)=>a.pk.ord-b.pk.ord);
   const total=stacks.reduce((a,s)=>a+s.n,0);
-  const MAX=8;
+  const MAX=el.id==='incubator'?6:8;   // 사이드바는 한 줄 6장까지 (넘으면 옆 줄)
   const body=stacks.length? stacks.map(s=>{
     const plates=[]; s.items.sort((a,b)=>typeCmp(a.l,b.l)).forEach(it=>{ for(let i=0;i<it.n;i++) plates.push(it); });
     const cols=[]; for(let i=0;i<plates.length;i+=MAX) cols.push(plates.slice(i,i+MAX));
     return `<div class="incu-st"><div class="incu-cols">${cols.map(c=>`<div class="incu-col">${c.map(it=>{ const c2=getC(it.l.type,false);
-      return `<div class="incu-p k-${s.pk.k}" style="height:${s.pk.h}px;background:${c2.bg};border-color:${c2.bd};" title="${esc(lineTag(it.l))} · P${esc(it.l.passage)}${it.w?` · ${it.w} well`:''}"></div>`; }).join('')}</div>`).join('')}</div>
+      return `<div class="incu-p k-${s.pk.k}" style="--h:${s.pk.h}px;height:var(--h);background:${c2.bg};border-color:${c2.bd};" title="${esc(lineTag(it.l))} · P${esc(it.l.passage)}${it.w?` · ${it.w} well`:''}"></div>`; }).join('')}</div>`).join('')}</div>
       <div class="incu-l"><b>${esc(s.pk.label)}</b><br>${s.n}장${s.pk.k==='well'&&s.w?` · ${s.w}w`:''}</div></div>`;
   }).join('') : `<div class="incu-empty">배양 중인 라인이 없어요. 텅 빈 인큐베이터…</div>`;
   const fill='<span class="incu-fill"></span>';
