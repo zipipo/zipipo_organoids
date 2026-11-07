@@ -7969,9 +7969,9 @@ function petHide(){ petSt.hidden=!petSt.hidden; savePets(); petSync(); _petRefre
 function petPick(){
   // 희귀도: 흔함 62% · 드묾 30% · 아주 드묾 8%. 아직 없는 친구가 조금 더 잘 나옴
   // 희귀도 확률은 그대로, 고를 수 있는 친구가 없는 희귀도는 건너뜀
-  // 대부분은 아직 없는 친구, 가끔(15%)은 이미 만난 친구도 다시 나옴
+  // 절반쯤은 아직 없는 친구에서, 나머지는 전체에서 → 가끔 겹치면서 70종 다 모으는 데 평균 100일쯤 (시뮬레이션 4000번)
   const fresh=PET_KINDS.filter(k=>!petSt.owned[k.id]);
-  const src=(fresh.length&&Math.random()<.85)?fresh:PET_KINDS;
+  const src=(fresh.length&&Math.random()<.48)?fresh:PET_KINDS;
   const W={1:.62,2:.30,3:.08}, tiers=[1,2,3].filter(t=>src.some(k=>k.r===t));
   let rr=Math.random()*tiers.reduce((a,t)=>a+W[t],0), tier=tiers[tiers.length-1];
   for(const t of tiers){ if(rr<W[t]){ tier=t; break; } rr-=W[t]; }
