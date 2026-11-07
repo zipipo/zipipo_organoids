@@ -1947,7 +1947,7 @@ const syncClone = d => JSON.parse(JSON.stringify(d));
 // 펫은 Google 계정에 같이 저장 (펫 코드가 뒤에 있어서 window._petsOut / _petsIn으로 이어 줌)
 function localSync(){ return syncClone(pickSync({lines,logs,stockChecks,trash,plans,shotSets,shotNotes:_slRecentNotes,freeSamples,tlCollapsed,typeColors,pptCuts,pets:window._petsOut?window._petsOut():{}, prefs:_prefsOut()})); }
 // 이니셜처럼 기기마다 다시 입력하기 귀찮은 설정은 계정에 같이 저장
-function _prefsOut(){ const o={}; try{ const v=localStorage.getItem('orgInitials'); if(v) o.ini=v; }catch(e){} return o; }
+function _prefsOut(){ const o={}; try{ const v=localStorage.getItem('orgInitials'); if(v) o.ini=v; const ml=localStorage.getItem('orgMyLine'); if(ml) o.myLine=ml; }catch(e){} return o; }
 const syncHas = d => d.lines.length>0 || d.logs.length>0 || d.freeSamples.length>0;
 
 function loadCloudBase(uid){
@@ -2054,6 +2054,7 @@ function applySyncData(d){
     localStorage.setItem('orgSlRecentNotes', JSON.stringify(_slRecentNotes)); slRenderRecentNotes();
     if(window._petsIn) window._petsIn(d.pets);
     if(d.prefs&&d.prefs.ini) try{ localStorage.setItem('orgInitials',d.prefs.ini); }catch(e){}
+    if(d.prefs&&d.prefs.myLine) try{ localStorage.setItem('orgMyLine',d.prefs.myLine); }catch(e){}
     updateUI();   // 안에서 saveData()가 lines/logs/stockChecks를 저장한다
   } finally { cloudApplying=false; }
 }
@@ -7115,6 +7116,9 @@ function buildWeekday(){
 // Explorer(iframe)가 앱 데이터를 읽고 쓰는 창구
 window.cclLn2={
   getInitials(){ try{ return localStorage.getItem('orgInitials')||''; }catch(e){ return ''; } },
+  // 내 라인(LN2 시트 이름): Stock 넣기에서 처음 열릴 시트, 계정에 같이 저장
+  getMyLine(){ try{ return localStorage.getItem('orgMyLine')||''; }catch(e){ return ''; } },
+  setMyLine(v){ try{ if(v) localStorage.setItem('orgMyLine',v); else localStorage.removeItem('orgMyLine'); }catch(e){} if(typeof cloudPushDebounced==='function') cloudPushDebounced(); },
   setInitials(v){ try{ localStorage.setItem('orgInitials', String(v||'').trim().toUpperCase().slice(0,4)); }catch(e){} if(typeof cloudPushDebounced==='function') cloudPushDebounced(); },
   // 넣을 바이알 = 오늘 작업 위에 뜨는 Stock 후처리 목록(stockChecks) 그대로. LN2 이동 체크 안 된 것이 「넣을 것」
   getStocks(){
@@ -8433,6 +8437,7 @@ if(curTab==='ana'||curTab==='diary') setTab(curTab,true);
   .vial:hover{ transform:translateY(-3px) rotate(-4deg); }
   .vial.picked{ outline:2px solid #6366f1; outline-offset:1px; transform:translateY(-3px); }
   .vial.used{ opacity:.25; cursor:default; transform:none; }
+  .st-my{ font-size:12px; padding:6px 10px; margin:0 0 8px 6px; } .st-my.on{ color:#b45309; }
   .st-pick select{ font:inherit; font-size:13px; padding:7px 10px; border-radius:9px; border:1px solid #e3e6ea; margin-bottom:8px; }
   .st-boxes{ display:flex; flex-wrap:wrap; gap:5px; margin-bottom:12px; }
   .st-bx{ border:1px solid #e3e6ea; background:#fff; border-radius:9px; padding:5px 9px; font-family:inherit; font-size:12px; font-weight:700; cursor:pointer; max-width:220px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -9879,7 +9884,9 @@ function renderStockPanel(){
   }).join('') : `<div class="empty small">앱에 Stock 기록(vial 수 포함)이 없어요. 아래에서 직접 추가할 수 있어요.</div>`;
 
   const sheets=[...new Set(STATE.allBoxes.map(b=>b.sheet))];
-  if(!ST.sel.sheet){ const mine=sheets.find(n=>ini && new RegExp('\\b'+ini+'\\s*$').test(n)); ST.sel.sheet=mine||sheets[0]; }
+  let myLine=''; try{ myLine=parent.cclLn2.getMyLine(); }catch(err){}
+  if(!sheets.includes(myLine)) myLine='';
+  if(!ST.sel.sheet){ const mine=sheets.find(n=>ini && new RegExp('\\b'+ini+'\\s*$').test(n)); ST.sel.sheet=myLine||mine||sheets[0]; }
   const boxes=STATE.allBoxes.filter(b=>b.sheet===ST.sel.sheet);
   if(!boxes.some(b=>b.box_code===ST.sel.code)) ST.sel.code=(boxes[0]||{}).box_code||'';
   const b=stBox();
@@ -9919,7 +9926,8 @@ function renderStockPanel(){
         <button class="btn" id="stAddCustom" type="button" style="width:100%;margin-top:8px;">+ 앱에 없는 바이알 직접 추가</button>
       </aside>
       <main class="st-main">
-        <div class="st-pick"><select id="stSheet">${sheets.map(n=>`<option ${n===ST.sel.sheet?'selected':''}>${escHtml(n)}</option>`).join('')}</select>
+        <div class="st-pick"><select id="stSheet">${(myLine?[myLine]:[]).concat(sheets.filter(n=>n!==myLine)).map(n=>`<option value="${escHtml(n)}" ${n===ST.sel.sheet?'selected':''}>${n===myLine?'★ ':''}${escHtml(n)}</option>`).join('')}</select>
+          <button type="button" class="btn st-my${ST.sel.sheet===myLine?' on':''}" id="stMy">${ST.sel.sheet===myLine?'★ 내 라인':'☆ 내 라인으로'}</button>
           <div class="st-boxes">${boxes.map(x=>`<button type="button" class="st-bx${x.box_code===ST.sel.code?' on':''}" data-code="${escHtml(x.box_code)}" title="${escHtml(x.title)}">${escHtml(x.box_code)} <small>${escHtml(x.title)}</small> <em>${x.well_count}${(x.ncols||9)*x.rowLabels.length?'/'+(x.ncols||9)*x.rowLabels.length:''}</em></button>`).join('')}</div></div>
         ${b?`<div class="st-boxhd"><b>${escHtml(boxLabel(b.box_code))}</b> · ${escHtml(b.title)} <small>빈 칸에 바이알을 놓으세요 · 새로 넣은 칸을 누르면 빠져요</small></div>${grid}`:''}
         <h4 class="ci-title">Cell information에 추가될 줄</h4>${formHTML}
@@ -9929,6 +9937,7 @@ function renderStockPanel(){
   el.querySelector('#stIni').onchange=e=>{ try{ parent.cclLn2.setInitials(e.target.value); }catch(err){} ST.groupsDirty=true; Object.values(ST.forms).forEach(f=>{ if(!f._whoEdited) f.who=stInitials(); }); renderStockPanel(); };
   el.querySelectorAll('.src-name').forEach(i=>i.onchange=()=>{ ST.names[i.dataset.log]=i.value.trim(); Object.keys(ST.forms).filter(k=>k.startsWith(i.dataset.log+'@')).forEach(k=>{ delete ST.forms[k]._starEdited; }); ST.placed.forEach(p=>{ if(p.src.logId===i.dataset.log) p.src=stSources().find(x=>x.logId===p.src.logId)||p.src; }); renderStockPanel(); });
   el.querySelector('#stShowDone').onchange=e=>{ ST.showDone=e.target.checked; renderStockPanel(); };
+  el.querySelector('#stMy').onclick=()=>{ try{ parent.cclLn2.setMyLine(ST.sel.sheet===myLine?'':ST.sel.sheet); }catch(err){} renderStockPanel(); };
   el.querySelector('#stSheet').onchange=e=>{ ST.sel.sheet=e.target.value; ST.sel.code=''; renderStockPanel(); };
   el.querySelectorAll('.st-bx').forEach(x=>x.onclick=()=>{ ST.sel.code=x.dataset.code; renderStockPanel(); });
   el.querySelectorAll('.vial[draggable=true]').forEach(v=>{
