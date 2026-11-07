@@ -1953,7 +1953,7 @@ const syncClone = d => JSON.parse(JSON.stringify(d));
 // 펫은 Google 계정에 같이 저장 (펫 코드가 뒤에 있어서 window._petsOut / _petsIn으로 이어 줌)
 function localSync(){ return syncClone(pickSync({lines,logs,stockChecks,trash,plans,shotSets,shotNotes:_slRecentNotes,freeSamples,tlCollapsed,typeColors,pptCuts,pets:window._petsOut?window._petsOut():{}, prefs:_prefsOut()})); }
 // 이니셜처럼 기기마다 다시 입력하기 귀찮은 설정은 계정에 같이 저장
-function _prefsOut(){ const o={}; try{ const v=localStorage.getItem('orgInitials'); if(v) o.ini=v; const fz=localStorage.getItem('orgFontSize'); if(fz) o.size=fz; const ml=localStorage.getItem('orgMyLine'); if(ml) o.myLine=ml; }catch(e){} return o; }
+function _prefsOut(){ const o={}; try{ const v=localStorage.getItem('orgInitials'); if(v) o.ini=v; const fz=localStorage.getItem('orgFontSize'); if(fz) o.size=fz; const ft=localStorage.getItem('orgFont'); if(ft&&ft!=='pretendard') o.font=ft; const ml=localStorage.getItem('orgMyLine'); if(ml) o.myLine=ml; }catch(e){} return o; }
 const syncHas = d => d.lines.length>0 || d.logs.length>0 || d.freeSamples.length>0;
 
 function loadCloudBase(uid){
@@ -2061,6 +2061,7 @@ function applySyncData(d){
     if(window._petsIn) window._petsIn(d.pets);
     if(d.prefs&&d.prefs.ini) try{ localStorage.setItem('orgInitials',d.prefs.ini); }catch(e){}
     if(d.prefs&&d.prefs.size) try{ setFontSize(d.prefs.size,true); }catch(e){}
+    if(d.prefs&&d.prefs.font&&d.prefs.font!==document.documentElement.dataset.font) try{ setFont(d.prefs.font); }catch(e){}
     if(d.prefs&&d.prefs.myLine) try{ localStorage.setItem('orgMyLine',d.prefs.myLine); }catch(e){}
     updateUI();   // 안에서 saveData()가 lines/logs/stockChecks를 저장한다
   } finally { cloudApplying=false; }
@@ -4823,6 +4824,7 @@ const FONTS={
   // 또박또박 손글씨 (알아보기 쉬운 것)
   kkakdugi:{group:'또박 손글씨', label:'깍두기 제도체', family:"'KkakdugiDrafting'", face:['https://cdn.jsdelivr.net/gh/Project-Noonnu/2610102356@kkakdugidrafting-extralight/kkakdugidrafting-extralight/KkakdugiDrafting-Regular.woff2','https://raw.githubusercontent.com/Project-Noonnu/2610102356/kkakdugidrafting-extralight/kkakdugidrafting-extralight/KkakdugiDrafting-Regular.woff2']},
   barunpen:{group:'또박 손글씨', label:'나눔바른펜', family:"'NanumBarunpen'", face:NN('noonfonts_two','NanumBarunpen.woff')},
+  simplehae:{group:'또박 손글씨', label:'카페24 심플해', family:"'Cafe24Simplehae'", face:NN('noonfonts_twelve','Cafe24Simplehae.woff'), scale:1.02},
   uiyeun:{group:'또박 손글씨', label:'온글잎 의연', family:"'Uiyeun'", face:NN('noonfonts_2105','Uiyeun.woff'), scale:1.12},
   parkdahyun:{group:'또박 손글씨', label:'온글잎 박다현체', family:"'Ownglyph_ParkDaHyun'", face:NN('2411-3','Ownglyph_ParkDaHyun.woff2'), scale:1.15},
   corncorn:{group:'또박 손글씨', label:'온글잎 콘콘', family:"'Ownglyph_corncorn'", face:NN('2412-1','Ownglyph_corncorn-Rg.woff2'), scale:1.15},
@@ -4832,6 +4834,7 @@ const FONTS={
   ryuttung:{group:'귀여운 손글씨', label:'온글잎 류뚱체', family:"'Ownglyph_ryuttung'", face:NN('2405-2','Ownglyph_ryuttung-Rg.woff2'), scale:1.15},
   eunbyul:{group:'귀여운 손글씨', label:'온글잎 은별', family:"'Ownglyph_eunbyul21'", face:NN('2405-2','Ownglyph_eunbyul21-Rg.woff2'), scale:1.15},
   dailyokja:{group:'귀여운 손글씨', label:'온글잎 데일리옥자', family:"'Ownglyph_Dailyokja'", face:NN('2403','Ownglyph_Dailyokja-Rg.woff2'), scale:1.15},
+  mapoflower:{group:'귀여운 손글씨', label:'마포 꽃섬', family:"'MapoFlowerIsland'", face:NN('noonfonts_2001','MapoFlowerIslandA.woff')},
   sehyun:{group:'귀여운 손글씨', label:'어비 세현체', family:"'UhBeeSe_hyun'", face:NN('noonfonts_five','UhBeeSe_hyun.woff'), scale:1.12},
 };
 const _fontFail={};
@@ -4874,7 +4877,8 @@ function setFont(k){
   document.documentElement.style.setProperty('--fscale',f.scale||1);
   document.documentElement.dataset.font=k;
   document.documentElement.dataset.fgroup=/손글씨/.test(f.group||'')?'hand':'';
-  try{ localStorage.setItem('orgFont',k); }catch(e){}
+  let was=''; try{ was=localStorage.getItem('orgFont')||''; localStorage.setItem('orgFont',k); }catch(e){}
+  if(was&&was!==k&&typeof cloudPushDebounced==='function') cloudPushDebounced();   // 고른 글씨체는 계정에 같이 저장(prefs.font)
   document.querySelectorAll('.font-card').forEach(c=>c.classList.toggle('on',c.dataset.font===k));
 }
 (function(){
