@@ -8021,14 +8021,15 @@ setTimeout(async()=>{ if(!mailUser()||!fbDb) return; try{ const q=await fbDb.col
 //  업데이트 안내: 올린 날부터 5일 동안 열 때마다 보여줌 (「다시 보지 않기」 체크하면 이 버전은 끝)
 //  새 기능을 올릴 때 NEWS의 id · date · items만 바꾸면 됨
 // ══════════════════════════════════════════
-const NEWS={id:'2026-11-06', date:'2026-11-06', days:5, items:[
-  ['today','작업 분석 맨 위에 <b>이번 주 실험 정리</b>: 요일마다 Split · MC · Stock 블럭이 쌓여요'],
-  ['dish','사이드바 왼쪽 아래 <b>Incubator</b>: plate 종류별로 몇 장 쌓였는지 한눈에'],
-  ['book','<b>다이어리</b> 탭: 먼슬리 · 위클리로 내 배양 기록 보기'],
-  ['tank','도구 › <b>LN2 탱크</b>: 사람 · 종류 · 날짜 조건 검색, 박스 위치, Pair 찾기'],
-  ['download','LN2 탱크 › <b>Stock 넣기</b>: 바이알을 박스 칸에 끌어 넣으면 엑셀 ver+1로 내려받기'],
-  ['paw','<b>펫</b>: 하루에 한 번 뽑기, 도감 모으기, 여러 마리가 화면 가장자리를 산책해요. 누르면 멈추기 · 밥 주기 · 쓰다듬기'],
-  ['sliders','<b>설정</b>: 테마 · 손글씨 글씨체 · 펫 · <b>우체통</b>을 한곳에서. 그림 배경은 매주 바뀌어요 (무엇이 나올지는 비밀)'],
+const NEWS={id:'2026-11-07', date:'2026-11-07', days:5, items:[
+  ['today','<b>이번 주</b> · 작업 분석 맨 위에 요일별 기록'],
+  ['book','<b>다이어리</b> · 먼슬리 · 위클리'],
+  ['branch','<b>Tree</b> · passage별로 나뉜 모양'],
+  ['dish','<b>Incubator</b> · 키우는 plate 한눈에'],
+  ['tank','<b>LN2 탱크</b> · 검색, Stock 넣고 엑셀 내려받기'],
+  ['image','<b>PPT</b> · 조건별 · 날짜별 배치'],
+  ['paw','<b>펫</b> · 하루 한 번 뽑기'],
+  ['sliders','<b>설정</b> · 왼쪽 위 아이콘 (테마 · 글씨체 · 우체통)'],
 ]};
 function newsShow(force){
   let hidden=false; try{ hidden=localStorage.getItem('orgNewsHide')===NEWS.id; }catch(e){}
