@@ -7998,7 +7998,7 @@ function petPat(a){
   o.hap=Math.min(100,(o.hap||60)+4); o.pats=(o.pats||0)+1; petSt.patsAll=(petSt.patsAll||0)+1; savePets(); if(petSt.patsAll%10===0) petGiftCheck();
   a.mode='happy'; a.until=performance.now()+1400; a.jump=2;
   const h=document.createElement('i'); h.className='pet-heart'; h.innerHTML='<svg class="ic"><use href="#i-heart"/></svg>'; h.style.left=(a.x+16+Math.random()*12)+'px'; h.style.top=(a.y<40?a.y+40:a.y-10)+'px'; petLayer.appendChild(h); setTimeout(()=>h.remove(),1100);
-  if(Math.random()<.3) petSay(a,petTalk('pat'));
+  if(Math.random()<.2) petSay(a,petTalk('pat'));
 }
 function petDrop(a,type){
   if(petLayer.querySelectorAll('.pet-item:not(.poop)').length>=6) return;
@@ -8039,6 +8039,9 @@ const PET_TALK={
   lunch:['점심 먹었어?','밥 먹고 하자','배고픈 시간이야'],
   night:['늦게까지 고생해','이제 집에 가자','밤에도 실험해?','오늘 수고했어'],
 };
+// 혼잣말은 가끔만: 한 마리당 90초에 한 번까지, 화면 전체로는 25초에 한 번까지 (누르거나 밥 줄 때 대답은 그대로)
+let _petTalkAll=0;
+function petMutter(a,t,ms){ const n=Date.now(); if(n-(a.talkTs||0)<90000||n-_petTalkAll<25000) return; a.talkTs=n; _petTalkAll=n; petSay(a,t,ms); }
 function petTalk(k){ let arr=PET_TALK[k]||PET_TALK.happy;
   if(k==='happy'){ const h=new Date().getHours(); const t=h<11?'morning':h>=11&&h<14?'lunch':h>=21||h<5?'night':''; if(t&&Math.random()<.35) arr=PET_TALK[t]; }
   return arr[Math.floor(Math.random()*arr.length)]; }
@@ -8049,9 +8052,9 @@ function petChoose(a,now){
   if(onFloor && Date.now()-(o.lastFlower||0)>3600e3 && Math.random()<.35){   // 꽃은 1시간에 1번쯤
     a.mode='idle'; a.until=now+2600; o.lastFlower=Date.now(); savePets();
     setTimeout(()=>{ if(!petSt.hidden){ petDrop(a,'flower'); petSay(a,petTalk('flower')); } },600); return; }
-  if(r<.68){ a.mode='idle'; a.until=now+2500+Math.random()*3000; if(hungry&&Math.random()<.5) petSay(a,petTalk('hungry')); }
-  else if(r<.8){ a.mode='sleep'; a.until=now+6000+Math.random()*5000; petSay(a,petTalk('sleep'),4000); }
-  else { a.mode='happy'; a.until=now+1500; a.jump=3; if(Math.random()<.5) petSay(a,petTalk('happy')); }
+  if(r<.68){ a.mode='idle'; a.until=now+2500+Math.random()*3000; if(hungry&&Math.random()<.3) petMutter(a,petTalk('hungry')); }
+  else if(r<.8){ a.mode='sleep'; a.until=now+6000+Math.random()*5000; if(Math.random()<.4) petMutter(a,petTalk('sleep'),4000); }
+  else { a.mode='happy'; a.until=now+1500; a.jump=3; if(Math.random()<.3) petMutter(a,petTalk('happy')); }
 }
 function petLoop(now){
   requestAnimationFrame(petLoop);
