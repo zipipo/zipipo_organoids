@@ -1018,6 +1018,10 @@ html:is([data-fgroup="hand"],[data-fgroup="cute"]) *{font-synthesis:none;}
 .pet-kinds{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
 .pet-kinds canvas{image-rendering:pixelated;background:var(--psoft);border-radius:10px;}
 body.incu-off #incubator{display:none;}
+/* 인큐베이터 작은 창 (?incubator) */
+body.incu-only{padding:0!important;overflow:hidden;}
+body.incu-only>*:not(#incubator):not(.toast-wrap){display:none!important;}
+body.incu-only #incubator{display:block!important;margin:0;padding:10px;min-height:100vh;box-sizing:border-box;}
 @media (max-width:640px){
   #setModal{padding:10px;}
   .set-box{grid-template-columns:1fr;grid-template-rows:auto 1fr;height:calc(100dvh - 20px);border-radius:14px;}
@@ -1865,6 +1869,8 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
 //  - 브라우저 저장소 대신 메모리만 쓰므로 실제 데이터·백업 폴더·클라우드에는 절대 손대지 않는다
 // ══════════════════════════════════════════
 const DEMO = new URLSearchParams(location.search).has('demo');
+// ?incubator : 인큐베이터만 보이는 작은 창 (바탕화면 구석에 위젯처럼 띄워 두기)
+const INCU_ONLY = new URLSearchParams(location.search).has('incubator');
 (function(){
   let ok=true;
   try{ const k='__t'; window.localStorage.setItem(k,'1'); window.localStorage.removeItem(k); }catch(e){ ok=false; }
@@ -8148,6 +8154,7 @@ function renderSettings(tab){
       return `<button class="font-card${k===cur?' on':''}" data-font="${k}" ${_fontFail[k]?'hidden':''} onclick="setFont('${k}')"><b style="font-family:${esc(f.family)},'Pretendard';font-size:${(15*(f.scale||1)).toFixed(1)}px;">${esc(f.label)}</b><span style="font-family:${esc(f.family)},'Pretendard';font-size:${(12.5*(f.scale||1)).toFixed(1)}px;">오늘도 배양 파이팅! HCC26 P3</span></button>`; }).join('')}</div></div>`).join('');
   } else if(_setTab==='home'){
     h=`<h3>홈 화면</h3><div class="set-sec"><label class="set-row"><span><b>Incubator 보이기</b></span><input type="checkbox" class="set-tg" ${incuOn()?'checked':''} onchange="setIncu(this.checked)"></label>
+      <label class="set-row" onclick="event.preventDefault();openIncuWindow()"><span><b>인큐베이터 작은 창 열기</b><small>바탕화면 구석에 띄워 두기</small></span><svg class="ic"><use href="#i-right"/></svg></label>
       <label class="set-row"><span><b>세포 보이기</b></span><input type="checkbox" class="set-tg" ${!petSt.hidden?'checked':''} onchange="petHide()"></label></div>`;
   } else if(_setTab==='pet'){
     h=`<h3>세포</h3>`+petPanelHTML();
@@ -8237,7 +8244,10 @@ function closeNews(){
   if(document.getElementById('newsHide').checked){ try{ localStorage.setItem('orgNewsHide',NEWS.id); }catch(e){} }
   document.getElementById('newsModal').classList.remove('open');
 }
-if(!DEMO) setTimeout(()=>newsShow(),600);
+if(!DEMO && !INCU_ONLY) setTimeout(()=>newsShow(),600);
+if(INCU_ONLY){ document.body.classList.add('incu-only'); document.title='Incubator'; const el=document.getElementById('incubator'); if(el) document.body.appendChild(el);
+  setInterval(()=>{ try{ renderIncubator(); }catch(e){} },60000); }
+function openIncuWindow(){ window.open(location.pathname+'?incubator','ccl_incubator','width=320,height=300'); }
 
 // 스크립트를 끝까지 읽은 뒤에야 분석 · 다이어리를 그릴 수 있다 (setTab 참고)
 window._lateReady=true;
