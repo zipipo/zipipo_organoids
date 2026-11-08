@@ -8097,7 +8097,7 @@ function petPanelHTML(){
   const dex=`<div class="set-sec"><h4 class="dex-hd">도감 <span class="mail-n">${petDexCount()} / ${PET_KINDS.filter(k=>!k.gift).length}</span>${own.length?`<span class="dex-all"><button class="link-btn" onclick="petWalkAll(true)">모두 산책</button><button class="link-btn" onclick="petWalkAll(false)">모두 쉬기</button></span>`:''}</h4><div class="pet-dex">${PET_KINDS.filter(k=>!k.gift).map(k=>{ const o=petSt.owned[k.id];
       return o ? `<button class="dex${_petSel===k.id?' on':''}${petSt.active.includes(k.id)?' walk':''}" onclick="_petSel='${k.id}';renderSettings('pet')" title="${esc(petName(k.id))}"><canvas data-k="${k.id}" width="48" height="48"></canvas><span>${esc(petName(k.id))}</span></button>`
                : `<div class="dex unk"><i>?</i><span>&nbsp;</span></div>`; }).join('')}</div>
-      <h4 class="dex-hd" style="margin-top:14px;">도장깨기</h4><div class="pet-dex">${PET_KINDS.filter(k=>k.gift).map(k=>{ const o=petSt.owned[k.id];
+      <h4 class="dex-hd" style="margin-top:14px;">도장깨기</h4><div class="pet-dex">${PET_KINDS.filter(k=>k.gift&&(k.gift!=='lab'||plazaOn())).map(k=>{ const o=petSt.owned[k.id];
         const G=petGiftRule(k.gift); let hv=0; try{ hv=G.have(); }catch(e){} const hint=`${G.lab} ${Math.min(G.need,hv)}/${G.need}${G.unit||''}`;
         return o ? `<button class="dex${_petSel===k.id?' on':''}${petSt.active.includes(k.id)?' walk':''}" onclick="_petSel='${k.id}';renderSettings('pet')"><canvas data-k="${k.id}" width="48" height="48"></canvas><span>${esc(petName(k.id))}</span></button>`
                  : `<div class="dex unk"><i>?</i><span>${hint}</span></div>`; }).join('')}</div>
@@ -8228,7 +8228,7 @@ petMount();
 //  설정 창 (Claude 설정처럼 왼쪽 탭): 모양 · 글씨체 · 홈 화면 · 펫 · LN2
 // ══════════════════════════════════════════
 let _setTab='look';
-function openSettings(tab){ document.getElementById('setModal').classList.add('open'); renderSettings(tab||_setTab); }
+function openSettings(tab){ const pb=document.querySelector('.set-nav button[data-st="plaza"]'); if(pb) pb.style.display=plazaOn()?'':'none'; if(tab==='plaza'&&!plazaOn()) tab='look'; document.getElementById('setModal').classList.add('open'); renderSettings(tab||_setTab); }
 function closeSettings(){ document.getElementById('setModal').classList.remove('open'); }
 function incuOn(){ try{ return localStorage.getItem('orgIncuOff')!=='1'; }catch(e){ return true; } }
 function setIncu(on){ try{ localStorage.setItem('orgIncuOff', on?'0':'1'); }catch(e){} document.body.classList.toggle('incu-off',!on); }
@@ -8291,6 +8291,9 @@ setIncu(incuOn());
 //  presents/{id}  = 보낸 선물 (꽃 · 세포). 받는 사람이 열면 claimed
 //  Firestore 규칙은 docs/HANDOVER.md 「광장 규칙」
 // ══════════════════════════════════════════
+// 광장은 2026-11-15(일주일 뒤)부터 열림. 그 전에는 설정 탭 · 프로필 올리기 · 선물 열기 모두 숨김
+const PLAZA_OPEN='2026-11-15';
+const plazaOn=()=>ymdLocal(new Date())>=PLAZA_OPEN;
 const LAB_GOAL=300;   // 이번 주 랩 전체 MC 목표
 let _plaza=null, _plazaErr='', _plazaOff=false;
 try{ _plazaOff=localStorage.getItem('orgPlazaOff')==='1'; }catch(e){}
@@ -8304,7 +8307,7 @@ function plazaMe(){
 }
 let _plazaPubT=0;
 function plazaPublish(force){
-  const u=mailUser(); if(!u||!fbDb||_plazaOff) return;
+  const u=mailUser(); if(!u||!fbDb||_plazaOff||!plazaOn()) return;
   if(!force&&Date.now()-_plazaPubT<60000) return; _plazaPubT=Date.now();
   fbDb.collection('players').doc(u.uid).set(Object.assign({uid:u.uid},plazaMe())).catch(()=>{});
 }
@@ -8368,7 +8371,7 @@ function plazaPickCell(to){
 }
 // 받은 선물 열기: 로그인 뒤 한 번, 그 뒤 5분마다
 async function plazaInbox(){
-  const u=mailUser(); if(!u||!fbDb) return;
+  const u=mailUser(); if(!u||!fbDb||!plazaOn()) return;
   let q; try{ q=await fbDb.collection('presents').where('to','==',u.uid).where('claimed','==',false).limit(20).get(); }catch(e){ return; }
   for(const d of q.docs){ const p=d.data();
     try{ await d.ref.update({claimed:true, claimedAt:Date.now()}); }catch(e){ continue; }
