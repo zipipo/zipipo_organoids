@@ -1019,6 +1019,7 @@ body[data-theme="dark"] .pet-nm{background:rgba(30,30,35,.7);}
 .plz-goal small{color:var(--sub);font-size:.72rem;} .plz-bar{height:10px;border-radius:999px;background:var(--hov);overflow:hidden;margin:4px 0;} .plz-bar i{display:block;height:100%;background:var(--pri);border-radius:999px;}
 .plz-list{display:flex;flex-direction:column;gap:6px;} .plz-card{display:flex;align-items:center;gap:10px;border:1px solid var(--bd);border-radius:12px;padding:6px 10px;background:var(--sur);}
 .plz-card canvas{width:40px;height:40px;image-rendering:pixelated;flex:none;} .plz-info{flex:1;min-width:0;} .plz-info b{display:block;font-size:.84rem;} .plz-info small{color:var(--sub);font-size:.7rem;}
+.plz-msg{display:table;margin-top:3px;font-size:.72rem;color:var(--tx);background:var(--psoft);border-radius:8px;padding:1px 8px;}
 .plz-act{display:flex;gap:4px;} .plz-act .btn{height:28px;padding:0 8px;font-size:.72rem;} .plz-act .ic{width:13px;height:13px;margin-right:3px;}
 .pstars{display:inline-flex;gap:1px;vertical-align:-3px;margin-right:4px;} .pstar{width:15px;height:15px;fill:#EFE7D2;} .pstar.on{fill:#FFCF4A;filter:drop-shadow(0 1px 0 #E9A928);}
 #pgSub .pstars{display:flex;justify-content:center;margin:2px auto 4px;} #pgSub .pstar{width:22px;height:22px;}
@@ -8299,7 +8300,7 @@ function plazaMe(){
   const wk=plazaWeek(), ls=logs.filter(l=>(l.date||'')>=wk);
   const gifts=PET_KINDS.filter(k=>k.gift&&petSt.owned[k.id]).map(k=>k.id);
   return { nick:plazaNick().slice(0,12), rep:(petSt.active[0]||Object.keys(petSt.owned)[0]||''), walk:petSt.active.slice(0,5),
-    dex:petDexCount(), gifts, wk, mc:ls.filter(l=>isMediaChange(l.action)).length, split:ls.filter(l=>/split/i.test(l.action||'')).length, ts:Date.now() };
+    dex:petDexCount(), gifts, flowers:petSt.flowersAll||0, msg:(()=>{ try{ return (localStorage.getItem('orgPlazaMsg')||'').slice(0,24); }catch(e){ return ''; } })(), wk, mc:ls.filter(l=>isMediaChange(l.action)).length, split:ls.filter(l=>/split/i.test(l.action||'')).length, ts:Date.now() };
 }
 let _plazaPubT=0;
 function plazaPublish(force){
@@ -8329,7 +8330,7 @@ function plazaRender(){
   box.innerHTML=`<div class="set-sec plz-goal"><h4>랩 협동 목표 · 이번 주 MC</h4><div class="plz-bar"><i style="width:${pct}%"></i></div><small>${mcAll} / ${LAB_GOAL} · ${_plaza.filter(p=>p.wk===wk).length}명이 함께${mcAll>=LAB_GOAL?' · 달성!':''}</small></div>
     <div class="set-sec"><h4>함께 쓰는 사람 <span class="mail-n">${others.length}</span></h4>${others.length?`<div class="plz-list">${others.map(p=>`<div class="plz-card">
       <canvas data-k="${esc(p.rep||'')}" width="48" height="48"></canvas>
-      <div class="plz-info"><b>${esc(p.nick||'세포 친구')}</b><small>도감 ${p.dex||0}/${nDex} · 도장깨기 ${(p.gifts||[]).length}/${nGift}${p.wk===wk?` · 이번 주 MC ${p.mc||0}`:''}</small></div>
+      <div class="plz-info"><b>${esc(p.nick||'세포 친구')}</b><small>도감 ${p.dex||0}/${nDex} · 도장깨기 ${(p.gifts||[]).length}/${nGift} · 받은 꽃 ${p.flowers||0}</small>${p.msg?`<span class="plz-msg">${esc(p.msg)}</span>`:''}</div>
       <div class="plz-act"><button class="btn btn-out" onclick="plazaSend('${p.uid}','flower')">${ic('flower')}꽃</button><button class="btn btn-out" onclick="plazaPickCell('${p.uid}')">${ic('gift')}세포</button></div></div>`).join('')}</div>`
       :'<p class="set-p">아직 아무도 없어요.</p>'}</div>`;
   box.querySelectorAll('canvas[data-k]').forEach(c=>{ if(petKind(c.dataset.k)) drawPet(c,c.dataset.k,{frame:0,mode:'idle'}); });
@@ -8338,7 +8339,8 @@ function plazaHTML(){
   const u=mailUser();
   if(!u) return `<h3>광장</h3><div class="set-sec"><p class="set-p">Google 로그인하면 이 사이트를 쓰는 사람들과 세포를 구경하고 선물할 수 있어요.</p><button class="btn btn-pri" onclick="cloudToggle()">Google 로그인</button></div>`;
   return `<h3>광장</h3><div class="set-sec"><label class="set-row"><span><b>내 별명</b></span><input value="${esc(plazaNick())}" maxlength="12" style="width:130px;" onchange="plazaSetNick(this.value)"></label>
-    <label class="set-row"><span><b>광장에 나 보이기</b><small>별명 · 세포 · 도감 · 도장깨기 · 이번 주 MC 수만 보여요</small></span><input type="checkbox" class="set-tg" ${_plazaOff?'':'checked'} onchange="plazaSetOff(!this.checked)"></label></div>
+    <label class="set-row"><span><b>한 줄 상태</b></span><input value="${esc((()=>{ try{ return localStorage.getItem('orgPlazaMsg')||''; }catch(e){ return ''; } })())}" maxlength="24" placeholder="오늘은 split 데이" style="width:180px;" onchange="try{localStorage.setItem('orgPlazaMsg',this.value.trim())}catch(e){} plazaPublish(true)"></label>
+    <label class="set-row"><span><b>광장에 나 보이기</b><small>별명 · 한 줄 상태 · 세포 · 도감 · 도장깨기 · 받은 꽃만 보여요</small></span><input type="checkbox" class="set-tg" ${_plazaOff?'':'checked'} onchange="plazaSetOff(!this.checked)"></label></div>
     ${_plazaOff?'':'<div id="plazaList"><p class="set-p">불러오는 중…</p></div>'}`;
 }
 // 보내기: 꽃은 하루 3번, 세포는 겹친(2마리 이상) 친구만 하루 1번. 보내면 내 쪽 마릿수가 하나 줄어요
