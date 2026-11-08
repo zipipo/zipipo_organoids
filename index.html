@@ -7889,7 +7889,7 @@ if(!petSt){
 function savePets(){ try{ localStorage.setItem('orgPets', JSON.stringify(petSt)); }catch(e){} if(typeof cloudPushDebounced==='function') cloudPushDebounced(); }
 // 계정 동기화: 위치 · 기분 · 응가 시각처럼 기기마다 다른 값은 빼고, 펫마다 키를 따로 둬서 합칠 때 덜 부딪히게
 const PET_SYNC_F=['n','name','born','fedTs','flowers','pats','poops','lastPoop'];
-window._petsOut=()=>{ const o={active:petSt.active.slice(), lastDraw:petSt.lastDraw||'', hidden:!!petSt.hidden, cleaned:petSt.cleaned||0, flowersAll:petSt.flowersAll||0, patsAll:petSt.patsAll||0, fedAll:petSt.fedAll||0};
+window._petsOut=()=>{ const o={active:petSt.active.slice(), lastDraw:petSt.lastDraw||'', hidden:!!petSt.hidden, giftStart:petSt.giftStart||'', cleaned:petSt.cleaned||0, flowersAll:petSt.flowersAll||0, patsAll:petSt.patsAll||0, fedAll:petSt.fedAll||0};
   Object.entries(petSt.owned).forEach(([id,v])=>{ const x={}; PET_SYNC_F.forEach(f=>{ if(v[f]!=null) x[f]=v[f]; }); o['o:'+id]=x; });
   return o; };
 window._petsIn=p=>{
@@ -7900,6 +7900,7 @@ window._petsIn=p=>{
   if(Array.isArray(p.active)) petSt.active=p.active.filter(id=>owned[id]);
   if(p.lastDraw!=null) petSt.lastDraw=p.lastDraw;
   if(p.hidden!=null) petSt.hidden=!!p.hidden;
+  if(p.giftStart&&p.giftStart!==petSt.giftStart){ if(!petSt.giftStart||p.giftStart>petSt.giftStart){ petSt.giftStart=p.giftStart; petSt.cleaned=p.cleaned||0; petSt.flowersAll=p.flowersAll||0; petSt.patsAll=p.patsAll||0; petSt.fedAll=p.fedAll||0; } }
   if(p.cleaned!=null) petSt.cleaned=Math.max(petSt.cleaned||0,p.cleaned);
   if(p.flowersAll!=null) petSt.flowersAll=Math.max(petSt.flowersAll||0,p.flowersAll);
   if(p.patsAll!=null) petSt.patsAll=Math.max(petSt.patsAll||0,p.patsAll);
@@ -7917,9 +7918,8 @@ let PETS=[], petLayer=null;   // 화면에 나와 있는 펫들
 function petMount(){
   if(document.getElementById('petLayer')) return;
   petLayer=document.createElement('div'); petLayer.id='petLayer'; document.body.appendChild(petLayer);
-  if(petSt.flowersAll==null) petSt.flowersAll=Object.values(petSt.owned).reduce((a,o)=>a+(o.flowers||0),0);   // 예전에 받은 꽃도 셈
   try{ document.fonts.add(new FontFace('DungGeunMo',NN('noonfonts_six','DungGeunMo.woff').map(u=>`url('${u}')`).join(','))); }catch(e){}   // 이름표 픽셀 글씨
-  if(petSt.patsAll==null) petSt.patsAll=Object.values(petSt.owned).reduce((a,o)=>a+(o.pats||0),0);
+  if(!petSt.giftStart) petGiftReset();
   petSync(); requestAnimationFrame(petLoop); setTimeout(petGiftCheck,1500);
 }
 // active 목록에 맞춰 화면의 펫을 만들거나 없앤다
@@ -8111,9 +8111,12 @@ function petMenu(){ openSettings('pet'); }
 function _petRefresh(){ if(typeof _setTab!=='undefined' && _setTab==='pet' && document.getElementById('setModal').classList.contains('open')) renderSettings('pet'); }
 // 선물: 조건을 채우면 그 친구가 도감에 들어오고 바로 산책. 작은 축하 창
 const petDexCount=()=>Object.keys(petSt.owned).filter(id=>{ const k=petKind(id); return k&&!k.gift; }).length;
-// 도장깨기: 조건마다 친구 하나. need = 목표, have() = 지금까지
-function _longestStreak(){ const ds=[...new Set(logs.map(l=>l.date).filter(Boolean))].sort(); let best=0,cur=0,prev=null;
+// 도장깨기: 조건마다 친구 하나. need = 목표, have() = 지금까지. 기록 · 작업은 「도장깨기 시작일」(petSt.giftStart) 이후 것만 셈
+const _gs=()=>petSt.giftStart||'0000-00-00', _gsTs=()=>new Date(_gs()+'T00:00:00').getTime()||0;
+function _longestStreak(){ const ds=[...new Set(logs.map(l=>l.date).filter(d=>d&&d>=_gs()))].sort(); let best=0,cur=0,prev=null;
   ds.forEach(d=>{ const t=new Date(d+'T00:00:00'); cur=(prev&&(t-prev)/864e5===1)?cur+1:1; best=Math.max(best,cur); prev=t; }); return best; }
+const _logsSince=()=>logs.filter(l=>(l.date||'')>=_gs());
+const _shotsSince=()=>shotSets.filter(x=>(x.createdTs||x.updatedTs||0)>=_gsTs()).reduce((a,x)=>a+((x.items||[]).length),0);
 const GIFT_RULES={
   poop:{need:100, have:()=>petSt.cleaned||0, lab:'응가', why:'응가 100개를 치웠어요'},
   flower:{need:30, have:()=>petSt.flowersAll||0, lab:'꽃', why:'꽃 30송이를 받았어요'},
@@ -8122,16 +8125,23 @@ const GIFT_RULES={
   streak3:{need:3, have:_longestStreak, lab:'연속 작업', unit:'일', why:'3일 연속 작업했어요'},
   streak7:{need:7, have:_longestStreak, lab:'연속 작업', unit:'일', why:'7일 연속 작업했어요'},
   streak30:{need:30, have:_longestStreak, lab:'연속 작업', unit:'일', why:'30일 연속 작업했어요'},
-  logs100:{need:100, have:()=>logs.length, lab:'기록', unit:'건', why:'기록 100건을 남겼어요'},
-  logs500:{need:500, have:()=>logs.length, lab:'기록', unit:'건', why:'기록 500건을 남겼어요'},
-  split50:{need:50, have:()=>logs.filter(l=>/split/i.test(l.action||'')).length, lab:'Split', unit:'번', why:'Split 50번 했어요'},
-  mc100:{need:100, have:()=>logs.filter(l=>isMediaChange(l.action)).length, lab:'MC', unit:'번', why:'Media Change 100번 했어요'},
-  vial100:{need:100, have:()=>logs.reduce((a,l)=>a+(parseInt(l.stocks)||0),0), lab:'Stock', unit:' vial', why:'Stock 100 vial을 만들었어요'},
-  ln2_10:{need:10, have:()=>stockChecks.filter(c=>c.ln2Done).length, lab:'LN2 넣기', unit:'번', why:'LN2에 10번 넣었어요'},
-  newline10:{need:10, have:()=>lines.length, lab:'라인', unit:'개', why:'라인을 10개 만들었어요'},
-  shot10:{need:10, have:()=>shotSets.reduce((a,x)=>a+((x.items||[]).length),0), lab:'현미경 사진', unit:'장', why:'현미경 사진 10장을 찍었어요'},
-  shot100:{need:100, have:()=>shotSets.reduce((a,x)=>a+((x.items||[]).length),0), lab:'현미경 사진', unit:'장', why:'현미경 사진 100장을 찍었어요'},
+  logs100:{need:100, have:()=>_logsSince().length, lab:'기록', unit:'건', why:'기록 100건을 남겼어요'},
+  logs500:{need:500, have:()=>_logsSince().length, lab:'기록', unit:'건', why:'기록 500건을 남겼어요'},
+  split50:{need:50, have:()=>_logsSince().filter(l=>/split/i.test(l.action||'')).length, lab:'Split', unit:'번', why:'Split 50번 했어요'},
+  mc100:{need:100, have:()=>_logsSince().filter(l=>isMediaChange(l.action)).length, lab:'MC', unit:'번', why:'Media Change 100번 했어요'},
+  vial100:{need:100, have:()=>_logsSince().reduce((a,l)=>a+(parseInt(l.stocks)||0),0), lab:'Stock', unit:' vial', why:'Stock 100 vial을 만들었어요'},
+  ln2_10:{need:10, have:()=>stockChecks.filter(c=>c.ln2Done&&(c.date||'')>=_gs()).length, lab:'LN2 넣기', unit:'번', why:'LN2에 10번 넣었어요'},
+  newline10:{need:10, have:()=>_logsSince().filter(l=>isSeed(l.action)).length, lab:'새 라인', unit:'개', why:'라인을 10개 만들었어요'},
+  shot10:{need:10, have:_shotsSince, lab:'현미경 사진', unit:'장', why:'현미경 사진 10장을 찍었어요'},
+  shot100:{need:100, have:_shotsSince, lab:'현미경 사진', unit:'장', why:'현미경 사진 100장을 찍었어요'},
 };
+// 2026-11-08: 예전 기록으로 선물이 한꺼번에 와서, 오늘부터 다시 세기 (도감 숫자 친구는 그대로 둠)
+function petGiftReset(){
+  petSt.giftStart=petTodayKey(); petSt.cleaned=0; petSt.flowersAll=0; petSt.patsAll=0; petSt.fedAll=0;
+  PET_KINDS.filter(k=>k.gift&&!/^dex/.test(k.gift)).forEach(k=>{ delete petSt.owned[k.id]; });
+  petSt.active=petSt.active.filter(id=>petSt.owned[id]);
+  savePets(); try{ petSync(); _petRefresh(); }catch(e){}
+}
 function petGiftRule(g){ if(GIFT_RULES[g]) return GIFT_RULES[g]; const n=+g.slice(3); return {need:n, have:petDexCount, lab:'도감', unit:'종', why:`도감 ${n}종을 모았어요`}; }
 function petGiftCheck(){
   const got=[];
