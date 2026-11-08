@@ -106,6 +106,24 @@
 - 그라데이션 없이 파스텔 단색 (그림 배경의 「오묘한 파스텔」만 예외: 번지는 빛 그림). 색은 테마 변수(--bg --sur --psoft --pri --bd)로.
 - 홈 화면은 복잡하지 않게: 꾸미기 · 설정은 설정 창 안으로.
 
+## 광장 Firestore 규칙 (설정 › 광장이 동작하려면 Firebase 콘솔 › Firestore › 규칙에 추가)
+
+```
+match /players/{uid} {
+  allow read: if request.auth != null;
+  allow write: if request.auth != null && request.auth.uid == uid;
+}
+match /presents/{id} {
+  allow create: if request.auth != null && request.resource.data.from == request.auth.uid;
+  allow read: if request.auth != null && (resource.data.to == request.auth.uid || resource.data.from == request.auth.uid);
+  allow update: if request.auth != null && resource.data.to == request.auth.uid
+    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['claimed','claimedAt']);
+}
+```
+- players: 별명 · 대표 세포 · 도감 수 · 도장깨기 · 이번 주 MC/Split 수만. 배양 기록 · 라인 이름 없음. 「광장에 나 보이기」 끄면 문서 삭제.
+- presents: 꽃(하루 3번) · 세포(겹친 것만, 하루 1번). 받는 쪽이 열면 claimed.
+- 랩 협동 목표: 이번 주(월요일부터) players의 mc 합이 300 넘으면 각자 「랩 마스코트」 도장깨기.
+
 ## 우체통 Firestore 규칙 (Firebase 콘솔 › Firestore › 규칙에 추가해야 동작)
 
 ```
