@@ -1013,6 +1013,9 @@ html:is([data-fgroup="hand"],[data-fgroup="cute"]) *{font-synthesis:none;}
 .set-tg:checked{background:var(--pri);} .set-tg:checked::after{transform:translateX(16px);}
 .set-tg:disabled{opacity:.4;cursor:not-allowed;}
 .dex-hd{display:flex;align-items:center;gap:4px;} .dex-all{margin-left:auto;display:flex;gap:10px;font-size:.72rem;}
+.pet-nm{position:absolute;transform:translate(-50%,-100%);font-family:'DungGeunMo',monospace;font-size:10px;line-height:1;color:var(--tx);background:rgba(255,255,255,.75);padding:1px 4px 2px;border-radius:4px;white-space:nowrap;pointer-events:none;opacity:.9;}
+.pet-nm.below{transform:translate(-50%,0);}
+body[data-theme="dark"] .pet-nm{background:rgba(30,30,35,.7);}
 .pstars{display:inline-flex;gap:1px;vertical-align:-3px;margin-right:4px;} .pstar{width:15px;height:15px;fill:#EFE7D2;} .pstar.on{fill:#FFCF4A;filter:drop-shadow(0 1px 0 #E9A928);}
 #pgSub .pstars{display:flex;justify-content:center;margin:2px auto 4px;} #pgSub .pstar{width:22px;height:22px;}
 .pet-kinds{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
@@ -3409,6 +3412,7 @@ function renderLineList(){
 }
 
 function updateUI(){
+  if(window._lateReady&&typeof petGiftCheck==='function') setTimeout(()=>{ try{ petGiftCheck(); }catch(e){} },800);   // 작업 보상 (도장깨기)
   rebuildColors();
   const sel=document.getElementById('lineSelect');
   const prev=sel.value;
@@ -4907,6 +4911,7 @@ const FONTS={
   maruburi:{group:'명조', label:'마루부리', family:"'MaruBuri'", face:NN('noonfonts_20-10','MaruBuri-Regular.woff')},
   ridibatang:{group:'명조', label:'리디바탕', family:"'RIDIBatang'", face:NN('noonfonts_twelve','RIDIBatang.woff')},
   // 또박또박 손글씨 (알아보기 쉬운 것)
+  watermelon:{group:'손글씨', label:'수박양', family:"'WatermelonYang'", face:NN('2408-4','RixXladywatermelonR.woff2'), scale:1.05},
   myoeun:{group:'손글씨', label:'그리운 묘은또박', family:"'BelovedMyoeunttobak'", face:NN('2601-1','Griun_Myoeunddobak-Rg.woff2'), scale:1.08},
   omyu:{group:'손글씨', label:'오뮤 다예쁨체', family:"'omyu_pretty'", face:NN('noonfonts_2304-01','omyu_pretty.woff2'), scale:1.08},
   uiyeun:{group:'손글씨', label:'온글잎 의연', family:"'Uiyeun'", face:NN('noonfonts_2105','Uiyeun.woff'), scale:1.12},
@@ -7717,6 +7722,20 @@ const PET_KINDS=[
   {id:'labnote',name:'랩노트',            shape:'labnote', c:'#FFE9A8',d:'#D6AE52',a:'#F4C26A',r:2},
   // 선물 친구 (뽑기에는 안 나옴): 응가 100개 치우기 · 꽃 30송이 받기 · 도감 10종마다
   {id:'poopking',name:'응가왕',  shape:'poopking',c:'#C9A27E',d:'#8E6A4C',a:'#FFD24D',r:0,gift:'poop'},
+  {id:'heartpal',name:'하트뿅',   shape:'heart',   c:'#FFB3C7',d:'#E07595',a:'#FFE1EA',r:0,gift:'pats200'},
+  {id:'onigiri', name:'주먹밥',   shape:'onigiri', c:'#FFFFFF',d:'#C9C2B5',a:'#3F4A3C',r:0,gift:'fed200'},
+  {id:'sprout',  name:'새싹',     shape:'sprout',  c:'#D8F0C2',d:'#8CC36E',a:'#7DC45B',r:0,gift:'streak3'},
+  {id:'rainbow', name:'무지개',   shape:'rainbow', c:'#FFFFFF',d:'#C3CDE0',a:'#F9B4C8',r:0,gift:'streak7'},
+  {id:'trophy',  name:'트로피',   shape:'trophy',  c:'#FFE07A',d:'#D3A43A',a:'#F3C54F',r:0,gift:'streak30'},
+  {id:'twinkle', name:'반짝별',   shape:'star5',   c:'#FFEB8A',d:'#E0B53E',a:'#FFF6C9',r:0,gift:'logs100'},
+  {id:'kingstar',name:'왕별',     shape:'star5k',  c:'#FFD86B',d:'#D49A2C',a:'#F7A3B8',r:0,gift:'logs500'},
+  {id:'twins',   name:'쌍둥이',   shape:'div',     c:'#C9F0E0',d:'#6CBFA0',a:'#FFFFFF',r:0,gift:'split50'},
+  {id:'droplet', name:'물방울',   shape:'drop',    c:'#BFE3F7',d:'#6FAFD0',a:'#E9F6FD',r:0,gift:'mc100'},
+  {id:'snowpal', name:'눈꽃',     shape:'snow',    c:'#E4F1FB',d:'#8DB3D3',a:'#B7D6EF',r:0,gift:'vial100'},
+  {id:'icecube', name:'얼음',     shape:'ice',     c:'#D6EEF8',d:'#86BCD6',a:'#F2FAFD',r:0,gift:'ln2_10'},
+  {id:'seedpal', name:'씨앗',     shape:'seed',    c:'#E8C79A',d:'#B48A57',a:'#8CC36E',r:0,gift:'newline10'},
+  {id:'loupe',   name:'돋보기',   shape:'loupe',   c:'#E6F2FB',d:'#8FB0CC',a:'#C49A6C',r:0,gift:'shot10'},
+  {id:'camera',  name:'카메라',   shape:'camera',  c:'#F3D2DA',d:'#C98B9B',a:'#7E8AA6',r:0,gift:'shot100'},
   {id:'flowerpal',name:'꽃송이',  shape:'flowerpal',c:'#FFE88A',d:'#D9A94A',a:'#F9B4C8',r:0,gift:'flower'},
   {id:'n10',name:'10',shape:'num10',c:'#BFE3F7',d:'#6FA6C9',a:'#FFFFFF',r:0,gift:'dex10'},
   {id:'n20',name:'20',shape:'num20',c:'#C9F0D5',d:'#6DB88A',a:'#FFFFFF',r:0,gift:'dex20'},
@@ -7776,6 +7795,20 @@ function petGrid(shape, frame){
     case 'flask':  rect(3,5,12,13,'b'); rect(9,2,13,4,'b'); rect(10,1,13,1,'a'); rect(4,11,11,13,'a'); break;
     case 'poopking': ell(8,13,6.6,2.4,'b'); ell(8,10.4,5.2,2.4,'b'); ell(8,8,3.8,2.2,'b'); ell(8.6,5.6,2.2,1.6,'b'); rect(4,1,12,3,'a'); set(4,0,'a'); set(8,0,'a'); set(12,0,'a'); break;
     case 'flowerpal': [[8,3.2],[13,6.6],[11.4,12.6],[4.6,12.6],[3,6.6]].forEach(([x,y])=>ell(x,y,3,3,'a')); ell(8,8.8,4.8,4.4,'b'); break;
+    case 'heart':  ell(5.4,6.6,3.8,3.6,'b'); ell(10.6,6.6,3.8,3.6,'b'); for(let y=7;y<=14;y++){ const hw=7.2-(y-7)*1.0; if(hw>0) rect(Math.round(8-hw),y,Math.round(7+hw),y,'b'); } ell(5,5.6,1.2,1,'a'); break;
+    case 'onigiri':for(let y=2;y<=14;y++){ const hw=Math.min(6.8,.8+(y-2)*.62); rect(Math.round(8-hw),y,Math.round(7.6+hw),y,'b'); } rect(5,12,10,14,'a'); break;
+    case 'sprout': ell(8,10.6,5.8,4.4,'b'); line(8,6,8,4,'a'); ell(5.6,3.4,2.6,1.5,'a'); ell(10.4,3.4,2.6,1.5,'a'); break;
+    case 'rainbow':for(let y=0;y<PET_N;y++) for(let x=0;x<PET_N;x++){ const d=Math.hypot(x+.5-8,y+.5-9); if(y<9&&d>5.6&&d<7.6) g[y][x]='a'; } ell(8,11,6.4,3.8,'b'); ell(3,11.4,2.6,2.2,'b'); ell(13,11.4,2.6,2.2,'b'); break;
+    case 'trophy': rect(4,2,12,10,'b'); rect(1,3,3,3,'a'); rect(1,4,1,6,'a'); rect(13,3,15,3,'a'); rect(15,4,15,6,'a'); rect(7,11,9,12,'a'); rect(5,13,11,14,'a'); rect(4,2,12,2,'a'); break;
+    case 'star5': case 'star5k': { const pts=[...Array(10)].map((_,i)=>{ const r=i%2?3.4:7.6, t=-Math.PI/2+i*Math.PI/5; return [8+r*Math.cos(t),9+r*Math.sin(t)]; });
+      for(let y=0;y<PET_N;y++) for(let x=0;x<PET_N;x++){ let c=false; const px=x+.5, py=y+.5; for(let i=0,j=9;i<10;j=i++){ const [xi,yi]=pts[i],[xj,yj]=pts[j]; if(((yi>py)!==(yj>py))&&(px<(xj-xi)*(py-yi)/(yj-yi)+xi)) c=!c; } if(c) g[y][x]='b'; }
+      ell(8,9.5,4.2,3.4,'b'); if(shape==='star5k'){ rect(5,0,11,1,'a'); set(5,-1,'a'); } else { set(3,2,'a'); set(13,3,'a'); } break; }
+    case 'drop':   for(let y=1;y<=8;y++){ const hw=(y-1)*.8; rect(Math.round(8-hw),y,Math.round(7.6+hw),y,'b'); } ell(8,10.2,5.8,4.6,'b'); ell(5.4,8,1.2,1.6,'a'); break;
+    case 'snow':   [0,1,2,3,4,5].forEach(i=>{ const t=i*Math.PI/3; line(8,9,8+7*Math.cos(t),9+7*Math.sin(t),'a'); }); ell(8,9,4.8,4.4,'b'); break;
+    case 'ice':    rect(3,3,12,13,'b'); rect(3,3,12,3,'a'); rect(4,4,5,6,'a'); set(11,12,'a'); break;
+    case 'seed':   ell(8,9.6,5,5.8,'b'); line(8,3.6,8,2,'a'); ell(9.8,1.6,1.8,1,'a'); break;
+    case 'loupe':  ell(7,7.6,6,6,'b'); line(11,12,15,16,'a'); line(12,12,15,15,'a'); ell(4.6,4.8,1.4,1.2,'a'); break;
+    case 'camera': rect(1,5,14,13,'b'); rect(5,3,9,4,'a'); set(12,6,'a'); rect(2,12,13,13,'a'); break;
     case 'prof':   ell(8,9.5,5.8,5.2,'b'); ell(8,4.8,6,2.6,'a'); ell(8,6.6,4.4,1.6,'b'); ell(2.6,7.6,1.4,2,'a'); ell(13.4,7.6,1.4,2,'a'); line(5,7,11,7,'a'); ell(8,13.2,2.4,1.2,'a'); break;
     case 'phd':    ell(8,9.6,5.6,5,'b'); rect(1,3,15,4,'a'); rect(5,5,11,5,'a'); set(8,2,'a'); line(14,4,14,8,'a'); set(14,9,'a'); break;
     case 'mouse':  ell(8,9.8,6,4.6,'b'); ell(3.4,4.6,2.6,2.6,'b'); ell(12.6,4.6,2.6,2.6,'b'); ell(3.4,4.6,1.3,1.3,'a'); ell(12.6,4.6,1.3,1.3,'a'); line(13,13,15,15-w,'a'); set(8,11,'a'); break;
@@ -7815,7 +7848,7 @@ function drawPet(cv, kindId, st){
   else [6,10].forEach(x=>{ P(x,ey-1,ink); P(x,ey,ink); P(x+1,ey-1,'#fff'); });
   P(4,ey+1,'#F4A3B5'); P(12,ey+1,'#F4A3B5');
   if(st.mode==='happy'){ P(7,ey+2,ink); P(9,ey+2,ink); P(8,ey+2,ink); } else P(8,ey+1,ink);
-  if(!['flask','sperm','pipette','conical','etube','cryo','glove','wellplate','petri','hemo','scope','tipbox','incub','labnote','bottle','ln2','centri','beaker','erlen'].includes(K.shape)){ const f=st.mode==='walk'?(st.frame||0)%2:0; P(5+f,15,K.d); P(10-f,15,K.d); }
+  if(!['flask','sperm','trophy','ice','camera','loupe','rainbow','pipette','conical','etube','cryo','glove','wellplate','petri','hemo','scope','tipbox','incub','labnote','bottle','ln2','centri','beaker','erlen'].includes(K.shape)){ const f=st.mode==='walk'?(st.frame||0)%2:0; P(5+f,15,K.d); P(10-f,15,K.d); }
 }
 function petItemSprite(type){
   const cv=document.createElement('canvas'); cv.width=7*PET_PX; cv.height=8*PET_PX;
@@ -7842,7 +7875,7 @@ if(!petSt){
 function savePets(){ try{ localStorage.setItem('orgPets', JSON.stringify(petSt)); }catch(e){} if(typeof cloudPushDebounced==='function') cloudPushDebounced(); }
 // 계정 동기화: 위치 · 기분 · 응가 시각처럼 기기마다 다른 값은 빼고, 펫마다 키를 따로 둬서 합칠 때 덜 부딪히게
 const PET_SYNC_F=['n','name','born','fedTs','flowers','pats','poops','lastPoop'];
-window._petsOut=()=>{ const o={active:petSt.active.slice(), lastDraw:petSt.lastDraw||'', hidden:!!petSt.hidden, cleaned:petSt.cleaned||0, flowersAll:petSt.flowersAll||0};
+window._petsOut=()=>{ const o={active:petSt.active.slice(), lastDraw:petSt.lastDraw||'', hidden:!!petSt.hidden, cleaned:petSt.cleaned||0, flowersAll:petSt.flowersAll||0, patsAll:petSt.patsAll||0, fedAll:petSt.fedAll||0};
   Object.entries(petSt.owned).forEach(([id,v])=>{ const x={}; PET_SYNC_F.forEach(f=>{ if(v[f]!=null) x[f]=v[f]; }); o['o:'+id]=x; });
   return o; };
 window._petsIn=p=>{
@@ -7855,6 +7888,8 @@ window._petsIn=p=>{
   if(p.hidden!=null) petSt.hidden=!!p.hidden;
   if(p.cleaned!=null) petSt.cleaned=Math.max(petSt.cleaned||0,p.cleaned);
   if(p.flowersAll!=null) petSt.flowersAll=Math.max(petSt.flowersAll||0,p.flowersAll);
+  if(p.patsAll!=null) petSt.patsAll=Math.max(petSt.patsAll||0,p.patsAll);
+  if(p.fedAll!=null) petSt.fedAll=Math.max(petSt.fedAll||0,p.fedAll);
   try{ localStorage.setItem('orgPets', JSON.stringify(petSt)); }catch(e){}
   try{ petSync(); _petRefresh(); }catch(e){}
 };
@@ -7869,22 +7904,25 @@ function petMount(){
   if(document.getElementById('petLayer')) return;
   petLayer=document.createElement('div'); petLayer.id='petLayer'; document.body.appendChild(petLayer);
   if(petSt.flowersAll==null) petSt.flowersAll=Object.values(petSt.owned).reduce((a,o)=>a+(o.flowers||0),0);   // 예전에 받은 꽃도 셈
+  try{ document.fonts.add(new FontFace('DungGeunMo',NN('noonfonts_six','DungGeunMo.woff').map(u=>`url('${u}')`).join(','))); }catch(e){}   // 이름표 픽셀 글씨
+  if(petSt.patsAll==null) petSt.patsAll=Object.values(petSt.owned).reduce((a,o)=>a+(o.pats||0),0);
   petSync(); requestAnimationFrame(petLoop); setTimeout(petGiftCheck,1500);
 }
 // active 목록에 맞춰 화면의 펫을 만들거나 없앤다
 function petSync(){
   if(!petLayer) return;
   petSt.active=petSt.active.filter(id=>petSt.owned[id]).slice(0,PET_MAX_WALK);
-  PETS.filter(p=>!petSt.active.includes(p.id)).forEach(p=>p.el.remove());
+  PETS.filter(p=>!petSt.active.includes(p.id)).forEach(p=>{ p.el.remove(); p.bub.remove(); if(p.nm) p.nm.remove(); });
   PETS=PETS.filter(p=>petSt.active.includes(p.id));
   petSt.active.forEach((id,i)=>{
     if(PETS.some(p=>p.id===id)) return;
     const el=document.createElement('div'); el.className='pet';
     el.innerHTML=`<canvas width="${PET_N*PET_PX}" height="${PET_N*PET_PX}"></canvas>`;
     const bub=document.createElement('div'); bub.className='pet-bub';
-    petLayer.appendChild(el); petLayer.appendChild(bub);
+    const nm=document.createElement('div'); nm.className='pet-nm'; nm.textContent=petName(id);   // 머리 위 이름표 (픽셀 글씨)
+    petLayer.appendChild(el); petLayer.appendChild(bub); petLayer.appendChild(nm);
     const o=petSt.owned[id];
-    const a={id, el, cv:el.querySelector('canvas'), bub, s:(o&&o.s!=null)?o.s:60+i*160, dir:1, mode:'idle', frame:i*3, until:0, target:0, blink:0, jump:0, bubbleTo:0, last:0, pinned:!!(o&&o.pinned), x:0, y:0, rot:0};
+    const a={id, el, cv:el.querySelector('canvas'), bub, nm, s:(o&&o.s!=null)?o.s:60+i*160, dir:1, mode:'idle', frame:i*3, until:0, target:0, blink:0, jump:0, bubbleTo:0, last:0, pinned:!!(o&&o.pinned), x:0, y:0, rot:0};
     el.title=petName(id);
     // 누르면 메뉴, 끌면 옮기기 (가장 가까운 화면 가장자리에 붙음)
     let down=null;
@@ -7919,7 +7957,8 @@ function petPlace(a){
   // 말풍선은 늘 펫 바로 위 (화면 위쪽 가장자리에 붙어 있을 때만 바로 아래)
   const below=a.y<40, lw=petLayer?petLayer.clientWidth:9999;
   a.bub.classList.toggle('below',below);
-  a.bub.style.left=Math.max(40,Math.min(lw-40,a.x+24))+'px'; a.bub.style.top=(below?a.y+52:a.y-4)+'px';
+  a.bub.style.left=Math.max(40,Math.min(lw-40,a.x+24))+'px'; a.bub.style.top=(below?a.y+64:a.y-16)+'px';
+  if(a.nm){ a.nm.classList.toggle('below',below); a.nm.style.left=(a.x+24)+'px'; a.nm.style.top=(below?a.y+50:a.y-1)+'px'; }
 }
 function petSave(a){ const o=petSt.owned[a.id]; if(o){ o.s=Math.round(a.s); o.pinned=a.pinned; savePets(); } }
 // 펫을 누르면 나오는 작은 메뉴
@@ -7942,10 +7981,10 @@ function petPin(id){ const a=PETS.find(p=>p.id===id); if(!a) return; a.pinned=!a
 function petPatMany(id){ const a=PETS.find(p=>p.id===id); if(!a) return; [0,250,500].forEach(t=>setTimeout(()=>petPat(a),t)); }
 function petPat(a){
   const o=petSt.owned[a.id]; if(!o) return;
-  o.hap=Math.min(100,(o.hap||60)+4); o.pats=(o.pats||0)+1; savePets();
+  o.hap=Math.min(100,(o.hap||60)+4); o.pats=(o.pats||0)+1; petSt.patsAll=(petSt.patsAll||0)+1; savePets(); if(petSt.patsAll%10===0) petGiftCheck();
   a.mode='happy'; a.until=performance.now()+1400; a.jump=2;
   const h=document.createElement('i'); h.className='pet-heart'; h.innerHTML='<svg class="ic"><use href="#i-heart"/></svg>'; h.style.left=(a.x+16+Math.random()*12)+'px'; h.style.top=(a.y<40?a.y+40:a.y-10)+'px'; petLayer.appendChild(h); setTimeout(()=>h.remove(),1100);
-  if(Math.random()<.3) petSay(a,['헤헤','좋아!','또 해줘','보글보글','따뜻해~'][Math.floor(Math.random()*5)]);
+  if(Math.random()<.3) petSay(a,petTalk('pat'));
 }
 function petDrop(a,type){
   if(petLayer.querySelectorAll('.pet-item:not(.poop)').length>=6) return;
@@ -7969,20 +8008,36 @@ function petPoopTick(a){
 function petPoopEl(a){
   const {W,H}=petDims(), it=document.createElement('button'); it.className='pet-item poop'; it.dataset.pet=a.id; it.appendChild(petItemSprite('poop'));
   it.style.left=Math.round(20+Math.random()*Math.max(10,W-20))+'px'; it.style.top=(H+28)+'px'; it.title='눌러서 치우기';
-  it.onclick=()=>{ const o=petSt.owned[a.id]; if(o){ o.poops=Math.max(0,(o.poops||0)-1); o.hap=Math.min(100,(o.hap||60)+3); petSt.cleaned=(petSt.cleaned||0)+1; savePets(); petSay(a,'고마워!'); petGiftCheck(); }
+  it.onclick=()=>{ const o=petSt.owned[a.id]; if(o){ o.poops=Math.max(0,(o.poops||0)-1); o.hap=Math.min(100,(o.hap||60)+3); petSt.cleaned=(petSt.cleaned||0)+1; savePets(); petSay(a,petTalk('thanks')); petGiftCheck(); }
     it.classList.add('bye'); setTimeout(()=>it.remove(),300); };
   petLayer.appendChild(it);
 }
+// 세포 멘트: 상황마다 여러 개 중 하나 (시간대 멘트도 섞임)
+const PET_TALK={
+  pat:['헤헤','좋아!','또 해줘','보글보글','따뜻해~','간지러워!','기분 최고','더더!','배지 냄새 좋아','꺄르르','히히 부드러워','쓰담쓰담 최고','오늘 최고의 날','사랑해~','좀 더 오른쪽!','두근두근'],
+  happy:['오늘도 파이팅!','MC 했어?','split 할 때 됐나?','보글보글~','인큐베이터 따뜻해','CO₂ 5% 딱 좋아','오늘 confluency 어때?','나 좀 커진 것 같지?','dome 안이 아늑해','오늘 사진 찍어 줄 거야?','배지 빨개지면 불러줘','37도 최고야','오늘 몇 well 했어?','pipetting 멋있다!','나도 split 해줘~','오가노이드 되고 싶어','LN2는 너무 추워…','오늘 실험 잘 될 거야','클린벤치 깨끗하다','장갑 꼈어?','70% 에탄올 냄새~','PBS로 씻겨 줘','TrypLE는 간지러워','Matrigel 말랑말랑','나 사진발 잘 받아','오늘도 무균 조작!','데이터 미팅 화이팅','교수님 오신다!','커피 한 잔 해','잠깐 쉬어도 돼'],
+  hungry:['배고파…','배지 주세요','꼬르륵','밥 언제 줘?','EM 먹고 싶어','배지가 노래졌어…'],
+  sleep:['Zzz','쿨쿨…','음냐음냐','5분만 더…','꿈에서 split 했어'],
+  flower:['선물이야!','꽃 주울게~','받아줘!','널 위해 골랐어','예쁘지?','오늘의 꽃 배달!'],
+  poop:['…앗','미안해…','에헤헤','치워 줄 거지?','이건 비밀이야'],
+  thanks:['고마워!','개운해~','최고야!','깨끗해졌다'],
+  morning:['좋은 아침!','오늘 첫 MC 가자','아침 배지 냄새~'],
+  lunch:['점심 먹었어?','밥 먹고 하자','배고픈 시간이야'],
+  night:['늦게까지 고생해','이제 집에 가자','밤에도 실험해?','오늘 수고했어'],
+};
+function petTalk(k){ let arr=PET_TALK[k]||PET_TALK.happy;
+  if(k==='happy'){ const h=new Date().getHours(); const t=h<11?'morning':h>=11&&h<14?'lunch':h>=21||h<5?'night':''; if(t&&Math.random()<.35) arr=PET_TALK[t]; }
+  return arr[Math.floor(Math.random()*arr.length)]; }
 function petChoose(a,now){
   const r=Math.random(), o=petSt.owned[a.id]||{}, onFloor=a.rot===0;
   const hungry=Date.now()-(o.fedTs||0)>6*3600e3;
   if(!a.pinned && r<.5){ a.mode='walk'; a.target=a.s+(Math.random()<.5?-1:1)*(120+Math.random()*420); a.dir=a.target>a.s?1:-1; a.until=now+15000; return; }
   if(onFloor && Date.now()-(o.lastFlower||0)>3600e3 && Math.random()<.35){   // 꽃은 1시간에 1번쯤
     a.mode='idle'; a.until=now+2600; o.lastFlower=Date.now(); savePets();
-    setTimeout(()=>{ if(!petSt.hidden){ petDrop(a,'flower'); petSay(a,['선물이야!','꽃 주울게~','받아줘!'][Math.floor(Math.random()*3)]); } },600); return; }
-  if(r<.68){ a.mode='idle'; a.until=now+2500+Math.random()*3000; if(hungry&&Math.random()<.5) petSay(a,'배고파…'); }
-  else if(r<.8){ a.mode='sleep'; a.until=now+6000+Math.random()*5000; petSay(a,'Zzz',4000); }
-  else { a.mode='happy'; a.until=now+1500; a.jump=3; if(Math.random()<.5) petSay(a,['오늘도 파이팅!','MC 했어?','split 할 때 됐나?','보글보글~','인큐베이터 따뜻해'][Math.floor(Math.random()*5)]); }
+    setTimeout(()=>{ if(!petSt.hidden){ petDrop(a,'flower'); petSay(a,petTalk('flower')); } },600); return; }
+  if(r<.68){ a.mode='idle'; a.until=now+2500+Math.random()*3000; if(hungry&&Math.random()<.5) petSay(a,petTalk('hungry')); }
+  else if(r<.8){ a.mode='sleep'; a.until=now+6000+Math.random()*5000; petSay(a,petTalk('sleep'),4000); }
+  else { a.mode='happy'; a.until=now+1500; a.jump=3; if(Math.random()<.5) petSay(a,petTalk('happy')); }
 }
 function petLoop(now){
   requestAnimationFrame(petLoop);
@@ -8015,8 +8070,8 @@ function petPanelHTML(){
   const dex=`<div class="set-sec"><h4 class="dex-hd">도감 <span class="mail-n">${petDexCount()} / ${PET_KINDS.filter(k=>!k.gift).length}</span>${own.length?`<span class="dex-all"><button class="link-btn" onclick="petWalkAll(true)">모두 산책</button><button class="link-btn" onclick="petWalkAll(false)">모두 쉬기</button></span>`:''}</h4><div class="pet-dex">${PET_KINDS.filter(k=>!k.gift).map(k=>{ const o=petSt.owned[k.id];
       return o ? `<button class="dex${_petSel===k.id?' on':''}${petSt.active.includes(k.id)?' walk':''}" onclick="_petSel='${k.id}';renderSettings('pet')" title="${esc(petName(k.id))}"><canvas data-k="${k.id}" width="48" height="48"></canvas><span>${esc(petName(k.id))}</span></button>`
                : `<div class="dex unk"><i>?</i><span>&nbsp;</span></div>`; }).join('')}</div>
-      <h4 class="dex-hd" style="margin-top:14px;">선물</h4><div class="pet-dex">${PET_KINDS.filter(k=>k.gift).map(k=>{ const o=petSt.owned[k.id];
-        const hint=k.gift==='poop'?`응가 ${Math.min(100,petSt.cleaned||0)}/100`:k.gift==='flower'?`꽃 ${Math.min(30,petSt.flowersAll||0)}/30`:`도감 ${k.gift.slice(3)}종`;
+      <h4 class="dex-hd" style="margin-top:14px;">도장깨기</h4><div class="pet-dex">${PET_KINDS.filter(k=>k.gift).map(k=>{ const o=petSt.owned[k.id];
+        const G=petGiftRule(k.gift); let hv=0; try{ hv=G.have(); }catch(e){} const hint=`${G.lab} ${Math.min(G.need,hv)}/${G.need}${G.unit||''}`;
         return o ? `<button class="dex${_petSel===k.id?' on':''}${petSt.active.includes(k.id)?' walk':''}" onclick="_petSel='${k.id}';renderSettings('pet')"><canvas data-k="${k.id}" width="48" height="48"></canvas><span>${esc(petName(k.id))}</span></button>`
                  : `<div class="dex unk"><i>?</i><span>${hint}</span></div>`; }).join('')}</div>
 </div>`;
@@ -8042,17 +8097,37 @@ function petMenu(){ openSettings('pet'); }
 function _petRefresh(){ if(typeof _setTab!=='undefined' && _setTab==='pet' && document.getElementById('setModal').classList.contains('open')) renderSettings('pet'); }
 // 선물: 조건을 채우면 그 친구가 도감에 들어오고 바로 산책. 작은 축하 창
 const petDexCount=()=>Object.keys(petSt.owned).filter(id=>{ const k=petKind(id); return k&&!k.gift; }).length;
+// 도장깨기: 조건마다 친구 하나. need = 목표, have() = 지금까지
+function _longestStreak(){ const ds=[...new Set(logs.map(l=>l.date).filter(Boolean))].sort(); let best=0,cur=0,prev=null;
+  ds.forEach(d=>{ const t=new Date(d+'T00:00:00'); cur=(prev&&(t-prev)/864e5===1)?cur+1:1; best=Math.max(best,cur); prev=t; }); return best; }
+const GIFT_RULES={
+  poop:{need:100, have:()=>petSt.cleaned||0, lab:'응가', why:'응가 100개를 치웠어요'},
+  flower:{need:30, have:()=>petSt.flowersAll||0, lab:'꽃', why:'꽃 30송이를 받았어요'},
+  pats200:{need:200, have:()=>petSt.patsAll||0, lab:'쓰다듬기', why:'200번 쓰다듬어 줬어요'},
+  fed200:{need:200, have:()=>petSt.fedAll||0, lab:'밥', why:'밥을 200번 줬어요'},
+  streak3:{need:3, have:_longestStreak, lab:'연속 작업', unit:'일', why:'3일 연속 작업했어요'},
+  streak7:{need:7, have:_longestStreak, lab:'연속 작업', unit:'일', why:'7일 연속 작업했어요'},
+  streak30:{need:30, have:_longestStreak, lab:'연속 작업', unit:'일', why:'30일 연속 작업했어요'},
+  logs100:{need:100, have:()=>logs.length, lab:'기록', unit:'건', why:'기록 100건을 남겼어요'},
+  logs500:{need:500, have:()=>logs.length, lab:'기록', unit:'건', why:'기록 500건을 남겼어요'},
+  split50:{need:50, have:()=>logs.filter(l=>/split/i.test(l.action||'')).length, lab:'Split', unit:'번', why:'Split 50번 했어요'},
+  mc100:{need:100, have:()=>logs.filter(l=>isMediaChange(l.action)).length, lab:'MC', unit:'번', why:'Media Change 100번 했어요'},
+  vial100:{need:100, have:()=>logs.reduce((a,l)=>a+(parseInt(l.stocks)||0),0), lab:'Stock', unit:' vial', why:'Stock 100 vial을 만들었어요'},
+  ln2_10:{need:10, have:()=>stockChecks.filter(c=>c.ln2Done).length, lab:'LN2 넣기', unit:'번', why:'LN2에 10번 넣었어요'},
+  newline10:{need:10, have:()=>lines.length, lab:'라인', unit:'개', why:'라인을 10개 만들었어요'},
+  shot10:{need:10, have:()=>shotSets.reduce((a,x)=>a+((x.items||[]).length),0), lab:'현미경 사진', unit:'장', why:'현미경 사진 10장을 찍었어요'},
+  shot100:{need:100, have:()=>shotSets.reduce((a,x)=>a+((x.items||[]).length),0), lab:'현미경 사진', unit:'장', why:'현미경 사진 100장을 찍었어요'},
+};
+function petGiftRule(g){ if(GIFT_RULES[g]) return GIFT_RULES[g]; const n=+g.slice(3); return {need:n, have:petDexCount, lab:'도감', unit:'종', why:`도감 ${n}종을 모았어요`}; }
 function petGiftCheck(){
-  const n=petDexCount(), got=[];
-  PET_KINDS.filter(k=>k.gift&&!petSt.owned[k.id]).forEach(k=>{
-    const ok = k.gift==='poop' ? (petSt.cleaned||0)>=100 : k.gift==='flower' ? (petSt.flowersAll||0)>=30 : n>=+k.gift.slice(3);
+  const got=[];
+  PET_KINDS.filter(k=>k.gift&&!petSt.owned[k.id]).forEach(k=>{ const R=petGiftRule(k.gift); let ok=false; try{ ok=R.have()>=R.need; }catch(e){}
     if(ok){ petSt.owned[k.id]={n:1,name:'',born:Date.now(),hap:90,fedTs:Date.now(),flowers:0,pats:0}; petSt.active.push(k.id); got.push(k); } });
   if(!got.length) return;
   savePets(); petSync(); _petRefresh();
   got.forEach((k,i)=>setTimeout(()=>{
     const ov=document.createElement('div'); ov.className='pet-gacha';
-    const why=k.gift==='poop'?'응가 100개를 치웠어요':k.gift==='flower'?'꽃 30송이를 받았어요':`도감 ${k.gift.slice(3)}종을 모았어요`;
-    ov.innerHTML=`<div class="pg-card"><div class="pg-ball"><canvas width="48" height="48"></canvas></div><b>선물이 왔어요! ${esc(k.name)}</b><small>${why}</small><div class="pm-btns"><button class="btn btn-out">고마워!</button></div></div>`;
+    ov.innerHTML=`<div class="pg-card"><div class="pg-ball"><canvas width="48" height="48"></canvas></div><b>선물이 왔어요! ${esc(k.name)}</b><small>${petGiftRule(k.gift).why}</small><div class="pm-btns"><button class="btn btn-out">고마워!</button></div></div>`;
     document.body.appendChild(ov); drawPet(ov.querySelector('canvas'),k.id,{frame:0,mode:'happy'});
     const close=()=>ov.remove(); ov.querySelector('button').onclick=close; ov.onclick=e=>{ if(e.target===ov) close(); };
   }, i*400));
@@ -8064,8 +8139,8 @@ function petWalk(id){
   else { if(petSt.active.length>=PET_MAX_WALK) petSt.active.shift(); petSt.active.push(id); }
   savePets(); petSync(); _petRefresh();
 }
-function petFeed(id){ const o=petSt.owned[id]; if(!o) return; o.fedTs=Date.now(); o.hap=Math.min(100,(o.hap||60)+6); savePets(); _petRefresh(); const a=PETS.find(p=>p.id===id); if(a){ petSay(a,'냠냠! 맛있다',2500); a.mode='happy'; a.until=performance.now()+1500; } }
-function petRename(id){ const v=prompt('세포 이름', petSt.owned[id].name||''); if(v===null) return; petSt.owned[id].name=v.trim().slice(0,12); savePets(); _petRefresh(); }
+function petFeed(id){ const o=petSt.owned[id]; if(!o) return; o.fedTs=Date.now(); o.hap=Math.min(100,(o.hap||60)+6); petSt.fedAll=(petSt.fedAll||0)+1; savePets(); petGiftCheck(); _petRefresh(); const a=PETS.find(p=>p.id===id); if(a){ petSay(a,'냠냠! 맛있다',2500); a.mode='happy'; a.until=performance.now()+1500; } }
+function petRename(id){ const v=prompt('세포 이름', petSt.owned[id].name||''); if(v===null) return; petSt.owned[id].name=v.trim().slice(0,12); savePets(); PETS.forEach(p=>{ if(p.id===id&&p.nm) p.nm.textContent=petName(id); }); _petRefresh(); }
 function petHide(){ petSt.hidden=!petSt.hidden; savePets(); petSync(); _petRefresh(); }
 function petPick(){
   // 희귀도: 흔함 62% · 드묾 30% · 아주 드묾 8%. 아직 없는 친구가 조금 더 잘 나옴
