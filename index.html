@@ -1663,6 +1663,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
           <div><label>종류 (직접 입력)</label><input type="text" id="elType" placeholder="PHH-org, Tumor-org 등"></div>
           <div><label>샘플 세부명 (선택, 고정)</label><input type="text" id="elLineDetail" placeholder="for CM test 등"></div>
         </div>
+        <div style="margin-bottom:9px;"><label>프로젝트 (선택)</label><input type="text" id="elProject" list="projList" placeholder="Neoantigen, 이원화 교수님 Project 6 등"><datalist id="projList"></datalist></div>
         <div class="hint" style="margin:-4px 0 9px;">파일명에 쓰여서 <b>\ / : * ? " &lt; &gt; |</b> 는 못 써요.</div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:9px;">
           <div><label>최초 시작 P</label><input type="number" id="elP" value="0" min="0"></div>
@@ -2577,14 +2578,16 @@ function renderDash(){
   const groups={};
   let mcWarn=0, mcDue=0;
   const sortedActive=active.slice().sort((a,b)=>(a.patientId||'').localeCompare(b.patientId||'',undefined,{numeric:true,sensitivity:'base'}));
+  const byProj=_boardBy==='project';
   sortedActive.forEach(l=>{
-    if(!groups[l.type]) groups[l.type]={count:0,wells:0,lines:[]};
-    groups[l.type].count++;
+    const gk=byProj?(l.project||''):l.type;
+    if(!groups[gk]) groups[gk]={count:0,wells:0,lines:[]};
+    groups[gk].count++;
     const w=parseInt(latestWell(l))||0;
-    groups[l.type].wells+=w;
+    groups[gk].wells+=w;
     const mc=mcDays(l);
     if(mc){ if(mc.cls==='mc-warn') mcWarn++; if(mc.cls==='mc-due') mcDue++; }
-    groups[l.type].lines.push({id:l.id,label:l.patientId,detail:l.detail,well:w,p:l.passage,day:calcDayStr(l),plate:latestPlate(l),mc});
+    groups[gk].lines.push({id:l.id,label:l.patientId,detail:byProj?[l.type,l.detail].filter(Boolean).join(' · '):l.detail,well:w,p:l.passage,day:calcDayStr(l),plate:latestPlate(l),mc});
   });
 
   // 상단 숫자 칸: MC 칸을 누르면 해당 라인이 한 번에 선택된다
@@ -2602,10 +2605,12 @@ function renderDash(){
   plans.filter(p=>!p.done&&p.date<=t).forEach(p=>p.lineIds.forEach(id=>{ if(!planToday[id]) planToday[id]=p.action; }));
   let body='';
   Object.entries(groups)
-    .sort((a,b)=>a[0].localeCompare(b[0],undefined,{numeric:true,sensitivity:'base'}))
+    .sort((a,b)=>(byProj&&!a[0])-(byProj&&!b[0])||a[0].localeCompare(b[0],undefined,{numeric:true,sensitivity:'base'}))
     .forEach(([type,d])=>{
-    const c=getC(type,false);
-    body+=`<div class="bd-block" style="${toneVars(c)}"><div class="bd-group" onclick="selectType('${jsEsc(type)}')" title="이 종류 전체 선택">
+    const c=byProj?projColor(type):getC(type,false);
+    body+= byProj ? `<div class="bd-block" style="${toneVars(c)}"><div class="bd-group" onclick="selectProject('${jsEsc(type)}')" title="이 프로젝트 전체 선택">
+      <span class="type-chip">${esc(type||'프로젝트 없음')}</span><em>라인 ${d.count}개 · 총 ${d.wells} well</em></div>`
+      : `<div class="bd-block" style="${toneVars(c)}"><div class="bd-group" onclick="selectType('${jsEsc(type)}')" title="이 종류 전체 선택">
       <span class="type-chip">${esc(type)}</span><em>라인 ${d.count}개 · 총 ${d.wells} well</em>
       <button class="bd-color" onclick="event.stopPropagation();openColorModal('${jsEsc(type)}')" title="이 종류 색 바꾸기">${ic('palette')}</button></div>`;
     body+=d.lines.map(ll=>{
@@ -2627,7 +2632,8 @@ function renderDash(){
   el.innerHTML=buildPlanStrip()+`<section class="panel sec sec-board">
     <div class="panel-hd"><span><i class="sec-ic">${ic('flask')}</i>배양 현황</span>
       <span class="panel-act">
-        ${bulkLines.length?`<button class="btn btn-ghost" onclick="clearBulkLines()">${bulkLines.length}개 선택 해제</button>`:''}
+        <span class="seg-group"><button class="seg${byProj?'':' on'}" onclick="setBoardBy('type')">종류</button><button class="seg${byProj?' on':''}" onclick="setBoardBy('project')">프로젝트</button></span>
+        ${bulkLines.length?`<button class="btn btn-ghost" onclick="setProjectBulk()">${ic('folder')}프로젝트 지정</button><button class="btn btn-ghost" onclick="clearBulkLines()">${bulkLines.length}개 선택 해제</button>`:''}
         <button class="btn btn-icon pal-btn" onclick="openColorModal()" title="종류별 색상 바꾸기">${ic('palette')}</button>
       </span></div>
     ${active.length?`<div class="bd-head"><span></span><span>라인</span><span>P / D</span><span>Plate</span><span>Well</span><span>MC</span><span></span></div><div class="bd-blocks">${body}</div>`
@@ -3866,6 +3872,29 @@ function startLogForLine(id){
   document.getElementById('logCard').scrollIntoView({behavior:'smooth',block:'start'});
 }
 // 대시보드 종류 헤더 클릭: 그 종류 라인 전체 선택 (이미 전부 선택돼 있으면 해제)
+// ── 프로젝트: 라인마다 하나(선택). 배양 현황을 종류별 / 프로젝트별로 묶어 보기 ──
+const projectsAll=()=>[...new Set(lines.map(l=>l.project).filter(Boolean))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
+function projListFill(){ const d=document.getElementById('projList'); if(d) d.innerHTML=projectsAll().map(p=>`<option value="${esc(p)}">`).join(''); }
+const PROJ_PAL=[{bg:'#E8F1FD',bd:'#9DBFEA',tx:'#2F5E99'},{bg:'#FDEDEF',bd:'#EBA5B0',tx:'#9B3A4B'},{bg:'#EAF7EE',bd:'#9DD3AE',tx:'#2F7A48'},{bg:'#FFF4DE',bd:'#EFC77D',tx:'#8A5A12'},{bg:'#F2ECFC',bd:'#BFA8EC',tx:'#5B3E9C'},{bg:'#E6F6F6',bd:'#8FD0CF',tx:'#246F6E'},{bg:'#FCEFE6',bd:'#EDB491',tx:'#8E4A22'}];
+function projColor(p){ const c=p?(()=>{ let h=0; for(const ch of p) h=(h*31+ch.charCodeAt(0))|0; return PROJ_PAL[Math.abs(h)%PROJ_PAL.length]; })():{bg:'#F3F4F6',bd:'#D1D5DB',tx:'#6B7280'};
+  return {bg:c.bd, tx:c.tx, bd:c.bd, hbg:c.bg, ht:c.tx}; }   // 종류 색과 같은 모양으로
+let _boardBy='type'; try{ _boardBy=localStorage.getItem('orgBoardBy')||'type'; }catch(e){}
+function setBoardBy(v){ _boardBy=v; try{ localStorage.setItem('orgBoardBy',v); }catch(e){} renderDash(); }
+function selectProject(p){
+  const ids=lines.filter(l=>!l.isCompleted&&(l.project||'')===p).map(l=>l.id);
+  const allOn=ids.every(id=>bulkLines.includes(id));
+  bulkLines = allOn ? bulkLines.filter(id=>!ids.includes(id)) : [...new Set([...bulkLines,...ids])];
+  onLinesChanged();
+}
+// 고른 라인들에 프로젝트 한 번에 지정 (빈칸이면 프로젝트 없음)
+function setProjectBulk(){
+  if(!bulkLines.length) return;
+  const cur=[...new Set(bulkLines.map(id=>(lineById(id)||{}).project||''))];
+  const v=prompt(`${bulkLines.length}개 라인의 프로젝트 (비우면 없음)\n있는 프로젝트: ${projectsAll().join(', ')||'-'}`, cur.length===1?cur[0]:'');
+  if(v===null) return;
+  bulkLines.forEach(id=>{ const l=lineById(id); if(l) l.project=v.trim(); });
+  updateUI(); toast(v.trim()?`프로젝트 「${v.trim()}」로 묶었어요`:'프로젝트를 뺐어요');
+}
 function selectType(type){
   const ids=lines.filter(l=>!l.isCompleted&&l.type===type).map(l=>l.id);
   const allOn=ids.every(id=>bulkLines.includes(id));
@@ -3907,6 +3936,7 @@ function saveLine(){
   const pId  =document.getElementById('elPid').value.trim();
   const type =document.getElementById('elType').value.trim();
   const detail=document.getElementById('elLineDetail').value.trim();
+  const project=document.getElementById('elProject').value.trim();
   const p    =parseInt(document.getElementById('elP').value)||0;
   const baseD=parseInt(document.getElementById('elBase').value)||0;
   const wells=document.getElementById('elWells').value;
@@ -3929,6 +3959,7 @@ function saveLine(){
     lines[idx].patientId = pId;
     lines[idx].type = type;
     lines[idx].detail = detail;
+    lines[idx].project = project;
     lines[idx].initialWells = wells;
     lines[idx].plateType = plateType;
 
@@ -3946,7 +3977,7 @@ function saveLine(){
     }
     recalcLogsForLine(id);
   } else {
-    const nl={id:uid(),patientId:pId,type,detail,passage:p,baseDay:baseD,daySegs:(baseD>0?[baseD]:[]),
+    const nl={id:uid(),patientId:pId,type,detail,project,passage:p,baseDay:baseD,daySegs:(baseD>0?[baseD]:[]),
       isReseeded:(baseD>0),startDate:isoD(start),initialWells:wells,plateType,isCompleted:false};
     lines.push(nl);
 
@@ -3999,6 +4030,7 @@ function editLine(id){
   document.getElementById('elPid').value  =l.patientId;
   document.getElementById('elType').value =l.type;
   document.getElementById('elLineDetail').value=l.detail||'';
+  document.getElementById('elProject').value=l.project||''; projListFill();
   document.getElementById('elP').value    =startP;
   document.getElementById('elBase').value =startBase;
   document.getElementById('elWells').value=startWells;
@@ -4286,7 +4318,8 @@ function closeLineModal(){ document.getElementById('lineFormPanel').style.displa
 function closeModalsAll(){ document.querySelectorAll('.modal.open:not(#syncModal)').forEach(m=>m.classList.remove('open')); }
 function closeLogModal(){document.getElementById('logModal').classList.remove('open');}
 function resetLineForm(){
-  ['elId','elPid','elType','elLineDetail','elMemo'].forEach(i=>document.getElementById(i).value='');
+  ['elId','elPid','elType','elLineDetail','elProject','elMemo'].forEach(i=>document.getElementById(i).value='');
+  projListFill();
   setPlateSelectValue('elPlate','elPlateCustom','');
   document.getElementById('elP').value=0;document.getElementById('elBase').value=0;
   document.getElementById('elWells').value=0;document.getElementById('elStart').valueAsDate=new Date();
@@ -4405,7 +4438,7 @@ function confirmBranch(){
   const kids=rows.map(r=>{
     const nl={id:uid(),patientId:l.patientId,type:l.type,detail:r.detail,passage:st.P,baseDay:st.segs.reduce((a,b)=>a+b,0),
       daySegs:st.segs.slice(),isReseeded:st.segs.length>0,startDate:isoD(start),initialWells:r.wells,plateType:plate,isCompleted:false,
-      parentId:l.id,branchDate:date,branchNote:r.memo};
+      parentId:l.id,branchDate:date,branchNote:r.memo,project:l.project||''};
     lines.push(nl);
     logs.push({id:uid()+'_sd',seq:nextSeq(),lineId:nl.id,date,action:'Seeded',passage:st.P,dayInfo:dStr,details:'',plate,
       finalWells:r.wells,stocks:'',memo:`${lineTag(l)}에서 나눔`+(r.memo?' · '+r.memo:''),printedToNotebook:false});
