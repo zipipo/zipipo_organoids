@@ -4892,6 +4892,7 @@ function setTheme(t){
 // (PPT 만들기는 이 설정과 무관하게 항상 Pretendard)
 // 눈누(projectnoonnu) 무료 폰트는 jsDelivr에서 받고, 안 되면 GitHub 원본에서 받는다. 둘 다 안 되면 그 카드는 숨김
 const NN=(repo,file)=>[`https://cdn.jsdelivr.net/gh/projectnoonnu/${repo}/${file}`,`https://raw.githubusercontent.com/projectnoonnu/${repo}/main/${file}`,`https://raw.githubusercontent.com/projectnoonnu/${repo}/master/${file}`];
+const PN=(repo,tag,path)=>[`https://cdn.jsdelivr.net/gh/Project-Noonnu/${repo}@${tag}/${path}`,`https://raw.githubusercontent.com/Project-Noonnu/${repo}/${tag}/${path}`];
 const FONTS={
   // 고딕
   pretendard:{group:'고딕', label:'Pretendard', family:"'Pretendard'", css:null},
@@ -4900,9 +4901,13 @@ const FONTS={
   nanumneo:{group:'고딕', label:'나눔스퀘어 네오', family:"'NanumSquareNeo'", css:'https://hangeul.pstatic.net/hangeul_static/css/nanum-square-neo.css', scale:.92},
   lineseed:{group:'고딕', label:'LINE Seed', family:"'LINESeedKR'", face:NN('noonfonts_11-01','LINESeedKR-Rg.woff2'), scale:.96},
   noonnubasic:{group:'고딕', label:'눈누 기초고딕', family:"'NoonnuBasicGothic'", face:NN('noon-2410','NoonnuBasicGothicRegular.woff2')},
+  neohyundai:{group:'고딕', label:'네오현대', family:"'NeoHyundaiR'", face:NN('2512-1','NeoHyundaiR.woff2')},
+  gamtan:{group:'고딕', label:'감탄로드 돋움체', family:"'GamtanRoadDotumRegularTTF'", face:NN('noonfonts_2402_1','GamtanRoadDotumRegularTTF.woff2')},
   scoredream:{group:'고딕', label:'에스코어드림', family:"'S-CoreDream'", face:NN('noonfonts_six','S-CoreDream-4Regular.woff'), scale:.95},
   // 둥근
   nanumround:{group:'둥근', label:'나눔스퀘어라운드', family:"'NanumSquareRound'", css:'https://hangeul.pstatic.net/hangeul_static/css/nanum-square-round.css', scale:.94},
+  relay:{group:'둥근', label:'학교안심 이어달리기', family:"'HakgyoansimYieodalligiL'", face:NN('2510-1','HakgyoansimYieodalligiL.woff2')},
+  susukkang:{group:'둥근', label:'학교안심 수수깡', family:"'HakgyoansimSusukkangL'", face:NN('2508-2','HakgyoansimSusukkangL.woff2')},
   neolli:{group:'둥근', label:'엘리스 DX 널리체', family:"'Elice DX Neolli'", css:'https://font.elice.io/css?family=Elice+DX+Neolli', scale:.96},
   tmoney:{group:'둥근', label:'티머니 둥근바람', family:"'TmoneyRoundWind'", face:NN('noonfonts_20-07','TmoneyRoundWindRegular.woff'), scale:.95},
   dovegothic:{group:'둥근', label:'도브메이요 고딕', family:"'DovemayoGothic'", face:NN('noonfonts_2302','Dovemayo_gothic.woff2')},
@@ -4911,6 +4916,10 @@ const FONTS={
   maruburi:{group:'명조', label:'마루부리', family:"'MaruBuri'", face:NN('noonfonts_20-10','MaruBuri-Regular.woff')},
   ridibatang:{group:'명조', label:'리디바탕', family:"'RIDIBatang'", face:NN('noonfonts_twelve','RIDIBatang.woff')},
   // 또박또박 손글씨 (알아보기 쉬운 것)
+  popcorn:{group:'손글씨', label:'그리운 팝콘체', family:"'Griun_Popcorn-Rg'", face:PN('2609271946','griun-popcorn-rg','griun-popcorn-rg/Griun_Popcorn-Rg.woff2'), scale:1.08},
+  ayoung:{group:'손글씨', label:'그리운 2019년도 아영의 손글씨', family:"'Griun_AhyoungsHandwriteIn2019-Rg'", face:PN('2607161334','2019','2019/Griun_AhyoungsHandwriteIn2019-Rg.woff2'), scale:1.08},
+  banguri:{group:'손글씨', label:'그리운X국한박 글방구리체', family:"'GriunXHangeul_Banguri-Rg'", face:PN('2607161334','x-4','x/GriunXHangeul_Banguri-Rg.woff2'), scale:1.08},
+  lovely:{group:'손글씨', label:'그리운X국한박 사랑스러운', family:"'GriunXHangeulSarangseureoun-Regular'", face:PN('2607161334','x-10','x/GriunXHangeulSarangseureoun-Regular.woff2'), scale:1.08},
   watermelon:{group:'손글씨', label:'수박양', family:"'WatermelonYang'", face:NN('2408-4','RixXladywatermelonR.woff2'), scale:1.05},
   myoeun:{group:'손글씨', label:'그리운 묘은또박', family:"'BelovedMyoeunttobak'", face:NN('2601-1','Griun_Myoeunddobak-Rg.woff2'), scale:1.08},
   omyu:{group:'손글씨', label:'오뮤 다예쁨체', family:"'omyu_pretty'", face:NN('noonfonts_2304-01','omyu_pretty.woff2'), scale:1.08},
