@@ -373,6 +373,10 @@ body[data-theme="dark"] .fs-chip button{color:var(--tx);}
 #notePrintArea{display:none;}
 .note-group{page-break-inside:avoid;margin-bottom:10px;}
 .note-group-hd{font-weight:700;font-size:10pt;margin-bottom:2px;}
+#notePrintArea .note-tree-in{overflow:visible;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+#notePrintArea .lt-node{box-shadow:none;transform:none;background:#fff;font-size:7pt;min-width:0;max-width:150px;padding:3px 6px;border-color:#999;cursor:default;outline:none;}
+#notePrintArea .lt-ttl{font-size:8pt;} #notePrintArea .lt-name,#notePrintArea .lt-edge,#notePrintArea .lt-acts,#notePrintArea .lt-why{font-size:6.5pt;}
+#notePrintArea .lt-li::before,#notePrintArea .lt-li::after,#notePrintArea .lt-ch::before{border-color:#999;}
 #notePrintArea table{table-layout:auto;border:1px solid #333;background:#fff;}
 #notePrintArea th,#notePrintArea td{font-size:7pt;padding:2px 4px;line-height:1.25;border:1px solid #333;}
 #notePrintArea th,#notePrintArea td{background:#fff;}
@@ -1804,6 +1808,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
         <div><label>시작일</label><input type="date" id="noteFrom" onchange="renderNoteList()" style="height:32px;"></div>
         <div><label>종료일</label><input type="date" id="noteTo" onchange="renderNoteList()" style="height:32px;"></div>
         <div><label>붙일 폭 (cm)</label><input type="number" id="noteWidth" value="17" min="6" max="20" step="0.5" style="height:32px;width:70px;"></div>
+        <div style="padding-bottom:6px;"><label style="display:flex;align-items:center;gap:5px;cursor:pointer;margin:0;font-size:.78rem;"><input type="checkbox" id="noteTree" checked style="width:auto;"> Tree 같이 인쇄</label></div>
         <div style="padding-bottom:6px;"><label style="display:flex;align-items:center;gap:5px;cursor:pointer;margin:0;font-size:.78rem;"><input type="checkbox" id="noteOnlyUnprinted" checked onchange="renderNoteList()" style="width:auto;"> 미인쇄만 보기</label></div>
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
@@ -6808,7 +6813,7 @@ function noteDoPrint(){
   const byLine={};
   list.forEach(lg=>{ (byLine[lg.lineId]=byLine[lg.lineId]||[]).push(lg); });
 
-  const html=Object.keys(byLine).map(lineId=>{
+  const tableOf=lineId=>{
     const line=lines.find(l=>l.id===lineId);
     const label=line?esc(lineTag(line)):'(삭제된 라인)';
     const rows=byLine[lineId].slice().sort((a,b)=>a.date.localeCompare(b.date) || (a.seq||0)-(b.seq||0)).map(lg=>`
@@ -6828,9 +6833,24 @@ function noteDoPrint(){
         <th>Date</th><th>Action</th><th>P / D</th><th>Plate</th><th>Ratio</th><th>Well</th><th>Stock</th><th>Memo</th>
       </tr></thead><tbody>${rows}</tbody></table>
     </div>`;
+  };
+  // Tree 같이 인쇄: 같은 뿌리(처음 라인)에서 나온 라인끼리 묶고, 묶음 맨 앞에 passage별 Tree 한 번
+  const withTree=document.getElementById('noteTree').checked;
+  const groups=[], gi={};
+  Object.keys(byLine).forEach(lineId=>{ const l=lines.find(x=>x.id===lineId), r=l?lineRoot(l):null, k=r?r.id:lineId;
+    if(!(k in gi)){ gi[k]=groups.length; groups.push({root:r,ids:[]}); } groups[gi[k]].ids.push(lineId); });
+  const keepSel=_lgSel; _lgSel=null;
+  const html=groups.map(g=>{
+    const r=g.root, showTree=withTree&&r&&(lineHasKin(r)||lineSegs(r).length>1);
+    const tree=showTree?`<div class="note-group note-tree" style="width:${widthCm}cm;"><div class="note-group-hd">Tree · ${esc(r.patientId+'_'+r.type)}</div><div class="note-tree-in">${lineageNode(r,true)}</div></div>`:'';
+    return tree+g.ids.map(tableOf).join('');
   }).join('');
-
-  document.getElementById('notePrintArea').innerHTML=html;
+  _lgSel=keepSel;
+  const pa=document.getElementById('notePrintArea'); pa.innerHTML=html;
+  // Tree가 폭보다 넓으면 줄여서 한 줄에 맞춤 (재려고 잠깐 화면 밖에 펼침)
+  pa.style.cssText='display:block;position:absolute;left:-99999px;top:0;';
+  pa.querySelectorAll('.note-tree-in').forEach(t=>{ const w=t.parentElement.clientWidth, sw=t.scrollWidth; if(sw>w) t.style.zoom=(w/sw).toFixed(3); });
+  pa.style.cssText='';
   _notePrintIds=ids;
   setTimeout(()=>window.print(),50);
 }
