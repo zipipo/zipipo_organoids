@@ -7721,7 +7721,15 @@ const PET_KINDS=[
   {id:'flask',  name:'T75 플라스크',       shape:'flask',   c:'#BFDDFB',d:'#6FA6DE',a:'#F7A8B8',r:3},
 
   // 실험실 친구들 (2026-11-07 추가)
-  {id:'prof',   name:'교수님',           shape:'prof',    c:'#FFE0C8',d:'#C9946E',a:'#E2E2EC',r:3},
+  {id:'prof',   name:'교수님',           shape:'prof',    c:'#FFE0C8',d:'#C9946E',a:'#2E2A33',r:3},
+  // 우리 랩실 사람들 (안경 없음, 머리 모양으로 구별)
+  {id:'p_soyun',   name:'소윤', shape:'hairBob',   c:'#FFE0C8',d:'#C9946E',a:'#3B2F2F',r:2},
+  {id:'p_yujin',   name:'유진', shape:'hairLong',  c:'#FFE0C8',d:'#C9946E',a:'#4A3428',r:2},
+  {id:'p_doyun',   name:'도윤', shape:'hairShort', c:'#FFE0C8',d:'#C9946E',a:'#2E2A33',r:2},
+  {id:'p_jaehyuk', name:'재혁', shape:'hairSpiky', c:'#FFE0C8',d:'#C9946E',a:'#3A2E26',r:2},
+  {id:'p_hangyeol',name:'한결', shape:'hairBun',   c:'#FFE0C8',d:'#C9946E',a:'#5A4033',r:2},
+  {id:'p_hyemin',  name:'혜민', shape:'hairPony',  c:'#FFE0C8',d:'#C9946E',a:'#2F2A2A',r:2},
+  {id:'p_yewon',   name:'예원', shape:'hairPig',   c:'#FFE0C8',d:'#C9946E',a:'#4B3A30',r:2},
   {id:'msc',    name:'척척석사',          shape:'msc',     c:'#FFE0C8',d:'#C9946E',a:'#6E8FD8',r:2},
   {id:'phd',    name:'척척박사',          shape:'phd',     c:'#FFE0C8',d:'#C9946E',a:'#4B4B63',r:3},
   {id:'mouse',  name:'실험쥐',            shape:'mouse',   c:'#F7F4F6',d:'#BDB3BD',a:'#F7B6C8',r:2},
@@ -7833,7 +7841,22 @@ function petGrid(shape, frame){
     case 'seed':   ell(8,9.6,5,5.8,'b'); line(8,3.6,8,2,'a'); ell(9.8,1.6,1.8,1,'a'); break;
     case 'loupe':  ell(7,7.6,6,6,'b'); line(11,12,15,16,'a'); line(12,12,15,15,'a'); ell(4.6,4.8,1.4,1.2,'a'); break;
     case 'camera': rect(1,5,14,13,'b'); rect(5,3,9,4,'a'); set(12,6,'a'); rect(2,12,13,13,'a'); break;
-    case 'prof':   ell(8,9.5,5.8,5.2,'b'); ell(8,4.8,6,2.6,'a'); ell(8,6.6,4.4,1.6,'b'); ell(2.6,7.6,1.4,2,'a'); ell(13.4,7.6,1.4,2,'a'); line(5,7,11,7,'a'); ell(8,13.2,2.4,1.2,'a'); break;
+    case 'prof':   ell(8,9.5,5.8,5.2,'b'); ell(8,4.8,6,2.6,'a'); ell(8,6.6,4.4,1.6,'b'); ell(2.6,7.6,1.4,2,'a'); ell(13.4,7.6,1.4,2,'a'); break;   // 까만 머리, 안경 · 수염 없음
+    case 'hairBob': case 'hairLong': case 'hairShort': case 'hairSpiky': case 'hairBun': case 'hairPony': case 'hairPig': {
+      // 뒷머리 → 얼굴 → 앞머리(위쪽만) 순서로
+      if(shape==='hairBob') rect(2,5,14,12,'a');
+      if(shape==='hairLong') rect(2,5,14,15,'a');
+      if(shape==='hairPony'){ ell(14,9,1.8,4,'a'); set(13,5,'a'); }
+      if(shape==='hairPig'){ ell(2,10.6,1.7,2.6,'a'); ell(14,10.6,1.7,2.6,'a'); }
+      if(shape==='hairBun') ell(8,1.6,2.6,1.8,'a');
+      ell(8,9.8,5.2,4.8,'b');
+      const capY=shape==='hairShort'||shape==='hairSpiky'?6:6.6;
+      for(let y=0;y<PET_N;y++) for(let x=0;x<PET_N;x++){ const dx=(x+.5-8)/6.2, dy=(y+.5-6.4)/3.8; if(dx*dx+dy*dy<=1&&y<=capY) g[y][x]='a'; }
+      if(shape==='hairLong'){ set(10,7,'a'); set(11,7,'a'); }            // 옆 가르마
+      if(shape==='hairBob'){ rect(2,7,3,11,'a'); rect(13,7,14,11,'a'); }
+      if(shape==='hairSpiky'){ rect(4,2,4,3,'a'); rect(7,1,7,3,'a'); rect(10,1,10,3,'a'); rect(12,2,12,3,'a'); }
+      if(shape==='hairShort'){ set(3,7,'a'); set(13,7,'a'); }
+      break; }
     case 'msc':    ell(8,9.6,5.6,5,'b'); rect(2,3,14,4,'a'); rect(5,5,11,5,'a'); set(8,2,'a'); line(2,4,2,8,'a'); set(2,9,'a'); rect(12,13,15,13,'a'); set(13,14,'a'); break;   // 학사모 술은 왼쪽, 손에 학위증
     case 'phd':    ell(8,9.6,5.6,5,'b'); rect(1,3,15,4,'a'); rect(5,5,11,5,'a'); set(8,2,'a'); line(14,4,14,8,'a'); set(14,9,'a'); break;
     case 'mouse':  ell(8,9.8,6,4.6,'b'); ell(3.4,4.6,2.6,2.6,'b'); ell(12.6,4.6,2.6,2.6,'b'); ell(3.4,4.6,1.3,1.3,'a'); ell(12.6,4.6,1.3,1.3,'a'); line(13,13,15,15-w,'a'); set(8,11,'a'); break;
