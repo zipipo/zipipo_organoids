@@ -2876,6 +2876,22 @@ function slSaveAsSet(){
   // 세트로 저장했으니 오늘 쌓아둔 작업 큐는 비운다 (다음 촬영을 위해 새로 쌓기 시작)
   shotLog=[]; saveShotLog(); renderShotLog(); slRenderLineOptions();
 }
+// 자정이 지나면 어제까지 쌓아 둔 촬영 순서를 그날 날짜 이름으로 알아서 세트 저장하고 비움 (직접 저장 안 해도 됨)
+function slAutoSaveOld(){
+  if(!shotLog.length) return;
+  const t0=ymdLocal(new Date()), last=shotLog.reduce((m,x)=>Math.max(m,x.ts||0),0);
+  const day=shotLog[0].date || ymdLocal(new Date(last||Date.now()));
+  if(!last || ymdLocal(new Date(last))>=t0) return;   // 오늘 쌓은 건 그대로
+  const items=shotLog.map(x=>({lineId:x.lineId, mag:x.mag, note:x.note||''}));
+  const sig=shotItemsSig(items);
+  if(!shotSets.some(x=>!x.draft && shotItemsSig(x.items)===sig))
+    shotSets.push({id:uid(), name:shotSetDefaultName(day, items.length), items, createdTs:last, updatedTs:last});
+  shotLog=[]; saveShotLog(); dedupeShotSets(); saveShotSets();
+  try{ renderShotSets(); renderShotLog(); slRenderLineOptions(); }catch(e){}
+  toast(`${day.slice(5).replace('-','/')} 촬영 순서를 저장했어요`);
+}
+setTimeout(()=>{ try{ slAutoSaveOld(); }catch(e){} },2500);
+setInterval(()=>{ try{ slAutoSaveOld(); }catch(e){} },10*60000);   // 켜 둔 채로 자정을 넘겨도
 function slLoadSet(id){
   const s=shotSets.find(x=>x.id===id); if(!s) return;
   const doLoad=(replace)=>{
