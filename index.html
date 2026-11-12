@@ -373,6 +373,8 @@ body[data-theme="dark"] .fs-chip button{color:var(--tx);}
 .sb-ring .pr{stroke:#fff;stroke-linecap:round;stroke-dasharray:119.4;stroke-dashoffset:89.5;transition:stroke-dashoffset .25s ease!important;}
 .sb-ring b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.86rem;font-weight:700;}
 @keyframes sbspin{to{transform:rotate(360deg);}}
+.sb-cancel{height:32px;padding:0 18px;border:1px solid rgba(255,255,255,.7);border-radius:8px;background:rgba(255,255,255,.12);color:#fff;font-size:.82rem;font-weight:600;cursor:pointer;}
+.sb-cancel:hover{background:rgba(255,255,255,.25);} .sb-cancel:disabled{opacity:.6;cursor:default;}
 .sb-loadtxt{color:#fff;font-size:.95rem;font-weight:600;letter-spacing:.2px;}
 .bk-status{font-size:.72rem;display:inline-flex;align-items:center;gap:6px;margin-left:2px;}
 .bk-ok{color:#16A34A;font-weight:700;}
@@ -5630,7 +5632,12 @@ function sbLoading(on, txt){
     if(pct) pct.textContent=p==null?'':Math.round(p*100)+'%';
   }
   el.classList.toggle('on', !!on);
+  // 저장 취소 버튼: 저장 중(_sbSaving)일 때만 보임
+  const cb=document.getElementById('sbCancelBtn'); if(cb){ cb.style.display=on&&_sbSaving?'':'none'; cb.disabled=_sbCancel; cb.textContent=_sbCancel?'멈추는 중…':'저장 취소'; }
 }
+// 저장 중 취소: 지금 쓰는 사진 한 장까지만 끝내고 멈춘다 (이미 저장된 파일은 폴더에 그대로 남음)
+let _sbSaving=false, _sbCancel=false;
+function sbCancelSave(){ if(!_sbSaving||_sbCancel) return; _sbCancel=true; sbLoading(true); }
 
 function sbDrawBar(f){
   const src=f.srcCanvas, mag=f.mag;
@@ -5691,6 +5698,7 @@ async function sbarSaveAll(btn){
   const ext='.png';
   const ot=btn.textContent; btn.disabled=true; btn.textContent='저장 중...';
   try{ await document.fonts.load('600 24px Pretendard'); await document.fonts.ready; }catch(e){}
+  _sbSaving=true; _sbCancel=false;
   sbLoading(true,'저장 중…'); let saved=0;
   const cnt={};
   try{
@@ -5705,6 +5713,7 @@ async function sbarSaveAll(btn){
       }
     };
     for(const f of plain){
+      if(_sbCancel) break;
       const out=wbCopy(f.srcCanvas);
       if(f.wb){ const g=wbGains(f.an,sbWbMode(f)); if(g) wbApplyInPlace(out,g); }
       const blob=await new Promise(r=>out.toBlob(r,'image/png'));
@@ -5712,6 +5721,7 @@ async function sbarSaveAll(btn){
       saved++; sbLoading(true,`저장 중… (${saved}/${sbFiles.length})`);
     }
     for(const f of named){
+      if(_sbCancel) break;
       const line=sbLine(f.lineId); if(!line) continue;
       let base=sbFullName(line,sbEffDate(f),f);
       // 같은 샘플·배율로 또 촬영해 이름이 겹치면 뒤에 (1), (2)…를 붙여 저장 (덮어쓰기 방지)
@@ -5722,11 +5732,13 @@ async function sbarSaveAll(btn){
       await writeOut(dir, fname, blob);
       saved++; sbLoading(true,`저장 중… (${saved}/${sbFiles.length})`);
     }
+    if(_sbCancel){ alert(`저장을 멈췄어요. ${sbFiles.length}장 중 ${saved}장만 저장됐고, 저장된 파일은 ${dir?'선택한 폴더':'다운로드 폴더'}에 그대로 있어요.${dir?'\n다시 저장하면 같은 이름 파일은 덮어써요.':''}`); return; }
     byDate.forEach((files,d)=>archiveShotOrderFromSbFiles(d, files));
     alert(sbFiles.length+'개 저장 완료'+(dir?' (선택한 폴더)':' (브라우저 다운로드 폴더)')+(plain.length&&pdir?`\n보정만 한 사진 ${plain.length}장: ${pdirName} 폴더`:''));
   }catch(e){
     alert('저장 중 오류: '+e.message);
   }finally{
+    _sbSaving=false; _sbCancel=false;
     sbLoading(false);
     btn.disabled=false; btn.textContent=ot;
   }
@@ -8947,7 +8959,7 @@ if(curTab==='ana'||curTab==='diary') setTab(curTab,true);
   </div>
 </div>
 <div id="toastWrap" class="toast-wrap"></div>
-<div id="sbLoading" class="sb-loading"><div class="sb-ring"><svg viewBox="0 0 44 44"><circle class="tr" cx="22" cy="22" r="19"/><circle class="pr" id="sbRingP" cx="22" cy="22" r="19"/></svg><b id="sbPct"></b></div><div class="sb-loadtxt" id="sbLoadTxt">처리 중…</div></div>
+<div id="sbLoading" class="sb-loading"><div class="sb-ring"><svg viewBox="0 0 44 44"><circle class="tr" cx="22" cy="22" r="19"/><circle class="pr" id="sbRingP" cx="22" cy="22" r="19"/></svg><b id="sbPct"></b></div><div class="sb-loadtxt" id="sbLoadTxt">처리 중…</div><button id="sbCancelBtn" class="sb-cancel" style="display:none;" onclick="sbCancelSave()">저장 취소</button></div>
 <div id="notePrintArea"></div>
 <!-- LN2 Tank Explorer (원본: tools/ln2/LN2_Tank_Explorer.html). 여기 안을 고치면 앱의 「LN2 탱크」가 바뀜 -->
 <template id="ln2Tpl">
