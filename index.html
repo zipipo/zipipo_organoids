@@ -6796,7 +6796,7 @@ function pptDrawMatrix(D,p,th){
   const kc=Math.max(nc,p.minCols||PPTG.COLS), colW=Math.min((fullW-labW-labG-(kc-1)*gap)/kc,(availH-vFix)/sumA);
   const gridW=labW+labG+nc*colW+(nc-1)*gap, totalH=nb*(hdH+hdG)+colW*nb*rowA.reduce((s,a)=>s+a,0)+gap*nb*(nr-1)+bgap*(nb-1)+brk*nBrk+gTot;
   const left=PPTG.marginX+(fullW-gridW)/2, x0=left+labW+labG;
-  let y=gridTop+(hr>nr?0:Math.max(0,(availH-totalH)/2));
+  let y=gridTop;   // 제목 바로 아래부터 (세로 가운데로 내리지 않음)
   bands.forEach(([c0,c1])=>{
     // 묶음 머리글(날짜): 해당 열들 위에 한 번, 아래 가는 선
     if(p.colGroups){ p.colGroups.forEach((g,gi)=>{ const a=Math.max(g.c0,c0), b=Math.min(g.c1,c1); if(a>=b) return;
@@ -6842,7 +6842,7 @@ function pptDrawFlow(D,p,th){
   const sumA=rowA.reduce((s,a)=>s+a,0);
   const colW=Math.min((fullW-(nc-1)*gap)/nc,(availH-capH*nr-rg*(nr-1))/sumA);
   const gridW=nc*colW+(nc-1)*gap, totalH=colW*sumA+capH*nr+rg*(nr-1);
-  const left=PPTG.marginX+(fullW-gridW)/2, top=gridTop+Math.max(0,(availH-totalH)/2);
+  const left=PPTG.marginX+(fullW-gridW)/2, top=gridTop;
   const rowY=[]; let yy=top; for(let r=0;r<nr;r++){ rowY.push(yy); yy+=colW*rowA[r]+capH+rg; }
   p.cells.forEach((cell,i)=>{
     const {c,r}=pos(i), x=left+c*(colW+gap), rh=colW*rowA[r], ih=colW*cell.f.aspect, iy=rowY[r]+(rh-ih)/2;
