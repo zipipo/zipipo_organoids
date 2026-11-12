@@ -5840,8 +5840,8 @@ function wbOutName(name){ return name.replace(/\.(tif|tiff|jpe?g|webp|bmp|png)$/
 // ══════════════════════════════════════════
 //  폴더 → PPT 만들기 (브라우저, PptxGenJS)
 // ══════════════════════════════════════════
-const PPTG = { slideW:33.867, slideH:19.05, marginX:1.65, titleTop:1.14, titleH:1.52, ruleY:2.79, gridTop:3.3, noTitleTop:0.7,
-  contentGap:0.3, bottomMargin:0.9, MAG_ORDER:['4x','10x','20x'], COLS:5,
+const PPTG = { slideW:33.867, slideH:19.05, marginX:1.65, titleTop:1.14, titleH:1.52, ruleY:2.79, gridTop:3.2, noTitleTop:0.6, gridX:0.9,
+  contentGap:0.3, bottomMargin:0.45, MAG_ORDER:['4x','10x','20x'], COLS:5,
   gutter:0.15, colGap:0.35, rowGap:0.18, headerH:0.72, headerGap:0.12,
   capH:0.5, maxImgPx:1400, thumbPx:360, mGap:0.2, rowLabW:0.9 };
 function pptIN(cm){ return cm/2.54; }
@@ -6506,7 +6506,7 @@ const pptColSub=c=>[c.well,c.region?'('+c.region+')':'',c.extra].filter(Boolean)
 function pptGridPage(cc,th,userCols,merged){
   const mags=[...new Set(cc.flatMap(c=>Object.keys(c.imgs)))].sort((a,b)=>(parseInt(a)||9999)-(parseInt(b)||9999));
   const gk=c=>[c.date,c.passageVal,c.day].join('|'), hd=c=>pptHeaderRuns({date:c.date,passage:c.passage,passageVal:c.passageVal,day:c.day},th);
-  const p={kind:'matrix',plain:true,minCols:userCols||(mags.length<2?3:PPTG.COLS),rowLabels:mags.slice(),
+  const p={kind:'matrix',plain:true,minCols:userCols||(mags.length<2?3:2),rowLabels:mags.slice(),
     cells:mags.map(m=>cc.map(c=>c.imgs[m]?[c.imgs[m]]:null))};
   if(merged) p.colLabels=cc.map(c=>pptHeaderRuns(c,th));
   else if(cc.some(pptColSub)||cc.some((c,i)=>i&&gk(cc[i-1])===gk(c))){
@@ -6774,7 +6774,7 @@ function pptMagOf(f){ return pptDetectMag(f.name.replace(/\.[^.]+$/,'')); }
 function pptDrawMatrix(D,p,th){
   pptTitle(D,p.title,p.sub||'',th,p);
   const gridTop=pptGridTop(p), availH=PPTG.slideH-gridTop-PPTG.bottomMargin;
-  const fullW=PPTG.slideW-2*PPTG.marginX, ncAll=p.colLabels.length, nr=p.rowLabels.length, gap=PPTG.mGap, bgap=0.35;
+  const fullW=PPTG.slideW-2*PPTG.gridX, ncAll=p.colLabels.length, nr=p.rowLabels.length, gap=PPTG.mGap, bgap=0.35;
   const hasRL=p.rowLabels.some(Boolean)||!!D.edit, hasCL=p.colLabels.some(Boolean)||!!D.edit, gH=p.colGroups?PPTG.headerH*0.75:0, gG=p.colGroups?0.12:0;
   const lines=t=>(Array.isArray(t)?t.map(x=>x.text).join(''):String(t)).split('\n').length;
   // 행 이름은 가로 글씨: 짧으면(4x 등) 좁게, 날짜가 들어가면 넓게
@@ -6792,10 +6792,10 @@ function pptDrawMatrix(D,p,th){
   // 날짜를 행으로: 날짜가 바뀌는 행 앞에 틈을 더 줘서 날짜 묶음이 눈에 띄게
   const brk=0.3, nBrk=nb*(p.rowBreaks||[]).filter((b,i)=>b&&i>0).length, gTot=nb*(gH+gG);
   const sumA=nb*rowA.reduce((s,a)=>s+a,0)+(hr-nr)*avgA, vFix=nb*(hdH+hdG)+gap*(nb*(nr-1)+(hr-nr))+bgap*(nb-1)+brk*nBrk+gTot;
-  // 열이 적어도 사진은 원래 그리드(5열)보다 커지지 않게 최소 5열 폭으로 계산
-  const kc=Math.max(nc,p.minCols||PPTG.COLS), colW=Math.min((fullW-labW-labG-(kc-1)*gap)/kc,(availH-vFix)/sumA);
+  // 열이 적으면 사진을 키움: 행 2줄 이상은 최소 2열, 한 줄은 최소 3열 폭으로 계산 (그 밖엔 높이가 한계)
+  const kc=Math.max(nc,p.minCols||(nr>=2?2:3)), colW=Math.min((fullW-labW-labG-(kc-1)*gap)/kc,(availH-vFix)/sumA);
   const gridW=labW+labG+nc*colW+(nc-1)*gap, totalH=nb*(hdH+hdG)+colW*nb*rowA.reduce((s,a)=>s+a,0)+gap*nb*(nr-1)+bgap*(nb-1)+brk*nBrk+gTot;
-  const left=PPTG.marginX+(fullW-gridW)/2, x0=left+labW+labG;
+  const left=PPTG.gridX+(fullW-gridW)/2, x0=left+labW+labG;
   let y=gridTop;   // 제목 바로 아래부터 (세로 가운데로 내리지 않음)
   bands.forEach(([c0,c1])=>{
     // 묶음 머리글(날짜): 해당 열들 위에 한 번, 아래 가는 선
@@ -6836,13 +6836,13 @@ function pptDrawMatrix(D,p,th){
 function pptDrawFlow(D,p,th){
   pptTitle(D,p.title,'',th,p);
   const gridTop=pptGridTop(p), availH=PPTG.slideH-gridTop-PPTG.bottomMargin;
-  const fullW=PPTG.slideW-2*PPTG.marginX, nc=p.nc, nr=p.nr, gap=PPTG.colGap, rg=PPTG.rowGap, capH=PPTG.capH;
+  const fullW=PPTG.slideW-2*PPTG.gridX, nc=p.nc, nr=p.nr, gap=PPTG.colGap, rg=PPTG.rowGap, capH=PPTG.capH;
   const pos=i=>p.colMajor?{c:Math.floor(i/nr),r:i%nr}:{c:i%nc,r:Math.floor(i/nc)};
   const rowA=[]; for(let r=0;r<nr;r++){ const a=p.cells.filter((_,i)=>pos(i).r===r).map(x=>x.f.aspect); rowA.push(a.length?Math.max.apply(null,a):0.75); }
   const sumA=rowA.reduce((s,a)=>s+a,0);
   const colW=Math.min((fullW-(nc-1)*gap)/nc,(availH-capH*nr-rg*(nr-1))/sumA);
   const gridW=nc*colW+(nc-1)*gap, totalH=colW*sumA+capH*nr+rg*(nr-1);
-  const left=PPTG.marginX+(fullW-gridW)/2, top=gridTop;
+  const left=PPTG.gridX+(fullW-gridW)/2, top=gridTop;
   const rowY=[]; let yy=top; for(let r=0;r<nr;r++){ rowY.push(yy); yy+=colW*rowA[r]+capH+rg; }
   p.cells.forEach((cell,i)=>{
     const {c,r}=pos(i), x=left+c*(colW+gap), rh=colW*rowA[r], ih=colW*cell.f.aspect, iy=rowY[r]+(rh-ih)/2;
