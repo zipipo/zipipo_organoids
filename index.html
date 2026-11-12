@@ -5201,6 +5201,15 @@ function sbPickSetForGroup(start,end,id){
   renderSbarList();
   if(cnt!==q.length) toast(`사진 ${cnt}장 / 순서 ${q.length}컷: 앞 ${n}장만 채웠어요`,{warn:true});
 }
+// 묶음 하나에 채운 촬영 순서를 취소: 그 묶음 사진의 라인 · 특이사항 · 고른 순서를 비운다 (사진과 날짜, 배율, 색 보정은 그대로)
+function sbClearGroupOrder(start,end){
+  const fs=sbFiles.slice(start,end+1), filled=fs.filter(f=>f.lineId).length;
+  if(!filled) return;
+  if(!confirm(`이 묶음 사진 ${fs.length}장에 채운 순서를 취소할까요? (라인 ${filled}장 비움, 사진은 그대로)`)) return;
+  fs.forEach(f=>{ f.lineId=''; f.note=''; delete f.setId; });
+  renderSbarList();
+  toast('이 묶음의 촬영 순서를 취소했어요');
+}
 function closeSbarModal(){ document.getElementById('sbarModal').classList.remove('open'); }
 
 function sbLoadImageFile(file){
@@ -5581,6 +5590,7 @@ function renderSbarList(){
       <input type="date" id="sbGrpDate${i}" value="${g.date}" title="이 묶음 날짜 고르기" onchange="sbSetGroupDate(${g.start},${g.end},this.value)">
       <select class="sb-dset" title="이 묶음 사진에 촬영 순서 채우기" onchange="sbPickSetForGroup(${g.start},${g.end},this.value)">${sbSetOptionsHTML(grpSetId(g))}</select>
       <span>${g.end-g.start+1}장</span>
+      ${sbFiles.slice(g.start,g.end+1).some(x=>x.lineId)?`<button class="tbl-btn" title="이 묶음에 채운 촬영 순서(라인 · 특이사항)를 비우기" onclick="sbClearGroupOrder(${g.start},${g.end})">순서 취소</button>`:''}
       ${i>0?`<button class="sb-dx" title="구분선 없애고 위 묶음 날짜로 합치기" onclick="sbMergeUp(${g.start},${g.end})">×</button>`:''}</div>` : '';
     const canSplit = i>0 && !g;   // 묶음의 첫 사진은 이미 경계라 나눌 필요 없음
     const wbMode=sbWbMode(f);
