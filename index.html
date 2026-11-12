@@ -6506,7 +6506,7 @@ const pptColSub=c=>[c.well,c.region?'('+c.region+')':'',c.extra].filter(Boolean)
 function pptGridPage(cc,th,userCols,merged){
   const mags=[...new Set(cc.flatMap(c=>Object.keys(c.imgs)))].sort((a,b)=>(parseInt(a)||9999)-(parseInt(b)||9999));
   const gk=c=>[c.date,c.passageVal,c.day].join('|'), hd=c=>pptHeaderRuns({date:c.date,passage:c.passage,passageVal:c.passageVal,day:c.day},th);
-  const p={kind:'matrix',plain:true,minCols:userCols||(mags.length<2?3:2),rowLabels:mags.slice(),
+  const p={kind:'matrix',plain:true,minCols:userCols||4,rowLabels:mags.slice(),
     cells:mags.map(m=>cc.map(c=>c.imgs[m]?[c.imgs[m]]:null))};
   if(merged) p.colLabels=cc.map(c=>pptHeaderRuns(c,th));
   else if(cc.some(pptColSub)||cc.some((c,i)=>i&&gk(cc[i-1])===gk(c))){
@@ -6792,10 +6792,10 @@ function pptDrawMatrix(D,p,th){
   // 날짜를 행으로: 날짜가 바뀌는 행 앞에 틈을 더 줘서 날짜 묶음이 눈에 띄게
   const brk=0.3, nBrk=nb*(p.rowBreaks||[]).filter((b,i)=>b&&i>0).length, gTot=nb*(gH+gG);
   const sumA=nb*rowA.reduce((s,a)=>s+a,0)+(hr-nr)*avgA, vFix=nb*(hdH+hdG)+gap*(nb*(nr-1)+(hr-nr))+bgap*(nb-1)+brk*nBrk+gTot;
-  // 열이 적으면 사진을 키움: 행 2줄 이상은 최소 2열, 한 줄은 최소 3열 폭으로 계산 (그 밖엔 높이가 한계)
-  const kc=Math.max(nc,p.minCols||(nr>=2?2:3)), colW=Math.min((fullW-labW-labG-(kc-1)*gap)/kc,(availH-vFix)/sumA);
+  // 사진 크기 통일: 1 – 3열도 4열짜리 장과 같은 크기(원본 비율 그대로), 5열부터는 열 수에 맞춰 줄어듦. 왼쪽 위부터 채움
+  const kc=Math.max(nc,p.minCols||4), colW=Math.min((fullW-labW-labG-(kc-1)*gap)/kc,(availH-vFix)/sumA);
   const gridW=labW+labG+nc*colW+(nc-1)*gap, totalH=nb*(hdH+hdG)+colW*nb*rowA.reduce((s,a)=>s+a,0)+gap*nb*(nr-1)+bgap*(nb-1)+brk*nBrk+gTot;
-  const left=PPTG.gridX+(fullW-gridW)/2, x0=left+labW+labG;
+  const left=PPTG.gridX, x0=left+labW+labG;
   let y=gridTop;   // 제목 바로 아래부터 (세로 가운데로 내리지 않음)
   bands.forEach(([c0,c1])=>{
     // 묶음 머리글(날짜): 해당 열들 위에 한 번, 아래 가는 선
