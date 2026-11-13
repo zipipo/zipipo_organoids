@@ -1059,6 +1059,11 @@ body[data-art] .main{position:relative;}
 .news-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;}
 .news-list li{display:flex;gap:10px;align-items:flex-start;font-size:.82rem;line-height:1.45;padding:8px 10px;border-radius:10px;background:var(--psoft);}
 .news-list li span{flex:none;}
+.news-old{margin-top:2px;font-size:.76rem;color:var(--sub);}
+.news-old summary{cursor:pointer;padding:4px 2px;}
+.news-old .news-list{margin-top:6px;opacity:.85;}
+.news-box .news-list{max-height:62vh;overflow-y:auto;}
+.news-old .news-list{max-height:none;}
 .news-ft{display:flex;align-items:center;justify-content:space-between;margin-top:16px;font-size:.78rem;color:var(--sub);}
 .news-ft label{display:flex;align-items:center;gap:6px;cursor:pointer;}
 .news-ft input{width:auto;}
@@ -8985,8 +8990,15 @@ setTimeout(async()=>{ if(!mailUser()||!fbDb) return; try{ const q=await fbDb.col
 //  업데이트 안내: 올린 날부터 5일 동안 열 때마다 보여줌 (「다시 보지 않기」 체크하면 이 버전은 끝)
 //  새 기능을 올릴 때 NEWS의 id · date · items만 바꾸면 됨
 // ══════════════════════════════════════════
-const NEWS={id:'2026-11-12', date:'2026-11-12', days:5, items:[
+const NEWS={id:'2026-11-13', date:'2026-11-13', days:5, items:[
+  ['drop','<b>Media</b> · 왼쪽 도구 → Media. 배지별 plate당 양을 적어 두면 만든 튜브(50 · 15 ml)에서 쓴 만큼 자동으로 빠지고, 1주일에 얼마나 필요한지 계산'],
+  ['alert','<b>Reseeding 필요</b> · 오늘 작업 숫자 칸에 day14 지난 라인 수, 배양 현황에는 「지연」 표시'],
+  ['image','<b>사진</b> · 불러오기 · 저장이 훨씬 빨라짐, 4x·10x·20x 자동 채우기 켜고 끄기'],
+  ['print','<b>연구노트 인쇄</b> · 종류 · passage · 액션별 색, 가운데 정렬'],
+  ['edit','<b>Dome</b> · 기록 창 Well 옆 「+ dome」을 누르면 dome 개수도 적을 수 있어요'],
+  ['paw','<b>세포</b> · 누르면 「쉬게 하기」, 응가 · 꽃은 세포마다 36~48시간에 하나'],
   ['image','<b>PPT</b> · 썸네일을 눌러 슬라이드에서 바로 고치기 (사진 · 열 끌어 옮기기), 같은 날짜는 날짜 줄로 묶기, 환자별 제목 · 열 개수'],
+], old:[
   ['book','<b>기록</b> · 다이어리(먼슬리 · 위클리) · 분석'],
   ['branch','<b>Tree</b> · passage별로 나뉜 모양'],
   ['dish','<b>Incubator</b> · 키우는 plate 한눈에'],
@@ -9000,7 +9012,8 @@ function newsShow(force){
   const start=new Date(NEWS.date+'T00:00:00'), end=new Date(start); end.setDate(end.getDate()+NEWS.days);
   if(!force && (hidden || new Date()>=end)) return;
   document.getElementById('newsDate').textContent=`${NEWS.date.replace(/-/g,'.')} 업데이트`;
-  document.getElementById('newsList').innerHTML=NEWS.items.map(([i,t])=>`<li><svg class="ic"><use href="#i-${i}"/></svg><div>${t}</div></li>`).join('');
+  const li=a=>a.map(([i,t])=>`<li><svg class="ic"><use href="#i-${i}"/></svg><div>${t}</div></li>`).join('');
+  document.getElementById('newsList').innerHTML=li(NEWS.items)+(NEWS.old&&NEWS.old.length?`<details class="news-old"><summary>지난 업데이트 보기</summary><ul class="news-list">${li(NEWS.old)}</ul></details>`:'');
   document.getElementById('newsHide').checked=false;
   document.getElementById('newsModal').classList.add('open');
 }
