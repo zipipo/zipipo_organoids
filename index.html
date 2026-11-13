@@ -597,6 +597,8 @@ label{font-size:.74rem;font-weight:550;color:var(--sub);}
 .stat.click:hover{background:var(--hov);}
 .dot{width:7px;height:7px;border-radius:50%;display:inline-block;}
 .d-warn{background:#E9C24A;} .d-due{background:#E27370;}
+.dome-tg{border:none;background:none;padding:0 2px;margin-left:6px;font:inherit;font-size:.68rem;color:var(--mut);cursor:pointer;}
+.dome-tg:hover{color:var(--tx);text-decoration:underline;}
 .rs-due{display:inline-block;margin-left:4px;padding:0 5px;border-radius:4px;font-size:.68rem;font-weight:600;line-height:1.5;background:var(--due-bg,#FEE2E2);color:var(--due,#B91C1C);}
 .tdot{width:10px;height:10px;border-radius:3px;display:inline-block;flex:none;background:var(--td,#E4E4E7);box-shadow:inset 0 0 0 1px var(--tl,#D4D4D8);}
 .nil{color:var(--mut);}
@@ -657,6 +659,7 @@ label{font-size:.74rem;font-weight:550;color:var(--sub);}
 .bd-pd .pd-w{display:none;}   /* 넓은 화면은 Well 칸이 따로 있음 */
 .bd-plate{color:var(--sub);font-size:.76rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .bd-well{font-size:.8rem;font-weight:550;text-align:right;}
+.bd-dome{display:block;font-size:.66rem;font-weight:500;color:var(--mut);line-height:1.1;}
 .mc{justify-self:end;height:22px;min-width:54px;padding:0 7px;border-radius:4px;border:1px solid transparent;font:inherit;font-size:.7rem;font-weight:600;cursor:pointer;transition:filter .12s,box-shadow .12s;}
 .mc:hover{box-shadow:0 0 0 1px currentColor inset;}
 .mc-ok{background:var(--ok-bg);color:var(--ok);}
@@ -1685,7 +1688,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
               <div class="ratio-chips" id="ratioChips"></div></div>
             <div class="ef-f" data-f="plate"><label>Plate <span class="lbl-sub" id="plateHint"></span></label><select id="logPlate" onchange="onPlateSelectChange('logPlate','logPlateCustom')"></select>
               <input type="text" id="logPlateCustom" placeholder="Plate 종류" style="display:none;margin-top:6px;"></div>
-            <div class="ef-f" data-f="wells"><label>Well <span class="lbl-sub" id="wellHint"></span></label><input type="number" id="logWells" min="0"></div>
+            <div class="ef-f" data-f="wells"><label>Well <span class="lbl-sub" id="wellHint"></span><button type="button" class="dome-tg" id="logDomesTg" onclick="domeToggle('log')" title="한 well에 dome이 여러 개일 때만">+ dome</button></label><input type="number" id="logWells" min="0"><input type="number" id="logDomes" min="0" placeholder="dome 수 (전체)" style="display:none;margin-top:6px;"></div>
             <div class="ef-f" data-f="stocks"><label>Stock vial</label><input type="number" id="logStocks" min="0"></div>
             <div class="ef-f ef-memo" data-f="memo"><label>메모</label><textarea id="logMemo" rows="2"></textarea></div>
           </div>
@@ -1779,7 +1782,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;">
           <div><label>Plate 종류</label><select id="ePlate" onchange="onPlateSelectChange('ePlate','ePlateCustom')"></select>
             <input type="text" id="ePlateCustom" placeholder="Plate 종류 입력" style="display:none;margin-top:6px;"></div>
-          <div><label>Well 수</label><input type="number" id="eWells"></div>
+          <div><label>Well 수 <button type="button" class="dome-tg" id="eDomesTg" onclick="domeToggle('e')" title="한 well에 dome이 여러 개일 때만">+ dome</button></label><input type="number" id="eWells"><input type="number" id="eDomes" min="0" placeholder="dome 수 (전체)" style="display:none;margin-top:6px;"></div>
           <div><label>Stock (vial)</label><input type="number" id="eStocks"></div>
         </div>
         <div><label>메모</label><textarea id="eMemo" rows="3"></textarea></div>
@@ -2536,6 +2539,15 @@ function mcDays(line){
   return{days:d,cls};
 }
 
+// dome (한 well에 dome이 여러 개일 때만 적는 숨은 칸). Well 수가 적힌 마지막 기록의 dome 수를 쓴다
+function domeShow(k,on){ const i=document.getElementById(k+'Domes'), t=document.getElementById(k+'DomesTg'); if(!i) return; i.style.display=on?'':'none'; if(t) t.textContent=on?'− dome':'+ dome'; }
+function domeToggle(k){ const i=document.getElementById(k+'Domes'); const on=i.style.display==='none'; domeShow(k,on); if(on) i.focus(); else i.value=''; }
+function latestDomes(line){
+  const w=logs.filter(l=>l.lineId===line.id&&l.finalWells!==''&&l.finalWells!=null).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  return w.length&&w[0].domes?w[0].domes:'';
+}
+const wellTxt=(w,d)=>w?(w+' well'+(d?' · '+d+' dome':'')):'';
+
 function latestWell(line){
   const w=logs.filter(l=>l.lineId===line.id&&l.finalWells!==''&&l.finalWells!=null)
     .sort((a,b)=>new Date(b.date)-new Date(a.date));
@@ -2619,7 +2631,7 @@ function buildMiniLog(id){
   return `<div class="bd-mini" onclick="event.stopPropagation()">${lgs.map(lg=>`<div class="bm-row" onclick="openLogModal('${lg.id}')">
       <span class="bm-d">${lg.date.slice(5).replace('-','.')}</span><span class="badge ${badgeCls(lg.action)}">${esc(lg.action)}</span>
       <span class="bm-pd"><b>P${lg.passage}</b> ${esc(lg.dayInfo||'')}</span>
-      <span class="bm-x">${esc([lg.details,lg.finalWells?lg.finalWells+' well':'',lg.stocks?lg.stocks+' vial':'',lg.memo].filter(Boolean).join(' · '))}</span></div>`).join('')}
+      <span class="bm-x">${esc([lg.details,lg.finalWells?wellTxt(lg.finalWells,lg.domes):'',lg.stocks?lg.stocks+' vial':'',lg.memo].filter(Boolean).join(' · '))}</span></div>`).join('')}
     <button class="link-btn bm-all" onclick="openLineTimeline('${id}')">전체 ${n}건 보기</button></div>`;
 }
 // 배양 라인 페이지로 가서 해당 라인 타임라인을 펼치고 그 위치로 스크롤
@@ -2648,7 +2660,7 @@ function renderDash(){
     const mc=mcDays(l);
     if(mc){ if(mc.cls==='mc-warn') mcWarn++; if(mc.cls==='mc-due') mcDue++; }
     const rs=reseedDays(l); if(rs&&rs.due) rsDue++;
-    groups[gk].lines.push({id:l.id,label:l.patientId,detail:byProj?[l.type,l.detail].filter(Boolean).join(' · '):l.detail,well:w,p:l.passage,day:calcDayStr(l),plate:latestPlate(l),mc,rs});
+    groups[gk].lines.push({id:l.id,label:l.patientId,detail:byProj?[l.type,l.detail].filter(Boolean).join(' · '):l.detail,well:w,p:l.passage,day:calcDayStr(l),plate:latestPlate(l),mc,rs,dome:latestDomes(l)});
   });
 
   // 상단 숫자 칸: MC 칸을 누르면 해당 라인이 한 번에 선택된다
@@ -2684,7 +2696,7 @@ function renderDash(){
         <span class="bd-name">${esc(ll.label)}${ll.detail?`<small>${esc(ll.detail)}</small>`:''}${planToday[ll.id]?`<span class="plan-tag" title="오늘 예정">${ic('pin','ic-sm')}${esc(planToday[ll.id])}</span>`:''}</span>
         <span class="bd-pd"><b>P${ll.p}</b> ${ll.day}${ll.rs&&ll.rs.due?`<span class="rs-due" title="day${RESEED_LIMIT}가 지났어요. Reseeding이 필요해요">지연</span>`:''}${ll.well?`<span class="pd-w">${ll.well} well</span>`:''}</span>
         <span class="bd-plate">${esc(ll.plate||'')}</span>
-        <span class="bd-well">${ll.well?ll.well+' well':'<span class="nil">-</span>'}</span>
+        <span class="bd-well">${ll.well?ll.well+' well'+(ll.dome?`<small class="bd-dome">${esc(ll.dome)} dome</small>`:''):'<span class="nil">-</span>'}</span>
         ${mcTag}
         <button class="bd-exp" onclick="event.stopPropagation();toggleBdRow('${ll.id}')" title="최근 기록 보기">${ic('down')}</button>
       </div>${open?buildMiniLog(ll.id):''}`;
@@ -3303,7 +3315,7 @@ function buildLogTable(line){
       <td><span class="pb ${pCls(lg.passage)}">P${lg.passage}</span> <span style="color:var(--sub);font-size:.75rem;">/ ${lg.dayInfo||'-'}</span></td>
       <td>${esc(lg.plate||'-')}</td>
       <td>${esc(lg.details||'-')}</td>
-      <td>${lg.finalWells?lg.finalWells+' well':'<span class="nil">-</span>'}</td>
+      <td>${lg.finalWells?esc(wellTxt(lg.finalWells,lg.domes)):'<span class="nil">-</span>'}</td>
       <td>${lg.stocks?lg.stocks+' vial':'<span class="nil">-</span>'}</td>
       <td><span class="mcell">${esc(lg.memo||'-')}</span></td>
     </tr>`;
@@ -3874,6 +3886,7 @@ function pushDailyLog(line, r){
     const curDStr = calcDayStr(line, date);
     const lg={id:uid(),seq:nextSeq(),lineId,date,action,passage:curP,dayInfo:curDStr,details:r.det,plate:r.plate||plateAt(line,date),finalWells:r.wells,stocks:r.stocks,memo:r.memo,printedToNotebook:false};
     if(r.src) lg.src=r.src;
+    if(r.domes) lg.domes=String(r.domes);
     logs.push(lg);
 
     // (2) 그 액션이 상태를 바꾸는 액션(Split/Reseeding)이라면, '다음 추가될 로그'를 위해 라인의 정보를 진화시킴
@@ -3912,6 +3925,7 @@ function saveDailyLog(){
   const det   =document.getElementById('logDet').value.trim();
   const plate =getPlateSelectValue('logPlate','logPlateCustom');
   const wells =document.getElementById('logWells').value;
+  const domes =document.getElementById('logDomes').value;
   const stocks=document.getElementById('logStocks').value;
   const memo  =document.getElementById('logMemo').value;
   const dates =bulkDates.length>0?[...bulkDates]:[document.getElementById('logDate').value].filter(Boolean);
@@ -3923,7 +3937,7 @@ function saveDailyLog(){
   dates.slice().sort().forEach(date=>{
     const line=lines.find(l=>l.id===lineId);
     if(!line) return;
-    pushDailyLog(line, {date,action,det,plate,wells,stocks,memo});
+    pushDailyLog(line, {date,action,det,plate,wells,stocks,memo,domes});
   });
   });
 
@@ -3936,7 +3950,8 @@ function saveDailyLog(){
 
   bulkDates=[];renderBulkTags();
   bulkLines=[];
-  ['logDet','logWells','logStocks','logMemo','logActionCustom'].forEach(i=>document.getElementById(i).value='');
+  ['logDet','logWells','logStocks','logMemo','logActionCustom','logDomes'].forEach(i=>document.getElementById(i).value='');
+  domeShow('log',false);
   resetLogPlate();
   setAction('Media Change');
   updateUI();previewDay();
@@ -4006,7 +4021,7 @@ function renderTodayLogs(){
   if(!tl.length){ el.innerHTML='<div class="empty">아직 없어요.</div>'; return; }
   el.innerHTML='<div class="tlog-list">'+tl.map(lg=>{
     const ln=lines.find(l=>l.id===lg.lineId);
-    const extra=[lg.details,lg.plate,lg.finalWells?lg.finalWells+' well':'',lg.stocks?lg.stocks+' vial':''].filter(Boolean).join(' · ');
+    const extra=[lg.details,lg.plate,lg.finalWells?wellTxt(lg.finalWells,lg.domes):'',lg.stocks?lg.stocks+' vial':''].filter(Boolean).join(' · ');
     return `<div class="tlog" style="${ln?toneVars(getC(ln.type,false)):''}" onclick="openLogModal('${lg.id}')">
       <span class="tlog-name"><i class="tdot"></i>${esc(ln?lineTag(ln):'(삭제된 라인)')}</span>
       <span class="badge ${badgeCls(lg.action)}">${esc(lg.action)}</span>
@@ -4254,6 +4269,7 @@ function openLogModal(id){
   document.getElementById('eDet').value  =lg.details||'';
   setPlateSelectValue('ePlate','ePlateCustom', lg.plate||'');
   document.getElementById('eWells').value=lg.finalWells||'';
+  document.getElementById('eDomes').value=lg.domes||''; domeShow('e',!!lg.domes);
   document.getElementById('eStocks').value=lg.stocks||'';
   document.getElementById('eMemo').value =lg.memo||'';
   _eOrig={date:lg.date,action:lg.action,p:String(lg.passage),d:lg.dayInfo||'',pinned:!!(lg.pinP||lg.pinD),seed:isSeed(lg.action)};
@@ -4299,6 +4315,7 @@ function updateLog(){
   logs[idx].details   =document.getElementById('eDet').value;
   logs[idx].plate     =getPlateSelectValue('ePlate','ePlateCustom');
   logs[idx].finalWells=document.getElementById('eWells').value;
+  { const dm=document.getElementById('eDomes').value; if(dm) logs[idx].domes=dm; else delete logs[idx].domes; }
   logs[idx].stocks    =document.getElementById('eStocks').value;
   logs[idx].memo      =document.getElementById('eMemo').value;
 
@@ -7295,7 +7312,7 @@ function noteDoPrint(){
         <td>${pill('P'+esc(String(lg.passage)),pCls(lg.passage))}<span class="nd">${esc(lg.dayInfo||'-')}</span></td>
         <td>${lg.plate?esc(lg.plate):dash}</td>
         <td>${lg.details?esc(lg.details):dash}</td>
-        <td>${lg.finalWells?esc(String(lg.finalWells))+' well':dash}</td>
+        <td>${lg.finalWells?esc(wellTxt(lg.finalWells,lg.domes)):dash}</td>
         <td>${lg.stocks?esc(String(lg.stocks))+' vial':dash}</td>
         <td>${lg.memo?esc(lg.memo):dash}</td>
       </tr>`).join('');
@@ -7711,7 +7728,7 @@ function _dyRecText(lg){
   const parts=[];
   if(lg.details) parts.push(lg.details);
   if(lg.plate) parts.push(lg.plate);
-  if(lg.finalWells) parts.push(lg.finalWells+' well');
+  if(lg.finalWells) parts.push(wellTxt(lg.finalWells,lg.domes));
   if(lg.stocks) parts.push(lg.stocks+' vial');
   return parts.join(' · ');
 }
