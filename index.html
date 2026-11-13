@@ -6223,7 +6223,7 @@ async function handlePptFiles(fileList){
 // 따로 한 장: 맨 앞에 figure 한 장짜리 슬라이드 / 사진 칸에: 슬라이드 고치기의 「안 넣은 사진」에 나와서 사진 옆 칸에 끌어 넣음
 // 사진 슬라이드에: Plate map은 오른쪽 아래(사진 칸은 그만큼 왼쪽으로), Experiment Schedule은 제목 줄 오른쪽에 작게
 let pptFigSel={}, pptFigTarget={}; const _pptFigCache={};
-const PPT_OV_W=10.2;   // 오른쪽 아래 plate 자리 폭(cm)
+const PPT_OV_W=8.6;   // 오른쪽 아래 plate 자리 폭(cm)
 function pptFigEntry(id){
   const f=typeof figById==='function'&&figById(id); if(!f) return null;
   const compact=pptFigSel[id]==='slide', ck=f.updated+'|'+compact;
@@ -7108,15 +7108,19 @@ function pptHtmlBackend(edit){
     html(){ return `<div class="pl-slide${edit?' ed':''}" style="background:#${bg};">${out.join('')}</div>`; }
   };
 }
-function pptGridTop(p){ return p&&p.noTitle?PPTG.noTitleTop:PPTG.gridTop; }
+// Experiment Schedule이 들어간 장: 제목 줄을 조금 높여서 schedule을 크게 (제목 글씨는 작게)
+const PPT_HDX=1.0;
+const pptHdx=p=>p&&p.ovTl&&!p.noTitle?PPT_HDX:0;
+function pptGridTop(p){ return p&&p.noTitle?PPTG.noTitleTop+(p.ovTl?2.6:0):PPTG.gridTop+pptHdx(p); }
 function pptRenderPage(D,p,th){
   D.bg(th.bg);
   // 마일스톤: 오른쪽 위, 제목과 겹치지 않게 제목 칸 오른쪽 40%
   const ms=!p.ovTl&&!p.noTitle&&p.ms&&p.ms.length?p.ms:null;
   pptTitleW=ms?(PPTG.slideW-2*PPTG.marginX)*0.58:0;
   // Experiment Schedule: 제목 줄 오른쪽 (가는 줄 위)
-  if(p.ovTl){ const f=p.ovTl, full=PPTG.slideW-2*PPTG.marginX, maxH=(p.noTitle?PPTG.slideH*0.12:PPTG.ruleY-0.25); let w=full*0.46, h=w*f.aspect; if(h>maxH){ h=maxH; w=h/f.aspect; }
-    D.image(f,PPTG.slideW-PPTG.marginX-w,(p.noTitle?0.2:PPTG.ruleY-0.1-h),w,h); if(!p.noTitle) pptTitleW=full-w-0.4; }
+  if(p.ovTl){ const f=p.ovTl, full=PPTG.slideW-2*PPTG.marginX, bottom=p.noTitle?2.6+PPTG.noTitleTop-0.15:PPTG.ruleY+pptHdx(p)-0.12, maxH=bottom-0.25;
+    let w=full*0.6, h=w*f.aspect; if(h>maxH){ h=maxH; w=h/f.aspect; }
+    D.image(f,PPTG.slideW-PPTG.marginX-w,bottom-h,w,h); if(!p.noTitle) pptTitleW=full-w-0.4; }
   // Plate map: 오른쪽 아래
   if(p.ovPlate){ const f=p.ovPlate, top=pptGridTop(p), maxH=PPTG.slideH-top-PPTG.bottomMargin; let w=PPT_OV_W, h=w*f.aspect; if(h>maxH){ h=maxH; w=h/f.aspect; }
     D.image(f,PPTG.slideW-PPTG.gridX-w,PPTG.slideH-PPTG.bottomMargin-h,w,h); }
@@ -7129,11 +7133,11 @@ let pptTitleW=0;   // 마일스톤이 있으면 제목 칸을 왼쪽 60%로 줄�
 // 제목: 「10.20 – 10.28  HCC39 Tumor-org C」 + 아래 가는 줄 (personal meeting 자료 형식). noTitle이면 제목 없이 사진을 위로 올림
 function pptTitle(D,title,sub,th,p){
   if(p&&p.noTitle) return;
-  const full=PPTG.slideW-2*PPTG.marginX, t=(p&&p.dr?p.dr+'  ':'')+title, w=pptTitleW||full;
-  D.text([{text:t,options:{bold:true,fontSize:22,color:th.title}}].concat(sub?[{text:'\n'+sub,options:{fontSize:12,color:th.sub}}]:[]),
-         PPTG.marginX,PPTG.titleTop,w,PPTG.titleH,{align:'left',valign:'middle'});
-  D.text('',PPTG.marginX,PPTG.ruleY,full,0.05,{fill:{color:th.title}});
-  if(D.zone) D.zone('title',{},PPTG.marginX,PPTG.titleTop,w,PPTG.titleH,t);
+  const full=PPTG.slideW-2*PPTG.marginX, t=(p&&p.dr?p.dr+'  ':'')+title, w=pptTitleW||full, hx=pptHdx(p), fs=p&&p.ovTl?16:22;
+  D.text([{text:t,options:{bold:true,fontSize:fs,color:th.title}}].concat(sub?[{text:'\n'+sub,options:{fontSize:12,color:th.sub}}]:[]),
+         PPTG.marginX,PPTG.titleTop,w,PPTG.titleH+hx,{align:'left',valign:'middle'});
+  D.text('',PPTG.marginX,PPTG.ruleY+hx,full,0.05,{fill:{color:th.title}});
+  if(D.zone) D.zone('title',{},PPTG.marginX,PPTG.titleTop,w,PPTG.titleH+hx,t);
 }
 function pptBadge(D,mag,ix,iy,iw){
   const bw=(mag.length<=2?0.46:0.62), bh=0.34;
@@ -7165,7 +7169,7 @@ function pptDrawMatrix(D,p,th){
   const sumA=nb*rowA.reduce((s,a)=>s+a,0)+(hr-nr)*avgA, vFix=nb*(hdH+hdG)+gap*(nb*(nr-1)+(hr-nr))+bgap*(nb-1)+brk*nBrk+gTot;
   // 사진 크기 통일(원본 비율 그대로): 기준 폭 W0 = 왼쪽에 날짜 행 이름(2.1cm)이 있어도 4열이 들어가는 폭(약 7.3cm) → 1 – 4열은 왼쪽 · 위에 무엇을 쓰든 항상 같은 크기,
   // 5열부터는 들어가는 만큼 줄어듦. 열 개수를 직접 정했으면(minCols) 그 열 수 기준. 왼쪽 위부터 채움
-  const kc=Math.max(nc,p.minCols||1), W0=p.minCols?99:(fullW-2.1-gap-3*gap)/4, colW=Math.min(W0,(fullW-labW-labG-(kc-1)*gap)/kc,(availH-vFix)/sumA);
+  const kc=Math.max(nc,p.minCols||1), W0=(p.minCols||p.ovPlate||p.ovTl)?99:(fullW-2.1-gap-3*gap)/4, colW=Math.min(W0,(fullW-labW-labG-(kc-1)*gap)/kc,(availH-vFix)/sumA);
   const gridW=labW+labG+nc*colW+(nc-1)*gap, totalH=nb*(hdH+hdG)+colW*nb*rowA.reduce((s,a)=>s+a,0)+gap*nb*(nr-1)+bgap*(nb-1)+brk*nBrk+gTot;
   const left=PPTG.gridX, x0=left+labW+labG;
   let y=gridTop;   // 제목 바로 아래부터 (세로 가운데로 내리지 않음)
@@ -9493,7 +9497,7 @@ function figRenderTl(f,scale,compact){
   const zero=f.zero||(items[0]||{}).date||ymdLocal(new Date());
   const day=d=>Math.round((new Date(d)-new Date(zero))/86400000);
   // compact: 사진 슬라이드 오른쪽 위에 넣는 작은 판 (제목 없이 축만)
-  const W=compact?1150:1600, padX=compact?80:110, H=compact?(f.showDate===false?250:290):(f.showDate===false?360:400);
+  const W=compact?1300:1600, padX=compact?90:110, H=compact?(f.showDate===false?250:300):(f.showDate===false?360:400), K=compact?1.3:1;
   // 날짜 비율로 놓되, 이름표가 겹치지 않게 최소 간격
   const span=Math.max(1,items.length?day(items[items.length-1].date)-day(items[0].date):1);
   let xs=items.map(it=>padX+(day(it.date)-day(items[0].date))/span*(W-2*padX));
@@ -9503,28 +9507,28 @@ function figRenderTl(f,scale,compact){
   const {c,ctx}=figCanvas(W,H,scale), F=figFont();
   // 제목
   if(!compact){ ctx.fillStyle='#1F2328'; ctx.font=`700 34px ${F}`; ctx.textBaseline='top'; ctx.fillText(f.title||'',padX-40,30); }
-  const ay=H-(f.showDate===false?130:160);
+  const ay=H-(compact?(f.showDate===false?115:150):(f.showDate===false?130:160));
   if(items.length){
     const x0=xs[0], x1=xs[xs.length-1];
     // 축: ├────┼────┤
     ctx.strokeStyle='#3A3F45'; ctx.lineWidth=4; ctx.lineCap='round';
     ctx.beginPath(); ctx.moveTo(x0,ay); ctx.lineTo(x1,ay); ctx.stroke();
     // 사이 간격 (n days)
-    ctx.font=`500 19px ${F}`; ctx.fillStyle='#8A9099'; ctx.textAlign='center'; ctx.textBaseline='bottom';
+    ctx.font=`500 ${Math.round(19*K)}px ${F}`; ctx.fillStyle='#8A9099'; ctx.textAlign='center'; ctx.textBaseline='bottom';
     for(let i=1;i<items.length;i++){ const dd=day(items[i].date)-day(items[i-1].date); if(dd>0&&xs[i]-xs[i-1]>90) ctx.fillText(`${dd} day${dd>1?'s':''}`,(xs[i]+xs[i-1])/2,ay-10); }
     items.forEach((it,i)=>{
       const x=xs[i], end=i===0||i===items.length-1, th=end?26:16, col=it.color||FIG_ACT['기타'];
       ctx.strokeStyle='#3A3F45'; ctx.lineWidth=end?5:4; ctx.beginPath(); ctx.moveTo(x,ay-th); ctx.lineTo(x,ay+th); ctx.stroke();
       // 위: 이름표
       const lab=it.label||'';
-      const fs=figFit(ctx,lab,gap*1.25,24,700,14)||14; ctx.font=`700 ${fs}px ${F}`;
+      const fs=figFit(ctx,lab,gap*1.25,Math.round(24*K),700,14)||14; ctx.font=`700 ${fs}px ${F}`;
       const tw=ctx.measureText(lab).width+28, bh=fs+20, by=ay-26-22-bh;
       ctx.fillStyle=figMix(col,.82); figRR(ctx,x-tw/2,by,tw,bh,bh/2); ctx.fill();
       ctx.strokeStyle=col; ctx.lineWidth=2; ctx.stroke();
       ctx.fillStyle=figDark(col); ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(lab,x,by+bh/2+1);
       // 아래: Day n · 날짜
-      ctx.fillStyle='#1F2328'; ctx.font=`800 26px ${F}`; ctx.textBaseline='top'; ctx.fillText(`Day ${day(it.date)}`,x,ay+th+14);
-      if(f.showDate!==false){ ctx.fillStyle='#8A9099'; ctx.font=`500 19px ${F}`; ctx.fillText(it.date.slice(2).replace(/-/g,'.'),x,ay+th+48); }
+      ctx.fillStyle='#1F2328'; ctx.font=`800 ${Math.round(26*K)}px ${F}`; ctx.textBaseline='top'; ctx.fillText(`Day ${day(it.date)}`,x,ay+th+(compact?8:14));
+      if(f.showDate!==false){ ctx.fillStyle='#8A9099'; ctx.font=`500 ${Math.round(19*K)}px ${F}`; ctx.fillText(it.date.slice(2).replace(/-/g,'.'),x,ay+th+(compact?50:48)); }
     });
   } else { ctx.fillStyle='#A0A6AD'; ctx.font=`500 24px ${F}`; ctx.textAlign='center'; ctx.fillText('왼쪽에서 넣을 기록을 골라 주세요',W/2,H/2); }
   return {canvas:c,geo:null};
@@ -9602,20 +9606,20 @@ function figRenderPlateCompact(f,scale){
   const date=f.date||ymdLocal(new Date());
   // 머리 글씨 줄: 라인마다 한 줄 + 날짜 · plate 한 줄 + 조건(색 점) 줄들
   const W=C*cell+70, meas=document.createElement('canvas').getContext('2d');
-  const condRows=[]; { let row=[], w=0; meas.font=`600 26px ${F}`;
-    conds.forEach(cd=>{ const cw=40+meas.measureText(cd.name||'').width+28; if(row.length&&w+cw>W){ condRows.push(row); row=[]; w=0; } row.push(cd); w+=cw; }); if(row.length) condRows.push(row); }
-  const head=Math.max(1,lns.length)*44+40+condRows.length*40+16;
+  const condRows=[]; { let row=[], w=0; meas.font=`600 34px ${F}`;
+    conds.forEach(cd=>{ const cw=46+meas.measureText(cd.name||'').width+30; if(row.length&&w+cw>W){ condRows.push(row); row=[]; w=0; } row.push(cd); w+=cw; }); if(row.length) condRows.push(row); }
+  const head=Math.max(1,lns.length)*56+50+condRows.length*50+18;
   const ph=R*cell+64, H=head+ph+6;
   const {c,ctx}=figCanvas(W,H,scale);
-  ctx.textBaseline='middle'; ctx.textAlign='left'; let y=22;
+  ctx.textBaseline='middle'; ctx.textAlign='left'; let y=28;
   if(lns.length) lns.forEach(x=>{ const at=figLineAt(x.line,date);
-      ctx.beginPath(); ctx.arc(16,y,12,0,Math.PI*2); ctx.lineWidth=5; ctx.strokeStyle=x.color; ctx.stroke();
-      ctx.fillStyle='#000'; ctx.font=`800 32px ${F}`; const t=lineTag(x.line); ctx.fillText(t,40,y);
-      const tw=ctx.measureText(t).width; ctx.font=`700 28px ${F}`; ctx.fillText(`  P${at.p} · ${at.d}`,40+tw,y+1); y+=44; });
-  else { ctx.fillStyle='#000'; ctx.font=`800 32px ${F}`; ctx.fillText(f.title||'',0,y); y+=44; }
-  ctx.fillStyle='#000'; ctx.font=`600 26px ${F}`; ctx.fillText(`${date.replace(/-/g,'.')} · ${f.format} well plate`,0,y); y+=40;
-  condRows.forEach(row=>{ let x=0; row.forEach(cd=>{ ctx.beginPath(); ctx.arc(x+13,y,13,0,Math.PI*2); ctx.fillStyle=cd.color; ctx.fill(); ctx.lineWidth=1.5; ctx.strokeStyle='rgba(0,0,0,.25)'; ctx.stroke();
-      ctx.fillStyle='#000'; ctx.font=`600 26px ${F}`; ctx.fillText(cd.name||'',x+34,y+1); x+=40+ctx.measureText(cd.name||'').width+28; }); y+=40; });
+      ctx.beginPath(); ctx.arc(17,y,14,0,Math.PI*2); ctx.lineWidth=3.5; ctx.strokeStyle=x.color; ctx.stroke();
+      ctx.fillStyle='#000'; ctx.font=`800 42px ${F}`; const t=lineTag(x.line); ctx.fillText(t,44,y);
+      const tw=ctx.measureText(t).width; ctx.font=`700 36px ${F}`; ctx.fillText(`  P${at.p} · ${at.d}`,44+tw,y+1); y+=56; });
+  else { ctx.fillStyle='#000'; ctx.font=`800 42px ${F}`; ctx.fillText(f.title||'',0,y); y+=56; }
+  ctx.fillStyle='#000'; ctx.font=`600 34px ${F}`; ctx.fillText(`${date.replace(/-/g,'.')} · ${f.format} well plate`,0,y); y+=50;
+  condRows.forEach(row=>{ let x=0; row.forEach(cd=>{ ctx.beginPath(); ctx.arc(x+15,y,15,0,Math.PI*2); ctx.fillStyle=cd.color; ctx.fill(); ctx.lineWidth=1.5; ctx.strokeStyle='rgba(0,0,0,.25)'; ctx.stroke();
+      ctx.fillStyle='#000'; ctx.font=`600 34px ${F}`; ctx.fillText(cd.name||'',x+38,y+1); x+=46+ctx.measureText(cd.name||'').width+30; }); y+=50; });
   // plate
   const px=0, py=head, pw=W, k=22;
   ctx.beginPath(); ctx.moveTo(px+12,py); ctx.lineTo(px+pw-k,py); ctx.lineTo(px+pw,py+k); ctx.lineTo(px+pw,py+ph-12); ctx.arcTo(px+pw,py+ph,px+pw-12,py+ph,12); ctx.lineTo(px+12,py+ph); ctx.arcTo(px,py+ph,px,py+ph-12,12); ctx.lineTo(px,py+12); ctx.arcTo(px,py,px+12,py,12); ctx.closePath();
@@ -9631,7 +9635,7 @@ function figRenderPlateCompact(f,scale){
     const key=String.fromCharCode(65+i)+(j+1), w=(f.wells||{})[key]||{}, cx=gx+j*cell+cell/2, cy=gy+i*cell+cell/2;
     const cd=condOf(w.c), ln=lnOf(w.l);
     ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fillStyle=cd?cd.color:'#FFFFFF'; ctx.fill();
-    ctx.lineWidth=ln?Math.max(3,r*.13):1.5; ctx.strokeStyle=ln?ln.color:'#C9CED5'; ctx.stroke();
+    ctx.lineWidth=ln&&lns.length>1?2.5:1.5; ctx.strokeStyle=ln&&lns.length>1?ln.color:(cd?'rgba(0,0,0,.28)':'#C9CED5'); ctx.stroke();
     const rows=[ln&&lns.length>1?ln.line.patientId:'', w.t||(cd?short(cd):'')].filter(Boolean);
     if(rows.length){ const ink=cd?figInk(cd.color):'#1F2328', max=r*1.7, base=Math.min(30,r*.5);
       const sizes=rows.map(t=>figFit(ctx,t,max,base,700,10));
