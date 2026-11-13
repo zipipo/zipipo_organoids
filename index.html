@@ -5168,6 +5168,7 @@ let sbFiles = []; // {id, fname, srcCanvas, w, h, thumb, lineId, mag}
 
 function openSbarModal(){
   const di=document.getElementById('sbDate');
+  { const el=document.getElementById('sbAutoMag'); if(el&&!el.dataset.init){ el.dataset.init='1'; let v='1'; try{ v=localStorage.getItem('sbAutoMag')??'1'; }catch(e){} el.checked=v!=='0'; } }
   if(!di.value) di.valueAsDate=new Date();
   if(!window._sbWired){
     const drop=document.getElementById('sbDrop'), inp=document.getElementById('sbInput');
@@ -5307,10 +5308,12 @@ async function handleSbarFiles(fileList){
   if(failed.length) alert('일부 파일을 불러오지 못했습니다:\n'+failed.join('\n'));
 }
 
+// 배율 자동 채우기 (체크 상태는 기기에 기억, 기본은 켬)
+function sbAutoMagOn(){ const el=document.getElementById('sbAutoMag'); return el?el.checked:true; }
 function sbSet(i,k,v){
   if(!sbFiles[i]) return;
   sbFiles[i][k]=v;
-  if(k==='lineId' && v){
+  if(k==='lineId' && v && sbAutoMagOn()){
     // 같은 샘플의 4x/10x/20x를 이어서 올린 경우: 바로 아래 미지정 사진들에 같은 라인 + 다음 배율을 자동으로 채움
     let magIdx=ALL_MAGS.indexOf(sbFiles[i].mag);
     for(let j=i+1;j<sbFiles.length && magIdx<ALL_MAGS.length-1;j++){
@@ -8346,15 +8349,19 @@ function petDrop(a,type){
     it.classList.add('bye'); setTimeout(()=>it.remove(),300); };
   petLayer.appendChild(it);
 }
-// 응가: 앱을 열어 둔 시간과 상관없이 3시간마다 하나씩 쌓인다 (9시간 뒤에 열면 3개). 펫마다 최대 9개
-const POOP_MS=3*3600e3;
+// 응가 · 꽃 주기: 세포마다 36~48시간 사이에서 정해진 주기 (이름(id)으로 정해서 기기가 달라도 같음)
+function petPeriod(id,salt){ let h=2166136261; for(const ch of id+'|'+salt){ h^=ch.charCodeAt(0); h=Math.imul(h,16777619); } return (36+((h>>>0)%1201)/100)*3600e3; }
+// 응가: 앱을 열어 둔 시간과 상관없이 주기마다 하나씩 쌓인다. 펫마다 최대 2개, 화면 전체 최대 6개
+const POOP_MAX=2, POOP_MAX_ALL=6;
 function petPoopTick(a){
   const o=petSt.owned[a.id]; if(!o||!petLayer) return;
+  const P=petPeriod(a.id,'poop');
   if(!o.lastPoop){ o.lastPoop=Date.now(); savePets(); }
-  const n=Math.floor((Date.now()-o.lastPoop)/POOP_MS);
-  if(n>0){ // 화면 전체 응가는 최대 10개
+  if((o.poops||0)>POOP_MAX){ o.poops=POOP_MAX; savePets(); }
+  const n=Math.floor((Date.now()-o.lastPoop)/P);
+  if(n>0){
     const others=petSt.active.filter(id=>id!==a.id).reduce((t,id)=>t+((petSt.owned[id]||{}).poops||0),0);
-    o.poops=Math.max(0,Math.min(9,10-others,(o.poops||0)+n)); o.lastPoop+=n*POOP_MS; savePets(); }
+    o.poops=Math.max(0,Math.min(POOP_MAX,POOP_MAX_ALL-others,(o.poops||0)+n)); o.lastPoop+=n*P; savePets(); }
   const shown=petLayer.querySelectorAll(`.pet-item.poop[data-pet="${a.id}"]:not(.bye)`);
   for(let i=shown.length;i<(o.poops||0);i++) petPoopEl(a);
   for(let i=(o.poops||0);i<shown.length;i++) shown[i].remove();
@@ -8393,7 +8400,7 @@ function petChoose(a,now){
   const r=Math.random(), o=petSt.owned[a.id]||{}, onFloor=a.rot===0;
   const hungry=Date.now()-(o.fedTs||0)>6*3600e3;
   if(!a.pinned && r<.5){ a.mode='walk'; a.target=a.s+(Math.random()<.5?-1:1)*(120+Math.random()*420); a.dir=a.target>a.s?1:-1; a.until=now+15000; return; }
-  if(onFloor && Date.now()-(o.lastFlower||0)>3600e3 && Math.random()<.35){   // 꽃은 1시간에 1번쯤
+  if(onFloor && Date.now()-(o.lastFlower||0)>petPeriod(a.id,'flower') && Math.random()<.35){   // 꽃도 세포마다 36~48시간에 1번
     a.mode='idle'; a.until=now+2600; o.lastFlower=Date.now(); savePets();
     setTimeout(()=>{ if(!petSt.hidden){ petDrop(a,'flower'); petSay(a,petTalk('flower')); } },600); return; }
   if(r<.68){ a.mode='idle'; a.until=now+2500+Math.random()*3000; if(hungry&&Math.random()<.3) petMutter(a,petTalk('hungry')); }
@@ -8814,6 +8821,7 @@ if(curTab==='ana'||curTab==='diary') setTab(curTab,true);
         <div><label>바 색상</label><select id="sbColor" onchange="renderSbarList()" style="height:32px;width:auto;"><option value="#000000" selected>검정</option><option value="#ffffff">흰색</option></select></div>
         <div style="padding-bottom:6px;font-size:.76rem;color:#64748B;">저장 형식 <b>PNG</b></div>
         <div style="padding-bottom:6px;"><label style="display:flex;align-items:center;gap:5px;cursor:pointer;margin:0;"><input type="checkbox" id="sbLabel" checked style="width:auto;"> 100µm 라벨 표시</label></div>
+        <div style="padding-bottom:6px;"><label style="display:flex;align-items:center;gap:5px;cursor:pointer;margin:0;" title="라인을 고르면 바로 아래 사진들에 같은 라인 + 다음 배율(10x, 20x)을 이어서 채워요"><input type="checkbox" id="sbAutoMag" style="width:auto;" onchange="try{localStorage.setItem('sbAutoMag',this.checked?'1':'0')}catch(e){}"> 4x·10x·20x 자동 채우기</label></div>
       </div>
       <input type="date" id="sbDate" hidden>
       <div id="sbDrop" class="sb-drop"><svg class="ic"><use href="#i-image"/></svg>사진을 끌어다 놓거나 클릭<br><span style="font-size:.72rem;color:#A1A1AA;">PNG · JPG · TIFF</span>
