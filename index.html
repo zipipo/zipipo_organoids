@@ -887,10 +887,11 @@ body[data-tab="fig"] .pane[data-pane="fig"]{display:block;animation:paneIn .28s 
 .fg-row2{display:flex;gap:8px;align-items:flex-end;}
 .fg-ck{display:flex;align-items:center;gap:5px;margin:0 0 7px;font-size:.74rem;white-space:nowrap;} .fg-ck input{width:auto;}
 .fg-sub{font-size:.74rem;font-weight:650;margin-top:6px;color:var(--tx);} .fg-sub small,.fg-hint{font-weight:500;color:var(--mut);font-size:.68rem;}
-.fg-logs{display:flex;flex-direction:column;max-height:240px;overflow-y:auto;border:1px solid var(--bd2);border-radius:8px;}
+.fg-logs{display:flex;flex-direction:column;max-height:min(520px,60vh);overflow-y:auto;border:1px solid var(--bd2);border-radius:8px;flex:none;}
 .fg-lg{display:flex;align-items:center;gap:7px;margin:0;padding:5px 8px;font-size:.76rem;cursor:pointer;border-top:1px solid var(--bd2);}
 .fg-lg:first-child{border-top:none;} .fg-lg.on{background:var(--hov);font-weight:600;}
-.fg-lg input{width:auto;} .fg-lg span{color:var(--mut);width:38px;flex:none;font-size:.7rem;} .fg-lg i{width:8px;height:8px;border-radius:50%;flex:none;} .fg-lg small{color:var(--mut);}
+.fg-lg{align-items:flex-start;} .fg-lg input{width:auto;margin-top:2px;} .fg-lg span{color:var(--mut);width:38px;flex:none;font-size:.7rem;margin-top:2px;} .fg-lg i{width:8px;height:8px;border-radius:50%;flex:none;margin-top:5px;}
+.fg-lgt{display:flex;flex-direction:column;gap:1px;min-width:0;} .fg-lgt b{font-weight:600;} .fg-lgt small{color:var(--mut);font-size:.68rem;font-weight:400;line-height:1.35;word-break:break-all;}
 .fg-add{display:flex;gap:6px;} .fg-add input{height:32px;min-width:0;flex:1;} .fg-add input[type=date]{flex:none;width:136px;}
 .fg-items,.fg-conds{display:flex;flex-direction:column;gap:5px;}
 .fg-it,.fg-cd{display:flex;align-items:center;gap:6px;} .fg-it span{font-size:.7rem;color:var(--mut);width:38px;flex:none;}
@@ -9748,7 +9749,8 @@ function figTlEditor(f){
       <div class="fg-row2"><label class="fg-f">Day 0<select onchange="figTlSet('${f.id}','zero',this.value)">${dates.map(d=>`<option${d===(f.zero||dates[0])?' selected':''}>${d}</option>`).join('')||'<option>-</option>'}</select></label>
         <label class="fg-ck"><input type="checkbox" ${f.showDate!==false?'checked':''} onchange="figTlSet('${f.id}','showDate',this.checked)"> 날짜도 표시</label></div>
       <div class="fg-sub">넣을 기록 고르기</div>
-      <div class="fg-logs">${lgs.map(lg=>`<label class="fg-lg${chosen.has(lg.id)?' on':''}"><input type="checkbox" ${chosen.has(lg.id)?'checked':''} onchange="figTlPick('${f.id}','${lg.id}',this.checked)"><span>${lg.date.slice(5).replace('-','/')}</span><i style="background:${figActColor(lg.action)}"></i>${esc(figActLabel(lg))}${lg.details&&!/split/i.test(lg.action)?` <small>${esc(lg.details)}</small>`:''}</label>`).join('')||'<div class="nil">라인을 고르면 기록이 나와요</div>'}</div>
+      <div class="fg-logs">${lgs.map(lg=>{ const memo=[lg.details&&!/split/i.test(lg.action)?lg.details:'',lg.memo||''].filter(Boolean).join(' · ');
+        return `<label class="fg-lg${chosen.has(lg.id)?' on':''}"><input type="checkbox" ${chosen.has(lg.id)?'checked':''} onchange="figTlPick('${f.id}','${lg.id}',this.checked)"><span>${lg.date.slice(5).replace('-','/')}</span><i style="background:${figActColor(lg.action)}"></i><div class="fg-lgt"><b>${esc(figActLabel(lg))}</b>${memo?`<small>${esc(memo)}</small>`:''}</div></label>`; }).join('')||'<div class="nil">라인을 고르면 기록이 나와요</div>'}</div>
       <div class="fg-sub">직접 넣기 (약물 처리 같은 것)</div>
       <div class="fg-add"><input type="date" id="figAddDate" value="${ymdLocal(new Date())}"><input id="figAddLab" placeholder="예: Drug 처리"><button class="btn btn-out" onclick="figTlAdd('${f.id}')">추가</button></div>
       ${(f.items||[]).length?`<div class="fg-sub">들어간 항목 (글자 고치기)</div><div class="fg-items">${f.items.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(it=>`<div class="fg-it"><span>${it.date.slice(5).replace('-','/')}</span>
