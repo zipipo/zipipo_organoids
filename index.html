@@ -840,7 +840,80 @@ body[data-lnf="all"] .sec-lbl{display:block;}
 @keyframes flash{0%{box-shadow:0 0 0 3px rgba(220,190,40,.35);}100%{box-shadow:0 0 0 0 rgba(220,190,40,0);}}
 body[data-tab="ana"] .pane[data-pane="ana"],
 body[data-tab="diary"] .pane[data-pane="diary"],
-body[data-tab="ln2"] .pane[data-pane="ln2"]{display:block;animation:paneIn .28s var(--ease);}
+body[data-tab="ln2"] .pane[data-pane="ln2"],
+body[data-tab="media"] .pane[data-pane="media"]{display:block;animation:paneIn .28s var(--ease);}
+
+
+/* ═══ Media ═══ */
+.md-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:14px;margin-bottom:14px;}
+.md-card .panel-hd span:first-child{display:flex;align-items:center;gap:8px;min-width:0;}
+.md-sw{width:10px;height:10px;border-radius:3px;background:var(--mdc);flex:none;}
+.md-types{font-style:normal;font-size:.72rem;color:var(--mut);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.md-body{padding:12px 14px 14px;}
+.md-rack{display:flex;align-items:flex-end;gap:6px;flex-wrap:wrap;padding:10px 8px 8px;border-radius:10px;background:var(--hov);min-height:150px;}
+.md-t{display:flex;flex-direction:column;align-items:center;gap:3px;border:none;background:none;font:inherit;color:var(--tx);padding:4px 5px;border-radius:8px;cursor:pointer;}
+.md-t:hover{background:var(--sur);}
+.md-t.exp .md-tube{filter:grayscale(.5);}
+.md-t.empty .md-ml{color:var(--mut);}
+.md-tube .md-glass{fill:var(--sur);}
+.md-tube .md-out{fill:none;stroke:var(--sub);stroke-width:1.2;opacity:.55;}
+.md-tube .md-tick{stroke:var(--sub);stroke-width:1;opacity:.35;}
+.md-tube .md-cap{opacity:.95;}
+.md-ml{font-size:.76rem;font-weight:650;line-height:1;}
+.md-ml small{font-weight:500;color:var(--mut);font-size:.64rem;}
+.md-age{font-size:.64rem;color:var(--mut);line-height:1;}
+.md-age b{font-weight:650;}
+.md-bad{color:var(--due);} .md-warn{color:var(--warn);}
+.md-plus{align-self:stretch;justify-content:center;min-width:52px;border:1.5px dashed var(--bd);color:var(--mut);font-size:.72rem;}
+.md-plus .ic{width:16px;height:16px;}
+.md-none{align-self:center;color:var(--mut);font-size:.78rem;padding:0 8px;}
+.md-addf{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-top:10px;padding:10px;border:1px solid var(--bd2);border-radius:8px;font-size:.78rem;}
+.md-addf label{display:flex;align-items:center;gap:5px;margin:0;font-size:.76rem;color:var(--sub);}
+.md-addf input{width:auto;max-width:130px;height:30px;}
+.md-addf input[type=number]{width:64px;}
+.md-calc{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;margin-top:12px;border:1px solid var(--bd2);border-radius:8px;overflow:hidden;background:var(--bd2);}
+.md-calc div{background:var(--sur);padding:8px 10px;display:flex;flex-direction:column;gap:4px;}
+.md-calc small{font-size:.68rem;color:var(--sub);}
+.md-calc b{font-size:1rem;font-weight:650;}
+.md-pill{font-size:.7rem;font-weight:600;padding:2px 8px;border-radius:99px;}
+.md-pill.ok{background:var(--ok-bg);color:var(--ok);} .md-pill.bad{background:var(--due-bg);color:var(--due);}
+.md-sug{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:.78rem;font-weight:600;color:var(--due);}
+.md-miss{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:.74rem;color:var(--warn);}
+.md-body .link-btn{margin-top:8px;}
+.md-det{width:100%;min-width:360px;margin-top:6px;font-size:.74rem;border-collapse:collapse;}
+.md-det td:first-child{word-break:keep-all;}
+.md-det th,.md-det td{padding:4px 6px;border-bottom:1px solid var(--bd2);text-align:left;}
+.md-det th{color:var(--sub);font-weight:600;font-size:.68rem;}
+.md-det tr.miss td{color:var(--warn);}
+.md-empty{padding:22px 16px;color:var(--sub);font-size:.82rem;line-height:1.7;}
+.md-sets{padding:12px 14px 14px;display:flex;flex-direction:column;gap:12px;}
+.md-set{border:1px solid var(--bd2);border-left:4px solid var(--mdc);border-radius:8px;padding:10px 12px;}
+.md-set-hd{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;}
+.md-colors{display:flex;gap:4px;}
+.md-cdot{width:16px;height:16px;border-radius:50%;border:2px solid transparent;padding:0;cursor:pointer;}
+.md-cdot.on{border-color:var(--tx);}
+.md-name{width:180px;height:32px;font-weight:650;}
+.md-pw{display:flex;align-items:center;gap:5px;margin:0;font-size:.76rem;color:var(--sub);}
+.md-pw input{width:52px;height:30px;}
+.md-del{margin-left:auto;color:var(--due);}
+.md-types-pick{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:10px 0 6px;}
+.md-types-pick small{font-size:.72rem;color:var(--sub);margin-right:4px;}
+.md-chip{display:inline-flex;align-items:center;gap:4px;margin:0;font-size:.74rem;padding:3px 9px;border:1px solid var(--bd);border-radius:99px;cursor:pointer;}
+.md-chip input{display:none;}
+.md-chip.on{background:var(--mdc);border-color:var(--mdc);color:#fff;font-weight:600;}
+.md-chip.taken{opacity:.4;cursor:not-allowed;}
+.md-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.md-rows{width:100%;min-width:520px;border-collapse:collapse;font-size:.76rem;}
+.md-rows th{text-align:left;font-size:.68rem;color:var(--sub);font-weight:600;padding:4px;}
+.md-rows td{padding:3px 4px;}
+.md-rows select,.md-rows input{height:30px;width:100%;}
+.md-rows td:last-child{width:30px;}
+.md-set-ft{display:flex;gap:14px;margin-top:6px;}
+@media (max-width:800px){
+  .md-grid{grid-template-columns:1fr;}
+  .md-calc{grid-template-columns:repeat(2,1fr);}
+  .md-name{width:100%;}
+}
 
 /* 작업 분석 */
 .ana-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;}
@@ -1586,6 +1659,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
   <nav class="nav">
     <button class="nav-i" onclick="openNoteModal()"><svg class="ic"><use href="#i-print"/></svg><span>연구노트 인쇄</span></button>
     <button class="nav-i tab" data-tab="ln2" onclick="setTab('ln2')"><svg class="ic"><use href="#i-tank"/></svg><span>LN2 탱크</span></button>
+    <button class="nav-i tab" data-tab="media" onclick="setTab('media')"><svg class="ic"><use href="#i-drop"/></svg><span>Media</span></button>
   </nav>
 
   <div class="nav-sec">현미경 사진</div>
@@ -1742,6 +1816,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
   <div class="pane" data-pane="ana"><div id="anaContent"></div></div>
   <div class="pane" data-pane="diary"><div id="diaryContent"></div></div>
   <div class="pane" data-pane="ln2"><div id="ln2Wrap"></div></div>
+  <div class="pane" data-pane="media"><div id="mediaContent"></div></div>
 </main>
 </div>
 <div class="side-backdrop" onclick="closeSide()"></div>
@@ -1945,6 +2020,8 @@ let _slRecentIds= JSON.parse(localStorage.getItem('orgSlRecent')||'[]');      //
 let _slRecentNotes=JSON.parse(localStorage.getItem('orgSlRecentNotes')||'[]'); // 촬영 순서 기록에서 최근 쓴 특이사항
 let freeSamples=JSON.parse(localStorage.getItem('orgFreeSamples')||'[]');   // 라인 등록 없이 사진만 쓸 때 직접 적는 샘플 { id:'fs_…', name, passage, seedDate, kind:'org'|'d2', updatedTs }
 let typeColors  = JSON.parse(localStorage.getItem('orgTypeColors')) || {};    // 종류(type)별로 직접 고른 색상 { type: PAL 인덱스 }
+let mediaDefs = JSON.parse(localStorage.getItem('orgMediaDefs')||'[]');   // 배지 종류·양 설정 (Media 페이지)
+let mediaTubes= JSON.parse(localStorage.getItem('orgMediaTubes')||'[]');  // 만들어 둔 배지 튜브
 let pptCuts   = JSON.parse(localStorage.getItem('orgPptCuts')) || {};       // PPT 제목 자르기 { JSON[기본, 조각…]: 1 } — 이 조각까지 제목, 뒤는 조건
 function savePptCuts(){ localStorage.setItem('orgPptCuts', JSON.stringify(pptCuts)); cloudPushDebounced(); }
 function saveTypeColors(){ localStorage.setItem('orgTypeColors', JSON.stringify(typeColors)); cloudPushDebounced(); }
@@ -2015,7 +2092,7 @@ let cloudReady=false;      // 로그인 직후 클라우드와 처음 맞추기 
 let cloudApplying=false;   // 받은 데이터를 화면에 반영하는 동안(updateUI→saveData) 다시 올리지 않도록
 let cloudPushing=false, cloudPushAgain=false;
 let cloudBase=null;        // { uid, rev, sig, data } 마지막으로 클라우드와 맞춘 상태
-const SYNC_ARR=['lines','logs','stockChecks','trash','plans','shotSets','shotNotes','freeSamples'];
+const SYNC_ARR=['lines','logs','stockChecks','trash','plans','shotSets','shotNotes','freeSamples','mediaDefs','mediaTubes'];
 const SYNC_OBJ=['tlCollapsed','typeColors','pptCuts','pets','prefs'];
 
 function cloudDocRef(uid){ return fbDb.collection('users').doc(uid).collection('data').doc('appData'); }
@@ -2041,7 +2118,7 @@ function pickSync(d){
 // 깊은 복사: 올리는 도중이나 base로 기억한 뒤에 화면에서 배열을 고쳐도 비교 기준이 같이 바뀌지 않도록
 const syncClone = d => JSON.parse(JSON.stringify(d));
 // 펫은 Google 계정에 같이 저장 (펫 코드가 뒤에 있어서 window._petsOut / _petsIn으로 이어 줌)
-function localSync(){ return syncClone(pickSync({lines,logs,stockChecks,trash,plans,shotSets,shotNotes:_slRecentNotes,freeSamples,tlCollapsed,typeColors,pptCuts,pets:window._petsOut?window._petsOut():{}, prefs:_prefsOut()})); }
+function localSync(){ return syncClone(pickSync({lines,logs,stockChecks,trash,plans,shotSets,shotNotes:_slRecentNotes,freeSamples,mediaDefs,mediaTubes,tlCollapsed,typeColors,pptCuts,pets:window._petsOut?window._petsOut():{}, prefs:_prefsOut()})); }
 // 이니셜처럼 기기마다 다시 입력하기 귀찮은 설정은 계정에 같이 저장
 function _prefsOut(){ const o={}; try{ const v=localStorage.getItem('orgInitials'); if(v) o.ini=v; const fz=localStorage.getItem('orgFontSize'); if(fz) o.size=fz; const ft=localStorage.getItem('orgFont'); if(ft&&ft!=='pretendard') o.font=ft; const ml=localStorage.getItem('orgMyLine'); if(ml) o.myLine=ml; }catch(e){} return o; }
 const syncHas = d => d.lines.length>0 || d.logs.length>0 || d.freeSamples.length>0;
@@ -2138,7 +2215,8 @@ function applySyncData(d){
   cloudApplying=true;
   try{
     lines=d.lines; logs=d.logs; stockChecks=d.stockChecks; trash=d.trash;
-    plans=d.plans; shotSets=d.shotSets; tlCollapsed=d.tlCollapsed; typeColors=d.typeColors; pptCuts=d.pptCuts; _slRecentNotes=d.shotNotes; freeSamples=d.freeSamples;
+    plans=d.plans; shotSets=d.shotSets; tlCollapsed=d.tlCollapsed; typeColors=d.typeColors; pptCuts=d.pptCuts; _slRecentNotes=d.shotNotes; freeSamples=d.freeSamples; mediaDefs=d.mediaDefs; mediaTubes=d.mediaTubes;
+    localStorage.setItem('orgMediaDefs', JSON.stringify(mediaDefs)); localStorage.setItem('orgMediaTubes', JSON.stringify(mediaTubes));
     _logSeq=logs.reduce((m,l)=>Math.max(m,l.seq||0),0);
     localStorage.setItem('orgTrash', JSON.stringify(trash));
     localStorage.setItem('orgTlCollapsed', JSON.stringify(tlCollapsed));
@@ -3512,7 +3590,7 @@ function updateUI(){
   document.getElementById('tlCount').textContent=activeLines.length||'';
   document.getElementById('fnA').textContent=activeLines.length;
   document.getElementById('fnD').textContent=dc;
-  if(window._lateReady){ if(curTab==='ana') renderAnalytics(); if(curTab==='diary') renderDiary(); }
+  if(window._lateReady){ if(curTab==='ana') renderAnalytics(); if(curTab==='diary') renderDiary(); if(curTab==='media') renderMedia(); }
   renderPageSub(); renderSelFab();
   renderTodayLogs(); renderFilterHint(); renderPlanLinkBar();
   updateTrashBadge();
@@ -3535,8 +3613,8 @@ function _idb(){return new Promise((res,rej)=>{const o=indexedDB.open('orgBackup
 async function idbSet(k,v){const db=await _idb();return new Promise((res,rej)=>{const t=db.transaction('kv','readwrite');t.objectStore('kv').put(v,k);t.oncomplete=()=>res();t.onerror=()=>rej(t.error);});}
 async function idbGet(k){const db=await _idb();return new Promise((res,rej)=>{const t=db.transaction('kv','readonly');const r=t.objectStore('kv').get(k);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});}
 
-function bkPayload(){ return JSON.stringify({app:'organoid-log',v:2,exportedAt:new Date().toISOString(),lines,logs,stockChecks}); }
-function bkSig(){ const s=JSON.stringify({lines,logs,stockChecks}); let h=0; for(let i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))|0;} return s.length+':'+h; }
+function bkPayload(){ return JSON.stringify({app:'organoid-log',v:2,exportedAt:new Date().toISOString(),lines,logs,stockChecks,mediaDefs,mediaTubes}); }
+function bkSig(){ const s=JSON.stringify({lines,logs,stockChecks,mediaDefs,mediaTubes}); let h=0; for(let i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))|0;} return s.length+':'+h; }
 
 async function bkPerm(request){
   if(!bkHandle) return false;
@@ -3617,6 +3695,7 @@ async function restoreBackup(ev){
     if(!data||!Array.isArray(data.lines)||!Array.isArray(data.logs)) throw new Error('형식이 올바르지 않습니다.');
     if(!confirm(`백업을 불러오면 지금 기록을 덮어씁니다.\n라인 ${data.lines.length} · 로그 ${data.logs.length}개를 불러올까요?`)) return;
     lines=data.lines; logs=data.logs; stockChecks=Array.isArray(data.stockChecks)?data.stockChecks:[];
+    if(Array.isArray(data.mediaDefs)){ mediaDefs=data.mediaDefs; mediaTubes=Array.isArray(data.mediaTubes)?data.mediaTubes:[]; saveMedia(); }
     localStorage.removeItem('orgBkSig');   // 복원 직후 1회 백업되도록
     saveData(); updateUI();
     toast('백업을 불러왔어요');
@@ -3931,7 +4010,7 @@ function saveDailyLog(){
   const dates =bulkDates.length>0?[...bulkDates]:[document.getElementById('logDate').value].filter(Boolean);
   if(!lineIds.length) return toast('기록할 라인을 먼저 선택하세요.',{warn:true});
   if(!dates.length) return toast('날짜를 확인하세요.',{warn:true});
-  const snap=takeSnap();
+  const snap=takeSnap(), seq0=_logSeq;
 
   lineIds.forEach(lineId=>{
   dates.slice().sort().forEach(date=>{
@@ -3956,7 +4035,8 @@ function saveDailyLog(){
   setAction('Media Change');
   updateUI();previewDay();
   const n=lineIds.length*dates.length;
-  toast(`${action} ${n}건 기록했어요${planMsg}`,{undo:snap});
+  let mdMsg=''; try{ mdMsg=mdUseNote(logs.filter(l=>(l.seq||0)>seq0)); }catch(e){}
+  toast(`${action} ${n}건 기록했어요${planMsg}${mdMsg}`,{undo:snap});
 }
 
 // 타임라인에서 [기록 추가]: 그 라인만 선택한 채로 오늘 작업 탭의 입력 폼으로 이동
@@ -4919,7 +4999,7 @@ try{ curTab=localStorage.getItem('orgTab')||'today'; }catch(e){}
 function recTab(){ try{ return localStorage.getItem('orgRecTab')||'diary'; }catch(e){ return 'diary'; } }
 function setTab(t, instant){
   if(t==='arch'){ t='tl'; setLineFilter('done',true); }   // 예전 [완료된 배양] 탭은 배양 라인의 '완료' 필터로
-  if(!['today','tl','ana','diary','ln2'].includes(t)) t='today';
+  if(!['today','tl','ana','diary','ln2','media'].includes(t)) t='today';
   // 새 라인/라인 수정 창은 다른 탭에 갔다 오면 닫혀 있게
   if(t!=='tl'){ const lf=document.getElementById('lineFormPanel'); if(lf&&lf.style.display!=='none') closeLineModal(); }
   const apply=()=>{
@@ -4929,8 +5009,9 @@ function setTab(t, instant){
     document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.tab===t||(rec&&!!b.dataset.rec)));
     document.querySelectorAll('.rec-sw .seg').forEach(b=>b.classList.toggle('on',b.dataset.r===t));
     if(rec) try{ localStorage.setItem('orgRecTab',t); }catch(e){}
-    document.getElementById('pageTitle').textContent={today:'오늘 작업',tl:'배양 라인',ana:'기록',diary:'기록',ln2:'LN2 탱크'}[t];
+    document.getElementById('pageTitle').textContent={today:'오늘 작업',tl:'배양 라인',ana:'기록',diary:'기록',ln2:'LN2 탱크',media:'Media'}[t];
     if(t==='ln2') openLn2();
+    if(t==='media' && window._lateReady) renderMedia();
     // 분석 · 다이어리 코드는 스크립트 뒤쪽에 있어서, 첫 로딩 때는 스크립트 끝(_lateReady)에서 다시 그린다
     if(t==='ana'){ if(window._lateReady) renderAnalytics(); } else anaTipHide();
     if(t==='diary' && window._lateReady) renderDiary();
@@ -8932,9 +9013,266 @@ if(INCU_ONLY){ document.body.classList.add('incu-only'); document.title='Incubat
   setInterval(()=>{ try{ renderIncubator(); }catch(e){} },60000); }
 function openIncuWindow(){ window.open(location.pathname+'?incubator','ccl_incubator','width=320,height=300'); }
 
+
+// ══════════════════════════════════════════
+//  Media: 배지 설정 · 튜브 보관함 · 계산기
+// ══════════════════════════════════════════
+// mediaDefs : [{id, name, color, types:[라인 종류…], perWeek, rows:[{type:'*'|종류, plate:'*'|plate, mc:ml/well, ma:ml/well}]}]
+// mediaTubes: [{id, mediaId, size:50|15, ml(처음 채운 양), made:'YYYY-MM-DD', set:{left, date, seq}?}]
+// 쓴 양은 따로 저장하지 않고 기록(logs)에서 매번 다시 계산한다 → 기록을 고치거나 지우면 남은 양도 저절로 맞춰짐.
+//  · 쓰는 기록: Media Change(교체 양) · Media Addition(Addition 양) · Split · Reseeding · Seeding(교체 양)
+//  · 양 = 그 기록의 Well 수(없으면 그날 Well 수) × 그 라인 종류·Plate의 ml/well
+//  · 튜브는 먼저 만든 것부터 쓰고, 만든 지 14일이 지난 튜브는 그 뒤 기록에는 안 쓴다 (버릴 배지)
+const MD_EXPIRE=14;
+const MD_COLORS=['#F2A65A','#E27370','#7FB3E6','#79C29A','#B48AD9','#E8C547','#5BB9B0','#E58FB6'];
+function saveMedia(){ localStorage.setItem('orgMediaDefs',JSON.stringify(mediaDefs)); localStorage.setItem('orgMediaTubes',JSON.stringify(mediaTubes)); cloudPushDebounced(); }
+const mdYmd=()=>ymdLocal(new Date());
+const mdDays=(a,b)=>Math.round((new Date(b)-new Date(a))/86400000);
+const mdAddDays=(d,n)=>{ const x=new Date(d); x.setDate(x.getDate()+n); return ymdLocal(x); };
+const mdFmt=v=>String(Math.round((+v||0)*100)/100);
+function mdOfType(type){ return mediaDefs.find(d=>(d.types||[]).includes(type))||null; }
+function mdVol(def,type,plate,kind){
+  const rows=def.rows||[], k=kind==='ma'?'ma':'mc';
+  const tries=[[type,plate],['*',plate],[type,'*'],['*','*']];
+  for(const [t,p] of tries){ const r=rows.find(r=>r.type===t&&r.plate===p&&r[k]!==''&&r[k]!=null&&!isNaN(parseFloat(r[k]))); if(r) return parseFloat(r[k]); }
+  return null;
+}
+function mdKind(a){
+  if(!a) return null;
+  if(a==='Media Addition') return 'ma';
+  if(a==='Media Change'||a==='Reseeding'||isSeed(a)) return 'mc';
+  if(/split/i.test(a)) return 'mc';
+  return null;
+}
+// 기록 하나가 쓴 배지 양 (설정이 없으면 null)
+function mdLogUse(lg){
+  const kind=mdKind(lg.action); if(!kind) return null;
+  const line=lines.find(l=>l.id===lg.lineId); if(!line) return null;
+  const def=mdOfType(line.type); if(!def) return null;
+  const wells=parseInt(lg.finalWells)||wellAt(line,lg.date)||0;
+  const plate=lg.plate||plateAt(line,lg.date)||'';
+  const v=mdVol(def,line.type,plate,kind);
+  return {def,line,kind,wells,plate,v,ml:v==null?null:wells*v};
+}
+// 튜브별 남은 양 계산
+function mdState(){
+  const st={}; // defId -> {tubes:[…], short}
+  mediaDefs.forEach(d=>st[d.id]={tubes:[],short:0});
+  mediaTubes.forEach(t=>{ if(!st[t.mediaId]) return; st[t.mediaId].tubes.push({t,pre:+t.ml||0,post:0}); });
+  Object.values(st).forEach(s=>s.tubes.sort((a,b)=>a.t.made.localeCompare(b.t.made)||String(a.t.id).localeCompare(String(b.t.id))));
+  const ev=[];
+  logs.forEach(lg=>{ const u=mdLogUse(lg); if(u&&u.ml>0&&st[u.def.id]) ev.push({lg,u}); });
+  ev.sort((a,b)=>a.lg.date.localeCompare(b.lg.date)||(a.lg.seq||0)-(b.lg.seq||0));
+  const before=(t,lg)=>!!t.set&&lg.date<=t.set.date&&(lg.seq||0)<=(t.set.seq||0);
+  ev.forEach(({lg,u})=>{
+    const s=st[u.def.id]; if(!s.tubes.length||lg.date<s.tubes[0].t.made) return;   // 튜브 등록 전 기록은 안 셈
+    let need=u.ml;
+    for(const x of s.tubes){
+      if(need<=0) break;
+      if(x.t.made>lg.date) continue;
+      if(lg.date>mdAddDays(x.t.made,MD_EXPIRE)) continue;
+      const b=before(x.t,lg), avail=(x.t.set&&!b)?(x.t.set.left-x.post):x.pre;
+      const take=Math.min(need,Math.max(0,avail)); if(take<=0) continue;
+      if(x.t.set&&!b) x.post+=take; else x.pre-=take;
+      need-=take;
+    }
+    if(need>0.0001) s.short+=need;
+  });
+  const now=mdYmd();
+  Object.values(st).forEach(s=>s.tubes.forEach(x=>{
+    x.left=Math.max(0,x.t.set?x.t.set.left-x.post:x.pre);
+    x.age=mdDays(x.t.made,now); x.expired=x.age>MD_EXPIRE;
+  }));
+  return st;
+}
+// 계산기: 지금 키우는 라인 기준 한 번 교체할 때 드는 양
+function mdCalc(){
+  const st=mdState(), out=[];
+  mediaDefs.forEach(def=>{
+    const rows=[], miss=[];
+    lines.filter(l=>!l.isCompleted&&(def.types||[]).includes(l.type)).forEach(l=>{
+      const w=parseInt(latestWell(l))||0, plate=latestPlate(l)||'';
+      const v=mdVol(def,l.type,plate,'mc');
+      if(v==null) miss.push({l,plate,w}); else rows.push({l,plate,w,v,ml:w*v});
+    });
+    const per=rows.reduce((s,r)=>s+r.ml,0), pw=+def.perWeek||3, week=per*pw;
+    const tubes=(st[def.id]||{tubes:[]}).tubes;
+    const have=tubes.filter(x=>!x.expired).reduce((s,x)=>s+x.left,0);
+    out.push({def,rows,miss,per,pw,week,have,tubes,short:(st[def.id]||{}).short||0,lack:Math.max(0,week-have),changes:per>0?Math.floor(have/per+1e-9):null});
+  });
+  return out;
+}
+
+// ── 튜브 그림 ──
+function mdTubeSVG(x,color){
+  const big=x.t.size==50, W=big?40:28, H=big?132:112, cap=big?14:12, cone=big?22:20, bodyTop=cap+2, bodyH=H-bodyTop-cone;
+  const frac=Math.max(0,Math.min(1,x.left/(x.t.size||50)));
+  const tot=bodyH+cone, fillH=tot*frac, y0=H-fillH;
+  const id='mdc'+x.t.id.replace(/[^a-z0-9]/gi,'');
+  const shape=`M2 ${bodyTop} H${W-2} V${bodyTop+bodyH} L${W/2+3} ${H-1} Q${W/2} ${H+1} ${W/2-3} ${H-1} L2 ${bodyTop+bodyH} Z`;
+  const ticks=[.25,.5,.75].map(f=>{ const y=H-tot*f; return `<line x1="${W-11}" x2="${W-3}" y1="${y}" y2="${y}" class="md-tick"/>`; }).join('');
+  return `<svg class="md-tube" width="${W}" height="${H+2}" viewBox="0 0 ${W} ${H+2}" aria-hidden="true">
+    <defs><clipPath id="${id}"><path d="${shape}"/></clipPath></defs>
+    <path d="${shape}" class="md-glass"/>
+    <rect x="0" y="${y0}" width="${W}" height="${fillH+2}" fill="${color}" opacity="${x.expired?.35:.85}" clip-path="url(#${id})"/>
+    ${frac>0?`<rect x="0" y="${y0}" width="${W}" height="2" fill="#fff" opacity=".45" clip-path="url(#${id})"/>`:''}
+    ${ticks}
+    <path d="${shape}" class="md-out"/>
+    <rect x="0" y="0" width="${W}" height="${cap}" rx="3" fill="${color}" class="md-cap"/>
+  </svg>`;
+}
+
+let _mdAdd=null, _mdOpenCalc={};
+function renderMedia(){
+  const el=document.getElementById('mediaContent'); if(!el) return;
+  const calc=mdCalc(), now=mdYmd();
+  const types=[...new Set(lines.map(l=>l.type).filter(Boolean))].sort();
+  const usedPlates=[...new Set(lines.filter(l=>!l.isCompleted).map(l=>latestPlate(l)).filter(Boolean))];
+  const plates=[...new Set([...PLATE_TYPES,...usedPlates])];
+  if(!mediaDefs.length){
+    el.innerHTML=`<section class="panel sec"><div class="panel-hd"><span><i class="sec-ic">${ic('drop')}</i>Media</span></div>
+      <div class="md-empty">아직 등록한 배지가 없어요.<br>배지 이름(EM 같은)과 이 배지를 쓰는 라인 종류, plate별 well당 양을 적어 두면<br>만들어 둔 튜브에서 쓴 만큼 자동으로 빠지고, 1주일에 얼마나 필요한지 계산해 줘요.
+      <div style="margin-top:12px;"><button class="btn btn-pri" onclick="mdNewDef()">${ic('plus')}배지 추가</button></div></div></section>`;
+    return;
+  }
+  // 1) 보관함 + 계산기 (배지마다 한 칸)
+  const cards=calc.map(c=>{
+    const d=c.def, col=d.color||MD_COLORS[0];
+    const tubes=c.tubes.map(x=>{
+      const exp=mdAddDays(x.t.made,MD_EXPIRE), dleft=mdDays(now,exp);
+      const tag=x.expired?`<b class="md-bad">2주 지남</b>`:dleft<=3?`<b class="md-warn">${dleft<=0?'오늘까지':dleft+'일 남음'}</b>`:`<span>D+${x.age}</span>`;
+      return `<button class="md-t${x.expired?' exp':''}${x.left<=0.0001?' empty':''}" onclick="mdTubeMenu('${x.t.id}',this)" title="${esc(d.name)} ${x.t.size} ml 튜브 · ${x.t.made} 만듦 · 눌러서 고치기">
+        ${mdTubeSVG(x,col)}<b class="md-ml">${mdFmt(x.left)}<small>/${x.t.size} ml</small></b><span class="md-age">${tag}</span></button>`;
+    }).join('');
+    const add=_mdAdd===d.id?`<div class="md-addf">
+        <div class="seg-group md-sz"><button class="seg on" data-sz="50" onclick="mdSz(this)">50 ml</button><button class="seg" data-sz="15" onclick="mdSz(this)">15 ml</button></div>
+        <label>채운 양<input type="number" id="mdAddMl" value="50" min="0" step="0.5"> ml</label>
+        <label>만든 날<input type="date" id="mdAddDate" value="${now}"></label>
+        <label>개수<input type="number" id="mdAddN" value="1" min="1" max="20"></label>
+        <button class="btn btn-pri" onclick="mdAddTube('${d.id}')">추가</button><button class="btn btn-out" onclick="_mdAdd=null;renderMedia()">취소</button></div>`:'';
+    const st=c.per<=0?'':c.lack>0?`<span class="md-pill bad">1주일치 ${mdFmt(c.lack)} ml 부족</span>`:`<span class="md-pill ok">1주일치 충분</span>`;
+    const sug=c.lack>0?(()=>{ const n50=Math.floor(c.lack/50), r=c.lack-n50*50; const parts=[]; let a=n50, b=0; if(r>15) a++; else if(r>0) b=1; if(a) parts.push(`50 ml ${a}개`); if(b) parts.push(`15 ml ${b}개`); return `<div class="md-sug">${ic('drop','ic-sm')}${parts.join(' + ')} 더 만들면 1주일 버텨요</div>`; })():'';
+    const det=_mdOpenCalc[d.id]?`<div class="md-scroll"><table class="md-det"><thead><tr><th>라인</th><th>Plate</th><th>Well</th><th>ml/well</th><th>한 번</th></tr></thead><tbody>
+        ${c.rows.map(r=>`<tr><td>${esc(lineTag(r.l))}</td><td>${esc(r.plate||'-')}</td><td>${r.w}</td><td>${mdFmt(r.v)}</td><td><b>${mdFmt(r.ml)} ml</b></td></tr>`).join('')}
+        ${c.miss.map(r=>`<tr class="miss"><td>${esc(lineTag(r.l))}</td><td>${esc(r.plate||'plate 없음')}</td><td>${r.w}</td><td colspan="2">양 미설정 → 아래 배지 설정에서 채워 주세요</td></tr>`).join('')}
+        </tbody></table></div>`:'';
+    return `<section class="panel sec md-card" style="--mdc:${col}">
+      <div class="panel-hd"><span><i class="md-sw"></i>${esc(d.name||'(이름 없음)')}<em class="md-types">${(d.types||[]).map(esc).join(' · ')||'쓰는 종류 없음'}</em></span>
+        <span class="panel-act">${st}</span></div>
+      <div class="md-body">
+        <div class="md-rack">${tubes||'<div class="md-none">튜브가 없어요</div>'}
+          <button class="md-t md-plus" onclick="_mdAdd='${d.id}';renderMedia()" title="튜브 추가">${ic('plus')}<span>튜브</span></button></div>
+        ${add}
+        <div class="md-calc">
+          <div><small>한 번 교체</small><b>${mdFmt(c.per)} ml</b></div>
+          <div><small>1주일 (${c.pw}번)</small><b>${mdFmt(c.week)} ml</b></div>
+          <div><small>가진 양</small><b>${mdFmt(c.have)} ml</b></div>
+          <div><small>버틸 수 있는 교체</small><b>${c.changes==null?'-':c.changes+'번'}</b></div>
+        </div>
+        ${sug}
+        ${c.miss.length?`<div class="md-miss">${ic('alert','ic-sm')}양이 안 정해진 라인 ${c.miss.length}개는 계산에서 빠졌어요</div>`:''}
+        ${c.short>0.0001?`<div class="md-miss">${ic('alert','ic-sm')}튜브가 모자라서 기록 ${mdFmt(c.short)} ml는 어느 튜브에서도 못 뺐어요 (튜브를 더 등록하거나 남은 양을 고쳐 주세요)</div>`:''}
+        <button class="link-btn" onclick="_mdOpenCalc['${d.id}']=!_mdOpenCalc['${d.id}'];renderMedia()">${_mdOpenCalc[d.id]?'라인별 계산 접기':'라인별 계산 보기'}</button>
+        ${det}
+      </div></section>`;
+  }).join('');
+  // 2) 배지 설정
+  const opt=(arr,v,all)=>`<option value="*"${v==='*'?' selected':''}>${all}</option>`+arr.map(x=>`<option${x===v?' selected':''}>${esc(x)}</option>`).join('');
+  const sets=mediaDefs.map(d=>{
+    const others=new Set(mediaDefs.filter(o=>o.id!==d.id).flatMap(o=>o.types||[]));
+    return `<div class="md-set" style="--mdc:${d.color||MD_COLORS[0]}">
+      <div class="md-set-hd">
+        <span class="md-colors">${MD_COLORS.map(c=>`<button class="md-cdot${c===d.color?' on':''}" style="background:${c}" onclick="mdSetDef('${d.id}','color','${c}')" title="색"></button>`).join('')}</span>
+        <input class="md-name" value="${esc(d.name||'')}" placeholder="배지 이름 (예: EM)" onchange="mdSetDef('${d.id}','name',this.value.trim())">
+        <label class="md-pw">1주일에 <input type="number" min="1" max="14" value="${+d.perWeek||3}" onchange="mdSetDef('${d.id}','perWeek',Math.max(1,parseInt(this.value)||3))"> 번 교체</label>
+        <button class="link-btn md-del" onclick="mdDelDef('${d.id}')">배지 삭제</button>
+      </div>
+      <div class="md-types-pick"><small>이 배지를 쓰는 종류</small>${types.map(t=>{ const on=(d.types||[]).includes(t), taken=!on&&others.has(t);
+        return `<label class="md-chip${on?' on':''}${taken?' taken':''}" title="${taken?'다른 배지에 이미 들어 있어요':''}"><input type="checkbox" ${on?'checked':''} ${taken?'disabled':''} onchange="mdToggleType('${d.id}',${JSON.stringify(t).replace(/"/g,'&quot;')},this.checked)">${esc(t)}</label>`; }).join('')||'<span class="nil">라인을 먼저 등록하세요</span>'}</div>
+      <div class="md-scroll"><table class="md-rows"><thead><tr><th>종류</th><th>Plate</th><th>교체 (ml/well)</th><th>Addition (ml/well)</th><th></th></tr></thead><tbody>
+        ${(d.rows||[]).map((r,i)=>`<tr>
+          <td><select onchange="mdSetRow('${d.id}',${i},'type',this.value)">${opt(d.types||[],r.type,'모든 종류')}</select></td>
+          <td><select onchange="mdSetRow('${d.id}',${i},'plate',this.value)">${opt(plates,r.plate,'모든 plate')}</select></td>
+          <td><input type="number" min="0" step="0.05" value="${r.mc??''}" placeholder="-" onchange="mdSetRow('${d.id}',${i},'mc',this.value)"></td>
+          <td><input type="number" min="0" step="0.05" value="${r.ma??''}" placeholder="-" onchange="mdSetRow('${d.id}',${i},'ma',this.value)"></td>
+          <td><button class="tbl-btn" onclick="mdDelRow('${d.id}',${i})" title="행 삭제">${ic('x','ic-sm')}</button></td></tr>`).join('')}
+      </tbody></table></div>
+      <div class="md-set-ft"><button class="link-btn" onclick="mdAddRow('${d.id}')">+ 행 추가</button>
+        <button class="link-btn" onclick="mdFillRows('${d.id}')">지금 키우는 종류·plate 채우기</button></div>
+    </div>`;
+  }).join('');
+  el.innerHTML=`<div class="md-grid">${cards}</div>
+    <section class="panel sec"><div class="panel-hd"><span><i class="sec-ic">${ic('sliders')}</i>배지 설정</span><span class="panel-act"><button class="link-btn" onclick="mdNewDef()">+ 배지 추가</button></span></div>
+      <div class="md-sets">${sets}
+      <div class="hint" style="margin:4px 2px 0;line-height:1.6;">· 한 라인 종류는 배지 하나에만 넣을 수 있어요. 같은 종류라도 plate마다 양이 다르면 plate별로 행을 나눠 주세요.<br>
+      · 같은 조합에 행이 여러 개면 <b>종류+plate</b> → <b>모든 종류+plate</b> → <b>종류+모든 plate</b> → <b>모두</b> 순서로 찾아요.<br>
+      · Media Change · Split · Reseeding · Seeding은 교체 양, Media Addition은 Addition 양만큼 먼저 만든 튜브부터 빠져요. 만든 지 ${MD_EXPIRE}일 지난 튜브는 그 뒤로는 안 써요.</div></div></section>`;
+}
+function mdNewDef(){ const used=new Set(mediaDefs.map(d=>d.color)); mediaDefs.push({id:uid(),name:'',color:MD_COLORS.find(c=>!used.has(c))||MD_COLORS[0],types:[],perWeek:3,rows:[{type:'*',plate:'*',mc:'',ma:''}]}); saveMedia(); renderMedia(); setTimeout(()=>{ const i=[...document.querySelectorAll('.md-name')].pop(); if(i) i.focus(); },50); }
+function mdDef(id){ return mediaDefs.find(d=>d.id===id); }
+function mdSetDef(id,k,v){ const d=mdDef(id); if(!d) return; d[k]=v; saveMedia(); renderMedia(); }
+function mdDelDef(id){ const d=mdDef(id); if(!d) return; const n=mediaTubes.filter(t=>t.mediaId===id).length; if(!confirm(`${d.name||'이 배지'}를 지울까요?${n?`\n등록된 튜브 ${n}개도 같이 지워져요.`:''}`)) return; mediaDefs=mediaDefs.filter(x=>x.id!==id); mediaTubes=mediaTubes.filter(t=>t.mediaId!==id); saveMedia(); renderMedia(); }
+function mdToggleType(id,t,on){ const d=mdDef(id); if(!d) return; d.types=(d.types||[]).filter(x=>x!==t); if(on) d.types.push(t); saveMedia(); renderMedia(); }
+function mdSetRow(id,i,k,v){ const d=mdDef(id); if(!d||!d.rows[i]) return; d.rows[i][k]=(k==='mc'||k==='ma')?(v===''?'':parseFloat(v)):v; saveMedia(); renderMedia(); }
+function mdAddRow(id){ const d=mdDef(id); if(!d) return; d.rows=d.rows||[]; d.rows.push({type:'*',plate:'*',mc:'',ma:''}); saveMedia(); renderMedia(); }
+function mdDelRow(id,i){ const d=mdDef(id); if(!d) return; d.rows.splice(i,1); saveMedia(); renderMedia(); }
+function mdFillRows(id){
+  const d=mdDef(id); if(!d) return; if(!(d.types||[]).length) return toast('먼저 이 배지를 쓰는 종류를 골라 주세요.',{warn:true});
+  let n=0;
+  lines.filter(l=>!l.isCompleted&&d.types.includes(l.type)).forEach(l=>{ const p=latestPlate(l)||'*';
+    if(!d.rows.some(r=>r.type===l.type&&r.plate===p)&&mdVol(d,l.type,p,'mc')==null){ d.rows.push({type:l.type,plate:p,mc:'',ma:''}); n++; } });
+  saveMedia(); renderMedia(); toast(n?`양이 비어 있는 조합 ${n}개를 추가했어요. ml/well을 채워 주세요.`:'채울 조합이 없어요. 지금 라인은 모두 양이 정해져 있어요.');
+}
+function mdSz(b){ b.parentElement.querySelectorAll('.seg').forEach(x=>x.classList.toggle('on',x===b)); const i=document.getElementById('mdAddMl'); if(i) i.value=b.dataset.sz; }
+function mdAddTube(id){
+  const sz=+(document.querySelector('.md-sz .seg.on')||{dataset:{sz:50}}).dataset.sz;
+  const ml=Math.min(sz,Math.max(0,parseFloat(document.getElementById('mdAddMl').value)||0));
+  const made=document.getElementById('mdAddDate').value||mdYmd(), n=Math.max(1,Math.min(20,parseInt(document.getElementById('mdAddN').value)||1));
+  for(let i=0;i<n;i++) mediaTubes.push({id:uid(),mediaId:id,size:sz,ml,made});
+  _mdAdd=null; saveMedia(); renderMedia(); toast(`${(mdDef(id)||{}).name||'배지'} ${sz} ml 튜브 ${n}개를 넣었어요`);
+}
+function mdTubeMenu(tid,btn){
+  petPopClose && petPopClose();
+  const t=mediaTubes.find(x=>x.id===tid); if(!t) return;
+  const r=btn.getBoundingClientRect(), m=document.createElement('div'); m.id='petPop'; m.className='pet-pop';
+  m.innerHTML=`<b>${esc((mdDef(t.mediaId)||{}).name||'')} ${t.size} ml · ${t.made} 만듦</b>
+    <button onclick="petPopClose();mdSetLeft('${tid}')">${ic('edit')}남은 양 직접 고치기</button>
+    <button onclick="petPopClose();mdSetLeft('${tid}',0)">${ic('check')}다 썼어요 (0 ml)</button>
+    <button onclick="petPopClose();mdDelTube('${tid}')">${ic('trash')}튜브 삭제</button>`;
+  document.body.appendChild(m);
+  const mw=m.offsetWidth, mh=m.offsetHeight;
+  m.style.left=Math.max(8,Math.min(innerWidth-mw-8,r.left+r.width/2-mw/2))+'px';
+  m.style.top=Math.max(8,Math.min(innerHeight-mh-8,r.bottom+6))+'px';
+  setTimeout(()=>document.addEventListener('pointerdown',function off(e){ if(!m.contains(e.target)){ petPopClose(); document.removeEventListener('pointerdown',off); } }),0);
+}
+function mdSetLeft(tid,val){
+  const t=mediaTubes.find(x=>x.id===tid); if(!t) return;
+  if(val==null){ const cur=((mdState()[t.mediaId]||{tubes:[]}).tubes.find(x=>x.t.id===tid)||{}).left; const v=prompt(`지금 이 튜브에 남은 양 (ml, 최대 ${t.size})`, cur!=null?mdFmt(cur):''); if(v===null) return; val=parseFloat(v); if(isNaN(val)) return; }
+  t.set={left:Math.max(0,Math.min(t.size,val)),date:mdYmd(),seq:_logSeq||0};
+  saveMedia(); renderMedia();
+}
+function mdDelTube(tid){ if(!confirm('이 튜브를 지울까요?')) return; mediaTubes=mediaTubes.filter(x=>x.id!==tid); saveMedia(); renderMedia(); }
+// 기록 저장 뒤 토스트에 붙일 한 줄: 방금 기록이 쓴 배지 양과 남은 양
+function mdUseNote(newLogs){
+  if(!mediaTubes.length) return '';
+  const by={};
+  newLogs.forEach(lg=>{ const u=mdLogUse(lg); if(u&&u.ml>0&&mediaTubes.some(t=>t.mediaId===u.def.id)) by[u.def.id]=(by[u.def.id]||0)+u.ml; });
+  const ids=Object.keys(by); if(!ids.length) return '';
+  const st=mdState();
+  return ' · '+ids.map(id=>{ const left=(st[id]||{tubes:[]}).tubes.filter(x=>!x.expired).reduce((s,x)=>s+x.left,0); return `${mdDef(id).name||'배지'} ${mdFmt(by[id])} ml 사용 (남은 ${mdFmt(left)} ml)`; }).join(' · ');
+}
+if(DEMO && !mediaDefs.length){
+  mediaDefs=[
+    {id:'md_em',name:'EM',color:'#F2A65A',types:['Tumor-org','PHH-org'],perWeek:3,rows:[{type:'*',plate:'48 well plate',mc:0.25,ma:0.1},{type:'*',plate:'24 well plate',mc:0.5,ma:0.2},{type:'*',plate:'12 well plate',mc:1,ma:0.4},{type:'*',plate:'6 well plate',mc:2,ma:0.8}]},
+    {id:'md_dm',name:'DMEM 10% FBS',color:'#7FB3E6',types:['Cell line'],perWeek:2,rows:[{type:'*',plate:'T75 flask',mc:12,ma:''}]}];
+  const d0=new Date(); const ago=n=>{ const x=new Date(d0); x.setDate(x.getDate()-n); return ymdLocal(x); };
+  mediaTubes=[{id:'mt1',mediaId:'md_em',size:50,ml:50,made:ago(9)},{id:'mt2',mediaId:'md_em',size:50,ml:50,made:ago(3)},{id:'mt3',mediaId:'md_em',size:15,ml:15,made:ago(1)},
+    {id:'mt4',mediaId:'md_dm',size:50,ml:50,made:ago(16)},{id:'mt5',mediaId:'md_dm',size:50,ml:50,made:ago(6)}];
+}
+
 // 스크립트를 끝까지 읽은 뒤에야 분석 · 다이어리를 그릴 수 있다 (setTab 참고)
 window._lateReady=true;
-if(curTab==='ana'||curTab==='diary') setTab(curTab,true);
+if(curTab==='ana'||curTab==='diary'||curTab==='media') setTab(curTab,true);
 </script>
 
 <div id="sbarModal" class="modal">
