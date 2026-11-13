@@ -6223,7 +6223,7 @@ async function handlePptFiles(fileList){
 // 따로 한 장: 맨 앞에 figure 한 장짜리 슬라이드 / 사진 칸에: 슬라이드 고치기의 「안 넣은 사진」에 나와서 사진 옆 칸에 끌어 넣음
 // 사진 슬라이드에: Plate map은 오른쪽 아래(사진 칸은 그만큼 왼쪽으로), Experiment Schedule은 제목 줄 오른쪽에 작게
 let pptFigSel={}, pptFigTarget={}; const _pptFigCache={};
-const PPT_OV_W=8.6;   // 오른쪽 아래 plate 자리 폭(cm)
+const PPT_OV_W=8.6;   // 오른쪽 plate 자리 폭(cm)
 function pptFigEntry(id){
   const f=typeof figById==='function'&&figById(id); if(!f) return null;
   const compact=pptFigSel[id]==='slide', ck=f.updated+'|'+compact;
@@ -6264,7 +6264,7 @@ function renderPptFigs(){
       return `<div class="pf-row${v?' on':''}"><img src="${figThumb(f)}" alt=""><div class="pf-nm"><b title="${esc(f.name||'')}">${esc(f.name||'')}</b><small>${f.kind==='plate'?'Plate map':'Experiment Schedule'}</small></div>
         <div class="seg-group pf-seg">${[['','안 넣음'],['slide','사진 슬라이드에'],['page','따로 한 장']].map(([k,t])=>`<button class="seg${v===k?' on':''}" onclick="pptSetFig('${f.id}','${k}')">${t}</button>`).join('')}</div>
         ${v==='slide'?`<select class="pf-tgt" onchange="pptSetFigTarget('${f.id}',this.value)">${pptFigTargetOpts(f.id)}</select>`:''}</div>`; }).join('')}</div>
-    <div class="pf-hint">· <b>사진 슬라이드에</b>: Plate map은 사진 슬라이드 <b>오른쪽 아래</b>에 plate만 (위에 라인 · P · 날짜 · 조건 글씨), Experiment Schedule은 <b>제목 줄 오른쪽</b>에 작게 들어가요. 넣을 장은 같은 환자 첫 장이 기본이고 바꿀 수 있어요<br>· <b>따로 한 장</b>: 사진 슬라이드 앞에 figure만 크게 한 장</div>`
+    <div class="pf-hint">· <b>사진 슬라이드에</b>: Plate map은 사진 슬라이드 <b>오른쪽 위</b>에 plate만 (위에 라인 · P · 날짜 · 조건 글씨), Experiment Schedule은 <b>제목 줄 오른쪽</b>에 작게 들어가요. 넣을 장은 같은 환자 첫 장이 기본이고 바꿀 수 있어요<br>· <b>따로 한 장</b>: 사진 슬라이드 앞에 figure만 크게 한 장</div>`
     :`<div class="pf-hint">왼쪽 도구 → PPT figure에서 Experiment Schedule · Plate map을 만들면 여기서 골라 넣을 수 있어요.</div>`}</details>`;
 }
 function pptRemove(i){ pptFiles.splice(i,1); renderPptList(); }
@@ -7121,9 +7121,9 @@ function pptRenderPage(D,p,th){
   if(p.ovTl){ const f=p.ovTl, full=PPTG.slideW-2*PPTG.marginX, bottom=p.noTitle?2.6+PPTG.noTitleTop-0.15:PPTG.ruleY+pptHdx(p)-0.12, maxH=bottom-0.25;
     let w=full*0.6, h=w*f.aspect; if(h>maxH){ h=maxH; w=h/f.aspect; }
     D.image(f,PPTG.slideW-PPTG.marginX-w,bottom-h,w,h); if(!p.noTitle) pptTitleW=full-w-0.4; }
-  // Plate map: 오른쪽 아래
+  // Plate map: 오른쪽 위 (사진 칸과 같은 높이에서 시작)
   if(p.ovPlate){ const f=p.ovPlate, top=pptGridTop(p), maxH=PPTG.slideH-top-PPTG.bottomMargin; let w=PPT_OV_W, h=w*f.aspect; if(h>maxH){ h=maxH; w=h/f.aspect; }
-    D.image(f,PPTG.slideW-PPTG.gridX-w,PPTG.slideH-PPTG.bottomMargin-h,w,h); }
+    D.image(f,PPTG.slideW-PPTG.gridX-w,top,w,h); }
   if(ms){ const w=(PPTG.slideW-2*PPTG.marginX)*0.4;
     D.text(ms.join('  →  '),PPTG.slideW-PPTG.marginX-w,PPTG.titleTop,w,PPTG.titleH,{fontSize:11,color:th.sub,align:'right',valign:'top'}); }
   if(p.kind==='matrix') pptDrawMatrix(D,p,th);
@@ -9144,7 +9144,7 @@ setTimeout(async()=>{ if(!mailUser()||!fbDb) return; try{ const q=await fbDb.col
 //  새 기능을 올릴 때 NEWS의 id · date · items만 바꾸면 됨
 // ══════════════════════════════════════════
 const NEWS={id:'2026-11-13b', date:'2026-11-13', days:5, items:[
-  ['slides','<b>PPT figure</b> · 왼쪽 도구 → PPT figure. 기록을 골라 Experiment Schedule, well을 끌거나 Shift로 골라 칠해서 Plate map. 계정에 저장돼서 나중에 골라서 PPT로 한꺼번에, 이미지 복사 · PNG도. 사진 <b>PPT 만들기</b> 위쪽에서 고르면 Plate map은 사진 슬라이드 오른쪽 아래, Experiment Schedule은 제목 줄 오른쪽에 (따로 한 장도 가능)'],
+  ['slides','<b>PPT figure</b> · 왼쪽 도구 → PPT figure. 기록을 골라 Experiment Schedule, well을 끌거나 Shift로 골라 칠해서 Plate map. 계정에 저장돼서 나중에 골라서 PPT로 한꺼번에, 이미지 복사 · PNG도. 사진 <b>PPT 만들기</b> 위쪽에서 고르면 Plate map은 사진 슬라이드 오른쪽 위, Experiment Schedule은 제목 줄 오른쪽에 크게 (따로 한 장도 가능)'],
   ['tank','<b>LN2 해동</b> · LN2 탱크 검색에서 vial의 「해동 → 새 라인」을 누르면 새 라인 칸이 채워져요. Stock 넣을 때 이름은 환자번호_종류로 (점선 칸을 눌러 고치기)'],
   ['drop','<b>Media</b> · 왼쪽 도구 → Media. 배지별 plate당 양을 적어 두면 만든 튜브(50 · 15 ml)에서 쓴 만큼 자동으로 빠지고, 1주일에 얼마나 필요한지 계산'],
   ['alert','<b>Reseeding 필요</b> · 오늘 작업 숫자 칸에 day14 지난 라인 수, 배양 현황에는 「지연」 표시'],
