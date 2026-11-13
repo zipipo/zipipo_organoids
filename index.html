@@ -905,6 +905,8 @@ body[data-tab="fig"] .pane[data-pane="fig"]{display:block;animation:paneIn .28s 
 .fg-chip{display:inline-flex;align-items:center;border:1px solid var(--bd);border-radius:99px;overflow:hidden;}
 .fg-chip button{border:none;background:none;font:inherit;font-size:.74rem;padding:4px 8px;cursor:pointer;display:flex;align-items:center;gap:5px;color:var(--tx);}
 .fg-chip button:hover{background:var(--hov);} .fg-chip .x{padding:4px 7px 4px 2px;color:var(--mut);}
+.fg-chip .rc{padding:4px 2px 4px 8px;} .fg-cpop{width:300px;} .fg-cpop .cc-swatches{display:flex;flex-wrap:wrap;gap:5px;padding:4px 6px 6px;}
+.fg-cpop .cc-sw{width:22px;height:22px;padding:0;flex:none;display:block;border-radius:50%;}
 .fg-chip .ring{width:11px;height:11px;border-radius:50%;border:3px solid var(--rc);box-sizing:border-box;}
 .fg-addsel{height:28px;width:auto;max-width:100%;min-width:0;font-size:.74rem;}
 .fg-side{overflow-x:hidden;} .fg-side>*{min-width:0;}
@@ -9733,7 +9735,7 @@ function figTlEditor(f){
       <div class="fg-sub">직접 넣기 (약물 처리 같은 것)</div>
       <div class="fg-add"><input type="date" id="figAddDate" value="${ymdLocal(new Date())}"><input id="figAddLab" placeholder="예: Drug 처리"><button class="btn btn-out" onclick="figTlAdd('${f.id}')">추가</button></div>
       ${(f.items||[]).length?`<div class="fg-sub">들어간 항목 (글자 고치기)</div><div class="fg-items">${f.items.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(it=>`<div class="fg-it"><span>${it.date.slice(5).replace('-','/')}</span>
-        <button class="fg-dot" style="background:${it.color}" onclick="figTlColor('${f.id}','${it.id}')" title="색 바꾸기"></button>
+        <button class="fg-dot" style="background:${it.color}" onclick="figTlColorPick(this,'${f.id}','${it.id}')" title="색 고르기"></button>
         <input value="${esc(it.label)}" onchange="figTlLab('${f.id}','${it.id}',this.value)"><button class="tbl-btn" onclick="figTlDel('${f.id}','${it.id}')">${ic('x','ic-sm')}</button></div>`).join('')}</div>`:''}
     </div>
     <div class="fg-main"><div id="figPrev" class="fg-prev"></div></div></div>`;
@@ -9769,11 +9771,11 @@ function figPlateEditor(f){
       <div class="fg-sub">① well을 끌어서 고르고 <small>(Shift: 이어서 범위 더하기 · Ctrl: 한 칸씩)</small> <span class="fg-hint">${_figSel.size?`${_figSel.size}칸 골랐어요`:'아직 안 골랐어요'}</span></div>
       <div class="fg-btns"><button class="tbl-btn" onclick="figSelAll('${f.id}')">전체</button><button class="tbl-btn" onclick="_figSel.clear();renderFig()">선택 풀기</button><button class="tbl-btn" onclick="figClearSel('${f.id}')">고른 칸 비우기</button></div>
       <div class="fg-sub">② 라인 누르기 <small>(well 테두리 색)</small></div>
-      <div class="fg-chips">${(f.lines||[]).map(x=>{ const L=figLn(x,date); return L?`<span class="fg-chip" style="--rc:${x.color}"><button onclick="figAssign('${f.id}','l','${x.id}')"><i class="ring"></i>${esc(L.tag)}${x.custom?' <small>(직접)</small>':''}</button><button class="x" onclick="figPlLineDel('${f.id}','${x.id}')" title="빼기">×</button></span>`:''; }).join('')}
+      <div class="fg-chips">${(f.lines||[]).map(x=>{ const L=figLn(x,date); return L?`<span class="fg-chip" style="--rc:${x.color}"><button class="rc" onclick="figLineColorPick(this,'${f.id}','${x.id}')" title="테두리 색 고르기"><i class="ring"></i></button><button onclick="figAssign('${f.id}','l','${x.id}')">${esc(L.tag)}${x.custom?' <small>(직접)</small>':''}</button><button class="x" onclick="figPlLineDel('${f.id}','${x.id}')" title="빼기">×</button></span>`:''; }).join('')}
         <select class="fg-addsel" onchange="figPlLineAdd('${f.id}',this.value)">${'<option value="">+ 라인</option><option value="__custom">✎ 직접 입력 (키우는 라인 아님)</option>'+lines.filter(l=>!used.has(l.id)).sort((a,b)=>(a.isCompleted-b.isCompleted)||lineTag(a).localeCompare(lineTag(b),undefined,{numeric:true})).map(l=>`<option value="${l.id}">${esc(lineTag(l))}${l.isCompleted?' (완료)':''}</option>`).join('')}</select>
         ${(f.lines||[]).length?`<button class="tbl-btn" onclick="figAssign('${f.id}','l','')">라인 빼기</button>`:''}</div>
       <div class="fg-sub">③ 조건 누르기 <small>(well 안 색)</small></div>
-      <div class="fg-conds">${(f.conds||[]).map(cd=>`<div class="fg-cd"><button class="fg-dot" style="background:${cd.color}" onclick="figCondColor('${f.id}','${cd.id}')" title="색 바꾸기"></button>
+      <div class="fg-conds">${(f.conds||[]).map(cd=>`<div class="fg-cd"><button class="fg-dot" style="background:${cd.color}" onclick="figCondColorPick(this,'${f.id}','${cd.id}')" title="색 고르기"></button>
         <input value="${esc(cd.name)}" onchange="figCondName('${f.id}','${cd.id}',this.value)"><button class="btn btn-out fg-apply" onclick="figAssign('${f.id}','c','${cd.id}')">칠하기</button><button class="tbl-btn" onclick="figCondDel('${f.id}','${cd.id}')">${ic('x','ic-sm')}</button></div>`).join('')}</div>
       <div class="fg-btns"><button class="tbl-btn" onclick="figCondAdd('${f.id}')">+ 조건</button><button class="tbl-btn" onclick="figCondSeries('${f.id}')">+ 농도 시리즈</button></div>
       <div class="fg-sub">④ well 안 글자 <small>(비우면 조건 이름)</small></div>
@@ -9820,6 +9822,23 @@ function figCondSeries(id){
   nums.forEach((n,i)=>{ const t=nums.length===1?.3:.78-(.78-.0)*(i/(nums.length-1)); f.conds.push({id:uid(),name:[name,n+(unit?' '+unit:'')].filter(Boolean).join(' '),color:figMix(base,Math.max(0,t))}); });
   figTouch(f); renderFig();
 }
+// 색 고르기: 종류 색상 고르기와 같은 색 맵(PAL). 조건(well 안)=연한 색, 라인 테두리=진한 색, 일정 이름표=중간 색
+let _figColorCb=null;
+function figColorPick(btn,kind,cb){
+  if(typeof petPopClose==='function') petPopClose();
+  const key=kind==='l'?'tx':kind==='t'?'bd':'bg';
+  const m=document.createElement('div'); m.id='petPop'; m.className='pet-pop fg-cpop';
+  m.innerHTML=`<b>색 고르기</b><div class="cc-swatches">${PAL.map(p=>`<button class="cc-sw" style="background:${p[key]}" data-c="${p[key]}" title="${p[key]}"></button>`).join('')}</div>`;
+  document.body.appendChild(m); _figColorCb=cb;
+  const rc=btn.getBoundingClientRect(), mw=m.offsetWidth, mh=m.offsetHeight;
+  m.style.left=Math.max(8,Math.min(innerWidth-mw-8,rc.left))+'px';
+  m.style.top=Math.max(8,Math.min(innerHeight-mh-8,rc.bottom+6))+'px';
+  m.querySelectorAll('.cc-sw').forEach(b=>b.onclick=()=>{ const c=b.dataset.c, f=_figColorCb; petPopClose(); _figColorCb=null; if(f) f(c); });
+  setTimeout(()=>document.addEventListener('pointerdown',function off(e){ if(!m.contains(e.target)){ petPopClose(); document.removeEventListener('pointerdown',off); } }),0);
+}
+function figCondColorPick(btn,id,cid){ figColorPick(btn,'c',col=>{ const f=figById(id), c=f&&f.conds.find(x=>x.id===cid); if(!c) return; c.color=col; figTouch(f); renderFig(); }); }
+function figLineColorPick(btn,id,lid){ figColorPick(btn,'l',col=>{ const f=figById(id), x=f&&(f.lines||[]).find(y=>y.id===lid); if(!x) return; x.color=col; figTouch(f); renderFig(); }); }
+function figTlColorPick(btn,id,iid){ figColorPick(btn,'t',col=>{ const f=figById(id), it=f&&f.items.find(x=>x.id===iid); if(!it) return; it.color=col; figTouch(f); renderFig(); }); }
 function figCondName(id,cid,v){ const f=figById(id), c=f&&f.conds.find(x=>x.id===cid); if(!c) return; c.name=v; figTouch(f); renderFig(); }
 function figCondColor(id,cid){ const f=figById(id), c=f&&f.conds.find(x=>x.id===cid); if(!c) return; const i=FIG_COND.indexOf(c.color); c.color=FIG_COND[(i+1)%FIG_COND.length]; figTouch(f); renderFig(); }
 function figCondDel(id,cid){ const f=figById(id); if(!f) return; f.conds=f.conds.filter(x=>x.id!==cid); figPlates(f).forEach(pl=>Object.values(pl.wells||{}).forEach(w=>{ if(w.c===cid) delete w.c; })); figTouch(f); renderFig(); }
