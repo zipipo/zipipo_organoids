@@ -9070,7 +9070,7 @@ setTimeout(async()=>{ if(!mailUser()||!fbDb) return; try{ const q=await fbDb.col
 //  새 기능을 올릴 때 NEWS의 id · date · items만 바꾸면 됨
 // ══════════════════════════════════════════
 const NEWS={id:'2026-11-13b', date:'2026-11-13', days:5, items:[
-  ['slides','<b>PPT figure</b> · 왼쪽 도구 → PPT figure. 기록을 골라 실험 일정 도식, well을 끌어 칠해서 실험 플레이트 그림. 계정에 저장돼서 나중에 골라서 PPT로 한꺼번에, 이미지 복사 · PNG도'],
+  ['slides','<b>PPT figure</b> · 왼쪽 도구 → PPT figure. 기록을 골라 Experiment Schedule, well을 끌거나 Shift로 골라 칠해서 Plate map. 계정에 저장돼서 나중에 골라서 PPT로 한꺼번에, 이미지 복사 · PNG도'],
   ['tank','<b>LN2 해동</b> · LN2 탱크 검색에서 vial의 「해동 → 새 라인」을 누르면 새 라인 칸이 채워져요. Stock 넣을 때 이름은 환자번호_종류로 (점선 칸을 눌러 고치기)'],
   ['drop','<b>Media</b> · 왼쪽 도구 → Media. 배지별 plate당 양을 적어 두면 만든 튜브(50 · 15 ml)에서 쓴 만큼 자동으로 빠지고, 1주일에 얼마나 필요한지 계산'],
   ['alert','<b>Reseeding 필요</b> · 오늘 작업 숫자 칸에 day14 지난 라인 수, 배양 현황에는 「지연」 표시'],
@@ -9375,7 +9375,7 @@ const FIG_FORMATS={'6':[2,3],'12':[3,4],'24':[4,6],'48':[6,8],'96':[8,12]};
 const FIG_COND=['#7FB3E6','#F2A65A','#79C29A','#E27370','#B48AD9','#E8C547','#5BB9B0','#E58FB6','#9AA5B1'];
 const FIG_RING=['#1F4E79','#B03A2E','#1E7B4F','#6C3483','#B9770E','#117A65','#7B241C','#2E4053'];
 const FIG_ACT={'Seeding':'#3FB58B','Split':'#E8A33D','Reseeding':'#B98AD9','Media Change':'#5AA7E0','Stock':'#E0607E','Fixation':'#7C8BD9','Harvest':'#E07A5F','Observation':'#D9B84A','기타':'#8C96A3'};
-let _figEdit=null, _figSel=new Set(), _figPick=new Set(), _figDrag=null, _figThumbs={};
+let _figEdit=null, _figAnchor=null, _figSel=new Set(), _figPick=new Set(), _figDrag=null, _figThumbs={};
 function saveFigures(){ localStorage.setItem('orgFigures',JSON.stringify(figures)); cloudPushDebounced(); }
 const figById=id=>figures.find(f=>f.id===id);
 const figFont=()=>getComputedStyle(document.body).fontFamily||'Pretendard, sans-serif';
@@ -9534,8 +9534,8 @@ function figAutoTitle(f){
 }
 function figAutoName(f){
   const d=ymd6(f.kind==='plate'?(f.date||ymdLocal(new Date())):ymdLocal(new Date(f.created||Date.now())));
-  if(f.kind==='plate'){ const ids=(f.lines||[]).map(x=>(lineById(x.id)||{}).patientId).filter(Boolean); return `${d} ${ids.join(' ')||'plate'} ${f.format}well`.replace(/\s+/g,' '); }
-  const l=lineById(f.lineId); return `${d} ${l?l.patientId:''} 일정`.replace(/\s+/g,' ');
+  if(f.kind==='plate'){ const ids=(f.lines||[]).map(x=>(lineById(x.id)||{}).patientId).filter(Boolean); return `${d} ${ids.join(' ')} Plate map`.replace(/\s+/g,' '); }
+  const l=lineById(f.lineId); return `${d} ${l?l.patientId:''} Experiment Schedule`.replace(/\s+/g,' ');
 }
 function figTouch(f){ if(!f._nameEdited) f.name=figAutoName(f); if(!f._titleEdited) f.title=figAutoTitle(f); f.updated=Date.now(); delete _figThumbs[f.id]; saveFigures(); }
 
@@ -9573,7 +9573,7 @@ async function figPpt(ids){
     const maxW=12.5, maxH=6.4, k=Math.min(maxW/canvas.width,maxH/canvas.height), w=canvas.width*k, h=canvas.height*k;
     s.addImage({data:canvas.toDataURL('image/png'),x:(13.333-w)/2,y:.8+(maxH-h)/2,w,h});
   }
-  await pptx.writeFile({fileName:`${ymd6(ymdLocal(new Date()))}_figure_${ids.length}.pptx`});
+  await pptx.writeFile({fileName:safeFileName(ids.length===1?(figById(ids[0]).name||'figure'):`${ymd6(ymdLocal(new Date()))} figures ${ids.length}`)+'.pptx'});
 }
 
 // ── 화면 ──
@@ -9585,13 +9585,13 @@ function renderFig(){
   const list=figures.slice().sort((a,b)=>(b.updated||0)-(a.updated||0));
   const pick=[..._figPick].filter(id=>figById(id));
   el.innerHTML=`<section class="panel sec"><div class="panel-hd"><span><i class="sec-ic">${ic('slides')}</i>PPT figure</span>
-      <span class="panel-act"><button class="btn btn-out" onclick="figNew('tl')">${ic('timeline')}실험 일정 도식</button><button class="btn btn-out" onclick="figNew('plate')">${ic('dish')}실험 플레이트</button></span></div>
+      <span class="panel-act"><button class="btn btn-out" onclick="figNew('tl')">${ic('timeline')}Experiment Schedule</button><button class="btn btn-out" onclick="figNew('plate')">${ic('dish')}Plate map</button></span></div>
     <div class="fg-bar">${list.length?`<label class="fg-all"><input type="checkbox" ${pick.length===list.length?'checked':''} onchange="figPickAll(this.checked)"> 전체 선택</label>
       <span class="fg-n">${pick.length}개 골랐어요</span><button class="btn btn-pri" ${pick.length?'':'disabled'} onclick="figPpt([..._figPick])">${ic('slides')}고른 것 PPT로</button>`:'<span class="fg-n">만든 figure가 여기 모여요. 계정에 저장돼서 다른 기기에서도 꺼내 쓸 수 있어요.</span>'}</div>
     <div class="fg-grid">${list.map(x=>`<div class="fg-card${_figPick.has(x.id)?' on':''}">
       <label class="fg-chk"><input type="checkbox" ${_figPick.has(x.id)?'checked':''} onchange="figPickOne('${x.id}',this.checked)"></label>
       <div class="fg-th" onclick="_figEdit='${x.id}';_figSel.clear();renderFig()"><img src="${figThumb(x)}" alt=""></div>
-      <div class="fg-meta"><b title="${esc(x.name||'')}">${esc(x.name||'')}</b><small>${x.kind==='plate'?'플레이트':'일정 도식'}</small></div>
+      <div class="fg-meta"><b title="${esc(x.name||'')}">${esc(x.name||'')}</b><small>${x.kind==='plate'?'Plate map':'Experiment Schedule'}</small></div>
       <div class="fg-acts"><button class="tbl-btn" onclick="figCopy('${x.id}')">복사</button><button class="tbl-btn" onclick="figPng('${x.id}')">PNG</button><button class="tbl-btn" onclick="figDup('${x.id}')">복제</button><button class="tbl-btn" onclick="figDel('${x.id}')">${ic('trash','ic-sm')}</button></div>
     </div>`).join('')}</div></section>`;
 }
@@ -9656,7 +9656,7 @@ function figPlateEditor(f){
       <div class="fg-row2"><label class="fg-f">Plate<select onchange="figPlSet('${f.id}','format',this.value)">${Object.keys(FIG_FORMATS).map(k=>`<option value="${k}"${k===f.format?' selected':''}>${k} well</option>`).join('')}</select></label>
         <label class="fg-f">날짜<input type="date" value="${f.date||''}" onchange="figPlSet('${f.id}','date',this.value)"></label></div>
       <label class="fg-f">제목<input value="${esc(f.title||'')}" placeholder="비우면 라인 · P · day" onchange="figSetTitle('${f.id}',this.value)"></label>
-      <div class="fg-sub">① well을 끌어서 고르고 <span class="fg-hint">${_figSel.size?`${_figSel.size}칸 골랐어요`:'아직 안 골랐어요'}</span></div>
+      <div class="fg-sub">① well을 끌어서 고르고 <small>(Shift: 이어서 범위 더하기 · Ctrl: 한 칸씩)</small> <span class="fg-hint">${_figSel.size?`${_figSel.size}칸 골랐어요`:'아직 안 골랐어요'}</span></div>
       <div class="fg-btns"><button class="tbl-btn" onclick="figSelAll('${f.id}')">전체</button><button class="tbl-btn" onclick="_figSel.clear();renderFig()">선택 풀기</button><button class="tbl-btn" onclick="figClearSel('${f.id}')">고른 칸 비우기</button></div>
       <div class="fg-sub">② 라인 누르기 <small>(well 테두리 색)</small></div>
       <div class="fg-chips">${(f.lines||[]).map(x=>{ const l=lineById(x.id); return l?`<span class="fg-chip" style="--rc:${x.color}"><button onclick="figAssign('${f.id}','l','${x.id}')"><i class="ring"></i>${esc(lineTag(l))}</button><button class="x" onclick="figPlLineDel('${f.id}','${x.id}')" title="빼기">×</button></span>`:''; }).join('')}
@@ -9701,8 +9701,13 @@ function figWirePlate(f,cv){
   const rc=k=>[k.charCodeAt(0)-65,parseInt(k.slice(1))-1];
   const rect=(a,b)=>{ const [i1,j1]=rc(a),[i2,j2]=rc(b), s=new Set(); for(let i=Math.min(i1,i2);i<=Math.max(i1,i2);i++) for(let j=Math.min(j1,j2);j<=Math.max(j1,j2);j++) s.add(String.fromCharCode(65+i)+(j+1)); return s; };
   cv.style.touchAction='none';
-  cv.onpointerdown=e=>{ const g=hit(e); if(!g) return; cv.setPointerCapture(e.pointerId); const add=e.shiftKey||e.ctrlKey||e.metaKey; _figDrag={from:g.key,base:add?new Set(_figSel):new Set(),toggle:!add&&_figSel.size===1&&_figSel.has(g.key)}; _figSel=new Set([..._figDrag.base,g.key]); figRedrawSel(f); };
-  cv.onpointermove=e=>{ if(!_figDrag) return; const g=hit(e); if(!g) return; _figSel=new Set([..._figDrag.base,...rect(_figDrag.from,g.key)]); figRedrawSel(f); };
+  // Shift+누르기: 마지막으로 누른 칸부터 여기까지 사각형을 더함 / Ctrl(⌘)+누르기: 한 칸씩 넣고 빼기 / 그냥 끌기: 새로 고르기
+  cv.onpointerdown=e=>{ const g=hit(e); if(!g) return; cv.setPointerCapture(e.pointerId);
+    if(e.shiftKey&&_figAnchor){ _figDrag={from:_figAnchor,base:new Set(_figSel)}; _figSel=new Set([..._figDrag.base,...rect(_figAnchor,g.key)]); }
+    else if(e.ctrlKey||e.metaKey){ _figSel.has(g.key)?_figSel.delete(g.key):_figSel.add(g.key); _figAnchor=g.key; _figDrag={from:g.key,base:new Set(_figSel),noMove:true}; }
+    else { _figAnchor=g.key; _figDrag={from:g.key,base:new Set(),toggle:_figSel.size===1&&_figSel.has(g.key)}; _figSel=new Set([g.key]); }
+    figRedrawSel(f); };
+  cv.onpointermove=e=>{ if(!_figDrag||_figDrag.noMove) return; const g=hit(e); if(!g) return; _figSel=new Set([..._figDrag.base,...rect(_figDrag.from,g.key)]); figRedrawSel(f); };
   cv.onpointerup=e=>{ if(!_figDrag) return; const g=hit(e); if(_figDrag.toggle&&g&&g.key===_figDrag.from) _figSel.clear(); _figDrag=null; renderFig(); };
 }
 function figRedrawSel(f){ const box=document.getElementById('figPrev'); const old=box&&box.querySelector('canvas'); if(!old) return; const {canvas}=figRender(f,2); old.getContext('2d').drawImage(canvas,0,0); }
