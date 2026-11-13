@@ -885,6 +885,8 @@ body[data-tab="fig"] .pane[data-pane="fig"]{display:block;animation:paneIn .28s 
 .fg-f{display:flex;flex-direction:column;gap:3px;margin:0;font-size:.7rem;color:var(--sub);flex:1;min-width:0;}
 .fg-f input,.fg-f select{height:32px;}
 .fg-row2{display:flex;gap:8px;align-items:flex-end;}
+.fg-plates{display:flex;flex-direction:column;gap:5px;} .fg-pl{display:flex;gap:6px;align-items:center;} .fg-pl input{height:30px;flex:1;min-width:0;} .fg-pl select{height:30px;width:auto;}
+.fg-plates>.tbl-btn{align-self:flex-start;} .fg-chip small{color:var(--mut);}
 .fg-ck{display:flex;align-items:center;gap:5px;margin:0 0 7px;font-size:.74rem;white-space:nowrap;} .fg-ck input{width:auto;}
 .fg-sub{font-size:.74rem;font-weight:650;margin-top:6px;color:var(--tx);} .fg-sub small,.fg-hint{font-weight:500;color:var(--mut);font-size:.68rem;}
 .fg-logs{display:flex;flex-direction:column;max-height:min(520px,60vh);overflow-y:auto;border:1px solid var(--bd2);border-radius:8px;flex:none;}
@@ -6228,7 +6230,7 @@ let pptFigSel={}, pptFigTarget={}; const _pptFigCache={};
 const PPT_OV_W=8.6;   // 오른쪽 plate 자리 폭(cm)
 function pptFigEntry(id){
   const f=typeof figById==='function'&&figById(id); if(!f) return null;
-  const compact=pptFigSel[id]==='slide', ck=f.updated+'|'+compact;
+  const compact=pptFigSel[id]==='slide', ck=f.updated+'|'+compact+'|'+(((f.tlId&&figById(f.tlId))||{}).updated||'');
   const c=_pptFigCache[id]; if(c&&c.v===ck) return c.e;
   const {canvas}=figRender(f,2,compact);
   const e={id:'fig_'+id,name:f.name||'figure',canvas,aspect:canvas.height/canvas.width,thumb:canvas.toDataURL('image/png'),fig:true,figId:id,figKind:f.kind};
@@ -6264,9 +6266,9 @@ function renderPptFigs(){
   el.innerHTML=`<details class="pf-box"${n||list.length?' open':''}><summary><b>PPT figure 같이 넣기</b> <span>${list.length?(n?`${n}개 넣음`:'Experiment Schedule · Plate map'):'아직 만든 figure가 없어요'}</span></summary>
     ${list.length?`<div class="pf-list">${list.map(f=>{ const v=pptFigSel[f.id]||'';
       return `<div class="pf-row${v?' on':''}"><img src="${figThumb(f)}" alt=""><div class="pf-nm"><b title="${esc(f.name||'')}">${esc(f.name||'')}</b><small>${f.kind==='plate'?'Plate map':'Experiment Schedule'}</small></div>
-        <div class="seg-group pf-seg">${[['','안 넣음'],['slide','사진 슬라이드에'],['page','따로 한 장']].map(([k,t])=>`<button class="seg${v===k?' on':''}" onclick="pptSetFig('${f.id}','${k}')">${t}</button>`).join('')}</div>
-        ${v==='slide'?`<select class="pf-tgt" onchange="pptSetFigTarget('${f.id}',this.value)">${pptFigTargetOpts(f.id)}</select>`:''}</div>`; }).join('')}</div>
-    <div class="pf-hint">· <b>사진 슬라이드에</b>: Plate map은 사진 슬라이드 <b>오른쪽 위</b>에 plate만 (위에 라인 · P · 날짜 · 조건 글씨), Experiment Schedule은 <b>제목 줄 오른쪽</b>에 작게 들어가요. 넣을 장은 같은 환자 첫 장이 기본이고 바꿀 수 있어요<br>· <b>따로 한 장</b>: 사진 슬라이드 앞에 figure만 크게 한 장</div>`
+        <div class="seg-group pf-seg">${[['','안 넣음'],['page','넣기 (한 장)']].map(([k,t])=>`<button class="seg${v===k?' on':''}" onclick="pptSetFig('${f.id}','${k}')">${t}</button>`).join('')}</div>
+</div>`; }).join('')}</div>
+    <div class="pf-hint">고른 figure는 사진 슬라이드 앞에 한 장씩 들어가요. Plate map에 Experiment Schedule을 같이 넣어 두면 둘이 한 장에 같이 나와요.</div>`
     :`<div class="pf-hint">왼쪽 도구 → PPT figure에서 Experiment Schedule · Plate map을 만들면 여기서 골라 넣을 수 있어요.</div>`}</details>`;
 }
 function pptRemove(i){ pptFiles.splice(i,1); renderPptList(); }
@@ -7079,10 +7081,12 @@ function pptEdText(z){
 }
 
 // ── 그리기: 같은 좌표로 PPT 슬라이드와 미리보기(HTML)를 그림 ──
+// PPT에 들어가는 글자: 파일 이름 때문에 쓴 _ 는 띄어쓰기로 (사진 PPT · PPT figure · LN2 PPT 모두)
+const pptSp=t=>Array.isArray(t)?t.map(x=>Object.assign({},x,{text:String(x.text==null?'':x.text).replace(/_/g,' ')})):String(t==null?'':t).replace(/_/g,' ');
 function pptSlideBackend(slide,data){
   return {
     bg(c){ slide.background={color:c}; },
-    text(t,x,y,w,h,o){ slide.addText(t,Object.assign({x:pptIN(x),y:pptIN(y),w:pptIN(w),h:pptIN(h),fontFace:'Pretendard',margin:0},o)); },
+    text(t,x,y,w,h,o){ t=pptSp(t); slide.addText(t,Object.assign({x:pptIN(x),y:pptIN(y),w:pptIN(w),h:pptIN(h),fontFace:'Pretendard',margin:0},o)); },
     image(f,x,y,w,h){ slide.addImage({data:data.get(f).dataURL,x:pptIN(x),y:pptIN(y),w:pptIN(w),h:pptIN(h)}); }
   };
 }
@@ -7095,7 +7099,7 @@ function pptHtmlBackend(edit){
     edit:!!edit,
     bg(c){ bg=c; },
     text(t,x,y,w,h,o){
-      o=o||{}; const runs=Array.isArray(t)?t:[{text:String(t),options:{}}];
+      o=o||{}; t=pptSp(t); const runs=Array.isArray(t)?t:[{text:String(t),options:{}}];
       const inner=runs.map(r=>{ const q=Object.assign({},o,r.options||{});
         return `<span style="color:#${q.color||'000000'};font-size:${((q.fontSize||12)/9.6).toFixed(3)}cqw;font-weight:${q.bold?700:400};">${esc(r.text).replace(/\n/g,'<br>')}</span>`; }).join('');
       const jc=o.valign==='middle'?'center':o.valign==='bottom'?'flex-end':'flex-start';
@@ -9455,6 +9459,7 @@ let _figEdit=null, _figAnchor=null, _figSel=new Set(), _figPick=new Set(), _figD
 function saveFigures(){ localStorage.setItem('orgFigures',JSON.stringify(figures)); cloudPushDebounced(); }
 const figById=id=>figures.find(f=>f.id===id);
 const figFont=()=>getComputedStyle(document.body).fontFamily||'Pretendard, sans-serif';
+const figSp=t=>String(t==null?'':t).replace(/_/g,' ');   // 그림 · PPT에 들어가는 글자는 _ 대신 띄어쓰기
 function figActColor(a){
   if(!a) return FIG_ACT['기타'];
   if(isSeed(a)) return FIG_ACT['Seeding'];
@@ -9490,7 +9495,7 @@ function figLineAt(line,date){
 // 반환: {canvas, geo} (geo: 플레이트 well 위치, 화면에서 누를 때 씀)
 function figRender(f,scale,compact){
   scale=scale||1;
-  return f.kind==='plate'?figRenderPlate(f,scale,compact):figRenderTl(f,scale,compact);
+  return f.kind==='plate'?figRenderPlate(f,scale):figRenderTl(f,scale,compact);
 }
 function figCanvas(W,H,scale){ const c=document.createElement('canvas'); c.width=Math.round(W*scale); c.height=Math.round(H*scale); const ctx=c.getContext('2d'); ctx.scale(scale,scale); ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H); return {c,ctx}; }
 
@@ -9508,7 +9513,7 @@ function figRenderTl(f,scale,compact){
   if(over>0){ const k=(W-2*padX)/Math.max(1,xs[xs.length-1]-padX); xs=xs.map(x=>padX+(x-padX)*k); }
   const {c,ctx}=figCanvas(W,H,scale), F=figFont();
   // 제목
-  if(!compact){ ctx.fillStyle='#1F2328'; ctx.font=`700 34px ${F}`; ctx.textBaseline='top'; ctx.fillText(f.title||'',padX-40,30); }
+  if(!compact){ ctx.fillStyle='#1F2328'; ctx.font=`700 34px ${F}`; ctx.textBaseline='top'; ctx.fillText(figSp(f.title),padX-40,30); }
   const ay=H-(compact?(f.showDate===false?115:150):(f.showDate===false?130:160));
   if(items.length){
     const x0=xs[0], x1=xs[xs.length-1];
@@ -9537,64 +9542,77 @@ function figRenderTl(f,scale,compact){
 }
 function figDark(h){ const c=figHex(h); return '#'+c.map(v=>Math.round(v*.62).toString(16).padStart(2,'0')).join(''); }
 
-function figRenderPlate(f,scale,compact){
-  if(compact) return figRenderPlateCompact(f,scale);
-  const [R,C]=FIG_FORMATS[f.format]||FIG_FORMATS['24'];
-  const cell=Math.min(C<=4?230:150, Math.floor(1040/C)), r=cell*0.42;
-  const px=70, py=120, pw=C*cell+70, ph=R*cell+64;
-  const legendX=px+pw+50;
-  const conds=f.conds||[], lns=(f.lines||[]).map(x=>({...x,line:lineById(x.id)})).filter(x=>x.line);
+// 한 Plate map에 plate 여러 개 (예: 6 well 2장). 예전 저장본(format · wells 한 벌)은 plates 한 장으로 바꿔 읽음
+function figPlates(f){ if(!Array.isArray(f.plates)){ f.plates=[{id:uid(),name:'',format:f.format||'24',wells:f.wells||{}}]; delete f.wells; delete f.format; } return f.plates; }
+// 라인 정보: 등록된 라인이면 그날 P · d, 직접 적은 라인이면 적은 그대로
+function figLn(x,date){
+  const l=lineById(x.id);
+  if(l){ const at=figLineAt(l,date); return {tag:figSp(lineTag(l)),pid:l.patientId,pd:`P${at.p} · ${at.d}`,type:l.type}; }
+  if(x.custom) return {tag:figSp(x.name),pid:String(x.name||'').split(/[_\s]/)[0],pd:[x.p?'P'+String(x.p).replace(/^p/i,''):'',x.d||''].filter(Boolean).join(' · '),type:''};
+  return null;
+}
+function figPlateFmtText(plates){ const fm=[...new Set(plates.map(p=>p.format))]; return fm.length===1?`${plates.length>1?plates.length+' × ':''}${fm[0]} well plate`:plates.map(p=>p.format+' well').join(' + '); }
+function figRenderPlate(f,scale){
+  const plates=figPlates(f), date=f.date||ymdLocal(new Date()), F=figFont();
+  const conds=f.conds||[], lns=(f.lines||[]).map(x=>({...x,info:figLn(x,date)})).filter(x=>x.info);
+  const n=plates.length, perRow=n>1?2:1, dims=plates.map(p=>FIG_FORMATS[p.format]||FIG_FORMATS['24']);
+  const maxC=Math.max(...dims.map(d=>d[1]));
+  const cell=n===1?Math.min(maxC<=4?230:150,Math.floor(1040/maxC)):Math.min(maxC<=4?200:130,Math.floor((1500-50-70*perRow)/(perRow*maxC)));
+  const r=cell*0.42, px=70, showLab=n>1||plates.some(p=>p.name), labH=showLab?42:0;
+  // plate 자리 (한 줄에 2장씩)
+  const pos=[]; let rowsW=0, yy=0;
+  for(let i=0;i<n;i+=perRow){ let x=0, rh=0;
+    for(let j=i;j<Math.min(n,i+perRow);j++){ const [R,C]=dims[j], pw=C*cell+70, ph=R*cell+64; pos[j]={x,y:yy,pw,ph,R,C}; x+=pw+50; rh=Math.max(rh,ph); }
+    rowsW=Math.max(rowsW,x-50); yy+=labH+rh+40; }
+  const plateH=yy-40;
+  // 범례 폭 · 제목 폭
+  const mc=document.createElement('canvas').getContext('2d'); let legW=300;
+  lns.forEach(x=>{ mc.font=`700 21px ${F}`; const a=mc.measureText(x.info.tag).width; mc.font=`500 18px ${F}`; legW=Math.max(legW,52+a+10+mc.measureText(x.info.pd).width); });
+  mc.font=`600 21px ${F}`; conds.forEach(cd=>{ legW=Math.max(legW,50+mc.measureText(cd.name||'').width); });
+  mc.font=`700 34px ${F}`; const titleW=mc.measureText(figSp(f.title)).width+px;
+  const legendX=px+rowsW+50, W=Math.max(legendX+legW+50,titleW+60,1100);
+  // 같이 넣은 Experiment Schedule: 제목 아래, plate 위
+  const tlF=f.tlId&&figById(f.tlId); let tl=null, tlW=0, tlH=0;
+  if(tlF&&tlF.kind==='tl'){ tl=figRenderTl(tlF,scale,true).canvas; const nw=tl.width/scale, nh=tl.height/scale; tlW=Math.min(W-2*px+40,nw); tlH=nh*tlW/nw; }
+  const py=120+(tl?tlH+20:0);
   const legRows=conds.length+(lns.length?lns.length+1:0)+1;
-  // 범례 폭은 글자 길이에 맞춤 (긴 라인 이름이 잘리지 않게)
-  const mc=document.createElement('canvas').getContext('2d'), FF=figFont(); let legW=300;
-  mc.font=`700 21px ${FF}`; lns.forEach(x=>{ const at=figLineAt(x.line,f.date||ymdLocal(new Date())); const a=mc.measureText(lineTag(x.line)).width; mc.font=`500 18px ${FF}`; legW=Math.max(legW,52+a+10+mc.measureText(`P${at.p} · ${at.d}`).width); mc.font=`700 21px ${FF}`; });
-  mc.font=`600 21px ${FF}`; conds.forEach(cd=>{ legW=Math.max(legW,50+mc.measureText(cd.name||'').width); });
-  mc.font=`700 34px ${FF}`; const titleW=mc.measureText(f.title||'').width+px;
-  const W=Math.max(legendX+legW+50,titleW+60,1100), H=Math.max(py+ph+60, py+legRows*44+60);
-  const {c,ctx}=figCanvas(W,H,scale), F=figFont();
-  // 제목 · 날짜
-  ctx.textBaseline='top'; ctx.fillStyle='#1F2328'; ctx.font=`700 34px ${F}`; ctx.fillText(f.title||'',px-10,30);
-  ctx.fillStyle='#8A9099'; ctx.font=`500 20px ${F}`; ctx.fillText([f.date?f.date.replace(/-/g,'.'):'',`${f.format} well plate`].filter(Boolean).join(' · '),px-8,74);
-  // 플레이트 몸통 (오른쪽 위 모서리 깎음)
-  ctx.save(); ctx.beginPath(); const k=26;
-  ctx.moveTo(px+14,py); ctx.lineTo(px+pw-k,py); ctx.lineTo(px+pw,py+k); ctx.lineTo(px+pw,py+ph-14); ctx.arcTo(px+pw,py+ph,px+pw-14,py+ph,14); ctx.lineTo(px+14,py+ph); ctx.arcTo(px,py+ph,px,py+ph-14,14); ctx.lineTo(px,py+14); ctx.arcTo(px,py,px+14,py,14); ctx.closePath();
-  ctx.fillStyle='#F6F7F9'; ctx.fill(); ctx.strokeStyle='#B8BEC6'; ctx.lineWidth=2.5; ctx.stroke(); ctx.restore();
-  const gx=px+52, gy=py+48;
-  ctx.fillStyle='#6B727B'; ctx.font=`700 ${Math.min(20,cell*.3)}px ${F}`; ctx.textAlign='center'; ctx.textBaseline='middle';
-  for(let j=0;j<C;j++) ctx.fillText(String(j+1),gx+j*cell+cell/2,py+24);
-  for(let i=0;i<R;i++) ctx.fillText(String.fromCharCode(65+i),px+26,gy+i*cell+cell/2);
-  const geo=[];
-  const condOf=id=>conds.find(x=>x.id===id), lnOf=id=>lns.find(x=>x.id===id);
-  for(let i=0;i<R;i++) for(let j=0;j<C;j++){
-    const key=String.fromCharCode(65+i)+(j+1), w=(f.wells||{})[key]||{};
-    const cx=gx+j*cell+cell/2, cy=gy+i*cell+cell/2;
-    geo.push({key,x:cx,y:cy,r});
-    const cd=condOf(w.c), ln=lnOf(w.l);
-    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
-    ctx.fillStyle=cd?cd.color:'#FFFFFF'; ctx.fill();
-    ctx.lineWidth=ln?3.5:1.5; ctx.strokeStyle=ln?ln.color:'#C9CED5'; ctx.stroke();
-    if(_figEdit===f.id&&_figSel.has(key)){ ctx.save(); ctx.setLineDash([6,4]); ctx.lineWidth=3; ctx.strokeStyle='#111'; ctx.beginPath(); ctx.arc(cx,cy,r+6,0,Math.PI*2); ctx.stroke(); ctx.restore(); }
-    // well 안 글자: 라인 번호 / 조건 / 직접 쓴 글자
-    const ink=cd?figInk(cd.color):'#1F2328';
-    const rows=[ln?ln.line.patientId:'', w.t||(cd?cd.name:'')].filter(Boolean);
-    if(rows.length){
-      const max=r*1.7, base=Math.min(22,r*.42);
-      const sizes=rows.map((t,ix)=>figFit(ctx,t,max,ix===0&&ln?base:base*.92,ix===0&&ln?800:600,9));
-      if(sizes.every(s=>s>0)){
-        const lh=sizes.map(s=>s*1.15), tot=lh.reduce((a,b)=>a+b,0); let y=cy-tot/2;
-        rows.forEach((t,ix)=>{ ctx.font=`${ix===0&&ln?800:600} ${sizes[ix]}px ${F}`; ctx.fillStyle=ink; ctx.textAlign='center'; ctx.textBaseline='top'; ctx.fillText(t,cx,y+1); y+=lh[ix]; });
-      }
+  const H=Math.max(py+labH+plateH+50, py+legRows*44+60);
+  const {c,ctx}=figCanvas(W,H,scale);
+  ctx.textBaseline='top'; ctx.textAlign='left'; ctx.fillStyle='#1F2328'; ctx.font=`700 34px ${F}`; ctx.fillText(figSp(f.title),px-10,30);
+  ctx.fillStyle='#8A9099'; ctx.font=`500 20px ${F}`; ctx.fillText([f.date?f.date.replace(/-/g,'.'):'',figPlateFmtText(plates)].filter(Boolean).join(' · '),px-8,74);
+  if(tl) ctx.drawImage(tl,px-30,116,tlW,tlH);
+  const geo=[], condOf=id=>conds.find(x=>x.id===id), lnOf=id=>lns.find(x=>x.id===id);
+  plates.forEach((pl,pi)=>{
+    const P=pos[pi], ox=px+P.x, oy=py+P.y+labH, {R,C,pw,ph}=P;
+    if(showLab){ ctx.textAlign='left'; ctx.textBaseline='top'; ctx.fillStyle='#1F2328'; ctx.font=`700 24px ${F}`; ctx.fillText(figSp(pl.name)||`Plate ${pi+1}`,ox+2,oy-labH+4);
+      const nw=ctx.measureText(figSp(pl.name)||`Plate ${pi+1}`).width; ctx.fillStyle='#8A9099'; ctx.font=`500 18px ${F}`; ctx.fillText(`${pl.format} well`,ox+nw+14,oy-labH+9); }
+    ctx.save(); ctx.beginPath(); const k=26;
+    ctx.moveTo(ox+14,oy); ctx.lineTo(ox+pw-k,oy); ctx.lineTo(ox+pw,oy+k); ctx.lineTo(ox+pw,oy+ph-14); ctx.arcTo(ox+pw,oy+ph,ox+pw-14,oy+ph,14); ctx.lineTo(ox+14,oy+ph); ctx.arcTo(ox,oy+ph,ox,oy+ph-14,14); ctx.lineTo(ox,oy+14); ctx.arcTo(ox,oy,ox+14,oy,14); ctx.closePath();
+    ctx.fillStyle='#F6F7F9'; ctx.fill(); ctx.strokeStyle='#B8BEC6'; ctx.lineWidth=2.5; ctx.stroke(); ctx.restore();
+    const gx=ox+52, gy=oy+48;
+    ctx.fillStyle='#6B727B'; ctx.font=`700 ${Math.min(20,cell*.3)}px ${F}`; ctx.textAlign='center'; ctx.textBaseline='middle';
+    for(let j=0;j<C;j++) ctx.fillText(String(j+1),gx+j*cell+cell/2,oy+24);
+    for(let i=0;i<R;i++) ctx.fillText(String.fromCharCode(65+i),ox+26,gy+i*cell+cell/2);
+    for(let i=0;i<R;i++) for(let j=0;j<C;j++){
+      const wk=String.fromCharCode(65+i)+(j+1), key=pi+':'+wk, w=(pl.wells||{})[wk]||{};
+      const cx=gx+j*cell+cell/2, cy=gy+i*cell+cell/2; geo.push({key,x:cx,y:cy,r});
+      const cd=condOf(w.c), ln=lnOf(w.l);
+      ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fillStyle=cd?cd.color:'#FFFFFF'; ctx.fill();
+      ctx.lineWidth=ln?3.5:1.5; ctx.strokeStyle=ln?ln.color:'#C9CED5'; ctx.stroke();
+      if(_figEdit===f.id&&_figSel.has(key)){ ctx.save(); ctx.setLineDash([6,4]); ctx.lineWidth=3; ctx.strokeStyle='#111'; ctx.beginPath(); ctx.arc(cx,cy,r+6,0,Math.PI*2); ctx.stroke(); ctx.restore(); }
+      const ink=cd?figInk(cd.color):'#1F2328', rows=[ln?ln.info.pid:'', w.t||(cd?cd.name:'')].filter(Boolean);
+      if(rows.length){ const max=r*1.7, base=Math.min(22,r*.42);
+        const sizes=rows.map((t,ix)=>figFit(ctx,t,max,ix===0&&ln?base:base*.92,ix===0&&ln?800:600,9));
+        if(sizes.every(s=>s>0)){ const lh=sizes.map(s=>s*1.15), tot=lh.reduce((a,b)=>a+b,0); let y=cy-tot/2;
+          rows.forEach((t,ix)=>{ ctx.font=`${ix===0&&ln?800:600} ${sizes[ix]}px ${F}`; ctx.fillStyle=ink; ctx.textAlign='center'; ctx.textBaseline='top'; ctx.fillText(t,cx,y+1); y+=lh[ix]; }); } }
     }
-  }
-  // 범례
+  });
   let ly=py+6; ctx.textAlign='left'; ctx.textBaseline='middle';
   if(lns.length){
     ctx.fillStyle='#6B727B'; ctx.font=`700 18px ${F}`; ctx.fillText('LINE',legendX,ly+10); ly+=40;
-    lns.forEach(x=>{ const at=figLineAt(x.line,f.date||ymdLocal(new Date()));
-      ctx.beginPath(); ctx.arc(legendX+15,ly+8,13,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.fill(); ctx.lineWidth=4; ctx.strokeStyle=x.color; ctx.stroke();
-      ctx.fillStyle='#1F2328'; ctx.font=`700 21px ${F}`; ctx.fillText(lineTag(x.line),legendX+42,ly+8);
-      const tw=ctx.measureText(lineTag(x.line)).width; ctx.fillStyle='#8A9099'; ctx.font=`500 18px ${F}`; ctx.fillText(`P${at.p} · ${at.d}`,legendX+52+tw,ly+9);
-      ly+=44; });
+    lns.forEach(x=>{ ctx.beginPath(); ctx.arc(legendX+15,ly+8,13,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.fill(); ctx.lineWidth=3.5; ctx.strokeStyle=x.color; ctx.stroke();
+      ctx.fillStyle='#1F2328'; ctx.font=`700 21px ${F}`; ctx.fillText(x.info.tag,legendX+42,ly+8);
+      const tw=ctx.measureText(x.info.tag).width; ctx.fillStyle='#8A9099'; ctx.font=`500 18px ${F}`; ctx.fillText(x.info.pd,legendX+52+tw,ly+9); ly+=44; });
     ly+=10;
   }
   if(conds.length){
@@ -9605,78 +9623,33 @@ function figRenderPlate(f,scale,compact){
   return {canvas:c,geo};
 }
 
-// 사진 슬라이드 오른쪽 아래에 넣는 판: 위에 검은 글씨로 라인 · P · day · 날짜 · 조건, 아래에 plate만
-function figRenderPlateCompact(f,scale){
-  const [R,C]=FIG_FORMATS[f.format]||FIG_FORMATS['24'];
-  const cell=Math.floor(900/C), r=cell*0.42, F=figFont();
-  const conds=f.conds||[], lns=(f.lines||[]).map(x=>({...x,line:lineById(x.id)})).filter(x=>x.line);
-  const date=f.date||ymdLocal(new Date());
-  // 머리 글씨 줄: 라인마다 한 줄 + 날짜 · plate 한 줄 + 조건(색 점) 줄들
-  const W=C*cell+70, meas=document.createElement('canvas').getContext('2d');
-  const condRows=[]; { let row=[], w=0; meas.font=`600 34px ${F}`;
-    conds.forEach(cd=>{ const cw=46+meas.measureText(cd.name||'').width+30; if(row.length&&w+cw>W){ condRows.push(row); row=[]; w=0; } row.push(cd); w+=cw; }); if(row.length) condRows.push(row); }
-  const head=Math.max(1,lns.length)*56+50+condRows.length*50+18;
-  const ph=R*cell+64, H=head+ph+6;
-  const {c,ctx}=figCanvas(W,H,scale);
-  ctx.textBaseline='middle'; ctx.textAlign='left'; let y=28;
-  if(lns.length) lns.forEach(x=>{ const at=figLineAt(x.line,date);
-      ctx.beginPath(); ctx.arc(17,y,14,0,Math.PI*2); ctx.lineWidth=3.5; ctx.strokeStyle=x.color; ctx.stroke();
-      ctx.fillStyle='#000'; ctx.font=`800 42px ${F}`; const t=lineTag(x.line); ctx.fillText(t,44,y);
-      const tw=ctx.measureText(t).width; ctx.font=`700 36px ${F}`; ctx.fillText(`  P${at.p} · ${at.d}`,44+tw,y+1); y+=56; });
-  else { ctx.fillStyle='#000'; ctx.font=`800 42px ${F}`; ctx.fillText(f.title||'',0,y); y+=56; }
-  ctx.fillStyle='#000'; ctx.font=`600 34px ${F}`; ctx.fillText(`${date.replace(/-/g,'.')} · ${f.format} well plate`,0,y); y+=50;
-  condRows.forEach(row=>{ let x=0; row.forEach(cd=>{ ctx.beginPath(); ctx.arc(x+15,y,15,0,Math.PI*2); ctx.fillStyle=cd.color; ctx.fill(); ctx.lineWidth=1.5; ctx.strokeStyle='rgba(0,0,0,.25)'; ctx.stroke();
-      ctx.fillStyle='#000'; ctx.font=`600 34px ${F}`; ctx.fillText(cd.name||'',x+38,y+1); x+=46+ctx.measureText(cd.name||'').width+30; }); y+=50; });
-  // plate
-  const px=0, py=head, pw=W, k=22;
-  ctx.beginPath(); ctx.moveTo(px+12,py); ctx.lineTo(px+pw-k,py); ctx.lineTo(px+pw,py+k); ctx.lineTo(px+pw,py+ph-12); ctx.arcTo(px+pw,py+ph,px+pw-12,py+ph,12); ctx.lineTo(px+12,py+ph); ctx.arcTo(px,py+ph,px,py+ph-12,12); ctx.lineTo(px,py+12); ctx.arcTo(px,py,px+12,py,12); ctx.closePath();
-  ctx.fillStyle='#F6F7F9'; ctx.fill(); ctx.strokeStyle='#B8BEC6'; ctx.lineWidth=2.5; ctx.stroke();
-  const gx=px+52, gy=py+48;
-  ctx.fillStyle='#6B727B'; ctx.font=`700 ${Math.min(22,cell*.3)}px ${F}`; ctx.textAlign='center';
-  for(let j=0;j<C;j++) ctx.fillText(String(j+1),gx+j*cell+cell/2,py+24);
-  for(let i=0;i<R;i++) ctx.fillText(String.fromCharCode(65+i),px+26,gy+i*cell+cell/2);
-  const condOf=id=>conds.find(x=>x.id===id), lnOf=id=>lns.find(x=>x.id===id);
-  // well 안에는 짧게: 여러 조건이 같은 첫 낱말(약물 이름)로 시작하면 그 낱말은 빼고 (위 범례에 있음)
-  const first=n=>String(n||'').split(/\s+/)[0], short=cd=>{ const n=String(cd.name||''), t=first(n); return n.includes(' ')&&conds.filter(o=>first(o.name)===t).length>1?n.slice(t.length).trim():n; };
-  for(let i=0;i<R;i++) for(let j=0;j<C;j++){
-    const key=String.fromCharCode(65+i)+(j+1), w=(f.wells||{})[key]||{}, cx=gx+j*cell+cell/2, cy=gy+i*cell+cell/2;
-    const cd=condOf(w.c), ln=lnOf(w.l);
-    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fillStyle=cd?cd.color:'#FFFFFF'; ctx.fill();
-    ctx.lineWidth=ln&&lns.length>1?2.5:1.5; ctx.strokeStyle=ln&&lns.length>1?ln.color:(cd?'rgba(0,0,0,.28)':'#C9CED5'); ctx.stroke();
-    const rows=[ln&&lns.length>1?ln.line.patientId:'', w.t||(cd?short(cd):'')].filter(Boolean);
-    if(rows.length){ const ink=cd?figInk(cd.color):'#1F2328', max=r*1.7, base=Math.min(30,r*.5);
-      const sizes=rows.map(t=>figFit(ctx,t,max,base,700,10));
-      if(sizes.every(v=>v>0)){ const lh=sizes.map(v=>v*1.15), tot=lh.reduce((a,b)=>a+b,0); let yy=cy-tot/2;
-        rows.forEach((t,ix)=>{ ctx.font=`700 ${sizes[ix]}px ${F}`; ctx.fillStyle=ink; ctx.textBaseline='top'; ctx.fillText(t,cx,yy+1); yy+=lh[ix]; }); ctx.textBaseline='middle'; } }
-  }
-  return {canvas:c,geo:null};
-}
-
 // ── 이름 · 제목 기본값 ──
 function figAutoTitle(f){
   if(f.kind==='plate'){
-    const ls=(f.lines||[]).map(x=>lineById(x.id)).filter(Boolean);
-    if(ls.length===1){ const at=figLineAt(ls[0],f.date||ymdLocal(new Date())); return `${lineTag(ls[0])} · P${at.p} · ${at.d}`; }
-    if(ls.length) return [...new Set(ls.map(l=>l.type))].join(' · ')+` · ${ls.length} lines`;
-    return `${f.format} well plate`;
+    const date=f.date||ymdLocal(new Date()), ls=(f.lines||[]).map(x=>figLn(x,date)).filter(Boolean);
+    if(ls.length===1) return [ls[0].tag,ls[0].pd].filter(Boolean).join(' · ');
+    if(ls.length){ const ty=[...new Set(ls.map(l=>l.type).filter(Boolean))]; return (ty.length?ty.join(' · ')+' · ':'')+`${ls.length} lines`; }
+    return figPlateFmtText(figPlates(f));
   }
-  const l=lineById(f.lineId); return l?lineTag(l):'실험 일정';
+  const l=lineById(f.lineId); return l?lineTag(l):'Experiment Schedule';
 }
 function figAutoName(f){
   const d=ymd6(f.kind==='plate'?(f.date||ymdLocal(new Date())):ymdLocal(new Date(f.created||Date.now())));
-  if(f.kind==='plate'){ const ids=(f.lines||[]).map(x=>(lineById(x.id)||{}).patientId).filter(Boolean); return `${d} ${ids.join(' ')} Plate map`.replace(/\s+/g,' '); }
+  if(f.kind==='plate'){ const ids=(f.lines||[]).map(x=>(figLn(x,f.date||'')||{}).pid).filter(Boolean); return `${d} ${ids.join(' ')} Plate map`.replace(/\s+/g,' '); }
   const l=lineById(f.lineId); return `${d} ${l?l.patientId:''} Experiment Schedule`.replace(/\s+/g,' ');
 }
-function figTouch(f){ if(!f._nameEdited) f.name=figAutoName(f); if(!f._titleEdited) f.title=figAutoTitle(f); f.updated=Date.now(); delete _figThumbs[f.id]; saveFigures(); }
+function figTouch(f){ if(!f._nameEdited) f.name=figAutoName(f); if(!f._titleEdited) f.title=figAutoTitle(f); f.updated=Date.now(); delete _figThumbs[f.id];
+  figures.forEach(g=>{ if(g.tlId===f.id) delete _figThumbs[g.id]; });   // 이 schedule을 같이 넣은 Plate map 썸네일도 새로
+  saveFigures(); }
 
 // ── 새로 만들기 ──
 function figNew(kind){
   const now=Date.now(), today=ymdLocal(new Date());
   const f=kind==='plate'
-    ? {id:uid(),kind:'plate',format:'24',date:today,conds:[{id:uid(),name:'Control',color:FIG_COND[8]}],lines:[],wells:{},created:now}
+    ? {id:uid(),kind:'plate',date:today,conds:[{id:uid(),name:'Control',color:FIG_COND[8]}],lines:[],plates:[{id:uid(),name:'',format:'24',wells:{}}],tlId:'',created:now}
     : {id:uid(),kind:'tl',lineId:'',zero:'',showDate:true,items:[],created:now};
   const sel=bulkLines.filter(id=>lineById(id));
-  if(kind==='plate'&&sel.length){ f.lines=sel.slice(0,FIG_RING.length).map((id,i)=>({id,color:FIG_RING[i]})); const p=latestPlate(lineById(sel[0])); const m=String(p||'').match(/(\d+)\s*well/); if(m&&FIG_FORMATS[m[1]]) f.format=m[1]; }
+  if(kind==='plate'&&sel.length){ f.lines=sel.slice(0,FIG_RING.length).map((id,i)=>({id,color:FIG_RING[i]})); const p=latestPlate(lineById(sel[0])); const m=String(p||'').match(/(\d+)\s*well/); if(m&&FIG_FORMATS[m[1]]) f.plates[0].format=m[1]; }
   if(kind==='tl'&&sel.length) f.lineId=sel[0];
   figures.unshift(f); figTouch(f); _figEdit=f.id; _figSel.clear(); renderFig();
 }
@@ -9699,7 +9672,7 @@ async function figPpt(ids){
   for(const id of ids){
     const f=figById(id), {canvas}=figRender(f,2);
     const s=pptx.addSlide();
-    s.addText(f.name||'',{x:.4,y:.2,w:12.5,h:.5,fontSize:14,color:'8A9099',fontFace:'Pretendard'});
+    s.addText(figSp(f.name),{x:.4,y:.2,w:12.5,h:.5,fontSize:14,color:'8A9099',fontFace:'Pretendard'});
     const maxW=12.5, maxH=6.4, k=Math.min(maxW/canvas.width,maxH/canvas.height), w=canvas.width*k, h=canvas.height*k;
     s.addImage({data:canvas.toDataURL('image/png'),x:(13.333-w)/2,y:.8+(maxH-h)/2,w,h});
   }
@@ -9740,7 +9713,7 @@ function figDrawPreview(f){
   if(f.kind==='plate') figWirePlate(f,canvas);
 }
 const figLineOpts=sel=>{ const ls=lines.slice().sort((a,b)=>(a.isCompleted-b.isCompleted)||lineTag(a).localeCompare(lineTag(b),undefined,{numeric:true}));
-  return `<option value="">라인 고르기</option>`+ls.map(l=>`<option value="${l.id}"${l.id===sel?' selected':''}>${esc(lineTag(l))}${l.isCompleted?' (완료)':''}</option>`).join(''); };
+  return `<option value="">라인 없이 (직접 넣기만)</option>`+ls.map(l=>`<option value="${l.id}"${l.id===sel?' selected':''}>${esc(lineTag(l))}${l.isCompleted?' (완료)':''}</option>`).join(''); };
 
 // 일정 도식 편집
 function figTlEditor(f){
@@ -9774,44 +9747,69 @@ function figTlPick(id,logId,on){
   if(f.zero&&!f.items.some(it=>it.date===f.zero)) f.zero='';
   figTouch(f); renderFig();
 }
-function figTlAdd(id){ const f=figById(id); if(!f) return; const d=document.getElementById('figAddDate').value, t=document.getElementById('figAddLab').value.trim(); if(!d||!t) return toast('날짜와 이름을 적어 주세요.',{warn:true}); f.items=f.items||[]; f.items.push({id:uid(),date:d,label:t,color:'#E07A5F'}); figTouch(f); renderFig(); }
+function figTlAdd(id){ const f=figById(id); if(!f) return; const d=document.getElementById('figAddDate').value, t=document.getElementById('figAddLab').value.trim(); if(!d||!t) return toast('날짜와 이름을 적어 주세요.',{warn:true}); f.items=f.items||[]; const ac=figActColor(t); f.items.push({id:uid(),date:d,label:t,color:ac===FIG_ACT['기타']?'#E07A5F':ac}); figTouch(f); renderFig(); }
 function figTlLab(id,iid,v){ const f=figById(id), it=f&&f.items.find(x=>x.id===iid); if(!it) return; it.label=v; figTouch(f); renderFig(); }
 function figTlDel(id,iid){ const f=figById(id); if(!f) return; f.items=f.items.filter(x=>x.id!==iid); figTouch(f); renderFig(); }
 function figTlColor(id,iid){ const f=figById(id), it=f&&f.items.find(x=>x.id===iid); if(!it) return; const pal=Object.values(FIG_ACT); it.color=pal[(pal.indexOf(it.color)+1)%pal.length]; figTouch(f); renderFig(); }
 
 // 플레이트 편집
 function figPlateEditor(f){
-  const used=new Set((f.lines||[]).map(x=>x.id));
+  const used=new Set((f.lines||[]).map(x=>x.id)), plates=figPlates(f), date=f.date||ymdLocal(new Date());
+  const tls=figures.filter(g=>g.kind==='tl');
   return figHead(f)+`<div class="fg-ed">
     <div class="fg-side">
-      <div class="fg-row2"><label class="fg-f">Plate<select onchange="figPlSet('${f.id}','format',this.value)">${Object.keys(FIG_FORMATS).map(k=>`<option value="${k}"${k===f.format?' selected':''}>${k} well</option>`).join('')}</select></label>
-        <label class="fg-f">날짜<input type="date" value="${f.date||''}" onchange="figPlSet('${f.id}','date',this.value)"></label></div>
+      <div class="fg-row2"><label class="fg-f">날짜<input type="date" value="${f.date||''}" onchange="figPlSet('${f.id}','date',this.value)"></label>
+        <label class="fg-f">같이 넣을 Experiment Schedule<select onchange="figPlSet('${f.id}','tlId',this.value)"><option value="">없음</option>${tls.map(g=>`<option value="${g.id}"${g.id===f.tlId?' selected':''}>${esc(g.name||'')}</option>`).join('')}</select></label></div>
       <label class="fg-f">제목<input value="${esc(f.title||'')}" placeholder="비우면 라인 · P · day" onchange="figSetTitle('${f.id}',this.value)"></label>
+      <div class="fg-sub">Plate <small>(한 실험에 plate가 여러 장이면 추가)</small></div>
+      <div class="fg-plates">${plates.map((p,i)=>`<div class="fg-pl"><input value="${esc(p.name||'')}" placeholder="Plate ${i+1}" onchange="figPlateSet('${f.id}',${i},'name',this.value)">
+        <select onchange="figPlateSet('${f.id}',${i},'format',this.value)">${Object.keys(FIG_FORMATS).map(k=>`<option value="${k}"${k===p.format?' selected':''}>${k} well</option>`).join('')}</select>
+        ${plates.length>1?`<button class="tbl-btn" onclick="figPlateDel('${f.id}',${i})" title="이 plate 빼기">${ic('x','ic-sm')}</button>`:''}</div>`).join('')}
+        <button class="tbl-btn" onclick="figPlateAdd('${f.id}')">+ plate</button></div>
       <div class="fg-sub">① well을 끌어서 고르고 <small>(Shift: 이어서 범위 더하기 · Ctrl: 한 칸씩)</small> <span class="fg-hint">${_figSel.size?`${_figSel.size}칸 골랐어요`:'아직 안 골랐어요'}</span></div>
       <div class="fg-btns"><button class="tbl-btn" onclick="figSelAll('${f.id}')">전체</button><button class="tbl-btn" onclick="_figSel.clear();renderFig()">선택 풀기</button><button class="tbl-btn" onclick="figClearSel('${f.id}')">고른 칸 비우기</button></div>
       <div class="fg-sub">② 라인 누르기 <small>(well 테두리 색)</small></div>
-      <div class="fg-chips">${(f.lines||[]).map(x=>{ const l=lineById(x.id); return l?`<span class="fg-chip" style="--rc:${x.color}"><button onclick="figAssign('${f.id}','l','${x.id}')"><i class="ring"></i>${esc(lineTag(l))}</button><button class="x" onclick="figPlLineDel('${f.id}','${x.id}')" title="빼기">×</button></span>`:''; }).join('')}
-        <select class="fg-addsel" onchange="figPlLineAdd('${f.id}',this.value)">${'<option value="">+ 라인</option>'+lines.filter(l=>!used.has(l.id)).sort((a,b)=>(a.isCompleted-b.isCompleted)||lineTag(a).localeCompare(lineTag(b),undefined,{numeric:true})).map(l=>`<option value="${l.id}">${esc(lineTag(l))}${l.isCompleted?' (완료)':''}</option>`).join('')}</select>
+      <div class="fg-chips">${(f.lines||[]).map(x=>{ const L=figLn(x,date); return L?`<span class="fg-chip" style="--rc:${x.color}"><button onclick="figAssign('${f.id}','l','${x.id}')"><i class="ring"></i>${esc(L.tag)}${x.custom?' <small>(직접)</small>':''}</button><button class="x" onclick="figPlLineDel('${f.id}','${x.id}')" title="빼기">×</button></span>`:''; }).join('')}
+        <select class="fg-addsel" onchange="figPlLineAdd('${f.id}',this.value)">${'<option value="">+ 라인</option><option value="__custom">✎ 직접 입력 (키우는 라인 아님)</option>'+lines.filter(l=>!used.has(l.id)).sort((a,b)=>(a.isCompleted-b.isCompleted)||lineTag(a).localeCompare(lineTag(b),undefined,{numeric:true})).map(l=>`<option value="${l.id}">${esc(lineTag(l))}${l.isCompleted?' (완료)':''}</option>`).join('')}</select>
         ${(f.lines||[]).length?`<button class="tbl-btn" onclick="figAssign('${f.id}','l','')">라인 빼기</button>`:''}</div>
       <div class="fg-sub">③ 조건 누르기 <small>(well 안 색)</small></div>
       <div class="fg-conds">${(f.conds||[]).map(cd=>`<div class="fg-cd"><button class="fg-dot" style="background:${cd.color}" onclick="figCondColor('${f.id}','${cd.id}')" title="색 바꾸기"></button>
         <input value="${esc(cd.name)}" onchange="figCondName('${f.id}','${cd.id}',this.value)"><button class="btn btn-out fg-apply" onclick="figAssign('${f.id}','c','${cd.id}')">칠하기</button><button class="tbl-btn" onclick="figCondDel('${f.id}','${cd.id}')">${ic('x','ic-sm')}</button></div>`).join('')}</div>
-      <div class="fg-btns"><button class="tbl-btn" onclick="figCondAdd('${f.id}')">+ 조건</button><button class="tbl-btn" onclick="figCondSeries('${f.id}')">+ 농도 시리즈</button><button class="tbl-btn" onclick="figAssign('${f.id}','c','')">조건 빼기</button></div>
+      <div class="fg-btns"><button class="tbl-btn" onclick="figCondAdd('${f.id}')">+ 조건</button><button class="tbl-btn" onclick="figCondSeries('${f.id}')">+ 농도 시리즈</button></div>
       <div class="fg-sub">④ well 안 글자 <small>(비우면 조건 이름)</small></div>
       <div class="fg-add"><input id="figTxt" placeholder="예: R1, 10 µM"><button class="btn btn-out" onclick="figAssign('${f.id}','t',document.getElementById('figTxt').value.trim())">고른 칸에 쓰기</button></div>
     </div>
     <div class="fg-main"><div id="figPrev" class="fg-prev fg-plate"></div></div></div>`;
 }
-function figPlSet(id,k,v){ const f=figById(id); if(!f) return; f[k]=v; if(k==='format'){ const [R,C]=FIG_FORMATS[v]; Object.keys(f.wells||{}).forEach(key=>{ const i=key.charCodeAt(0)-65, j=parseInt(key.slice(1))-1; if(i>=R||j>=C) delete f.wells[key]; }); _figSel.clear(); } figTouch(f); renderFig(); }
-function figPlLineAdd(id,lid){ const f=figById(id); if(!f||!lid) return; f.lines=f.lines||[]; const usedC=new Set(f.lines.map(x=>x.color)); f.lines.push({id:lid,color:FIG_RING.find(c=>!usedC.has(c))||FIG_RING[f.lines.length%FIG_RING.length]}); if(_figSel.size){ _figSel.forEach(k=>{ (f.wells[k]=f.wells[k]||{}).l=lid; }); } figTouch(f); renderFig(); }
-function figPlLineDel(id,lid){ const f=figById(id); if(!f) return; f.lines=f.lines.filter(x=>x.id!==lid); Object.values(f.wells||{}).forEach(w=>{ if(w.l===lid) delete w.l; }); figTouch(f); renderFig(); }
-function figAssign(id,k,v){
-  const f=figById(id); if(!f) return; if(!_figSel.size) return toast('먼저 plate 그림에서 well을 끌어서 골라 주세요.',{warn:true});
-  f.wells=f.wells||{}; _figSel.forEach(key=>{ const w=f.wells[key]=f.wells[key]||{}; if(v) w[k]=v; else delete w[k]; if(!w.c&&!w.l&&!w.t) delete f.wells[key]; });
+const figWellOf=(f,key,make)=>{ const [pi,wk]=key.split(':'), pl=figPlates(f)[+pi]; if(!pl) return null; pl.wells=pl.wells||{}; if(make&&!pl.wells[wk]) pl.wells[wk]={}; return {pl,wk,w:pl.wells[wk]}; };
+function figPlSet(id,k,v){ const f=figById(id); if(!f) return; f[k]=v; figTouch(f); renderFig(); }
+function figPlateSet(id,i,k,v){ const f=figById(id), pl=f&&figPlates(f)[i]; if(!pl) return; pl[k]=k==='name'?v.trim():v;
+  if(k==='format'){ const [R,C]=FIG_FORMATS[v]; Object.keys(pl.wells||{}).forEach(key=>{ const r=key.charCodeAt(0)-65, c=parseInt(key.slice(1))-1; if(r>=R||c>=C) delete pl.wells[key]; }); _figSel.clear(); }
+  figTouch(f); renderFig(); }
+function figPlateAdd(id){ const f=figById(id); if(!f) return; const ps=figPlates(f), last=ps[ps.length-1]; ps.push({id:uid(),name:'',format:last?last.format:'24',wells:{}}); figTouch(f); renderFig(); }
+function figPlateDel(id,i){ const f=figById(id); if(!f) return; const ps=figPlates(f); if(ps.length<2) return; if(Object.keys(ps[i].wells||{}).length&&!confirm('이 plate에 칠한 것도 같이 지워져요. 뺄까요?')) return; ps.splice(i,1); _figSel.clear(); figTouch(f); renderFig(); }
+function figPlLineAdd(id,lid){
+  const f=figById(id); if(!f||!lid) return; f.lines=f.lines||[];
+  const usedC=new Set(f.lines.map(x=>x.color)), color=FIG_RING.find(c=>!usedC.has(c))||FIG_RING[f.lines.length%FIG_RING.length];
+  let ent;
+  if(lid==='__custom'){
+    const name=(prompt('라인 이름 (예: HCC40_Tumor-org)','')||'').trim(); if(!name){ renderFig(); return; }
+    const pd=(prompt('Passage · day (선택, 예: P3 d5)','')||'').trim();
+    const pm=pd.match(/p\s*(\d+)/i), dm=pd.match(/\bd\s*[\d+]+/i);
+    ent={id:'c_'+uid(),custom:true,name,p:pm?pm[1]:'',d:dm?dm[0].replace(/\s/g,''):'',color};
+  } else ent={id:lid,color};
+  f.lines.push(ent);
+  _figSel.forEach(k=>{ const o=figWellOf(f,k,true); if(o) o.w.l=ent.id; });
   figTouch(f); renderFig();
 }
-function figClearSel(id){ const f=figById(id); if(!f) return; _figSel.forEach(k=>delete f.wells[k]); figTouch(f); renderFig(); }
-function figSelAll(id){ const f=figById(id); if(!f) return; const [R,C]=FIG_FORMATS[f.format]; _figSel.clear(); for(let i=0;i<R;i++) for(let j=0;j<C;j++) _figSel.add(String.fromCharCode(65+i)+(j+1)); renderFig(); }
+function figPlLineDel(id,lid){ const f=figById(id); if(!f) return; f.lines=f.lines.filter(x=>x.id!==lid); figPlates(f).forEach(pl=>Object.values(pl.wells||{}).forEach(w=>{ if(w.l===lid) delete w.l; })); figTouch(f); renderFig(); }
+function figAssign(id,k,v){
+  const f=figById(id); if(!f) return; if(!_figSel.size) return toast('먼저 plate 그림에서 well을 끌어서 골라 주세요.',{warn:true});
+  _figSel.forEach(key=>{ const o=figWellOf(f,key,true); if(!o) return; if(v) o.w[k]=v; else delete o.w[k]; if(!o.w.c&&!o.w.l&&!o.w.t) delete o.pl.wells[o.wk]; });
+  figTouch(f); renderFig();
+}
+function figClearSel(id){ const f=figById(id); if(!f) return; _figSel.forEach(k=>{ const o=figWellOf(f,k); if(o) delete o.pl.wells[o.wk]; }); figTouch(f); renderFig(); }
+function figSelAll(id){ const f=figById(id); if(!f) return; _figSel.clear(); figPlates(f).forEach((pl,pi)=>{ const [R,C]=FIG_FORMATS[pl.format]; for(let i=0;i<R;i++) for(let j=0;j<C;j++) _figSel.add(pi+':'+String.fromCharCode(65+i)+(j+1)); }); renderFig(); }
 function figCondAdd(id){ const f=figById(id); if(!f) return; const used=new Set(f.conds.map(c=>c.color)); f.conds.push({id:uid(),name:'조건 '+(f.conds.length+1),color:FIG_COND.find(c=>!used.has(c))||FIG_COND[f.conds.length%FIG_COND.length]}); figTouch(f); renderFig(); }
 function figCondSeries(id){
   const f=figById(id); if(!f) return;
@@ -9824,13 +9822,14 @@ function figCondSeries(id){
 }
 function figCondName(id,cid,v){ const f=figById(id), c=f&&f.conds.find(x=>x.id===cid); if(!c) return; c.name=v; figTouch(f); renderFig(); }
 function figCondColor(id,cid){ const f=figById(id), c=f&&f.conds.find(x=>x.id===cid); if(!c) return; const i=FIG_COND.indexOf(c.color); c.color=FIG_COND[(i+1)%FIG_COND.length]; figTouch(f); renderFig(); }
-function figCondDel(id,cid){ const f=figById(id); if(!f) return; f.conds=f.conds.filter(x=>x.id!==cid); Object.values(f.wells||{}).forEach(w=>{ if(w.c===cid) delete w.c; }); figTouch(f); renderFig(); }
+function figCondDel(id,cid){ const f=figById(id); if(!f) return; f.conds=f.conds.filter(x=>x.id!==cid); figPlates(f).forEach(pl=>Object.values(pl.wells||{}).forEach(w=>{ if(w.c===cid) delete w.c; })); figTouch(f); renderFig(); }
 // 끌어서 고르기: 누른 칸 ~ 지금 칸 사각형
 function figWirePlate(f,cv){
   const hit=e=>{ const r=cv.getBoundingClientRect(), k=(cv.width/2)/r.width, x=(e.clientX-r.left)*k, y=(e.clientY-r.top)*k;
     let best=null; (f._geo||[]).forEach(g=>{ const d=Math.hypot(g.x-x,g.y-y); if(d<=g.r*1.15&&(!best||d<best.d)) best={...g,d}; }); return best; };
-  const rc=k=>[k.charCodeAt(0)-65,parseInt(k.slice(1))-1];
-  const rect=(a,b)=>{ const [i1,j1]=rc(a),[i2,j2]=rc(b), s=new Set(); for(let i=Math.min(i1,i2);i<=Math.max(i1,i2);i++) for(let j=Math.min(j1,j2);j<=Math.max(j1,j2);j++) s.add(String.fromCharCode(65+i)+(j+1)); return s; };
+  const rc=k=>{ const [pi,w]=k.split(':'); return [pi,w.charCodeAt(0)-65,parseInt(w.slice(1))-1]; };
+  // 같은 plate 안에서만 사각형으로 (다른 plate로 끌면 그 칸만)
+  const rect=(a,b)=>{ const [p1,i1,j1]=rc(a),[p2,i2,j2]=rc(b), s=new Set(); if(p1!==p2) return new Set([b]); for(let i=Math.min(i1,i2);i<=Math.max(i1,i2);i++) for(let j=Math.min(j1,j2);j<=Math.max(j1,j2);j++) s.add(p1+':'+String.fromCharCode(65+i)+(j+1)); return s; };
   cv.style.touchAction='none';
   // Shift+누르기: 마지막으로 누른 칸부터 여기까지 사각형을 더함 / Ctrl(⌘)+누르기: 한 칸씩 넣고 빼기 / 그냥 끌기: 새로 고르기
   cv.onpointerdown=e=>{ const g=hit(e); if(!g) return; cv.setPointerCapture(e.pointerId);
@@ -11470,8 +11469,8 @@ async function exportMatchPPT(m){
   for(let p=0; p<pages; p++){
     const s = pptx.addSlide();
     s.background = {color:'FFFFFF'};
-    s.addText(matchTitle(m)+(pages>1?` (${p+1}/${pages})`:''), {x:X, y:0.35, w:TW, h:0.6, fontFace:FONT, fontSize:22, bold:true, color:'1F2328', margin:0});
-    s.addText(matchConditions(), {x:X, y:0.95, w:TW, h:0.35, fontFace:FONT, fontSize:11, color:'454B53', margin:0});
+    s.addText(String(matchTitle(m)).replace(/_/g,' ')+(pages>1?` (${p+1}/${pages})`:''), {x:X, y:0.35, w:TW, h:0.6, fontFace:FONT, fontSize:22, bold:true, color:'1F2328', margin:0});
+    s.addText(String(matchConditions()).replace(/_/g,' '), {x:X, y:0.95, w:TW, h:0.35, fontFace:FONT, fontSize:11, color:'454B53', margin:0});
     const header = [
       {text:'HCC 번호', options:{bold:true, fill:headFill, color:'454B53'}},
       ...m.cats.map(c=>({text:MATCH_CATEGORIES[c].label, options:{bold:true, fill:headFill, color:'454B53'}}))
@@ -11487,7 +11486,7 @@ async function exportMatchPPT(m){
           return {text:[
             {text:cp.count, options:{bold:true, fontSize:12, breakLine:true}},
             {text:cp.passage, options:{fontSize:9, color:'454B53', breakLine:true}},
-            {text:cp.loc, options:{fontSize:8.5, color:'454B53'}}
+            {text:String(cp.loc==null?'':cp.loc).replace(/_/g,' '), options:{fontSize:8.5, color:'454B53'}}
           ], options:{fill}};
         })
       ];
