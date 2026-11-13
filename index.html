@@ -904,7 +904,8 @@ body[data-tab="fig"] .pane[data-pane="fig"]{display:block;animation:paneIn .28s 
 .fg-chip button{border:none;background:none;font:inherit;font-size:.74rem;padding:4px 8px;cursor:pointer;display:flex;align-items:center;gap:5px;color:var(--tx);}
 .fg-chip button:hover{background:var(--hov);} .fg-chip .x{padding:4px 7px 4px 2px;color:var(--mut);}
 .fg-chip .ring{width:11px;height:11px;border-radius:50%;border:3px solid var(--rc);box-sizing:border-box;}
-.fg-addsel{height:28px;width:auto;font-size:.74rem;}
+.fg-addsel{height:28px;width:auto;max-width:100%;min-width:0;font-size:.74rem;}
+.fg-side{overflow-x:hidden;} .fg-side>*{min-width:0;}
 @media (max-width:900px){ .fg-ed{grid-template-columns:1fr;} .fg-main{position:static;order:-1;} .fg-side{max-height:none;} }
 
 /* ═══ Media ═══ */
@@ -9539,12 +9540,17 @@ function figDark(h){ const c=figHex(h); return '#'+c.map(v=>Math.round(v*.62).to
 function figRenderPlate(f,scale,compact){
   if(compact) return figRenderPlateCompact(f,scale);
   const [R,C]=FIG_FORMATS[f.format]||FIG_FORMATS['24'];
-  const cell=Math.min(150, Math.floor(1040/C)), r=cell*0.42;
+  const cell=Math.min(C<=4?230:150, Math.floor(1040/C)), r=cell*0.42;
   const px=70, py=120, pw=C*cell+70, ph=R*cell+64;
   const legendX=px+pw+50;
   const conds=f.conds||[], lns=(f.lines||[]).map(x=>({...x,line:lineById(x.id)})).filter(x=>x.line);
   const legRows=conds.length+(lns.length?lns.length+1:0)+1;
-  const W=Math.max(legendX+460,1300), H=Math.max(py+ph+60, py+legRows*44+60);
+  // 범례 폭은 글자 길이에 맞춤 (긴 라인 이름이 잘리지 않게)
+  const mc=document.createElement('canvas').getContext('2d'), FF=figFont(); let legW=300;
+  mc.font=`700 21px ${FF}`; lns.forEach(x=>{ const at=figLineAt(x.line,f.date||ymdLocal(new Date())); const a=mc.measureText(lineTag(x.line)).width; mc.font=`500 18px ${FF}`; legW=Math.max(legW,52+a+10+mc.measureText(`P${at.p} · ${at.d}`).width); mc.font=`700 21px ${FF}`; });
+  mc.font=`600 21px ${FF}`; conds.forEach(cd=>{ legW=Math.max(legW,50+mc.measureText(cd.name||'').width); });
+  mc.font=`700 34px ${FF}`; const titleW=mc.measureText(f.title||'').width+px;
+  const W=Math.max(legendX+legW+50,titleW+60,1100), H=Math.max(py+ph+60, py+legRows*44+60);
   const {c,ctx}=figCanvas(W,H,scale), F=figFont();
   // 제목 · 날짜
   ctx.textBaseline='top'; ctx.fillStyle='#1F2328'; ctx.font=`700 34px ${F}`; ctx.fillText(f.title||'',px-10,30);
@@ -9566,7 +9572,7 @@ function figRenderPlate(f,scale,compact){
     const cd=condOf(w.c), ln=lnOf(w.l);
     ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
     ctx.fillStyle=cd?cd.color:'#FFFFFF'; ctx.fill();
-    ctx.lineWidth=ln?Math.max(3,r*.13):1.5; ctx.strokeStyle=ln?ln.color:'#C9CED5'; ctx.stroke();
+    ctx.lineWidth=ln?3.5:1.5; ctx.strokeStyle=ln?ln.color:'#C9CED5'; ctx.stroke();
     if(_figEdit===f.id&&_figSel.has(key)){ ctx.save(); ctx.setLineDash([6,4]); ctx.lineWidth=3; ctx.strokeStyle='#111'; ctx.beginPath(); ctx.arc(cx,cy,r+6,0,Math.PI*2); ctx.stroke(); ctx.restore(); }
     // well 안 글자: 라인 번호 / 조건 / 직접 쓴 글자
     const ink=cd?figInk(cd.color):'#1F2328';
@@ -9835,7 +9841,9 @@ function figWirePlate(f,cv){
   cv.onpointermove=e=>{ if(!_figDrag||_figDrag.noMove) return; const g=hit(e); if(!g) return; _figSel=new Set([..._figDrag.base,...rect(_figDrag.from,g.key)]); figRedrawSel(f); };
   cv.onpointerup=e=>{ if(!_figDrag) return; const g=hit(e); if(_figDrag.toggle&&g&&g.key===_figDrag.from) _figSel.clear(); _figDrag=null; renderFig(); };
 }
-function figRedrawSel(f){ const box=document.getElementById('figPrev'); const old=box&&box.querySelector('canvas'); if(!old) return; const {canvas}=figRender(f,2); old.getContext('2d').drawImage(canvas,0,0); }
+function figRedrawSel(f){ const box=document.getElementById('figPrev'); const old=box&&box.querySelector('canvas'); if(!old) return; const {canvas}=figRender(f,2);
+  // 처음 그릴 때 걸어 둔 2배 확대를 풀고 그대로 덮어써야 함 (안 풀면 2배로 커져 보임)
+  const ctx=old.getContext('2d'); ctx.setTransform(1,0,0,1,0,0); ctx.drawImage(canvas,0,0); }
 
 // 스크립트를 끝까지 읽은 뒤에야 분석 · 다이어리를 그릴 수 있다 (setTab 참고)
 window._lateReady=true;
