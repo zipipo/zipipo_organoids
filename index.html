@@ -579,15 +579,16 @@ label{font-size:.74rem;font-weight:550;color:var(--sub);}
 
 /* 오늘 작업: 본문 + 오른쪽 기록 패널 */
 .today{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:20px;align-items:start;}
-.stats{display:grid;grid-template-columns:repeat(5,1fr);border:1px solid var(--bd);border-radius:8px;background:var(--sur);margin-bottom:14px;overflow:hidden;}
+.stats{display:grid;grid-template-columns:repeat(6,1fr);border:1px solid var(--bd);border-radius:8px;background:var(--sur);margin-bottom:14px;overflow:hidden;}
 .stat{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-left:1px solid var(--bd2);}
 .stat:first-child{border-left:none;}
-.stat-l{display:flex;align-items:center;gap:6px;font-size:.74rem;color:var(--sub);font-weight:500;}
+.stat-l{display:flex;align-items:center;gap:6px;font-size:.74rem;color:var(--sub);font-weight:500;white-space:nowrap;}
 .stat-n{font-size:1.45rem;font-weight:650;letter-spacing:-.02em;line-height:1;}
 .stat.click{cursor:pointer;transition:background .12s;}
 .stat.click:hover{background:var(--hov);}
 .dot{width:7px;height:7px;border-radius:50%;display:inline-block;}
 .d-warn{background:#E9C24A;} .d-due{background:#E27370;}
+.rs-due{display:inline-block;margin-left:4px;padding:0 5px;border-radius:4px;font-size:.68rem;font-weight:600;line-height:1.5;background:var(--due-bg,#FEE2E2);color:var(--due,#B91C1C);}
 .tdot{width:10px;height:10px;border-radius:3px;display:inline-block;flex:none;background:var(--td,#E4E4E7);box-shadow:inset 0 0 0 1px var(--tl,#D4D4D8);}
 .nil{color:var(--mut);}
 
@@ -1410,6 +1411,8 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
   .tb-r{width:100%;}
   body[data-tab="today"] .tb-r{display:none;}
   .search{flex:1;} .search input{width:100%;}
+  .stats{grid-template-columns:repeat(3,1fr);}
+  .stat:nth-child(3n+1){border-left:none;} .stat:nth-child(n+4){border-top:1px solid var(--bd2);}
   .stat{padding:10px;gap:4px;}
   .stat-l{font-size:.66rem;white-space:nowrap;}
   .stat-n{font-size:1.15rem;}
@@ -2502,6 +2505,16 @@ function closeColorModal(){ document.getElementById('colorModal').classList.remo
 // ══════════════════════════════════════════
 //  MC DAYS
 // ══════════════════════════════════════════
+// 마지막 Seeding/Split/Reseeding 뒤로 지난 날 (d 표기의 마지막 숫자). day14가 지나면 Reseeding 지연
+const RESEED_LIMIT=14;
+function reseedDays(line){
+  if(line.isCompleted||!line.startDate) return null;
+  const start=new Date(line.startDate),now=new Date();
+  start.setHours(0,0,0,0);now.setHours(0,0,0,0);
+  const d=Math.max(0,Math.floor((now-start)/86400000));
+  return{days:d,due:d>RESEED_LIMIT};
+}
+
 function mcDays(line){
   if(line.isCompleted) return null;
   const rel=logs.filter(l=>l.lineId===line.id&&(isMediaChange(l.action)||isPassageUp(l.action)||l.action==='Reseeding'||isSeed(l.action)))
@@ -2614,7 +2627,7 @@ function renderDash(){
   const sc=document.getElementById('shotCount'); if(sc) sc.textContent=shotLog.length||'';
 
   const groups={};
-  let mcWarn=0, mcDue=0;
+  let mcWarn=0, mcDue=0, rsDue=0;
   const sortedActive=active.slice().sort((a,b)=>(a.patientId||'').localeCompare(b.patientId||'',undefined,{numeric:true,sensitivity:'base'}));
   const byProj=_boardBy==='project';
   sortedActive.forEach(l=>{
@@ -2625,7 +2638,8 @@ function renderDash(){
     groups[gk].wells+=w;
     const mc=mcDays(l);
     if(mc){ if(mc.cls==='mc-warn') mcWarn++; if(mc.cls==='mc-due') mcDue++; }
-    groups[gk].lines.push({id:l.id,label:l.patientId,detail:byProj?[l.type,l.detail].filter(Boolean).join(' · '):l.detail,well:w,p:l.passage,day:calcDayStr(l),plate:latestPlate(l),mc});
+    const rs=reseedDays(l); if(rs&&rs.due) rsDue++;
+    groups[gk].lines.push({id:l.id,label:l.patientId,detail:byProj?[l.type,l.detail].filter(Boolean).join(' · '):l.detail,well:w,p:l.passage,day:calcDayStr(l),plate:latestPlate(l),mc,rs});
   });
 
   // 상단 숫자 칸: MC 칸을 누르면 해당 라인이 한 번에 선택된다
@@ -2636,6 +2650,7 @@ function renderDash(){
     <div class="stat"><span class="stat-l">총 Well</span><span class="stat-n">${Object.values(groups).reduce((s,d)=>s+d.wells,0)}</span></div>
     <div class="stat${mcWarn?' click':''}" ${mcWarn?'onclick="selectMcNeeded()" title="MC 필요 라인 전체 선택"':''}><span class="stat-l"><i class="dot d-warn"></i>MC 3일차</span><span class="stat-n">${mcWarn}</span></div>
     <div class="stat${mcDue?' click':''}" ${mcDue?'onclick="selectMcNeeded()" title="MC 필요 라인 전체 선택"':''}><span class="stat-l"><i class="dot d-due"></i>MC 지연</span><span class="stat-n">${mcDue}</span></div>
+    <div class="stat${rsDue?' click':''}" ${rsDue?'onclick="selectReseedNeeded()" title="day14가 지난 라인 전체 선택"':''}><span class="stat-l"><i class="dot d-due"></i>Reseeding 필요</span><span class="stat-n">${rsDue}</span></div>
     <div class="stat"><span class="stat-l">오늘 예정</span><span class="stat-n">${todayPlans}</span></div>`;
 
   // 오늘(또는 밀린) 예정 작업이 있는 라인은 이름 옆에 작게 표시
@@ -2658,7 +2673,7 @@ function renderDash(){
       return `<div class="bd-row${bulkLines.includes(ll.id)?' sel':''}${open?' open':''}" data-line="${ll.id}" draggable="true" ondragstart="planDragStart(event,'${ll.id}')" onclick="selectLine('${ll.id}')">
         <span class="cbx">${ic('check')}</span>
         <span class="bd-name">${esc(ll.label)}${ll.detail?`<small>${esc(ll.detail)}</small>`:''}${planToday[ll.id]?`<span class="plan-tag" title="오늘 예정">${ic('pin','ic-sm')}${esc(planToday[ll.id])}</span>`:''}</span>
-        <span class="bd-pd"><b>P${ll.p}</b> ${ll.day}${ll.well?`<span class="pd-w">${ll.well} well</span>`:''}</span>
+        <span class="bd-pd"><b>P${ll.p}</b> ${ll.day}${ll.rs&&ll.rs.due?`<span class="rs-due" title="day${RESEED_LIMIT}가 지났어요. Reseeding이 필요해요">지연</span>`:''}${ll.well?`<span class="pd-w">${ll.well} well</span>`:''}</span>
         <span class="bd-plate">${esc(ll.plate||'')}</span>
         <span class="bd-well">${ll.well?ll.well+' well':'<span class="nil">-</span>'}</span>
         ${mcTag}
@@ -3962,6 +3977,15 @@ function selectMcNeeded(){
   bulkLines=[...new Set([...bulkLines,...ids])];
   setAction('Media Change'); setLogDate(0); onLinesChanged();
   toast(`MC 필요 라인 ${ids.length}개를 선택했어요. 확인하고 [기록 저장]을 눌러주세요.`);
+  document.getElementById('logCard').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// day14가 지난 라인을 전부 선택하고 액션을 Reseeding으로
+function selectReseedNeeded(){
+  const ids=lines.filter(l=>{ const r=reseedDays(l); return r&&r.due; }).map(l=>l.id);
+  bulkLines=[...new Set([...bulkLines,...ids])];
+  setAction('Reseeding'); setLogDate(0); onLinesChanged();
+  toast(`Reseeding 필요 라인 ${ids.length}개를 선택했어요. 확인하고 [기록 저장]을 눌러주세요.`);
   document.getElementById('logCard').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
