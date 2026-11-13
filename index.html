@@ -5283,6 +5283,86 @@ function sbLoadImageFile(file){
   });
 }
 
+// ── 사진 해독을 여러 장 동시에 (Web Worker) ──
+// 불러올 때는 작은 미리보기(480·240px)만 받아서 메모리를 아끼고, 원본은 저장·크게 보기 할 때 다시 해독한다.
+// Worker를 못 쓰는 환경(오래된 브라우저, 오프라인으로 UTIF 못 받음 등)이면 예전처럼 화면 스레드에서 처리.
+const SB_WORKER_SRC=`
+let utifOk=false; try{ importScripts('https://cdn.jsdelivr.net/npm/utif@3.1.0/UTIF.min.js'); utifOk=true; }catch(e){}
+function sc(src,w,h,m){ const k=Math.min(1,m/Math.max(w,h)); const c=new OffscreenCanvas(Math.max(1,Math.round(w*k)),Math.max(1,Math.round(h*k))); c.getContext('2d').drawImage(src,0,0,c.width,c.height); return c.transferToImageBitmap(); }
+onmessage=async e=>{ const {id,file,tiff,full,sizes,enc}=e.data;
+  try{
+    if(enc){ const c=new OffscreenCanvas(enc.width,enc.height); c.getContext('2d').drawImage(enc,0,0); enc.close(); postMessage({id,blob:await c.convertToBlob({type:'image/png'})}); return; }
+    let src,w,h;
+    if(tiff){
+      if(!utifOk) throw new Error('TIFF 디코더를 못 불러왔어요(인터넷 필요)');
+      const buf=await file.arrayBuffer(); const ifds=UTIF.decode(buf); UTIF.decodeImage(buf,ifds[0]);
+      const px=UTIF.toRGBA8(ifds[0]); w=ifds[0].width; h=ifds[0].height;
+      let rgba=new Uint8ClampedArray(px.buffer,px.byteOffset,w*h*4);
+      if(full){ if(rgba.byteOffset||rgba.buffer.byteLength!==rgba.length) rgba=rgba.slice(); postMessage({id,w,h,rgba:rgba.buffer},[rgba.buffer]); return; }
+      const c=new OffscreenCanvas(w,h); c.getContext('2d').putImageData(new ImageData(rgba,w,h),0,0); src=c;
+    } else { src=await createImageBitmap(file); w=src.width; h=src.height; }
+    const out=sizes.map(m=>sc(src,w,h,m)); postMessage({id,w,h,bmps:out},out);
+  }catch(err){ postMessage({id,err:String((err&&err.message)||err)}); }
+};`;
+let _sbPool=null;
+function sbPool(){
+  if(_sbPool!==null) return _sbPool;
+  try{
+    if(typeof Worker==='undefined'||typeof OffscreenCanvas==='undefined'||typeof createImageBitmap==='undefined') throw new Error('no worker');
+    const url=URL.createObjectURL(new Blob([SB_WORKER_SRC],{type:'text/javascript'}));
+    const n=Math.max(2,Math.min(6,(navigator.hardwareConcurrency||4)-1));
+    const pool={ws:[],q:[],seq:0};
+    for(let i=0;i<n;i++){
+      const x={w:new Worker(url),job:null};
+      x.w.onmessage=e=>{ const j=x.job; x.job=null; if(j){ e.data.err?j.rej(new Error(e.data.err)):j.res(e.data); } sbPoolPump(); };
+      x.w.onerror=e=>{ e.preventDefault&&e.preventDefault(); const j=x.job; x.job=null; if(j) j.rej(new Error('worker')); sbPoolPump(); };
+      pool.ws.push(x);
+    }
+    _sbPool=pool;
+  }catch(e){ _sbPool=false; }
+  return _sbPool;
+}
+function sbPoolPump(){
+  const P=_sbPool; if(!P) return;
+  P.ws.forEach(x=>{ if(x.job||!P.q.length) return; const j=P.q.shift(); x.job=j; x.w.postMessage(j.msg,j.tr||[]); });
+}
+const sbIsTiff=f=>/\.(tif|tiff)$/i.test(f.name)||f.type==='image/tiff';
+function sbPoolRun(file,full,sizes){
+  const P=sbPool(); if(!P) return Promise.reject(new Error('no pool'));
+  return new Promise((res,rej)=>{ P.q.push({msg:{id:++P.seq,file,tiff:sbIsTiff(file),full,sizes},res,rej}); sbPoolPump(); });
+}
+// PNG 만들기도 작업자에서 (여러 장 동시에). 안 되면 화면 스레드에서
+async function sbEncodePng(cv){
+  if(sbPool()){
+    try{ const bmp=await createImageBitmap(cv); const P=_sbPool;
+      const d=await new Promise((res,rej)=>{ P.q.push({msg:{id:++P.seq,enc:bmp},res,rej,tr:[bmp]}); sbPoolPump(); });
+      if(d.blob) return d.blob; }catch(e){}
+  }
+  return await new Promise(r=>cv.toBlob(r,'image/png'));
+}
+const sbBmpCanvas=b=>{ const c=document.createElement('canvas'); c.width=b.width; c.height=b.height; c.getContext('2d').drawImage(b,0,0); b.close&&b.close(); return c; };
+// 불러오기용: 작은 미리보기 두 장(480: 색 분석용, 240: 목록 미리보기용)
+async function sbLoadPreview(file){
+  try{
+    const d=await sbPoolRun(file,false,[480,240]);
+    return {w:d.w,h:d.h,c480:sbBmpCanvas(d.bmps[0]),c240:sbBmpCanvas(d.bmps[1])};
+  }catch(e){
+    if(sbPool() && !/no pool|worker/.test(e.message)) throw e;   // 파일 자체 문제면 그대로 실패 처리
+    const {canvas,w,h}=await sbLoadImageFile(file);
+    return {w,h,c480:wbScaled(canvas,480),c240:wbScaled(canvas,240)};
+  }
+}
+// 원본 크기 캔버스 (저장 · 크게 보기 때만). 들고 있지 않고 매번 새로 해독
+async function sbFull(f){
+  if(f.srcCanvas) return f.srcCanvas;
+  try{
+    if(!sbIsTiff(f.file)){ return sbBmpCanvas(await createImageBitmap(f.file)); }
+    const d=await sbPoolRun(f.file,true,[]);
+    const c=document.createElement('canvas'); c.width=d.w; c.height=d.h;
+    c.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(d.rgba),d.w,d.h),0,0); return c;
+  }catch(e){ return (await sbLoadImageFile(f.file)).canvas; }
+}
+
 function sbMakeThumb(src){
   const th=46, ratio=src.width/src.height, tw=Math.max(1,Math.round(th*ratio));
   const c=document.createElement('canvas');c.width=tw;c.height=th;
@@ -5299,16 +5379,17 @@ async function handleSbarFiles(fileList){
   const firstNew=sbFiles.length;   // 이미 사진이 있으면 새로 넣은 묶음은 구분선으로 따로 시작 (다른 날짜분 이어붙이기)
   sbLoading(true,'사진 불러오는 중…');
   try{
-    for(const f of arr){
+    // 여러 장을 동시에 해독하고(작업자 수만큼), 결과는 파일 순서대로 목록에 넣는다
+    const jobs=arr.map(f=>sbLoadPreview(f).then(v=>{ done++; sbLoading(true,`사진 불러오는 중… (${done}/${arr.length})`); return v; },
+      e=>{ done++; sbLoading(true,`사진 불러오는 중… (${done}/${arr.length})`); throw e; }));
+    for(let i=0;i<arr.length;i++){
+      const f=arr[i];
       try{
-        const {canvas,w,h}=await sbLoadImageFile(f);
+        const {w,h,c480,c240}=await jobs[i];
         // 사진은 라인·배율 지정 없이 그냥 쌓인다 — 순서를 채우려면 "촬영 순서 적용하기" 버튼을 눌러야 한다
         // 색 보정은 기본으로 켜 두고, 오가노이드/2D는 라인 종류를 고르면 자동으로 따라간다(wbMode=null)
-        const thSmall=wbScaled(canvas,240);
-        sbFiles.push({id:'sb'+Date.now()+Math.random().toString(36).slice(2,6), fname:f.name, srcCanvas:canvas, w, h, thumb:sbMakeThumb(canvas), thSmall, an:wbAnalyze(canvas), wb:true, wbMode:null, _c:{}, date:newDate, lineId:'', mag:'4x', note:''});
+        sbFiles.push({id:'sb'+Date.now()+Math.random().toString(36).slice(2,6), fname:f.name, file:f, w, h, thumb:sbMakeThumb(c240), thSmall:c240, an:wbAnalyze(c480), wb:true, wbMode:null, _c:{}, date:newDate, lineId:'', mag:'4x', note:''});
       }catch(e){ failed.push(f.name+' ('+e.message+')'); }
-      done++; sbLoading(true,`사진 불러오는 중… (${done}/${arr.length})`);
-      await new Promise(r=>setTimeout(r,0));
     }
   } finally { sbLoading(false); }
   if(firstNew>0 && sbFiles[firstNew]) sbFiles[firstNew].dateBreak=true;
@@ -5675,8 +5756,8 @@ function sbLoading(on, txt){
 let _sbSaving=false, _sbCancel=false;
 function sbCancelSave(){ if(!_sbSaving||_sbCancel) return; _sbCancel=true; sbLoading(true); }
 
-function sbDrawBar(f){
-  const src=f.srcCanvas, mag=f.mag;
+function sbDrawBar(f,src){
+  const mag=f.mag;
   const W=src.width, H=src.height;
   const out=document.createElement('canvas'); out.width=W; out.height=H;
   const ctx=out.getContext('2d');
@@ -5748,26 +5829,31 @@ async function sbarSaveAll(btn){
         await new Promise(r=>setTimeout(r,200));
       }
     };
-    for(const f of plain){
-      if(_sbCancel) break;
-      const out=wbCopy(f.srcCanvas);
-      if(f.wb){ const g=wbGains(f.an,sbWbMode(f)); if(g) wbApplyInPlace(out,g); }
-      const blob=await new Promise(r=>out.toBlob(r,'image/png'));
-      await writeOut(pdir, wbOutName(f.fname), blob);
-      saved++; sbLoading(true,`저장 중… (${saved}/${sbFiles.length})`);
-    }
-    for(const f of named){
-      if(_sbCancel) break;
-      const line=sbLine(f.lineId); if(!line) continue;
+    // 저장할 목록(이름은 순서대로 먼저 정함) → 여러 장을 동시에: 원본 해독·PNG 만들기는 작업자가, 색 보정·스케일바는 화면 스레드가
+    const jobs=[];
+    plain.forEach(f=>jobs.push({f,folder:pdir,fname:wbOutName(f.fname),bar:false}));
+    named.forEach(f=>{
+      const line=sbLine(f.lineId); if(!line) return;
       let base=sbFullName(line,sbEffDate(f),f);
       // 같은 샘플·배율로 또 촬영해 이름이 겹치면 뒤에 (1), (2)…를 붙여 저장 (덮어쓰기 방지)
       if(cnt[base]==null){ cnt[base]=0; } else { cnt[base]++; base=base+' ('+cnt[base]+')'; }
-      const fname=safeFileName(base)+ext;
-      const cv=sbDrawBar(f);
-      const blob=await new Promise(r=>cv.toBlob(r,'image/png'));
-      await writeOut(dir, fname, blob);
+      jobs.push({f,folder:dir,fname:safeFileName(base)+ext,bar:true});
+    });
+    const N=Math.max(2,(sbPool()||{ws:[0,0]}).ws.length);
+    let next=0, firstErr=null;
+    const runOne=async j=>{
+      const src=await sbFull(j.f);
+      let cv;
+      if(j.bar) cv=sbDrawBar(j.f,src);
+      else { cv=src; if(j.f.wb){ const g=wbGains(j.f.an,sbWbMode(j.f)); if(g) wbApplyInPlace(cv,g); } }
+      const blob=await sbEncodePng(cv);
+      await writeOut(j.folder, j.fname, blob);
       saved++; sbLoading(true,`저장 중… (${saved}/${sbFiles.length})`);
-    }
+    };
+    await Promise.all(Array.from({length:Math.min(N,jobs.length)},async()=>{
+      while(!_sbCancel && !firstErr && next<jobs.length){ const j=jobs[next++]; try{ await runOne(j); }catch(e){ firstErr=e; } }
+    }));
+    if(firstErr) throw firstErr;
     if(_sbCancel){ alert(`저장을 멈췄어요. ${sbFiles.length}장 중 ${saved}장만 저장됐고, 저장된 파일은 ${dir?'선택한 폴더':'다운로드 폴더'}에 그대로 있어요.${dir?'\n다시 저장하면 같은 이름 파일은 덮어써요.':''}`); return; }
     byDate.forEach((files,d)=>archiveShotOrderFromSbFiles(d, files));
     alert(sbFiles.length+'개 저장 완료'+(dir?' (선택한 폴더)':' (브라우저 다운로드 폴더)')+(plain.length&&pdir?`\n보정만 한 사진 ${plain.length}장: ${pdirName} 폴더`:''));
@@ -5875,11 +5961,10 @@ function wbModeSeg(mode, call){
 
 // ── 크게 비교 (이름·스케일바 / 저장된 사진 보정 둘 다 사용) ──
 let _wbCmp=null;
-function wbOpenCompare(kind,i){
+async function wbOpenCompare(kind,i){
   const f=sbFiles[i]; if(!f) return;
   _wbCmp={kind,i};
-  const src=f.srcCanvas;
-  f._big = f._big || wbScaled(src,1100);
+  if(!f._big){ sbLoading(true,'크게 불러오는 중…'); try{ f._big=wbScaled(await sbFull(f),1100); } finally{ sbLoading(false); } }
   f._bigBefore = f._bigBefore || f._big.toDataURL('image/jpeg',.9);
   const mode=sbWbMode(f);
   const after = wbPreviewURL(f._bigCache=(f._bigCache||{}), f._big, f.an, mode, true) || f._bigBefore;
