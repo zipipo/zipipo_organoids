@@ -7774,10 +7774,34 @@ window.cclLn2={
       const l=lines.find(x=>x.id===sc.lineId)||{};
       const lg=logs.find(x=>x.lineId===sc.lineId && x.date===sc.date && /stock/i.test(x.action||''))
              || logs.find(x=>x.lineId===sc.lineId && x.date===sc.date && parseInt(x.stocks)>0) || {};
-      return {logId:lg.id||('sc_'+sc.id), lineId:sc.lineId, name:l.patientId?lineTag(l):(sc.lineLabel||'(삭제된 라인)'), patientId:l.patientId||'', type:l.type||'', detail:l.detail||'',
+      // Stock 이름에는 샘플 세부명(for CM test 같은 seeding용 메모)은 빼고 환자번호_종류만. LN2 탱크에서 고칠 수 있음
+      return {logId:lg.id||('sc_'+sc.id), lineId:sc.lineId, name:l.patientId?(l.patientId+'_'+l.type):(sc.lineLabel||'(삭제된 라인)'), patientId:l.patientId||'', type:l.type||'', detail:l.detail||'',
         date:sc.date, passage:lg.passage!=null?lg.passage:(l.passage!=null?l.passage:''), vials:parseInt(sc.stocks)||0, memo:lg.memo||'', plate:lg.plate||'', wells:lg.finalWells||'',
         ln2Done:!!sc.ln2Done, dbDone:!!sc.dbDone, checkId:sc.id};
     }).sort((a,b)=>(a.ln2Done-b.ln2Done)||String(b.date).localeCompare(String(a.date)));
+  },
+  // LN2에서 vial을 해동 → 새 라인 칸을 채워서 연다 (passage는 그대로, 이름은 고쳐서 추가)
+  thaw(v){
+    // vial 글자는 사람마다 쓰는 법이 달라서, 어디에 있든 환자번호 · passage · 날짜를 찾아 쓰고 원래 글자는 메모에 그대로 남긴다
+    const ls=(v.lines||[]).map(x=>String(x||'').trim()).filter(Boolean), all=ls.join(' ');
+    const pm=all.match(/\bp\s*(\d{1,3})\b/i), dm=all.match(/\b(\d{2,4})[.\-/](\d{1,2})[.\-/](\d{1,2})\b/);
+    // 첫 줄이 「HCC38 Tumor」처럼 번호로 시작하면 번호만, 「CAF(HCC16 tumor)」처럼 아니면 첫 줄 전체(passage 글자는 뺌)
+    const l0=(ls[0]||'').replace(/\bp\s*\d{1,3}\b/i,'').trim();
+    const idm=l0.match(/^[A-Za-z][A-Za-z\-]*\d+[A-Za-z0-9\-]*(?=\s|$)/);
+    const pid=idm?idm[0]:l0;
+    const types=[...new Set(lines.map(l=>l.type).filter(Boolean))].sort((a,b)=>b.length-a.length);
+    const type=types.find(t=>all.toLowerCase().includes(t.toLowerCase()))||'';
+    // 세부명: 첫 줄에서 환자번호 뒤에 남은 글자 (종류 이름은 뺌)
+    let detail=l0.slice(pid.length);
+    if(type) detail=detail.replace(new RegExp(type.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'i'),'');
+    detail=detail.replace(/\bp\s*\d{1,3}\b/i,'').replace(/\s+/g,' ').trim();
+    openLineModal();
+    document.getElementById('elPid').value=pid;
+    document.getElementById('elType').value=type;
+    document.getElementById('elLineDetail').value=detail;
+    document.getElementById('elP').value=pm?parseInt(pm[1]):0;
+    document.getElementById('elMemo').value=`LN2 해동 · ${v.where||''}\nvial: ${ls.join(' / ')}`;
+    toast(type?'해동한 vial로 새 라인 칸을 채웠어요. 이름 · 종류를 확인하고 [라인 추가]를 눌러 주세요.':'해동한 vial로 새 라인 칸을 채웠어요. 종류를 못 찾아서 비워 뒀어요. 확인하고 [라인 추가]를 눌러 주세요.',{warn:!type});
   },
   // 엑셀에 넣고 내려받았으면 Stock 후처리의 LN2 이동 · DB 업데이트를 체크
   markDone(lineId,date){
@@ -9648,6 +9672,9 @@ if(curTab==='ana'||curTab==='diary'||curTab==='media') setTab(curTab,true);
   .badge.who{ background:#eef2ff; color:#4f46e5; font-size:10.5px; padding:2px 7px; }
   .locline{ margin-top:8px; font-size:12px; color:#374151; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
   .locline small{ color:var(--sub); }
+  .thaw-btn{ border:1px solid #F5C08A; background:#FFF6EC; color:#B45309; border-radius:7px; font-family:inherit; font-size:11px; font-weight:700; line-height:1; padding:5px 8px; cursor:pointer; margin-left:auto; margin-right:6px; }
+  .thaw-btn:hover{ background:#FFEBD5; }
+  .thaw-btn+.loc-btn{ margin-left:0; }
   .loc-btn{ border:1px solid #e3e6ea; background:#fff; border-radius:7px; font-family:inherit; font-size:11px; font-weight:600; line-height:1; padding:5px 8px; cursor:pointer; margin-left:auto; }
   .loc-btn:hover{ background:var(--faint); }
   .mini-map{ display:grid; gap:2px; margin-top:8px; width:max-content; }
@@ -9674,7 +9701,7 @@ if(curTab==='ana'||curTab==='diary'||curTab==='media') setTab(curTab,true);
   .st-chk{ font-size:11px; color:var(--sub); display:flex; gap:4px; align-items:center; }
   .src-card{ background:var(--faint); border-radius:12px; padding:9px 10px; margin-bottom:8px; }
   .src-card.done{ opacity:.55; }
-  .src-name{ font:inherit; font-weight:700; font-size:13px; color:var(--ink); border:1px solid transparent; background:transparent; border-radius:6px; padding:2px 4px; margin-left:-5px; width:100%; }
+  .src-name{ font:inherit; font-weight:700; font-size:13px; color:var(--ink); border:1px dashed #d6d9de; background:transparent; border-radius:6px; padding:2px 4px; margin-left:-5px; width:100%; }
   .src-name:hover,.src-name:focus{ border-color:#e3e6ea; background:#fff; outline:none; }
   .src-hd b{ display:block; font-size:12.5px; } .src-hd small{ font-size:11px; color:var(--sub); }
   .vials{ display:flex; flex-wrap:wrap; gap:3px; margin-top:6px; }
@@ -10675,10 +10702,16 @@ function renderResults(query){
       <div class="name">${highlight(nameLine, tokens)}</div>
       ${restLines ? `<div class="lines">${highlight(restLines, tokens)}</div>` : ''}
       ${sub ? `<div class="subloc">${highlight(sub, tokens)}</div>` : ''}
-      <div class="locline"><svg class="xi" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg> ${locText(e)} ${who} <button class="loc-btn" type="button">박스에서 보기</button></div>
+      <div class="locline"><svg class="xi" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg> ${locText(e)} ${who} <button class="thaw-btn" type="button" title="이 vial을 해동해서 앱에 새 라인으로 추가">해동 → 새 라인</button><button class="loc-btn" type="button">박스에서 보기</button></div>
       <div class="loc-map"></div>
     </div>`;
   }).join('');
+  box.querySelectorAll('.thaw-btn').forEach(btn=>btn.addEventListener('click',()=>{
+    const e=STATE.entries[+btn.closest('.card').dataset.eidx]; if(!e) return;
+    const b=STATE.allBoxes.find(x=>x.box_code===e.box_code&&x.sheet===e.sheet);
+    const row=(b&&b.rowLabels[e.rowIdx])||'?';
+    try{ parent.cclLn2.thaw({lines:e.lines.slice(), where:`${tankLineText(e.sheet)} · ${boxLabel(e.box_code)} ${row}-${e.col}`}); }catch(err){ alert('앱과 연결이 안 돼요. 새로고침 후 다시 해 주세요.'); }
+  }));
   box.querySelectorAll('.loc-btn').forEach(btn=>btn.addEventListener('click',()=>{
     const card=btn.closest('.card'), m=card.querySelector('.loc-map');
     m.innerHTML = m.innerHTML ? '' : miniMap(STATE.entries[+card.dataset.eidx]);
@@ -11111,7 +11144,7 @@ function stYmd(ds){ const [y,m,d]=String(ds).split('-'); return y? `${y.slice(2)
 function stCellText(s){
   if(s.text) return s.text;
   const p = s.passage!==''&&s.passage!=null ? 'p'+s.passage : '';
-  return [s.patientId||s.name, [s.type,s.detail].filter(Boolean).join(' '), p, stYmd(s.date)].filter(Boolean).join('\n');
+  return [s.patientId||s.name, s.type||'', p, stYmd(s.date)].filter(Boolean).join('\n');
 }
 function stVialKey(s,i){ return s.logId+'#'+i; }
 function stNewFileName(){
