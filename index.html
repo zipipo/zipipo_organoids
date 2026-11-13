@@ -955,6 +955,11 @@ body[data-tab="fig"] .pane[data-pane="fig"]{display:block;animation:paneIn .28s 
 .md-det tr.miss td{color:var(--warn);}
 .md-empty{padding:22px 16px;color:var(--sub);font-size:.82rem;line-height:1.7;}
 .md-sets{padding:12px 14px 14px;display:flex;flex-direction:column;gap:12px;}
+.md-addcard{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:180px;border:2px dashed var(--bd);border-radius:12px;background:transparent;color:var(--sub);font:inherit;cursor:pointer;padding:16px;}
+.md-addcard:hover{background:var(--sur);color:var(--tx);border-color:var(--mut);}
+.md-addcard .ic{width:22px;height:22px;} .md-addcard b{font-size:.9rem;} .md-addcard small{font-size:.72rem;color:var(--mut);}
+.md-go{margin-left:8px;font-size:.72rem;}
+.md-set.flash{animation:flash 1.2s var(--ease);}
 .md-set{border:1px solid var(--bd2);border-left:4px solid var(--mdc);border-radius:8px;padding:10px 12px;}
 .md-set-hd{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;}
 .md-colors{display:flex;gap:4px;}
@@ -9334,7 +9339,7 @@ function renderMedia(){
         </tbody></table></div>`:'';
     return `<section class="panel sec md-card" style="--mdc:${col}">
       <div class="panel-hd"><span><i class="md-sw"></i>${esc(d.name||'(이름 없음)')}<em class="md-types">${(d.types||[]).map(esc).join(' · ')||'쓰는 종류 없음'}</em></span>
-        <span class="panel-act">${st}</span></div>
+        <span class="panel-act">${st}<button class="link-btn md-go" onclick="mdGoSet('${d.id}')">설정</button></span></div>
       <div class="md-body">
         <div class="md-rack">${tubes||'<div class="md-none">튜브가 없어요</div>'}
           <button class="md-t md-plus" onclick="_mdAdd='${d.id}';renderMedia()" title="튜브 추가">${ic('plus')}<span>튜브</span></button></div>
@@ -9356,7 +9361,7 @@ function renderMedia(){
   const opt=(arr,v,all)=>`<option value="*"${v==='*'?' selected':''}>${all}</option>`+arr.map(x=>`<option${x===v?' selected':''}>${esc(x)}</option>`).join('');
   const sets=mediaDefs.map(d=>{
     const others=new Set(mediaDefs.filter(o=>o.id!==d.id).flatMap(o=>o.types||[]));
-    return `<div class="md-set" style="--mdc:${d.color||MD_COLORS[0]}">
+    return `<div class="md-set" id="mdset_${d.id}" style="--mdc:${d.color||MD_COLORS[0]}">
       <div class="md-set-hd">
         <span class="md-colors">${MD_COLORS.map(c=>`<button class="md-cdot${c===d.color?' on':''}" style="background:${c}" onclick="mdSetDef('${d.id}','color','${c}')" title="색"></button>`).join('')}</span>
         <input class="md-name" value="${esc(d.name||'')}" placeholder="배지 이름 (예: EM)" onchange="mdSetDef('${d.id}','name',this.value.trim())">
@@ -9377,14 +9382,22 @@ function renderMedia(){
         <button class="link-btn" onclick="mdFillRows('${d.id}')">지금 키우는 종류·plate 채우기</button></div>
     </div>`;
   }).join('');
-  el.innerHTML=`<div class="md-grid">${cards}</div>
-    <section class="panel sec"><div class="panel-hd"><span><i class="sec-ic">${ic('sliders')}</i>배지 설정</span><span class="panel-act"><button class="link-btn" onclick="mdNewDef()">+ 배지 추가</button></span></div>
+  el.innerHTML=`<div class="md-grid">${cards}<button class="md-addcard" onclick="mdNewDef()">${ic('plus')}<b>새 배지 추가</b><small>EM, DM처럼 다른 배지를 하나 더 만들어요</small></button></div>
+    <section class="panel sec" id="mdSettings"><div class="panel-hd"><span><i class="sec-ic">${ic('sliders')}</i>배지 설정</span><span class="panel-act"><button class="btn btn-out" onclick="mdNewDef()">${ic('plus')}배지 추가</button></span></div>
       <div class="md-sets">${sets}
       <div class="hint" style="margin:4px 2px 0;line-height:1.6;">· 한 라인 종류는 배지 하나에만 넣을 수 있어요. 같은 종류라도 plate마다 양이 다르면 plate별로 행을 나눠 주세요.<br>
       · 같은 조합에 행이 여러 개면 <b>종류+plate</b> → <b>모든 종류+plate</b> → <b>종류+모든 plate</b> → <b>모두</b> 순서로 찾아요.<br>
       · Media Change · Split · Reseeding · Seeding은 교체 양, Media Addition은 Addition 양만큼 먼저 만든 튜브부터 빠져요. 만든 지 ${MD_EXPIRE}일 지난 튜브는 그 뒤로는 안 써요.</div></div></section>`;
 }
-function mdNewDef(){ const used=new Set(mediaDefs.map(d=>d.color)); mediaDefs.push({id:uid(),name:'',color:MD_COLORS.find(c=>!used.has(c))||MD_COLORS[0],types:[],perWeek:3,rows:[{type:'*',plate:'*',mc:'',ma:''}]}); saveMedia(); renderMedia(); setTimeout(()=>{ const i=[...document.querySelectorAll('.md-name')].pop(); if(i) i.focus(); },50); }
+// 새 배지: 이름부터 묻고, 만든 뒤 그 배지 설정으로 바로 이동 (쓰는 종류 · plate별 양 채우기)
+function mdNewDef(){
+  const name=(prompt('새 배지 이름 (예: EM, DM, FM)','')||'').trim(); if(!name) return;
+  if(mediaDefs.some(d=>(d.name||'').toLowerCase()===name.toLowerCase())&&!confirm(`「${name}」 배지가 이미 있어요. 하나 더 만들까요?`)) return;
+  const used=new Set(mediaDefs.map(d=>d.color)), d={id:uid(),name,color:MD_COLORS.find(c=>!used.has(c))||MD_COLORS[0],types:[],perWeek:3,rows:[{type:'*',plate:'*',mc:'',ma:''}]};
+  mediaDefs.push(d); saveMedia(); renderMedia(); mdGoSet(d.id);
+  toast(`「${name}」을 만들었어요. 아래에서 이 배지를 쓰는 종류를 고르고 plate별 양을 적어 주세요.`);
+}
+function mdGoSet(id){ setTimeout(()=>{ const el=document.getElementById('mdset_'+id); if(!el) return; el.scrollIntoView({behavior:'smooth',block:'center'}); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); },60); }
 function mdDef(id){ return mediaDefs.find(d=>d.id===id); }
 function mdSetDef(id,k,v){ const d=mdDef(id); if(!d) return; d[k]=v; saveMedia(); renderMedia(); }
 function mdDelDef(id){ const d=mdDef(id); if(!d) return; const n=mediaTubes.filter(t=>t.mediaId===id).length; if(!confirm(`${d.name||'이 배지'}를 지울까요?${n?`\n등록된 튜브 ${n}개도 같이 지워져요.`:''}`)) return; mediaDefs=mediaDefs.filter(x=>x.id!==id); mediaTubes=mediaTubes.filter(t=>t.mediaId!==id); saveMedia(); renderMedia(); }
