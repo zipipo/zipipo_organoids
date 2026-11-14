@@ -868,7 +868,7 @@ body[data-tab="fig"] .pane[data-pane="fig"]{display:block;animation:paneIn .28s 
 /* ═══ PPT figure ═══ */
 .fg-saved{display:inline-flex;align-items:center;gap:4px;font-size:.72rem;color:var(--ok);white-space:nowrap;}
 .fg-part{border:1px solid var(--bd2);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px;background:var(--sur);}
-.fg-ph{display:flex;align-items:baseline;gap:8px;} .fg-ph b{font-size:.84rem;} .fg-ph small{font-size:.68rem;color:var(--mut);}
+.fg-ph{display:flex;align-items:center;gap:8px;flex-wrap:wrap;} .fg-ph b{font-size:.84rem;} .fg-ph small{font-size:.68rem;color:var(--mut);}
 .fg-drop{margin-left:auto;font-size:.72rem;color:var(--due);} .fg-phacts{margin-left:auto;display:flex;gap:10px;} .fg-phacts .link-btn{font-size:.72rem;} .fg-phacts .fg-drop{margin-left:0;}
 .fg-addparts{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 .fg-addpart{display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 8px;border:2px dashed var(--bd);border-radius:10px;background:transparent;font:inherit;color:var(--sub);cursor:pointer;}
@@ -880,9 +880,19 @@ body[data-tab="fig"] .pane[data-pane="fig"]{display:block;animation:paneIn .28s 
 .fg-ied{display:flex;gap:5px;align-items:center;padding-left:24px;} .fg-ied input{height:28px;font-size:.74rem;min-width:0;flex:1;} .fg-ied .fg-inote{flex:1.3;}
 .fg-allbtn{float:right;font-weight:500;font-size:.7rem;} .fg-allbtn .link-btn{font-size:.7rem;}
 .fg-memo{width:100%;font:inherit;font-size:.8rem;resize:vertical;}
-.fg-rc summary{cursor:pointer;font-size:.72rem;color:var(--sub);} .fg-rc summary small{color:var(--mut);}
-.fg-rcg{display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center;margin-top:5px;} .fg-rcg>small{width:20px;font-size:.68rem;color:var(--mut);}
-.fg-rcg label{display:flex;align-items:center;gap:3px;margin:0;font-size:.68rem;color:var(--mut);} .fg-rcg input{width:74px;height:26px;font-size:.72rem;}
+/* 편집 칸: 번호 붙은 단계 · 일정 줄 탭 */
+.fg-step{display:flex;align-items:center;gap:7px;min-width:0;} .fg-step>i{width:19px;height:19px;border-radius:50%;background:var(--tx);color:var(--sur);font-style:normal;font-size:.66rem;font-weight:700;display:grid;place-items:center;flex:none;}
+.fg-step>b{font-size:.82rem;} .fg-step>small{font-size:.68rem;color:var(--mut);}
+.fg-hint{margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;} .fg-hint.on{color:#2563EB;font-weight:650;}
+.fg-ph .fg-ck{margin:0 0 0 6px;font-size:.7rem;color:var(--sub);} .fg-ph .fg-ck:first-of-type{margin-left:auto;} .fg-ph .fg-ck~.fg-drop{margin-left:8px;}
+.fg-stabs{display:flex;gap:4px;flex-wrap:wrap;}
+.fg-stab{display:inline-flex;align-items:center;gap:5px;max-width:100%;border:1px solid var(--bd2);background:var(--sur);border-radius:99px;font:inherit;font-size:.74rem;font-weight:600;color:var(--sub);padding:4px 10px 4px 4px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.fg-stab i{width:18px;height:18px;border-radius:50%;background:var(--hov);font-style:normal;font-size:.64rem;display:grid;place-items:center;flex:none;}
+.fg-stab.on{border-color:#2563EB;color:var(--tx);box-shadow:0 0 0 1px #2563EB;} .fg-stab.on i{background:#2563EB;color:#fff;}
+.fg-stab.add{padding:4px 10px;color:var(--mut);font-weight:500;border-style:dashed;}
+.fg-lg .fg-when{width:40px;display:flex;flex-direction:column;line-height:1.2;} .fg-when b{font-size:.72rem;color:var(--tx);font-weight:700;}
+.fg-dayadd label{display:flex;align-items:center;gap:4px;margin:0;font-size:.72rem;color:var(--sub);flex:none;} .fg-dayadd input[type=number]{width:54px;flex:none;}
+.fg-dayhint{font-size:.7rem;color:var(--mut);align-self:center;flex:none;min-width:34px;}
 .fg-fdate{flex:none;width:150px;}
 .fg-plnote{height:30px;font-size:.76rem;margin-top:-1px;}
 .fg-itnote{height:26px;font-size:.72rem;margin:-2px 0 4px 44px;width:calc(100% - 44px);}
@@ -9660,16 +9670,18 @@ function figItemPD(t,it){
 }
 function figSchedLayout(sc){
   const ctx=figMeas(), F=figFont(), tracks=(sc.tracks||[]).map(t=>({t,items:(t.items||[]).slice().sort((a,b)=>a.date.localeCompare(b.date))})).filter(x=>x.items.length);
+  // Day 0은 줄마다 (t.zero). 안 정했으면 예전처럼 전체 일정 맨 앞 날짜. 줄끼리는 Day 0을 같은 자리에 맞춤
   const all=tracks.flatMap(x=>x.items.map(i=>i.date)).sort();
-  const zero=sc.zero&&all.length?sc.zero:(all[0]||ymdLocal(new Date()));
-  const day=d=>Math.round((new Date(d)-new Date(zero))/86400000);
+  const zero0=sc.zero||all[0]||ymdLocal(new Date());
+  const dayFrom=(z,d)=>Math.round((new Date(d)-new Date(z))/86400000);
+  tracks.forEach(T=>{ T.zero=T.t.zero||zero0; });
   const PILL_FS=24, PILL_MAXW=280, LINE_H=30;
   tracks.forEach(T=>{
     // 같은 날 항목은 한 눈금에 이름표를 쌓음
     const gs=[]; T.items.forEach(it=>{ const g=gs[gs.length-1]; if(g&&g.date===it.date) g.items.push(it); else gs.push({date:it.date,items:[it]}); });
     ctx.font=`700 ${PILL_FS}px ${F}`;
     gs.forEach(g=>{ ctx.font=`700 ${PILL_FS}px ${F}`; g.pills=g.items.map(it=>{ const ls=figWrap(ctx,figSp(it.label),PILL_MAXW,2); const w=Math.max(...ls.map(l=>ctx.measureText(l).width))+30; return {it,ls,w,h:ls.length*LINE_H+16}; });
-      g.w=Math.max(...g.pills.map(p=>p.w),110); g.h=g.pills.reduce((s,p)=>s+p.h,0)+(g.pills.length-1)*8; g.d=day(g.date);
+      g.w=Math.max(...g.pills.map(p=>p.w),110); g.h=g.pills.reduce((s,p)=>s+p.h,0)+(g.pills.length-1)*8; g.d=dayFrom(T.zero,g.date);
       // 눈금 아래: 실험 기준 Day(크게) · P와 organoid 기준 d(작게) · 날짜 · 짧은 메모
       g.pd=sc.showPD===false?'':figItemPD(T.t,g.items[0]);
       ctx.font=`500 18px ${F}`; const memo=g.items.map(i=>(i.note||'').trim()).filter(Boolean).join(' · ');
@@ -9684,12 +9696,13 @@ function figSchedLayout(sc){
   let LW=0; if(showNames){ tracks.forEach(T=>{ T.nl=figWrap(ctx,T.name,300,3); LW=Math.max(LW,...T.nl.map(l=>ctx.measureText(l).width)); }); LW=Math.min(320,LW)+36; }
   // 축 비율 k (px/day): 한 층으로 놓을 때 필요한 k → 너무 길면 위아래 두 층 → 그래도 길면 날짜 비율 대신 같은 간격
   const MAXAX=2600, DAYW=120, minAx=1100;
-  const span=Math.max(1,...tracks.map(T=>T.gs.length?T.gs[T.gs.length-1].d-T.gs[0].d:0), all.length?day(all[all.length-1])-day(all[0]):0);
+  const dMin=Math.min(...tracks.map(T=>T.gs[0].d)), dMax=Math.max(...tracks.map(T=>T.gs[T.gs.length-1].d));
+  const span=tracks.length?Math.max(1,dMax-dMin):1;
   const need1=T=>{ let k=0; for(let i=1;i<T.gs.length;i++){ const dd=Math.max(1,T.gs[i].d-T.gs[i-1].d); k=Math.max(k,(T.gs[i].w/2+T.gs[i-1].w/2+24)/dd,DAYW/dd); } return k; };
   const need2=T=>{ let k=0; for(let i=1;i<T.gs.length;i++){ const dd=Math.max(1,T.gs[i].d-T.gs[i-1].d); k=Math.max(k,DAYW/dd); if(i>=2){ const d2=Math.max(1,T.gs[i].d-T.gs[i-2].d); k=Math.max(k,(T.gs[i].w/2+T.gs[i-2].w/2+24)/d2); } } return k; };
   let k=Math.max(minAx/span,...tracks.map(need1),0), mode='one';
   if(k*span>MAXAX){ const k2=Math.max(minAx/span,...tracks.map(T=>Math.min(need1(T),need2(T))),0); if(k2*span<=MAXAX){ k=k2; mode='two'; } else { k=0; mode='even'; } }
-  const d0=all.length?day(all[0]):0;
+  const d0=tracks.length?dMin:0;
   let axW=0;
   tracks.forEach(T=>{
     if(mode==='even'){ let x=0; T.gs.forEach((g,i)=>{ if(i) x+=Math.max(g.w/2+T.gs[i-1].w/2+24,DAYW); g.x=x; }); T.lv=T.gs.map(()=>0); }
@@ -9704,10 +9717,15 @@ function figSchedLayout(sc){
     T.H=Math.max(T.top+T.bot,(T.nl||[]).length*32+20);
   });
   const W=LW+padL+axW+padR, H=tracks.reduce((s,T)=>s+T.H,0)+(tracks.length>1?(tracks.length-1)*24:0);
-  return {tracks,W:Math.max(W,600),H,LW,padL,day,mode,empty:!tracks.length};
+  return {tracks,W:Math.max(W,600),H,LW,padL,mode,empty:!tracks.length};
 }
 // Plate map: plate 여러 장 (한 줄에 2장), 행 · 열 이름, 쓴 well 수
-function figPlateUsed(pl){ return Object.values(pl.wells||{}).filter(w=>w.c||w.l).length; }
+// 가로 · 세로 조건: 행 글자(A) · 열 번호(1)를 골라 조건을 누르면 그 줄 전체 조건 (pl.rowC · pl.colC), 줄 이름도 그 조건 이름
+// well 안 색 = well에 직접 칠한 조건 > 열 조건 > 행 조건
+function figWellCond(pl,wk){ const w=(pl.wells||{})[wk]||{}; return w.c||(pl.colC||{})[wk.slice(1)]||(pl.rowC||{})[wk[0]]||''; }
+function figAxisLab(pm,pl,which,k){ const t=((which==='row'?pl.rowLab:pl.colLab)||{})[k], cid=((which==='row'?pl.rowC:pl.colC)||{})[k], cd=cid&&(pm.conds||[]).find(c=>c.id===cid);
+  return {t:figSp(t||(cd?cd.name:'')),color:cd?cd.color:''}; }
+function figPlateUsed(pl){ const [R,C]=FIG_FORMATS[pl.format]||[4,6]; let n=0; for(let i=0;i<R;i++) for(let j=0;j<C;j++){ const wk=String.fromCharCode(65+i)+(j+1), w=(pl.wells||{})[wk]||{}; if(w.l||w.t||figWellCond(pl,wk)) n++; } return n; }
 function figPlateLayout(pm,date){
   const F=figFont(), ctx=figMeas(), plates=pm.plates||[];
   const conds=pm.conds||[], lns=(pm.lines||[]).map(x=>({...x,info:figLn(x,date)})).filter(x=>x.info);
@@ -9718,8 +9736,8 @@ function figPlateLayout(pm,date){
   // 행 이름 칸 · 열 이름 칸은 모든 plate가 같은 크기로 (plate끼리 줄이 맞게), 한 줄에 놓인 plate는 아래쪽을 맞춤
   let rlW=0, clH=0;
   plates.forEach((pl,j)=>{ const [R,C]=dims[j];
-    const rl=Object.entries(pl.rowLab||{}).filter(([k,v])=>v&&k.charCodeAt(0)-65<R), cl=Object.entries(pl.colLab||{}).filter(([k,v])=>v&&+k<=C);
-    if(rl.length) rlW=Math.max(rlW,Math.min(220,Math.max(...rl.map(([,v])=>ctx.measureText(figSp(v)).width))+16)); if(cl.length) clH=34; });
+    const rl=Array.from({length:R},(_,i)=>figAxisLab(pm,pl,'row',String.fromCharCode(65+i))).filter(a=>a.t), cl=Array.from({length:C},(_,i)=>figAxisLab(pm,pl,'col',String(i+1))).filter(a=>a.t);
+    if(rl.length) rlW=Math.max(rlW,Math.min(240,Math.max(...rl.map(a=>ctx.measureText(a.t).width+(a.color?24:0)))+16)); if(cl.length) clH=34; });
   const hdH=plates.some(pl=>(pl.note||'').trim())?78:46;   // plate 설명이 하나라도 있으면 모든 plate 머리를 같은 높이로
   const pos=[]; let rowsW=0, yy=0;
   for(let i=0;i<n;i+=perRow){ let x=0, rph=0;
@@ -9773,12 +9791,14 @@ function figPptD(pptx,slide,X0,Y0,k){
   };
 }
 
-function figDrawSched(D,L,ox,oy,sc){
+function figDrawSched(D,L,ox,oy,sc,hl,geo){
   if(L.empty){ D.text('Experiment Schedule: 넣을 기록을 골라 주세요',ox+20,oy+40,{size:24,weight:500,color:'#A0A6AD',base:'middle'}); return; }
   let y=oy;
   L.tracks.forEach((T,ti)=>{
     const ay=y+T.top, x0=ox+L.LW+L.padL;
     if(ti>0) D.line(ox,y-12,ox+L.W,y-12,{color:'#E6E8EB',width:1.5});
+    if(geo) geo.push({area:'sched',tid:T.t.id,x:ox-14,y:y-10,w:L.W+28,h:T.H+8});
+    if(hl&&hl.track===T.t.id) D.rrect(ox-14,y-10,L.W+28,T.H+8,14,{fill:'rgba(37,99,235,.04)',stroke:'#2563EB',width:2.5,dash:true});
     if(T.nl){ const n=T.nl.length; T.nl.forEach((l,i)=>D.text(l,ox+6,ay+(i-(n-1)/2)*30,{size:24,weight:700,base:'middle'})); }
     const gs=T.gs, xa=gs[0].x+x0, xb=gs[gs.length-1].x+x0;
     D.line(xa,ay,xb,ay,{color:'#3A3F45',width:4,cap:'round'});
@@ -9792,7 +9812,7 @@ function figDrawSched(D,L,ox,oy,sc){
       g.pills.forEach(pl=>{ const c=pl.it.color||FIG_ACT['기타'];
         D.rrect(x-pl.w/2,py,pl.w,pl.h,Math.min(pl.h/2,22),{fill:figMix(c,.82),stroke:c,width:2});
         pl.ls.forEach((l,li)=>D.text(l,x,py+8+15+li*30+1,{size:24,weight:700,color:figDark(c),align:'center',base:'middle'})); py+=pl.h+8; });
-      D.text(`Day ${L.day(g.date)}`,x,ay+th+8,{size:26,weight:800,align:'center'});
+      D.text(`Day ${g.d}`,x,ay+th+8,{size:26,weight:800,align:'center'});
       let yy=ay+th+42;
       if(g.pd){ figDrawRuns(D,g.pd,x,yy,{size:17,weight:600,color:'#6B727B',align:'center'}); yy+=24; }
       if(sc.showDate!==false){ D.text(g.date.slice(2).replace(/-/g,'.'),x,yy,{size:19,weight:500,color:'#8A9099',align:'center'}); yy+=28; }
@@ -9801,11 +9821,13 @@ function figDrawSched(D,L,ox,oy,sc){
     y+=T.H+24;
   });
 }
-function figDrawPlates(D,L,ox,oy,f,sel){
+function figDrawPlates(D,L,ox,oy,f,sel,hl){
   const {plates,pos,cell,conds,lns}=L, r=cell*0.42, geo=[];
   const condOf=id=>conds.find(x=>x.id===id), lnOf=id=>lns.find(x=>x.id===id);
   plates.forEach((pl,pi)=>{
     const P=pos[pi], bx=ox+P.x, by=oy+P.y, {R,C,pw,ph,rlW,clH}=P;
+    geo.push({area:'plate:'+pi,x:bx-10,y:by-10,w:P.bw+20,h:P.bh+20});
+    if(hl&&hl.plate===pi&&(plates.length>1||f.sched)) D.rrect(bx-12,by-10,P.bw+24,P.bh+20,16,{fill:'rgba(37,99,235,.04)',stroke:'#2563EB',width:2.5,dash:true});
     // 머리: plate 이름 · 몇 well plate · 쓴 well 수
     const used=figPlateUsed(pl), nm=figSp(pl.name)||(plates.length>1?`Plate ${pi+1}`:'');
     let hx=bx+rlW+2;
@@ -9818,17 +9840,18 @@ function figDrawPlates(D,L,ox,oy,f,sel){
     const gx=ox2+52, gy=oy2+48, fs=Math.min(20,cell*.3);
     for(let j=0;j<C;j++){ const cx=gx+j*cell+cell/2; D.text(String(j+1),cx,oy2+24,{size:fs,weight:700,color:'#6B727B',align:'center',base:'middle'});
       geo.push({hdr:'col',pi,idx:j,x:cx-cell/2,y:oy2+4,w:cell,h:40});
-      const lab=(pl.colLab||{})[String(j+1)]; if(lab){ let s=20; while(s>11&&D.measure(figSp(lab),s,700)>cell-6) s--; D.text(figSp(lab),cx,oy2-clH/2-2,{size:s,weight:700,align:'center',base:'middle'}); } }
+      const A=figAxisLab(f.plate,pl,'col',String(j+1)); if(A.t){ const dw=A.color?20:0; let s=20; while(s>11&&D.measure(A.t,s,700)+dw>cell-6) s--; const tw=D.measure(A.t,s,700), x0=cx-(tw+dw)/2, yy=oy2-clH/2-2;
+        if(A.color) D.circle(x0+7,yy,7,{fill:A.color,stroke:'rgba(0,0,0,.18)',width:1}); D.text(A.t,x0+dw,yy,{size:s,weight:700,align:'left',base:'middle'}); } }
     for(let i=0;i<R;i++){ const cy=gy+i*cell+cell/2; D.text(String.fromCharCode(65+i),ox2+26,cy,{size:fs,weight:700,color:'#6B727B',align:'center',base:'middle'});
       geo.push({hdr:'row',pi,idx:i,x:ox2+4,y:cy-cell/2,w:44,h:cell});
-      const lab=(pl.rowLab||{})[String.fromCharCode(65+i)]; if(lab) D.text(figSp(lab),ox2-10,cy,{size:20,weight:700,align:'right',base:'middle'}); }
+      const A=figAxisLab(f.plate,pl,'row',String.fromCharCode(65+i)); if(A.t){ if(A.color) D.circle(ox2-17,cy,7,{fill:A.color,stroke:'rgba(0,0,0,.18)',width:1}); D.text(A.t,ox2-(A.color?30:10),cy,{size:20,weight:700,align:'right',base:'middle'}); } }
     for(let i=0;i<R;i++) for(let j=0;j<C;j++){
       const wk=String.fromCharCode(65+i)+(j+1), key=pi+':'+wk, w=(pl.wells||{})[wk]||{};
       const cx=gx+j*cell+cell/2, cy=gy+i*cell+cell/2; geo.push({key,x:cx,y:cy,r});
-      const cd=condOf(w.c), ln=lnOf(w.l);
+      const cd=condOf(figWellCond(pl,wk)), ln=lnOf(w.l);
       D.circle(cx,cy,r,{fill:cd?cd.color:'#FFFFFF',stroke:ln?ln.color:'#C9CED5',width:ln?3.5:1.5});
       if(sel&&sel.has(key)) D.circle(cx,cy,r+6,{stroke:'#111111',width:3,dash:true});
-      const ink=cd?figInk(cd.color):'#1F2328', rows=[ln?ln.info.pid:'', w.t||(cd?figSp(cd.name):'')].filter(Boolean);
+      const ink=cd?figInk(cd.color):'#1F2328', rows=[ln?ln.info.pid:'', w.t||(w.c&&cd?figSp(cd.name):'')].filter(Boolean);   // 가로 · 세로 조건은 줄 이름에 있으니 well 안엔 안 씀
       if(rows.length){ const max=r*1.7, base=Math.min(22,r*.42);
         const sizes=rows.map((t,ix)=>{ const wt=ix===0&&ln?800:600; let s=ix===0&&ln?base:base*.92; while(s>=9&&D.measure(t,s,wt)>max) s--; return s>=9?s:0; });
         if(sizes.every(s=>s>0)){ const lh=sizes.map(s=>s*1.15), tot=lh.reduce((a,b)=>a+b,0); let yy=cy-tot/2;
@@ -9868,21 +9891,25 @@ function figLayout(f){
   H+=10;
   return {W,H,px,SL,PL,sub,memoLines,ySched,yPlate,yMemo};
 }
-function figDraw(D,f,L,sel){
+// sel = 고른 well (화면에서만), hl = 지금 고치는 곳 테두리 {track} 또는 {plate} (화면에서만)
+function figDraw(D,f,L,sel,hl){
   D.text(figSp(f.title),L.px,30,{size:34,weight:700});
   if(L.sub) D.text(L.sub,L.px+2,80,{size:20,weight:500,color:'#8A9099'});
-  if(L.SL) figDrawSched(D,L.SL,L.px,L.ySched,f.sched);
-  const geo=L.PL?figDrawPlates(D,L.PL,L.px,L.yPlate,f,sel):[];
-  if(L.SL) geo.push({area:'sched',x:0,y:L.ySched-10,w:L.W,h:L.SL.H+20});
+  const sgeo=[];
+  if(L.SL) figDrawSched(D,L.SL,L.px,L.ySched,f.sched,hl,sgeo);
+  const geo=L.PL?figDrawPlates(D,L.PL,L.px,L.yPlate,f,sel,hl):[];
+  if(L.SL){ geo.push(...sgeo); geo.push({area:'sched',x:0,y:L.ySched-10,w:L.W,h:L.SL.H+20}); }
   if(L.memoLines.length) geo.push({area:'memo',x:0,y:L.yMemo,w:L.W,h:L.memoLines.length*32+36});
   if(L.memoLines.length){ const bh=L.memoLines.length*32+36; D.rrect(L.px,L.yMemo,L.W-2*L.px,bh,12,{fill:'#F5F6F8'});
     L.memoLines.forEach((l,i)=>D.text(l,L.px+20,L.yMemo+18+i*32,{size:22,weight:500,color:'#2B3036'})); }
   if(!L.SL&&!L.PL&&!L.memoLines.length) D.text('왼쪽에서 Experiment Schedule · Plate map을 넣어 주세요',L.px,L.ySched+30,{size:24,weight:500,color:'#A0A6AD'});
   return geo;
 }
-function figRender(f,scale){
+// live = 편집 창 미리보기 (고른 well · 고치는 곳 테두리까지). 복사 · PNG · 썸네일에는 안 그림
+function figRender(f,scale,live){
   scale=scale||1; const L=figLayout(f), {c,ctx}=figCanvas(L.W,L.H,scale);
-  const geo=figDraw(figCanvasD(ctx),f,L,_figEdit===f.id?_figSel:null);
+  const on=live&&_figEdit===f.id, hl=on?(_figTab==='sched'?{track:_figTrk}:_figTab.startsWith('plate:')?{plate:+_figTab.split(':')[1]}:null):null;
+  const geo=figDraw(figCanvasD(ctx),f,L,on?_figSel:null,hl);
   return {canvas:c,geo};
 }
 // PPT 한 장에 도형으로 (나중에 PPT에서 글자 · 색 · 위치를 고칠 수 있게). 상자 (bx,by,bw,bh) 인치 안에 맞춰 가운데
@@ -9996,7 +10023,7 @@ function figSetTitle(id,v){ const f=figById(id); if(!f) return; v=v.trim(); if(v
 function figSet(id,k,v){ const f=figById(id); if(!f) return; f[k]=v; figTouch(f); renderFig(); }
 function figDrawPreview(f){
   const box=document.getElementById('figPrev'); if(!box) return;
-  const {canvas,geo}=figRender(f,2); canvas.className='fg-cv'; box.innerHTML=''; box.appendChild(canvas); f._geo=geo;
+  const {canvas,geo}=figRender(f,2,true); canvas.className='fg-cv'; box.innerHTML=''; box.appendChild(canvas); f._geo=geo;
   figWirePlate(f,canvas);
 }
 // 라인 고르기: 진행 중 / 완료 나눠서
@@ -10011,7 +10038,7 @@ function figLineOptsHtml(sel,exclude,first){
 // 편집 창: 위에 탭(Experiment Schedule · Plate 1 · Plate 2 · 메모) → 왼쪽엔 고른 것 하나만. 미리보기에서 누른 곳으로도 탭이 바뀜
 let _figTab='';
 function figTabs(f){ const t=[]; if(f.sched) t.push(['sched','Experiment Schedule']); if(f.plate) f.plate.plates.forEach((p,i)=>t.push(['plate:'+i,p.name||`Plate ${i+1}`])); t.push(['memo','메모']); return t; }
-function figSetTab(k){ if(_figTab!==k){ _figTab=k; _figSel.clear(); _figAnchor=null; } renderFig(); }
+function figSetTab(k){ if(_figTab!==k){ _figTab=k; _figSel.clear(); _figAnchor=null; _figAxis=null; } renderFig(); }
 function figEditor(f){
   const tabs=figTabs(f); if(!tabs.some(t=>t[0]===_figTab)) _figTab=tabs[0][0];
   const canSched=!f.sched&&!(f.plate&&f.plate.plates.length>FIG_MAX.platesWith), canPlate=!f.plate||f.plate.plates.length<figMaxPlates(f);
@@ -10030,7 +10057,6 @@ function figEditor(f){
     ${canSched?`<button class="fg-tab add" onclick="figAddSched('${f.id}');figSetTab('sched')">+ Experiment Schedule</button>`:''}
     ${canPlate?`<button class="fg-tab add" onclick="figAddPlateTab('${f.id}')">+ Plate</button>`:''}</div>
   <div class="fg-ed"><div class="fg-side">${body}
-    <div class="fg-limhint">한 장 기준 최대: 일정 ${FIG_MAX.tracks}줄 · plate ${FIG_MAX.plates}장 · 둘 다 넣으면 일정 ${FIG_MAX.tracksWith}줄 + plate ${FIG_MAX.platesWith}장. PPT로 내보내면 글자 · 도형 하나하나를 PPT에서 고칠 수 있어요.</div>
   </div><div class="fg-main"><div id="figPrev" class="fg-prev${f.plate?' fg-plate':''}"></div></div></div>`;
 }
 function figPlateDup(id,pi){ const f=figById(id); if(!f||!f.plate) return; const ps=f.plate.plates;
@@ -10040,50 +10066,53 @@ function figAddPlateTab(id){ const f=figById(id); if(!f) return;
   if(!f.plate){ figAddPlate(id); if(!f.plate) return; _figTab='plate:0'; }
   else { const n=f.plate.plates.length; figPlateAdd(id); if(f.plate.plates.length>n) _figTab='plate:'+(f.plate.plates.length-1); }
   _figSel.clear(); renderFig(); }
-// Experiment Schedule 편집: 줄(라인)마다 기록 고르기
-// 접기 상태 (화면에서만): 일정 줄 · 큰 칸. 줄은 하나만 펼쳐 둠 → 스크롤 줄이기
-let _figOpen=new Set(), _figClosed=new Set();
-function figToggleTrack(id,tid){ const f=figById(id); if(!f) return; if(_figOpen.has(tid)) _figOpen.delete(tid); else { (f.sched.tracks||[]).forEach(t=>_figOpen.delete(t.id)); _figOpen.add(tid); } renderFig(); }
-function figTogglePart(key){ _figClosed.has(key)?_figClosed.delete(key):_figClosed.add(key); renderFig(); }
+// Experiment Schedule 편집: 줄(라인)마다 탭. 고른 줄은 미리보기에 파란 점선 테두리
+let _figTrk='';
+function figTrkTab(id,tid){ _figTab='sched'; _figTrk=tid; renderFig(); }
+// 줄의 Day 0: 직접 정한 날 → 예전 전체 Day 0 → 전체 일정 맨 앞 날짜 → Figure 날짜
+function figTrackZero(f,t){ if(t.zero) return t.zero; if(f.sched.zero) return f.sched.zero;
+  const ds=(f.sched.tracks||[]).flatMap(x=>(x.items||[]).map(i=>i.date)).sort(); return ds[0]||f.date||ymdLocal(new Date()); }
+const figDayOf=(z,d)=>Math.round((new Date(d)-new Date(z))/86400000);
+function figDayAdd(z,n){ const d=new Date(z+'T00:00:00'); d.setDate(d.getDate()+n); return ymdLocal(d); }
 function figSchedEditor(f){
-  const sc=f.sched, tracks=sc.tracks||[], key='S:'+f.id, closed=_figClosed.has(key);
-  if(tracks.length&&!tracks.some(t=>_figOpen.has(t.id))) _figOpen.add(tracks[0].id);
-  const dates=[...new Set(tracks.flatMap(t=>(t.items||[]).map(i=>i.date)))].sort();
-  const nItems=tracks.reduce((s2,t)=>s2+(t.items||[]).length,0);
-  return `<div class="fg-part"><div class="fg-ph"><b>Experiment Schedule</b><small>${tracks.length}줄 · 항목 ${nItems}개</small><button class="link-btn fg-drop" onclick="figDropPart('${f.id}','sched')">빼기</button></div>
-    ${`<div class="fg-row2"><label class="fg-f">Day 0<select onchange="figSchedSet('${f.id}','zero',this.value)">${dates.map(d=>`<option${d===(sc.zero||dates[0])?' selected':''}>${d}</option>`).join('')||'<option>-</option>'}</select></label>
-      <label class="fg-ck"><input type="checkbox" ${sc.showDate!==false?'checked':''} onchange="figSchedSet('${f.id}','showDate',this.checked)"> 날짜</label>
-      <label class="fg-ck" title="눈금 아래 작게: P와 organoid 기준 day (위의 큰 Day는 실험 기준)"><input type="checkbox" ${sc.showPD!==false?'checked':''} onchange="figSchedSet('${f.id}','showPD',this.checked)"> P · organoid d</label></div>
-    ${tracks.map((t,ti)=>figTrackEditor(f,t,ti,tracks.length)).join('')}
-    <div><button class="tbl-btn" onclick="figTrackAdd('${f.id}')">+ 줄 추가 (같은 실험의 다른 라인)</button> <small class="fg-lim">${tracks.length}/${figMaxTracks(f)}줄</small></div>`}</div>`;
+  const sc=f.sched, tracks=sc.tracks||[];
+  if(!tracks.some(t=>t.id===_figTrk)) _figTrk=tracks[0]?tracks[0].id:'';
+  const t=tracks.find(x=>x.id===_figTrk), canAdd=tracks.length<figMaxTracks(f);
+  const nm=x=>{ const l=lineById(x.lineId); return x.label||(l?lineTag(l):'라인 없음'); };
+  return `<div class="fg-part"><div class="fg-ph"><b>Experiment Schedule</b>
+      <label class="fg-ck"><input type="checkbox" ${sc.showDate!==false?'checked':''} onchange="figSchedSet('${f.id}','showDate',this.checked)">날짜</label>
+      <label class="fg-ck" title="눈금 아래 작게: passage와 organoid 기준 day"><input type="checkbox" ${sc.showPD!==false?'checked':''} onchange="figSchedSet('${f.id}','showPD',this.checked)">P · d</label>
+      <button class="link-btn fg-drop" onclick="figDropPart('${f.id}','sched')">빼기</button></div>
+    <div class="fg-stabs">${tracks.map((x,i)=>`<button class="fg-stab${x.id===_figTrk?' on':''}" onclick="figTrkTab('${f.id}','${x.id}')"><i>${i+1}</i>${esc(nm(x))}</button>`).join('')}${canAdd?`<button class="fg-stab add" onclick="figTrackAdd('${f.id}')" title="같은 실험의 다른 라인">+ 줄</button>`:''}</div>
+    ${t?figTrackEditor(f,t,tracks.length):''}</div>`;
 }
-// 한 줄: 접으면 이름 · 항목 수만. 펼치면 기록 목록 하나에서 고르고, 고른 기록은 그 자리에서 글자 · 색 · 메모 고치기
-function figTrackEditor(f,t,ti,n){
-  const line=lineById(t.lineId), open=_figOpen.has(t.id), items=t.items||[];
-  const T=`'${f.id}','${t.id}'`, name=t.label||(line?lineTag(line):'라인 없음');
-  const head=`<div class="fg-trh" onclick="figToggleTrack(${T})"><span class="fg-car">${open?'▾':'▸'}</span><b>${n>1?`${ti+1}. `:''}${esc(name)}</b><small>${items.length}개</small>
-    ${n>1?`<button class="tbl-btn" onclick="event.stopPropagation();figTrackDel(${T})" title="이 줄 빼기">${ic('x','ic-sm')}</button>`:''}</div>`;
-  if(!open) return `<div class="fg-track closed">${head}</div>`;
+function figTrackEditor(f,t,n){
+  const line=lineById(t.lineId), items=t.items||[], T=`'${f.id}','${t.id}'`, z=figTrackZero(f,t);
   const byLog={}; items.forEach(it=>{ if(it.logId) byLog[it.logId]=it; });
-  const edit=it=>`<div class="fg-ied"><button class="fg-dot" style="background:${it.color}" onclick="figTlColorPick(this,${T},'${it.id}')" title="색 고르기"></button>
+  const edit=it=>`<div class="fg-ied"><button class="fg-dot" style="background:${it.color}" onclick="figTlColorPick(this,${T},'${it.id}')" title="색"></button>
       <input value="${esc(it.label)}" title="그림에 들어갈 이름" onchange="figItemSet(${T},'${it.id}',this.value)">
-      <input class="fg-inote" value="${esc(it.note||'')}" placeholder="메모 (선택)" onchange="figItemNote(${T},'${it.id}',this.value)"></div>`;
+      <input class="fg-inote" value="${esc(it.note||'')}" placeholder="메모" onchange="figItemNote(${T},'${it.id}',this.value)"></div>`;
+  const when=d=>`<span class="fg-when"><b>D${figDayOf(z,d)}</b>${d.slice(5).replace('-','/')}</span>`;
   const lgs=line?logs.filter(l=>l.lineId===line.id).sort((a,b)=>a.date.localeCompare(b.date)||(a.seq||0)-(b.seq||0)):[];
   const rows=lgs.map(lg=>{ const it=byLog[lg.id], memo=[lg.details&&!/split/i.test(lg.action)?lg.details:'',lg.memo||''].filter(Boolean).join(' · ');
-    return `<div class="fg-lg${it?' on':''}"><label class="fg-lgl"><input type="checkbox" ${it?'checked':''} onchange="figTrackPick(${T},'${lg.id}',this.checked)"><span>${lg.date.slice(5).replace('-','/')}</span><i style="background:${figActColor(lg.action)}"></i><div class="fg-lgt"><b>${esc(figActLabel(lg))}</b>${memo?`<small>${esc(memo)}</small>`:''}</div></label>${it?edit(it):''}</div>`; }).join('');
-  const custom=items.filter(it=>!it.logId).sort((a,b)=>a.date.localeCompare(b.date)).map(it=>`<div class="fg-lg on"><div class="fg-lgl"><span>${it.date.slice(5).replace('-','/')}</span><div class="fg-lgt"><b>직접 넣은 항목</b></div><button class="tbl-btn" style="margin-left:auto;" onclick="figItemDel(${T},'${it.id}')">${ic('x','ic-sm')}</button></div>${edit(it)}</div>`).join('');
-  return `<div class="fg-track">${head}
-    <div class="fg-row2"><label class="fg-f">라인<select onchange="figTrackSet(${T},'lineId',this.value)">${figLineOptsHtml(t.lineId,null,'<option value="">라인 없이 (직접 넣기만)</option>')}</select></label>
+    return `<div class="fg-lg${it?' on':''}"><label class="fg-lgl"><input type="checkbox" ${it?'checked':''} onchange="figTrackPick(${T},'${lg.id}',this.checked)">${when(lg.date)}<i style="background:${figActColor(lg.action)}"></i><div class="fg-lgt"><b>${esc(figActLabel(lg))}</b>${memo?`<small>${esc(memo)}</small>`:''}</div></label>${it?edit(it):''}</div>`; }).join('');
+  const custom=items.filter(it=>!it.logId).sort((a,b)=>a.date.localeCompare(b.date)).map(it=>`<div class="fg-lg on"><div class="fg-lgl">${when(it.date)}<div class="fg-lgt"><b>${esc(it.label)}</b></div><button class="tbl-btn" style="margin-left:auto;" onclick="figItemDel(${T},'${it.id}')">${ic('x','ic-sm')}</button></div>${edit(it)}</div>`).join('');
+  return `<div class="fg-track">
+    <div class="fg-row2"><label class="fg-f">라인<select onchange="figTrackSet(${T},'lineId',this.value)">${figLineOptsHtml(t.lineId,null,'<option value="">라인 없이</option>')}</select></label>
       <label class="fg-f">줄 이름<input value="${esc(t.label||'')}" placeholder="${esc(line?lineTag(line):'예: Tumor-org')}" onchange="figTrackSet(${T},'label',this.value.trim())"></label></div>
-    ${line?`<div class="fg-sub">기록 고르기 <small>(고르면 그 자리에서 이름 · 색 · 메모 고치기)</small><span class="fg-allbtn"><button class="link-btn" onclick="figTrackAll(${T},true)">전체 선택</button> · <button class="link-btn" onclick="figTrackAll(${T},false)">전체 해제</button></span></div>`:''}
-    <div class="fg-logs">${rows}${custom}${!rows&&!custom?'<div class="nil" style="padding:8px;">'+(line?'기록이 없어요':'아래에서 날짜와 이름을 적어 넣어 주세요')+'</div>':''}</div>
-    <div class="fg-add"><input type="date" id="figAddDate_${t.id}" value="${ymdLocal(new Date())}"><input id="figAddLab_${t.id}" placeholder="직접 넣기 (예: Drug 처리)"><button class="btn btn-out" onclick="figTrackAddItem(${T})">추가</button></div>
+    <div class="fg-row2"><label class="fg-f fg-fdate">Day 0<input type="date" value="${z}" onchange="figTrackSet(${T},'zero',this.value)"></label>
+      ${n>1?`<button class="link-btn fg-drop" style="margin-bottom:8px;" onclick="figTrackDel(${T})">이 줄 빼기</button>`:''}</div>
+    ${line?`<div class="fg-sub">기록<span class="fg-allbtn"><button class="link-btn" onclick="figTrackAll(${T},true)">전체</button> · <button class="link-btn" onclick="figTrackAll(${T},false)">해제</button></span></div>`:''}
+    <div class="fg-logs">${rows}${custom}${!rows&&!custom?'<div class="nil" style="padding:8px;">'+(line?'기록이 없어요':'아래에 Day와 이름을 넣어 주세요')+'</div>':''}</div>
+    <div class="fg-add fg-dayadd"><label>Day<input type="number" id="figAddDay_${t.id}" value="${Math.max(0,figDayOf(z,ymdLocal(new Date())))}" oninput="figDayHint('${t.id}','${z}',this.value)"></label><span class="fg-dayhint" id="figDayHint_${t.id}">${figDayAdd(z,Math.max(0,figDayOf(z,ymdLocal(new Date())))).slice(5).replace('-','/')}</span>
+      <input id="figAddLab_${t.id}" placeholder="직접 넣기 (예: Drug 처리)" onkeydown="if(event.key==='Enter')figTrackAddItem(${T})"><button class="btn btn-out" onclick="figTrackAddItem(${T})">추가</button></div>
   </div>`;
 }
+function figDayHint(tid,z,v){ const el=document.getElementById('figDayHint_'+tid); if(el) el.textContent=v===''?'':figDayAdd(z,parseInt(v)||0).slice(5).replace('-','/'); }
 const figTrack=(f,tid)=>f&&f.sched&&(f.sched.tracks||[]).find(t=>t.id===tid);
 function figSchedSet(id,k,v){ const f=figById(id); if(!f||!f.sched) return; f.sched[k]=v; figTouch(f); renderFig(); }
 function figTrackAdd(id){ const f=figById(id); if(!f||!f.sched) return;
-  if(f.sched.tracks.length>=figMaxTracks(f)) return toast(`한 장에는 일정 ${figMaxTracks(f)}줄까지예요${f.plate?' (Plate map이 같이 있어서)':''}. 더 넣으려면 Figure를 복제해서 다음 장으로 만들어 주세요.`,{warn:true}); const nt={id:uid(),lineId:'',label:'',items:[]}; f.sched.tracks.push(nt); f.sched.tracks.forEach(t=>_figOpen.delete(t.id)); _figOpen.add(nt.id); figTouch(f); renderFig(); }
+  if(f.sched.tracks.length>=figMaxTracks(f)) return toast(`한 장에는 일정 ${figMaxTracks(f)}줄까지예요${f.plate?' (Plate map이 같이 있어서)':''}. 더 넣으려면 Figure를 복제해서 다음 장으로 만들어 주세요.`,{warn:true}); const nt={id:uid(),lineId:'',label:'',items:[]}; f.sched.tracks.push(nt); _figTrk=nt.id; figTouch(f); renderFig(); }
 function figTrackDel(id,tid){ const f=figById(id); if(!f||!f.sched) return; f.sched.tracks=f.sched.tracks.filter(t=>t.id!==tid); figTouch(f); renderFig(); }
 function figTrackSet(id,tid,k,v){ const f=figById(id), t=figTrack(f,tid); if(!t) return; t[k]=v; if(k==='lineId') t.items=(t.items||[]).filter(it=>!it.logId); figTouch(f); renderFig(); }
 function figTrackPick(id,tid,logId,on){
@@ -10098,48 +10127,46 @@ function figTrackAll(id,tid,on){
   else t.items=t.items.filter(it=>!it.logId);
   figTouch(f); renderFig();
 }
-function figTrackAddItem(id,tid){ const f=figById(id), t=figTrack(f,tid); if(!t) return; const d=document.getElementById('figAddDate_'+tid).value, lab=document.getElementById('figAddLab_'+tid).value.trim(); if(!d||!lab) return toast('날짜와 이름을 적어 주세요.',{warn:true});
+function figTrackAddItem(id,tid){ const f=figById(id), t=figTrack(f,tid); if(!t) return; const dv=document.getElementById('figAddDay_'+tid).value, lab=document.getElementById('figAddLab_'+tid).value.trim(); if(dv===''||!lab) return toast('Day와 이름을 적어 주세요.',{warn:true});
+  const d=figDayAdd(figTrackZero(f,t),parseInt(dv)||0);
   const ac=figActColor(lab); t.items=t.items||[]; t.items.push({id:uid(),date:d,label:lab,color:ac===FIG_ACT['기타']?PAL[2].bd:ac}); figTouch(f); renderFig(); }
 function figItemSet(id,tid,iid,v){ const f=figById(id), t=figTrack(f,tid), it=t&&t.items.find(x=>x.id===iid); if(!it) return; it.label=v; figTouch(f); renderFig(); }
 function figItemNote(id,tid,iid,v){ const f=figById(id), t=figTrack(f,tid), it=t&&t.items.find(x=>x.id===iid); if(!it) return; it.note=v.trim(); figTouch(f); renderFig(); }
 function figItemDel(id,tid,iid){ const f=figById(id), t=figTrack(f,tid); if(!t) return; t.items=t.items.filter(x=>x.id!==iid); figTouch(f); renderFig(); }
 
 // Plate map 편집
-// Plate 하나 편집: 이 plate의 이름 · 규격 · 설명 · 행열 이름 + 칠하기 (라인 · 조건 목록은 모든 plate가 같이 씀)
+// Plate 하나 편집: 위에서 아래로 ① plate ② 고르기 ③ 조건 ④ 라인 ⑤ 글자. 라인 · 조건 목록은 모든 plate가 같이 씀
+// 행 글자(A) · 열 번호(1)를 누르면 「그 줄」을 고른 상태(_figAxis) → 조건 = 가로 · 세로 조건, 글자 = 줄 이름
+let _figAxis=null;   // {pi, kind:'row'|'col', idx:Set}
+function figSelText(pi){
+  if(_figAxis&&_figAxis.pi===pi){ const ks=[..._figAxis.idx].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true})); return `${ks.join(' · ')} ${_figAxis.kind==='row'?'행':'열'} 전체`; }
+  const n=[..._figSel].filter(k=>k.startsWith(pi+':')).length; return n?`${n}칸`:'';
+}
 function figPlateEditor(f,pi){
   const pm=f.plate, plates=pm.plates, p=plates[pi]||plates[0]; pi=plates.indexOf(p);
-  const used=new Set((pm.lines||[]).map(x=>x.id)), date=f.date||ymdLocal(new Date()), [R,C]=FIG_FORMATS[p.format]||[4,6];
-  const selN=[..._figSel].filter(k=>k.startsWith(pi+':')).length;
-  return `<div class="fg-part"><div class="fg-ph"><b>${esc(p.name||`Plate ${pi+1}`)}</b><small>${p.format} well · ${figPlateUsed(p)} wells 칠함</small>
-      <span class="fg-phacts"><button class="link-btn" onclick="figPlateDup('${f.id}',${pi})" title="칠한 것 · 행열 이름 · 설명까지 그대로 하나 더">복제</button>
-      <button class="link-btn fg-drop" onclick="${plates.length>1?`figPlateDel('${f.id}',${pi})`:`figDropPart('${f.id}','plate')`}">빼기</button></span></div>
+  const used=new Set((pm.lines||[]).map(x=>x.id)), date=f.date||ymdLocal(new Date());
+  const st=figSelText(pi), ax=_figAxis&&_figAxis.pi===pi;
+  const step=(n,t,extra)=>`<div class="fg-step"><i>${n}</i><b>${t}</b>${extra||''}</div>`;
+  return `<div class="fg-part">${step(1,'Plate',`<span class="fg-phacts"><button class="link-btn" onclick="figPlateDup('${f.id}',${pi})">복제</button><button class="link-btn fg-drop" onclick="${plates.length>1?`figPlateDel('${f.id}',${pi})`:`figDropPart('${f.id}','plate')`}">빼기</button></span>`)}
     <div class="fg-pl"><input value="${esc(p.name||'')}" placeholder="Plate ${pi+1}" onchange="figPlateSet('${f.id}',${pi},'name',this.value)">
       <select onchange="figPlateSet('${f.id}',${pi},'format',this.value)">${Object.keys(FIG_FORMATS).map(k=>`<option value="${k}"${k===p.format?' selected':''}>${k} well</option>`).join('')}</select></div>
-    <input class="fg-plnote" value="${esc(p.note||'')}" placeholder="설명 (선택 · 예: IFNg 10 ng/ml, 3×10⁴ cells/well)" onchange="figPlateSet('${f.id}',${pi},'note',this.value)">
-    <details class="fg-rc"${Object.values(p.rowLab||{}).some(Boolean)||Object.values(p.colLab||{}).some(Boolean)?' open':''}><summary>행 · 열 이름 <small>(예: 가로는 처리, 세로는 농도)</small></summary>
-      <div class="fg-rcg"><small>행</small>${Array.from({length:R},(_,r)=>{ const k=String.fromCharCode(65+r); return `<label>${k}<input value="${esc((p.rowLab||{})[k]||'')}" onchange="figPlateLab('${f.id}',${pi},'rowLab','${k}',this.value)"></label>`; }).join('')}</div>
-      <div class="fg-rcg"><small>열</small>${Array.from({length:C},(_,c)=>`<label>${c+1}<input value="${esc((p.colLab||{})[String(c+1)]||'')}" onchange="figPlateLab('${f.id}',${pi},'colLab','${c+1}',this.value)"></label>`).join('')}</div></details>
-  </div>
-  <div class="fg-part">
-    <div class="fg-sub">① well 고르기 <small>(끌기 · Shift 범위 · Ctrl 한 칸씩 · 행 글자(A) · 열 번호(1)는 그 줄 전체)</small> <span class="fg-hint">${selN?`${selN}칸 골랐어요`:'아직 안 골랐어요'}</span></div>
-    <div class="fg-btns"><button class="tbl-btn" onclick="figSelAll('${f.id}',${pi})">이 plate 전체</button><button class="tbl-btn" onclick="_figSel.clear();renderFig()">선택 풀기</button><button class="tbl-btn" onclick="figClearSel('${f.id}')">고른 칸 비우기</button></div>
-    <div class="fg-sub">② 라인 누르기 <small>(well 테두리 색 · 모든 plate 같이 씀)</small></div>
-    <div class="fg-chips">${(pm.lines||[]).map(x=>{ const L=figLn(x,date); return L?`<span class="fg-chip" style="--rc:${x.color}"><button class="rc" onclick="figLineColorPick(this,'${f.id}','${x.id}')" title="테두리 색 고르기"><i class="ring"></i></button><button onclick="figAssign('${f.id}','l','${x.id}')">${esc(L.tag)}${x.custom?' <small>(직접)</small>':''}</button><button class="x" onclick="figPlLineDel('${f.id}','${x.id}')" title="빼기">×</button></span>`:''; }).join('')}
-      <select class="fg-addsel" onchange="figPlLineAdd('${f.id}',this.value)">${figLineOptsHtml('',used,'<option value="">+ 라인</option><option value="__custom">✎ 직접 입력 (키우는 라인 아님)</option>')}</select>
-      ${(pm.lines||[]).length?`<button class="tbl-btn" onclick="figAssign('${f.id}','l','')">라인 빼기</button>`:''}</div>
-    <div class="fg-sub">③ 조건 누르기 <small>(well 안 색 · 모든 plate 같이 씀)</small></div>
-    <div class="fg-conds">${(pm.conds||[]).map(cd=>`<div class="fg-cd"><button class="fg-dot" style="background:${cd.color}" onclick="figCondColorPick(this,'${f.id}','${cd.id}')" title="색 고르기"></button>
+    <input class="fg-plnote" value="${esc(p.note||'')}" placeholder="설명 (예: IFNg 10 ng/ml)" onchange="figPlateSet('${f.id}',${pi},'note',this.value)"></div>
+  <div class="fg-part">${step(2,'고르기',`<span class="fg-hint${st?' on':''}">${st||'그림에서 끌기 · A / 1 누르면 그 줄'}</span>`)}
+    <div class="fg-btns"><button class="tbl-btn" onclick="figSelAll('${f.id}',${pi})">전체</button><button class="tbl-btn" onclick="figSelNone()">풀기</button><button class="tbl-btn" onclick="figClearSel('${f.id}')">비우기</button></div></div>
+  <div class="fg-part">${step(3,'조건',`<small>${ax?'누르면 이 줄 조건':'well 안 색'}</small>`)}
+    <div class="fg-conds">${(pm.conds||[]).map(cd=>`<div class="fg-cd"><button class="fg-dot" style="background:${cd.color}" onclick="figCondColorPick(this,'${f.id}','${cd.id}')" title="색"></button>
       <input value="${esc(cd.name)}" onchange="figCondName('${f.id}','${cd.id}',this.value)"><button class="btn btn-out fg-apply" onclick="figAssign('${f.id}','c','${cd.id}')">칠하기</button><button class="tbl-btn" onclick="figCondDel('${f.id}','${cd.id}')">${ic('x','ic-sm')}</button></div>`).join('')}</div>
-    <div class="fg-btns"><button class="tbl-btn" onclick="figCondAdd('${f.id}')">+ 조건</button><button class="tbl-btn" onclick="figCondSeries('${f.id}')">+ 농도 시리즈</button></div>
-    <div class="fg-sub">④ well 안 글자 <small>(비우면 조건 이름)</small></div>
-    <div class="fg-add"><input id="figTxt" placeholder="예: R1, 10 µM"><button class="btn btn-out" onclick="figAssign('${f.id}','t',document.getElementById('figTxt').value.trim())">고른 칸에 쓰기</button></div>
-  </div>`;
+    <div class="fg-add"><input id="figCondNew" placeholder="새 조건 · 여러 개는 쉼표 (0, 1, 10 µM)" onkeydown="if(event.key==='Enter')figCondAdd('${f.id}')"><button class="btn btn-out" onclick="figCondAdd('${f.id}')">추가</button></div></div>
+  <div class="fg-part">${step(4,'라인',`<small>well 테두리</small>`)}
+    <div class="fg-chips">${(pm.lines||[]).map(x=>{ const L=figLn(x,date); return L?`<span class="fg-chip" style="--rc:${x.color}"><button class="rc" onclick="figLineColorPick(this,'${f.id}','${x.id}')" title="색"><i class="ring"></i></button><button onclick="figAssign('${f.id}','l','${x.id}')">${esc(L.tag)}</button><button class="x" onclick="figPlLineDel('${f.id}','${x.id}')" title="빼기">×</button></span>`:''; }).join('')}
+      <select class="fg-addsel" onchange="figPlLineAdd('${f.id}',this.value)">${figLineOptsHtml('',used,'<option value="">+ 라인</option><option value="__custom">직접 입력</option>')}</select></div></div>
+  <div class="fg-part">${step(5,'글자',`<small>${ax?'이 줄 이름':'well 안 (비우면 조건 이름)'}</small>`)}
+    <div class="fg-add"><input id="figTxt" placeholder="${ax?'예: 10 µM':'예: R1'}" onkeydown="if(event.key==='Enter')figAssign('${f.id}','t',this.value.trim())"><button class="btn btn-out" onclick="figAssign('${f.id}','t',document.getElementById('figTxt').value.trim())">쓰기</button></div></div>`;
 }
 const figWellOf=(f,key,make)=>{ const [pi,wk]=key.split(':'), pl=f.plate&&f.plate.plates[+pi]; if(!pl) return null; pl.wells=pl.wells||{}; if(make&&!pl.wells[wk]) pl.wells[wk]={}; return {pl,wk,w:pl.wells[wk]}; };
 function figPlateSet(id,i,k,v){ const f=figById(id), pl=f&&f.plate&&f.plate.plates[i]; if(!pl) return; pl[k]=(k==='name'||k==='note')?v.trim():v;
   if(k==='format'){ const [R,C]=FIG_FORMATS[v]; Object.keys(pl.wells||{}).forEach(key=>{ const r=key.charCodeAt(0)-65, c=parseInt(key.slice(1))-1; if(r>=R||c>=C) delete pl.wells[key]; }); _figSel.clear(); }
   figTouch(f); renderFig(); }
-function figPlateLab(id,i,which,k,v){ const f=figById(id), pl=f&&f.plate&&f.plate.plates[i]; if(!pl) return; pl[which]=pl[which]||{}; if(v.trim()) pl[which][k]=v.trim(); else delete pl[which][k]; figTouch(f); renderFig(); }
 function figPlateAdd(id){ const f=figById(id); if(!f||!f.plate) return;
   if(f.plate.plates.length>=figMaxPlates(f)) return toast(`한 장에는 plate ${figMaxPlates(f)}장까지예요${f.sched?' (일정이 같이 있어서)':''}. 더 넣으려면 Figure를 복제해서 다음 장으로 만들어 주세요.`,{warn:true}); const ps=f.plate.plates, last=ps[ps.length-1]; ps.push({id:uid(),name:'',format:last?last.format:'24',wells:{}}); figTouch(f); renderFig(); }
 function figPlateDel(id,i){ const f=figById(id); if(!f||!f.plate) return; const ps=f.plate.plates; if(ps.length<2) return; if(Object.keys(ps[i].wells||{}).length&&!confirm('이 plate에 칠한 것도 같이 지워져요. 뺄까요?')) return; ps.splice(i,1); _figSel.clear(); figTouch(f); renderFig(); }
@@ -10158,21 +10185,34 @@ function figPlLineAdd(id,lid){
   figTouch(f); renderFig();
 }
 function figPlLineDel(id,lid){ const f=figById(id); if(!f||!f.plate) return; f.plate.lines=f.plate.lines.filter(x=>x.id!==lid); f.plate.plates.forEach(pl=>Object.values(pl.wells||{}).forEach(w=>{ if(w.l===lid) delete w.l; })); figTouch(f); renderFig(); }
+// 칠하기: 고른 칸이 이미 모두 그 조건 · 라인이면 다시 누를 때 뺌. 행 · 열을 골랐으면 조건 · 글자는 그 줄 전체로
 function figAssign(id,k,v){
-  const f=figById(id); if(!f||!f.plate) return; if(!_figSel.size) return toast('먼저 plate 그림에서 well을 골라 주세요.',{warn:true});
-  _figSel.forEach(key=>{ const o=figWellOf(f,key,true); if(!o) return; if(v) o.w[k]=v; else delete o.w[k]; if(!o.w.c&&!o.w.l&&!o.w.t) delete o.pl.wells[o.wk]; });
+  const f=figById(id); if(!f||!f.plate) return;
+  if(_figAxis&&k!=='l'){ const pl=f.plate.plates[_figAxis.pi]; if(!pl) return; const row=_figAxis.kind==='row';
+    const key=k==='c'?(row?'rowC':'colC'):(row?'rowLab':'colLab'), m=pl[key]=pl[key]||{}, ks=[..._figAxis.idx];
+    const off=k==='c'&&ks.every(x=>m[x]===v);
+    ks.forEach(x=>{ if(v&&!off) m[x]=v; else delete m[x]; });
+    if(k==='c') Object.entries(pl.wells||{}).forEach(([wk,w])=>{ if(_figAxis.idx.has(row?wk[0]:wk.slice(1))){ delete w.c; if(!w.l&&!w.t) delete pl.wells[wk]; } });   // 그 줄에 칠한 well 색은 줄 조건으로 바꿈
+    figTouch(f); renderFig(); return; }
+  if(!_figSel.size) return toast('먼저 plate 그림에서 well을 골라 주세요.',{warn:true});
+  const os=[..._figSel].map(key=>figWellOf(f,key,true)).filter(Boolean), off=k!=='t'&&v&&os.every(o=>o.w[k]===v);
+  os.forEach(o=>{ if(v&&!off) o.w[k]=v; else delete o.w[k]; if(!o.w.c&&!o.w.l&&!o.w.t) delete o.pl.wells[o.wk]; });
   figTouch(f); renderFig();
 }
-function figClearSel(id){ const f=figById(id); if(!f) return; _figSel.forEach(k=>{ const o=figWellOf(f,k); if(o) delete o.pl.wells[o.wk]; }); figTouch(f); renderFig(); }
-function figSelAll(id,only){ const f=figById(id); if(!f||!f.plate) return; _figSel.clear(); f.plate.plates.forEach((pl,pi)=>{ if(only!=null&&pi!==only) return; const [R,C]=FIG_FORMATS[pl.format]; for(let i=0;i<R;i++) for(let j=0;j<C;j++) _figSel.add(pi+':'+String.fromCharCode(65+i)+(j+1)); }); renderFig(); }
-function figCondAdd(id){ const f=figById(id); if(!f||!f.plate) return; const cs=f.plate.conds, used=new Set(cs.map(c=>c.color)); cs.push({id:uid(),name:'조건 '+(cs.length+1),color:FIG_COND.find(c=>!used.has(c))||FIG_COND[cs.length%FIG_COND.length]}); figTouch(f); renderFig(); }
-function figCondSeries(id){
-  const f=figById(id); if(!f||!f.plate) return;
-  const v=prompt('농도를 쉼표로 적어 주세요 (단위 포함)\n예: 0, 0.1, 1, 10 µM','0, 0.1, 1, 10 µM'); if(!v) return;
-  const unit=(v.match(/[^\d.,\s]+[^\d,]*$/)||[''])[0].trim(), nums=v.replace(unit,'').split(',').map(x=>x.trim()).filter(Boolean); if(!nums.length) return;
-  const name=prompt('약물 이름 (비워도 돼요)','')||'';
-  const cs=f.plate.conds, used=new Set(cs.map(c=>c.color)), base=FIG_COND.find(c=>!used.has(c))||FIG_COND[0];
-  nums.forEach((n,i)=>{ const t=nums.length===1?.3:.78-.78*(i/(nums.length-1)); cs.push({id:uid(),name:[name,n+(unit?' '+unit:'')].filter(Boolean).join(' '),color:figMix(base,Math.max(0,t))}); });
+function figSelNone(){ _figSel.clear(); _figAxis=null; renderFig(); }
+function figClearSel(id){ const f=figById(id); if(!f) return;
+  if(_figAxis){ const pl=f.plate&&f.plate.plates[_figAxis.pi]; if(pl){ const row=_figAxis.kind==='row'; [_figAxis.kind+'C',_figAxis.kind+'Lab'].forEach(key=>{ if(pl[key]) _figAxis.idx.forEach(x=>delete pl[key][x]); }); } }
+  _figSel.forEach(k=>{ const o=figWellOf(f,k); if(o) delete o.pl.wells[o.wk]; }); figTouch(f); renderFig(); }
+function figSelAll(id,only){ const f=figById(id); if(!f||!f.plate) return; _figSel.clear(); _figAxis=null; f.plate.plates.forEach((pl,pi)=>{ if(only!=null&&pi!==only) return; const [R,C]=FIG_FORMATS[pl.format]; for(let i=0;i<R;i++) for(let j=0;j<C;j++) _figSel.add(pi+':'+String.fromCharCode(65+i)+(j+1)); }); renderFig(); }
+// 조건 더하기: 한 개면 그대로, 쉼표로 여러 개면 한 색의 진하기 차이로 (예: 「Cis 0, 1, 10 µM」 → Cis 0 µM · Cis 1 µM · Cis 10 µM)
+function figCondAdd(id){
+  const f=figById(id); if(!f||!f.plate) return; const inp=document.getElementById('figCondNew'), v=(inp&&inp.value||'').trim();
+  const cs=f.plate.conds, used=new Set(cs.map(c=>c.color)), base=FIG_COND.find(c=>!used.has(c))||FIG_COND[cs.length%FIG_COND.length];
+  const parts=v.split(',').map(x=>x.trim()).filter(Boolean);
+  if(parts.length<2){ cs.push({id:uid(),name:v||'조건 '+(cs.length+1),color:base}); }
+  else { const m0=parts[0].match(/^(.*?)\s*(-?[\d.]+.*)$/), name=m0&&/\D/.test(m0[1])?m0[1].trim():''; if(name) parts[0]=m0[2];
+    const unit=(parts[parts.length-1].match(/^-?[\d.]+\s*(.*)$/)||['',''])[1].trim();
+    parts.forEach((n,i)=>{ const t=.78-.78*(i/(parts.length-1)), lab=unit&&/^-?[\d.]+$/.test(n)?n+' '+unit:n; cs.push({id:uid(),name:[name,lab].filter(Boolean).join(' '),color:figMix(base,Math.max(0,t))}); }); }
   figTouch(f); renderFig();
 }
 // 색 고르기: 종류 색상 고르기와 같은 색 맵(PAL). 조건(well 안)=연한 색, 라인 테두리=진한 색, 일정 이름표=중간 색
@@ -10193,7 +10233,7 @@ function figCondColorPick(btn,id,cid){ figColorPick(btn,'c',col=>{ const f=figBy
 function figLineColorPick(btn,id,lid){ figColorPick(btn,'l',col=>{ const f=figById(id), x=f&&f.plate&&(f.plate.lines||[]).find(y=>y.id===lid); if(!x) return; x.color=col; figTouch(f); renderFig(); }); }
 function figTlColorPick(btn,id,tid,iid){ figColorPick(btn,'t',col=>{ const f=figById(id), t=figTrack(f,tid), it=t&&t.items.find(x=>x.id===iid); if(!it) return; it.color=col; figTouch(f); renderFig(); }); }
 function figCondName(id,cid,v){ const f=figById(id), c=f&&f.plate&&f.plate.conds.find(x=>x.id===cid); if(!c) return; c.name=v; figTouch(f); renderFig(); }
-function figCondDel(id,cid){ const f=figById(id); if(!f||!f.plate) return; f.plate.conds=f.plate.conds.filter(x=>x.id!==cid); f.plate.plates.forEach(pl=>Object.values(pl.wells||{}).forEach(w=>{ if(w.c===cid) delete w.c; })); figTouch(f); renderFig(); }
+function figCondDel(id,cid){ const f=figById(id); if(!f||!f.plate) return; f.plate.conds=f.plate.conds.filter(x=>x.id!==cid); f.plate.plates.forEach(pl=>{ Object.values(pl.wells||{}).forEach(w=>{ if(w.c===cid) delete w.c; }); ['rowC','colC'].forEach(k=>Object.keys(pl[k]||{}).forEach(x=>{ if(pl[k][x]===cid) delete pl[k][x]; })); }); figTouch(f); renderFig(); }
 // 고르기: 끌기 = 사각형 / Shift = 이어서 범위 더하기 / Ctrl(⌘) = 한 칸씩 / 행 글자 · 열 번호 = 그 줄 전체 (Shift면 더하기)
 function figWirePlate(f,cv){
   const pt=e=>{ const r=cv.getBoundingClientRect(), k=(cv.width/2)/r.width; return [(e.clientX-r.left)*k,(e.clientY-r.top)*k]; };
@@ -10203,14 +10243,18 @@ function figWirePlate(f,cv){
   const rect=(a,b)=>{ const [p1,i1,j1]=rc(a),[p2,i2,j2]=rc(b), s=new Set(); if(p1!==p2) return new Set([b]); for(let i=Math.min(i1,i2);i<=Math.max(i1,i2);i++) for(let j=Math.min(j1,j2);j<=Math.max(j1,j2);j++) s.add(p1+':'+String.fromCharCode(65+i)+(j+1)); return s; };
   cv.style.touchAction='none';
   cv.onpointerdown=e=>{
-    const [px,py]=pt(e), area=(f._geo||[]).find(g=>g.area&&px>=g.x&&px<=g.x+g.w&&py>=g.y&&py<=g.y+g.h);
+    const [px,py]=pt(e), inA=g=>g.area&&px>=g.x&&px<=g.x+g.w&&py>=g.y&&py<=g.y+g.h;
+    const trk=(f._geo||[]).find(g=>g.tid&&inA(g)); if(trk){ if(_figTab!=='sched'||_figTrk!==trk.tid) figTrkTab(f.id,trk.tid); return; }
+    const area=(f._geo||[]).find(inA);
     const g0=hdr(e)||hit(e); const want=g0?'plate:'+(g0.pi!=null?g0.pi:g0.key.split(':')[0]):area?area.area:null;
     if(want&&want!==_figTab){ figSetTab(want); return; }
     const h=hdr(e);
     if(h){ const pl=f.plate.plates[h.pi], [R,C]=FIG_FORMATS[pl.format], s=new Set();
       if(h.hdr==='row') for(let j=0;j<C;j++) s.add(h.pi+':'+String.fromCharCode(65+h.idx)+(j+1)); else for(let i=0;i<R;i++) s.add(h.pi+':'+String.fromCharCode(65+i)+(h.idx+1));
-      _figSel=e.shiftKey||e.ctrlKey||e.metaKey?new Set([..._figSel,...s]):s; _figDrag=null; renderFig(); return; }
-    const g=hit(e); if(!g) return; cv.setPointerCapture(e.pointerId);
+      const add=(e.shiftKey||e.ctrlKey||e.metaKey)&&_figAxis&&_figAxis.pi===h.pi&&_figAxis.kind===h.hdr, k=h.hdr==='row'?String.fromCharCode(65+h.idx):String(h.idx+1);
+      if(add){ _figAxis.idx.add(k); _figSel=new Set([..._figSel,...s]); } else { _figAxis={pi:h.pi,kind:h.hdr,idx:new Set([k])}; _figSel=s; }
+      _figDrag=null; renderFig(); return; }
+    const g=hit(e); if(!g) return; cv.setPointerCapture(e.pointerId); _figAxis=null;
     if(e.shiftKey&&_figAnchor){ _figDrag={from:_figAnchor,base:new Set(_figSel)}; _figSel=new Set([..._figDrag.base,...rect(_figAnchor,g.key)]); }
     else if(e.ctrlKey||e.metaKey){ _figSel.has(g.key)?_figSel.delete(g.key):_figSel.add(g.key); _figAnchor=g.key; _figDrag={from:g.key,base:new Set(_figSel),noMove:true}; }
     else { _figAnchor=g.key; _figDrag={from:g.key,base:new Set(),toggle:_figSel.size===1&&_figSel.has(g.key)}; _figSel=new Set([g.key]); }
@@ -10218,7 +10262,7 @@ function figWirePlate(f,cv){
   cv.onpointermove=e=>{ if(!_figDrag||_figDrag.noMove) return; const g=hit(e); if(!g) return; _figSel=new Set([..._figDrag.base,...rect(_figDrag.from,g.key)]); figRedrawSel(f); };
   cv.onpointerup=e=>{ if(!_figDrag) return; const g=hit(e); if(_figDrag.toggle&&g&&g.key===_figDrag.from) _figSel.clear(); _figDrag=null; renderFig(); };
 }
-function figRedrawSel(f){ const box=document.getElementById('figPrev'); const old=box&&box.querySelector('canvas'); if(!old) return; const {canvas}=figRender(f,2);
+function figRedrawSel(f){ const box=document.getElementById('figPrev'); const old=box&&box.querySelector('canvas'); if(!old) return; const {canvas}=figRender(f,2,true);
   // 처음 그릴 때 걸어 둔 2배 확대를 풀고 그대로 덮어써야 함 (안 풀면 2배로 커져 보임)
   const ctx=old.getContext('2d'); ctx.setTransform(1,0,0,1,0,0); ctx.drawImage(canvas,0,0); }
 
