@@ -7500,7 +7500,6 @@ function pptLayRender(fromHist){
   if(model.excluded) notes.push(`뺀 값 때문에 ${model.excluded}장 제외`);
   if(pptCutEd) h+=pptCutEditorHtml();
   const canCut=p=>p.src&&(p.cut||pptPieces(p.src).pieces.length);
-  if(!pptEdKey&&(_pptUndo.length||_pptRedo.length)) h+=`<div style="display:flex;margin-bottom:6px;">${pptHistBtns()}</div>`;
   h+=`<div class="pl-sum"><span>슬라이드 <b>${pages.length}</b>장${notes.length?' · '+notes.join(' · '):''}</span><span class="pl-mut"><b>썸네일을 누르면 그 장을 바로 고칠 수 있어요</b> (사진 · 열 · 날짜 줄 끌어 옮기기, 글자 고치기) · 제목 자르기로 같은 실험을 한 장에</span></div>`;
   const used=new Set(pages.flatMap(pptPageFiles)), tray=pptFiles.filter(f=>!used.has(f));
   h+=`<div class="pl-thumbs">`+pages.map((p,i)=>{ const edit=p.key===pptEdKey, D=pptHtmlBackend(edit); pptRenderPage(D,p,th);
