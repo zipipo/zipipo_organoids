@@ -869,7 +869,7 @@ body[data-tab="fig"] .pane[data-pane="fig"]{display:block;animation:paneIn .28s 
 .fg-saved{display:inline-flex;align-items:center;gap:4px;font-size:.72rem;color:var(--ok);white-space:nowrap;}
 .fg-part{border:1px solid var(--bd2);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px;background:var(--sur);}
 .fg-ph{display:flex;align-items:baseline;gap:8px;} .fg-ph b{font-size:.84rem;} .fg-ph small{font-size:.68rem;color:var(--mut);}
-.fg-drop{margin-left:auto;font-size:.72rem;color:var(--due);}
+.fg-drop{margin-left:auto;font-size:.72rem;color:var(--due);} .fg-phacts{margin-left:auto;display:flex;gap:10px;} .fg-phacts .link-btn{font-size:.72rem;} .fg-phacts .fg-drop{margin-left:0;}
 .fg-addparts{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 .fg-addpart{display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 8px;border:2px dashed var(--bd);border-radius:10px;background:transparent;font:inherit;color:var(--sub);cursor:pointer;}
 .fg-addpart:hover{background:var(--hov);color:var(--tx);} .fg-addpart b{font-size:.8rem;} .fg-addpart small{font-size:.66rem;color:var(--mut);} .fg-addpart .ic{width:18px;height:18px;}
@@ -905,7 +905,10 @@ body[data-tab="fig"] .pane[data-pane="fig"]{display:block;animation:paneIn .28s 
 .fg-name input{height:34px;font-weight:650;flex:1;}
 .fg-eacts{display:flex;gap:6px;}
 .fg-ed{display:grid;grid-template-columns:360px minmax(0,1fr);gap:14px;align-items:start;}
-.fg-modal{align-items:center;padding:2vh 2vw;} .fg-mbox{width:min(1600px,96vw);height:94vh;max-width:none;display:flex;flex-direction:column;padding:16px 18px;}
+.fg-modal{align-items:center;padding:3vh 3vw;} .fg-mbox{width:min(1280px,92vw);height:min(860px,88vh);max-width:none;display:flex;flex-direction:column;padding:16px 18px;}
+.fg-ttl{margin-bottom:8px;} .fg-tabs{display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid var(--bd2);margin-bottom:10px;}
+.fg-tab{display:inline-flex;align-items:center;gap:5px;border:1px solid transparent;border-bottom:none;background:none;font:inherit;font-size:.78rem;font-weight:600;color:var(--sub);padding:7px 12px;border-radius:8px 8px 0 0;cursor:pointer;margin-bottom:-1px;}
+.fg-tab.on{background:var(--sur);border-color:var(--bd2);color:var(--tx);} .fg-tab:hover:not(.on){color:var(--tx);} .fg-tab.add{color:var(--mut);font-weight:500;}
 .fg-mbox .fg-ed{flex:1;min-height:0;align-items:stretch;} .fg-mbox .fg-side{max-height:none;height:100%;} .fg-mbox .fg-main{position:static;overflow:auto;height:100%;}
 .fg-mbox .fg-ehd{margin-bottom:10px;}
 @media (max-width:900px){ .fg-modal{padding:0;} .fg-mbox{width:100vw;height:100vh;border-radius:0;padding:12px;} .fg-mbox .fg-ed{overflow:auto;display:flex;flex-direction:column;} .fg-mbox .fg-side,.fg-mbox .fg-main{height:auto;} }
@@ -9870,6 +9873,8 @@ function figDraw(D,f,L,sel){
   if(L.sub) D.text(L.sub,L.px+2,80,{size:20,weight:500,color:'#8A9099'});
   if(L.SL) figDrawSched(D,L.SL,L.px,L.ySched,f.sched);
   const geo=L.PL?figDrawPlates(D,L.PL,L.px,L.yPlate,f,sel):[];
+  if(L.SL) geo.push({area:'sched',x:0,y:L.ySched-10,w:L.W,h:L.SL.H+20});
+  if(L.memoLines.length) geo.push({area:'memo',x:0,y:L.yMemo,w:L.W,h:L.memoLines.length*32+36});
   if(L.memoLines.length){ const bh=L.memoLines.length*32+36; D.rrect(L.px,L.yMemo,L.W-2*L.px,bh,12,{fill:'#F5F6F8'});
     L.memoLines.forEach((l,i)=>D.text(l,L.px+20,L.yMemo+18+i*32,{size:22,weight:500,color:'#2B3036'})); }
   if(!L.SL&&!L.PL&&!L.memoLines.length) D.text('왼쪽에서 Experiment Schedule · Plate map을 넣어 주세요',L.px,L.ySched+30,{size:24,weight:500,color:'#A0A6AD'});
@@ -9993,7 +9998,7 @@ function figSet(id,k,v){ const f=figById(id); if(!f) return; f[k]=v; figTouch(f)
 function figDrawPreview(f){
   const box=document.getElementById('figPrev'); if(!box) return;
   const {canvas,geo}=figRender(f,2); canvas.className='fg-cv'; box.innerHTML=''; box.appendChild(canvas); f._geo=geo;
-  if(f.plate) figWirePlate(f,canvas);
+  figWirePlate(f,canvas);
 }
 // 라인 고르기: 진행 중 / 완료 나눠서
 function figLineOptsHtml(sel,exclude,first){
@@ -10004,24 +10009,38 @@ function figLineOptsHtml(sel,exclude,first){
 }
 
 // ── 편집 화면 ──
+// 편집 창: 위에 탭(Experiment Schedule · Plate 1 · Plate 2 · 메모) → 왼쪽엔 고른 것 하나만. 미리보기에서 누른 곳으로도 탭이 바뀜
+let _figTab='';
+function figTabs(f){ const t=[]; if(f.sched) t.push(['sched','Experiment Schedule']); if(f.plate) f.plate.plates.forEach((p,i)=>t.push(['plate:'+i,p.name||`Plate ${i+1}`])); t.push(['memo','메모']); return t; }
+function figSetTab(k){ if(_figTab!==k){ _figTab=k; _figSel.clear(); _figAnchor=null; } renderFig(); }
 function figEditor(f){
-  const sc=f.sched, pm=f.plate;
+  const tabs=figTabs(f); if(!tabs.some(t=>t[0]===_figTab)) _figTab=tabs[0][0];
+  const canSched=!f.sched&&!(f.plate&&f.plate.plates.length>FIG_MAX.platesWith), canPlate=!f.plate||f.plate.plates.length<figMaxPlates(f);
+  let body='';
+  if(_figTab==='sched') body=figSchedEditor(f);
+  else if(_figTab.startsWith('plate:')) body=figPlateEditor(f,+_figTab.split(':')[1]);
+  else body=`<div class="fg-part"><div class="fg-ph"><b>메모</b><small>Figure 맨 아래에 들어가요 (cell 수 등)</small></div>
+      <textarea class="fg-memo" rows="6" placeholder="예: 3×10⁴ cells/well, CM 1.5 ml" onchange="figSet('${f.id}','memo',this.value)">${esc(f.memo||'')}</textarea></div>`;
   return `<div class="fg-ehd"><button class="btn btn-out" onclick="figClose()">${ic('x','ic-sm')}닫기</button>
     <label class="fg-name">이름<input value="${esc(f.name||'')}" onchange="figSetName('${f.id}',this.value)"></label>
     <span class="fg-saved" title="고칠 때마다 계정에 저장돼요">${ic('check','ic-sm')}자동 저장</span>
     <span class="fg-eacts"><button class="btn btn-out" onclick="figCopy('${f.id}')">이미지 복사</button><button class="btn btn-out" onclick="figPng('${f.id}')">PNG</button><button class="btn btn-pri" onclick="figPpt(['${f.id}'])">PPT</button></span></div>
-  <div class="fg-ed"><div class="fg-side">
-    <div class="fg-row2"><label class="fg-f">제목<input value="${esc(f.title||'')}" placeholder="비우면 라인 이름" onchange="figSetTitle('${f.id}',this.value)"></label>
-      <label class="fg-f fg-fdate">날짜<input type="date" value="${f.date||''}" onchange="figSet('${f.id}','date',this.value)"></label></div>
-    ${sc?figSchedEditor(f):''}
-    ${pm?figPlateEditor(f):''}
-    ${!sc||!pm?`<div class="fg-addparts">${!sc?`<button class="fg-addpart" onclick="figAddSched('${f.id}')">${ic('timeline')}<b>+ Experiment Schedule</b><small>기록을 골라 날짜 축 위에</small></button>`:''}${!pm?`<button class="fg-addpart" onclick="figAddPlate('${f.id}')">${ic('dish')}<b>+ Plate map</b><small>well마다 라인 · 조건 칠하기</small></button>`:''}</div>`:''}
+  <div class="fg-row2 fg-ttl"><label class="fg-f">제목<input value="${esc(f.title||'')}" placeholder="비우면 라인 이름" onchange="figSetTitle('${f.id}',this.value)"></label>
+    <label class="fg-f fg-fdate">날짜<input type="date" value="${f.date||''}" onchange="figSet('${f.id}','date',this.value)"></label></div>
+  <div class="fg-tabs">${tabs.map(([k,t])=>`<button class="fg-tab${k===_figTab?' on':''}" onclick="figSetTab('${k}')">${k==='sched'?ic('timeline','ic-sm'):k==='memo'?ic('edit','ic-sm'):ic('dish','ic-sm')}${esc(t)}</button>`).join('')}
+    ${canSched?`<button class="fg-tab add" onclick="figAddSched('${f.id}');figSetTab('sched')">+ Experiment Schedule</button>`:''}
+    ${canPlate?`<button class="fg-tab add" onclick="figAddPlateTab('${f.id}')">+ Plate</button>`:''}</div>
+  <div class="fg-ed"><div class="fg-side">${body}
     <div class="fg-limhint">한 장 기준 최대: 일정 ${FIG_MAX.tracks}줄 · plate ${FIG_MAX.plates}장 · 둘 다 넣으면 일정 ${FIG_MAX.tracksWith}줄 + plate ${FIG_MAX.platesWith}장. PPT로 내보내면 글자 · 도형 하나하나를 PPT에서 고칠 수 있어요.</div>
-    <div class="fg-part"><div class="fg-ph"><b>메모</b><small>Figure 맨 아래에 들어가요 (cell 수 등)</small></div>
-      <textarea class="fg-memo" rows="3" placeholder="예: 3×10⁴ cells/well, CM 1.5 ml" onchange="figSet('${f.id}','memo',this.value)">${esc(f.memo||'')}</textarea></div>
-  </div><div class="fg-main"><div id="figPrev" class="fg-prev${pm?' fg-plate':''}"></div></div></div>`;
+  </div><div class="fg-main"><div id="figPrev" class="fg-prev${f.plate?' fg-plate':''}"></div></div></div>`;
 }
-
+function figPlateDup(id,pi){ const f=figById(id); if(!f||!f.plate) return; const ps=f.plate.plates;
+  if(ps.length>=figMaxPlates(f)) return toast(`한 장에는 plate ${figMaxPlates(f)}장까지예요${f.sched?' (일정이 같이 있어서)':''}.`,{warn:true});
+  const c=JSON.parse(JSON.stringify(ps[pi])); c.id=uid(); c.name=c.name?c.name+' (복제)':''; ps.splice(pi+1,0,c); _figTab='plate:'+(pi+1); _figSel.clear(); figTouch(f); renderFig(); toast('plate를 복제했어요'); }
+function figAddPlateTab(id){ const f=figById(id); if(!f) return;
+  if(!f.plate){ figAddPlate(id); if(!f.plate) return; _figTab='plate:0'; }
+  else { const n=f.plate.plates.length; figPlateAdd(id); if(f.plate.plates.length>n) _figTab='plate:'+(f.plate.plates.length-1); }
+  _figSel.clear(); renderFig(); }
 // Experiment Schedule 편집: 줄(라인)마다 기록 고르기
 // 접기 상태 (화면에서만): 일정 줄 · 큰 칸. 줄은 하나만 펼쳐 둠 → 스크롤 줄이기
 let _figOpen=new Set(), _figClosed=new Set();
@@ -10032,8 +10051,8 @@ function figSchedEditor(f){
   if(tracks.length&&!tracks.some(t=>_figOpen.has(t.id))) _figOpen.add(tracks[0].id);
   const dates=[...new Set(tracks.flatMap(t=>(t.items||[]).map(i=>i.date)))].sort();
   const nItems=tracks.reduce((s2,t)=>s2+(t.items||[]).length,0);
-  return `<div class="fg-part"><div class="fg-ph fg-tog" onclick="figTogglePart('${key}')"><span class="fg-car">${closed?'▸':'▾'}</span><b>Experiment Schedule</b><small>${tracks.length}줄 · 항목 ${nItems}개</small><button class="link-btn fg-drop" onclick="event.stopPropagation();figDropPart('${f.id}','sched')">빼기</button></div>
-    ${closed?'':`<div class="fg-row2"><label class="fg-f">Day 0<select onchange="figSchedSet('${f.id}','zero',this.value)">${dates.map(d=>`<option${d===(sc.zero||dates[0])?' selected':''}>${d}</option>`).join('')||'<option>-</option>'}</select></label>
+  return `<div class="fg-part"><div class="fg-ph"><b>Experiment Schedule</b><small>${tracks.length}줄 · 항목 ${nItems}개</small><button class="link-btn fg-drop" onclick="figDropPart('${f.id}','sched')">빼기</button></div>
+    ${`<div class="fg-row2"><label class="fg-f">Day 0<select onchange="figSchedSet('${f.id}','zero',this.value)">${dates.map(d=>`<option${d===(sc.zero||dates[0])?' selected':''}>${d}</option>`).join('')||'<option>-</option>'}</select></label>
       <label class="fg-ck"><input type="checkbox" ${sc.showDate!==false?'checked':''} onchange="figSchedSet('${f.id}','showDate',this.checked)"> 날짜</label>
       <label class="fg-ck" title="눈금 아래 작게: P와 organoid 기준 day (위의 큰 Day는 실험 기준)"><input type="checkbox" ${sc.showPD!==false?'checked':''} onchange="figSchedSet('${f.id}','showPD',this.checked)"> P · organoid d</label></div>
     ${tracks.map((t,ti)=>figTrackEditor(f,t,ti,tracks.length)).join('')}
@@ -10087,32 +10106,35 @@ function figItemNote(id,tid,iid,v){ const f=figById(id), t=figTrack(f,tid), it=t
 function figItemDel(id,tid,iid){ const f=figById(id), t=figTrack(f,tid); if(!t) return; t.items=t.items.filter(x=>x.id!==iid); figTouch(f); renderFig(); }
 
 // Plate map 편집
-function figPlateEditor(f){
-  const pm=f.plate, used=new Set((pm.lines||[]).map(x=>x.id)), plates=pm.plates, date=f.date||ymdLocal(new Date());
-  const key='P:'+f.id, closed=_figClosed.has(key);
-  if(closed) return `<div class="fg-part"><div class="fg-ph fg-tog" onclick="figTogglePart('${key}')"><span class="fg-car">▸</span><b>Plate map</b><small>plate ${plates.length}장 · 조건 ${(pm.conds||[]).length}개</small><button class="link-btn fg-drop" onclick="event.stopPropagation();figDropPart('${f.id}','plate')">빼기</button></div></div>`;
-  return `<div class="fg-part"><div class="fg-ph fg-tog" onclick="figTogglePart('${key}')"><span class="fg-car">▾</span><b>Plate map</b><small>plate ${plates.length}장 · 조건 ${(pm.conds||[]).length}개</small><button class="link-btn fg-drop" onclick="event.stopPropagation();figDropPart('${f.id}','plate')">빼기</button></div>
-      <div class="fg-plates">${plates.map((p,i)=>{ const [R,C]=FIG_FORMATS[p.format]||[4,6]; return `<div class="fg-pl"><input value="${esc(p.name||'')}" placeholder="Plate ${i+1}" onchange="figPlateSet('${f.id}',${i},'name',this.value)">
-        <select onchange="figPlateSet('${f.id}',${i},'format',this.value)">${Object.keys(FIG_FORMATS).map(k=>`<option value="${k}"${k===p.format?' selected':''}>${k} well</option>`).join('')}</select>
-        ${plates.length>1?`<button class="tbl-btn" onclick="figPlateDel('${f.id}',${i})" title="이 plate 빼기">${ic('x','ic-sm')}</button>`:''}</div>
-        <input class="fg-plnote" value="${esc(p.note||'')}" placeholder="${esc(p.name||`Plate ${i+1}`)} 설명 (선택 · 예: IFNg 10 ng/ml, 3×10⁴ cells/well)" onchange="figPlateSet('${f.id}',${i},'note',this.value)">
-        <details class="fg-rc"${Object.values(p.rowLab||{}).some(Boolean)||Object.values(p.colLab||{}).some(Boolean)?' open':''}><summary>행 · 열 이름 <small>(예: 가로는 처리, 세로는 농도)</small></summary>
-          <div class="fg-rcg"><small>행</small>${Array.from({length:R},(_,r)=>{ const k=String.fromCharCode(65+r); return `<label>${k}<input value="${esc((p.rowLab||{})[k]||'')}" onchange="figPlateLab('${f.id}',${i},'rowLab','${k}',this.value)"></label>`; }).join('')}</div>
-          <div class="fg-rcg"><small>열</small>${Array.from({length:C},(_,c)=>`<label>${c+1}<input value="${esc((p.colLab||{})[String(c+1)]||'')}" onchange="figPlateLab('${f.id}',${i},'colLab','${c+1}',this.value)"></label>`).join('')}</div></details>`; }).join('')}
-        <div><button class="tbl-btn" onclick="figPlateAdd('${f.id}')">+ plate</button> <small class="fg-lim">${plates.length}/${figMaxPlates(f)}장</small></div></div>
-      <div class="fg-sub">① well 고르기 <small>(끌기 · Shift 범위 · Ctrl 한 칸씩 · 행 글자(A)나 열 번호(1)를 누르면 그 줄 전체)</small> <span class="fg-hint">${_figSel.size?`${_figSel.size}칸 골랐어요`:'아직 안 골랐어요'}</span></div>
-      <div class="fg-btns"><button class="tbl-btn" onclick="figSelAll('${f.id}')">전체</button><button class="tbl-btn" onclick="_figSel.clear();renderFig()">선택 풀기</button><button class="tbl-btn" onclick="figClearSel('${f.id}')">고른 칸 비우기</button></div>
-      <div class="fg-sub">② 라인 누르기 <small>(well 테두리 색)</small></div>
-      <div class="fg-chips">${(pm.lines||[]).map(x=>{ const L=figLn(x,date); return L?`<span class="fg-chip" style="--rc:${x.color}"><button class="rc" onclick="figLineColorPick(this,'${f.id}','${x.id}')" title="테두리 색 고르기"><i class="ring"></i></button><button onclick="figAssign('${f.id}','l','${x.id}')">${esc(L.tag)}${x.custom?' <small>(직접)</small>':''}</button><button class="x" onclick="figPlLineDel('${f.id}','${x.id}')" title="빼기">×</button></span>`:''; }).join('')}
-        <select class="fg-addsel" onchange="figPlLineAdd('${f.id}',this.value)">${figLineOptsHtml('',used,'<option value="">+ 라인</option><option value="__custom">✎ 직접 입력 (키우는 라인 아님)</option>')}</select>
-        ${(pm.lines||[]).length?`<button class="tbl-btn" onclick="figAssign('${f.id}','l','')">라인 빼기</button>`:''}</div>
-      <div class="fg-sub">③ 조건 누르기 <small>(well 안 색)</small></div>
-      <div class="fg-conds">${(pm.conds||[]).map(cd=>`<div class="fg-cd"><button class="fg-dot" style="background:${cd.color}" onclick="figCondColorPick(this,'${f.id}','${cd.id}')" title="색 고르기"></button>
-        <input value="${esc(cd.name)}" onchange="figCondName('${f.id}','${cd.id}',this.value)"><button class="btn btn-out fg-apply" onclick="figAssign('${f.id}','c','${cd.id}')">칠하기</button><button class="tbl-btn" onclick="figCondDel('${f.id}','${cd.id}')">${ic('x','ic-sm')}</button></div>`).join('')}</div>
-      <div class="fg-btns"><button class="tbl-btn" onclick="figCondAdd('${f.id}')">+ 조건</button><button class="tbl-btn" onclick="figCondSeries('${f.id}')">+ 농도 시리즈</button></div>
-      <div class="fg-sub">④ well 안 글자 <small>(비우면 조건 이름)</small></div>
-      <div class="fg-add"><input id="figTxt" placeholder="예: R1, 10 µM"><button class="btn btn-out" onclick="figAssign('${f.id}','t',document.getElementById('figTxt').value.trim())">고른 칸에 쓰기</button></div>
-    </div>`;
+// Plate 하나 편집: 이 plate의 이름 · 규격 · 설명 · 행열 이름 + 칠하기 (라인 · 조건 목록은 모든 plate가 같이 씀)
+function figPlateEditor(f,pi){
+  const pm=f.plate, plates=pm.plates, p=plates[pi]||plates[0]; pi=plates.indexOf(p);
+  const used=new Set((pm.lines||[]).map(x=>x.id)), date=f.date||ymdLocal(new Date()), [R,C]=FIG_FORMATS[p.format]||[4,6];
+  const selN=[..._figSel].filter(k=>k.startsWith(pi+':')).length;
+  return `<div class="fg-part"><div class="fg-ph"><b>${esc(p.name||`Plate ${pi+1}`)}</b><small>${p.format} well · ${figPlateUsed(p)} wells 칠함</small>
+      <span class="fg-phacts"><button class="link-btn" onclick="figPlateDup('${f.id}',${pi})" title="칠한 것 · 행열 이름 · 설명까지 그대로 하나 더">복제</button>
+      <button class="link-btn fg-drop" onclick="${plates.length>1?`figPlateDel('${f.id}',${pi})`:`figDropPart('${f.id}','plate')`}">빼기</button></span></div>
+    <div class="fg-pl"><input value="${esc(p.name||'')}" placeholder="Plate ${pi+1}" onchange="figPlateSet('${f.id}',${pi},'name',this.value)">
+      <select onchange="figPlateSet('${f.id}',${pi},'format',this.value)">${Object.keys(FIG_FORMATS).map(k=>`<option value="${k}"${k===p.format?' selected':''}>${k} well</option>`).join('')}</select></div>
+    <input class="fg-plnote" value="${esc(p.note||'')}" placeholder="설명 (선택 · 예: IFNg 10 ng/ml, 3×10⁴ cells/well)" onchange="figPlateSet('${f.id}',${pi},'note',this.value)">
+    <details class="fg-rc"${Object.values(p.rowLab||{}).some(Boolean)||Object.values(p.colLab||{}).some(Boolean)?' open':''}><summary>행 · 열 이름 <small>(예: 가로는 처리, 세로는 농도)</small></summary>
+      <div class="fg-rcg"><small>행</small>${Array.from({length:R},(_,r)=>{ const k=String.fromCharCode(65+r); return `<label>${k}<input value="${esc((p.rowLab||{})[k]||'')}" onchange="figPlateLab('${f.id}',${pi},'rowLab','${k}',this.value)"></label>`; }).join('')}</div>
+      <div class="fg-rcg"><small>열</small>${Array.from({length:C},(_,c)=>`<label>${c+1}<input value="${esc((p.colLab||{})[String(c+1)]||'')}" onchange="figPlateLab('${f.id}',${pi},'colLab','${c+1}',this.value)"></label>`).join('')}</div></details>
+  </div>
+  <div class="fg-part">
+    <div class="fg-sub">① well 고르기 <small>(끌기 · Shift 범위 · Ctrl 한 칸씩 · 행 글자(A) · 열 번호(1)는 그 줄 전체)</small> <span class="fg-hint">${selN?`${selN}칸 골랐어요`:'아직 안 골랐어요'}</span></div>
+    <div class="fg-btns"><button class="tbl-btn" onclick="figSelAll('${f.id}',${pi})">이 plate 전체</button><button class="tbl-btn" onclick="_figSel.clear();renderFig()">선택 풀기</button><button class="tbl-btn" onclick="figClearSel('${f.id}')">고른 칸 비우기</button></div>
+    <div class="fg-sub">② 라인 누르기 <small>(well 테두리 색 · 모든 plate 같이 씀)</small></div>
+    <div class="fg-chips">${(pm.lines||[]).map(x=>{ const L=figLn(x,date); return L?`<span class="fg-chip" style="--rc:${x.color}"><button class="rc" onclick="figLineColorPick(this,'${f.id}','${x.id}')" title="테두리 색 고르기"><i class="ring"></i></button><button onclick="figAssign('${f.id}','l','${x.id}')">${esc(L.tag)}${x.custom?' <small>(직접)</small>':''}</button><button class="x" onclick="figPlLineDel('${f.id}','${x.id}')" title="빼기">×</button></span>`:''; }).join('')}
+      <select class="fg-addsel" onchange="figPlLineAdd('${f.id}',this.value)">${figLineOptsHtml('',used,'<option value="">+ 라인</option><option value="__custom">✎ 직접 입력 (키우는 라인 아님)</option>')}</select>
+      ${(pm.lines||[]).length?`<button class="tbl-btn" onclick="figAssign('${f.id}','l','')">라인 빼기</button>`:''}</div>
+    <div class="fg-sub">③ 조건 누르기 <small>(well 안 색 · 모든 plate 같이 씀)</small></div>
+    <div class="fg-conds">${(pm.conds||[]).map(cd=>`<div class="fg-cd"><button class="fg-dot" style="background:${cd.color}" onclick="figCondColorPick(this,'${f.id}','${cd.id}')" title="색 고르기"></button>
+      <input value="${esc(cd.name)}" onchange="figCondName('${f.id}','${cd.id}',this.value)"><button class="btn btn-out fg-apply" onclick="figAssign('${f.id}','c','${cd.id}')">칠하기</button><button class="tbl-btn" onclick="figCondDel('${f.id}','${cd.id}')">${ic('x','ic-sm')}</button></div>`).join('')}</div>
+    <div class="fg-btns"><button class="tbl-btn" onclick="figCondAdd('${f.id}')">+ 조건</button><button class="tbl-btn" onclick="figCondSeries('${f.id}')">+ 농도 시리즈</button></div>
+    <div class="fg-sub">④ well 안 글자 <small>(비우면 조건 이름)</small></div>
+    <div class="fg-add"><input id="figTxt" placeholder="예: R1, 10 µM"><button class="btn btn-out" onclick="figAssign('${f.id}','t',document.getElementById('figTxt').value.trim())">고른 칸에 쓰기</button></div>
+  </div>`;
 }
 const figWellOf=(f,key,make)=>{ const [pi,wk]=key.split(':'), pl=f.plate&&f.plate.plates[+pi]; if(!pl) return null; pl.wells=pl.wells||{}; if(make&&!pl.wells[wk]) pl.wells[wk]={}; return {pl,wk,w:pl.wells[wk]}; };
 function figPlateSet(id,i,k,v){ const f=figById(id), pl=f&&f.plate&&f.plate.plates[i]; if(!pl) return; pl[k]=(k==='name'||k==='note')?v.trim():v;
@@ -10143,7 +10165,7 @@ function figAssign(id,k,v){
   figTouch(f); renderFig();
 }
 function figClearSel(id){ const f=figById(id); if(!f) return; _figSel.forEach(k=>{ const o=figWellOf(f,k); if(o) delete o.pl.wells[o.wk]; }); figTouch(f); renderFig(); }
-function figSelAll(id){ const f=figById(id); if(!f||!f.plate) return; _figSel.clear(); f.plate.plates.forEach((pl,pi)=>{ const [R,C]=FIG_FORMATS[pl.format]; for(let i=0;i<R;i++) for(let j=0;j<C;j++) _figSel.add(pi+':'+String.fromCharCode(65+i)+(j+1)); }); renderFig(); }
+function figSelAll(id,only){ const f=figById(id); if(!f||!f.plate) return; _figSel.clear(); f.plate.plates.forEach((pl,pi)=>{ if(only!=null&&pi!==only) return; const [R,C]=FIG_FORMATS[pl.format]; for(let i=0;i<R;i++) for(let j=0;j<C;j++) _figSel.add(pi+':'+String.fromCharCode(65+i)+(j+1)); }); renderFig(); }
 function figCondAdd(id){ const f=figById(id); if(!f||!f.plate) return; const cs=f.plate.conds, used=new Set(cs.map(c=>c.color)); cs.push({id:uid(),name:'조건 '+(cs.length+1),color:FIG_COND.find(c=>!used.has(c))||FIG_COND[cs.length%FIG_COND.length]}); figTouch(f); renderFig(); }
 function figCondSeries(id){
   const f=figById(id); if(!f||!f.plate) return;
@@ -10182,6 +10204,9 @@ function figWirePlate(f,cv){
   const rect=(a,b)=>{ const [p1,i1,j1]=rc(a),[p2,i2,j2]=rc(b), s=new Set(); if(p1!==p2) return new Set([b]); for(let i=Math.min(i1,i2);i<=Math.max(i1,i2);i++) for(let j=Math.min(j1,j2);j<=Math.max(j1,j2);j++) s.add(p1+':'+String.fromCharCode(65+i)+(j+1)); return s; };
   cv.style.touchAction='none';
   cv.onpointerdown=e=>{
+    const [px,py]=pt(e), area=(f._geo||[]).find(g=>g.area&&px>=g.x&&px<=g.x+g.w&&py>=g.y&&py<=g.y+g.h);
+    const g0=hdr(e)||hit(e); const want=g0?'plate:'+(g0.pi!=null?g0.pi:g0.key.split(':')[0]):area?area.area:null;
+    if(want&&want!==_figTab){ figSetTab(want); return; }
     const h=hdr(e);
     if(h){ const pl=f.plate.plates[h.pi], [R,C]=FIG_FORMATS[pl.format], s=new Set();
       if(h.hdr==='row') for(let j=0;j<C;j++) s.add(h.pi+':'+String.fromCharCode(65+h.idx)+(j+1)); else for(let i=0;i<R;i++) s.add(h.pi+':'+String.fromCharCode(65+i)+(h.idx+1));
