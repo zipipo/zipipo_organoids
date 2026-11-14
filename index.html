@@ -278,7 +278,9 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
 .pl-pts>summary small,.pl-ms>summary small{color:var(--mut);font-weight:500;margin-left:6px;} .pl-ms{margin-top:4px;}
 .pf-at{font-style:normal;margin-left:6px;color:#2563EB;font-size:.66rem;} .pf-hide{font-size:.7rem;color:var(--mut);flex:none;margin-left:6px;}
 .pf-row.hid{opacity:.6;} .pf-old{margin-top:6px;} .pf-old>summary{cursor:pointer;font-size:.74rem;color:var(--sub);padding:4px 2px;}
-.pl-hist{display:inline-flex;gap:4px;} .pl-hist .btn{height:30px;padding:0 9px;font-size:.74rem;}
+.pl-edbar .pl-ck{white-space:nowrap;}
+.pl-hist{display:inline-flex;gap:2px;margin-left:auto;padding:2px;border:1px solid var(--bd);border-radius:9px;background:var(--sur);}
+.pl-hb{width:32px;height:28px;border:none;background:none;border-radius:7px;display:grid;place-items:center;cursor:pointer;color:var(--tx);} .pl-hb:hover:not(:disabled){background:var(--hov);} .pl-hb:disabled{color:var(--mut);opacity:.45;cursor:default;} .pl-hb .ic{width:17px;height:17px;}
 .pl-other{border-style:solid;background:var(--sur2);} .pl-ono{font-weight:700;color:var(--tx);margin-left:6px;}
 .pl-tray{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px;padding:6px 8px;border:1px dashed var(--bd);border-radius:8px;min-height:46px;font-size:.74rem;color:var(--sub);}
 .pl-tray img{height:44px;border-radius:3px;cursor:grab;border:1px solid var(--bd);}
@@ -1774,6 +1776,8 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
   <symbol id="i-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
   <symbol id="i-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
   <symbol id="i-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+  <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></symbol>
+  <symbol id="i-redo" viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></symbol>
   <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></symbol>
   <symbol id="i-scope" viewBox="0 0 24 24"><path d="M6 18h8M3 22h18M14 22a7 7 0 1 0 0-14h-1M9 14h2"/><path d="M9 12a2 2 0 0 1-2-2V6h6v4a2 2 0 0 1-2 2z"/><path d="M12 6V3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3"/></symbol>
   <symbol id="i-branch" viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><circle cx="6" cy="19" r="2"/><circle cx="18" cy="8" r="2"/><path d="M6 7v10M18 10c0 4-6 3-11.2 7.4"/></symbol>
@@ -7455,6 +7459,8 @@ function pptSnapNow(){ return JSON.stringify({e:pptEdits,c:pptCuts,l:pptLay},(k,
 function pptSnapLoad(str){ const fs=new Map(pptAllFiles().map(f=>[f.id,f]));
   const o=JSON.parse(str,(k,v)=>typeof v==='string'&&v[0]==='\u0001'?(fs.get(v.slice(1))||null):v);
   pptEdits=o.e||{}; pptCuts=o.c||{}; pptLay=o.l; savePptCuts(); }
+// 되돌리기 · 다시 하기 버튼 (오른쪽 끝, 휘어진 화살표)
+function pptHistBtns(){ return `<span class="pl-hist"><button class="pl-hb" ${_pptUndo.length?'':'disabled'} onclick="pptHist(-1)" title="되돌리기 (Ctrl+Z)">${ic('undo')}</button><button class="pl-hb" ${_pptRedo.length?'':'disabled'} onclick="pptHist(1)" title="다시 하기 (Ctrl+Y)">${ic('redo')}</button></span>`; }
 function pptHist(dir){
   const from=dir<0?_pptUndo:_pptRedo, to=dir<0?_pptRedo:_pptUndo; if(!from.length) return;
   to.push(_pptSnap); const st=from.pop(); pptSnapLoad(st); _pptSnap=st; pptEdSel=null;
@@ -7498,18 +7504,18 @@ function pptLayRender(fromHist){
   if(model.excluded) notes.push(`뺀 값 때문에 ${model.excluded}장 제외`);
   if(pptCutEd) h+=pptCutEditorHtml();
   const canCut=p=>p.src&&(p.cut||pptPieces(p.src).pieces.length);
-  if(!pptEdKey&&(_pptUndo.length||_pptRedo.length)) h+=`<div class="pl-hist" style="margin-bottom:6px;"><button class="btn btn-out" ${_pptUndo.length?'':'disabled'} onclick="pptHist(-1)" title="뒤로 (Ctrl+Z)">${ic('left','ic-sm')}뒤로</button><button class="btn btn-out" ${_pptRedo.length?'':'disabled'} onclick="pptHist(1)" title="앞으로 (Ctrl+Y)">앞으로${ic('right','ic-sm')}</button></div>`;
+  if(!pptEdKey&&(_pptUndo.length||_pptRedo.length)) h+=`<div style="display:flex;margin-bottom:6px;">${pptHistBtns()}</div>`;
   h+=`<div class="pl-sum"><span>슬라이드 <b>${pages.length}</b>장${notes.length?' · '+notes.join(' · '):''}</span><span class="pl-mut"><b>썸네일을 누르면 그 장을 바로 고칠 수 있어요</b> (사진 · 열 · 날짜 줄 끌어 옮기기, 글자 고치기) · 제목 자르기로 같은 실험을 한 장에</span></div>`;
   const used=new Set(pages.flatMap(pptPageFiles)), tray=pptFiles.filter(f=>!used.has(f));
   h+=`<div class="pl-thumbs">`+pages.map((p,i)=>{ const edit=p.key===pptEdKey, D=pptHtmlBackend(edit); pptRenderPage(D,p,th);
     if(edit) return `<div class="pl-edwrap" id="plEd">
       <div class="pl-edbar"><b>${i+1}번 슬라이드 고치는 중</b>
-        <span class="pl-hist"><button class="btn btn-out" ${_pptUndo.length?'':'disabled'} onclick="pptHist(-1)" title="뒤로 (Ctrl+Z)">${ic('left','ic-sm')}뒤로</button><button class="btn btn-out" ${_pptRedo.length?'':'disabled'} onclick="pptHist(1)" title="앞으로 (Ctrl+Y)">앞으로${ic('right','ic-sm')}</button></span>
+
         <label class="pl-ck"><input type="checkbox"${p.noTitle?'':' checked'} onchange="pptEdTitle(this.checked)">제목</label>
         ${p.kind==='matrix'?`<label class="pl-ck">한 줄에 <select onchange="pptEdWrap(+this.value)"><option value="0"${p.wrapSet?'':' selected'}>자동</option>${[2,3,4,5,6,7,8,9,10].filter(n=>n<p.colLabels.length).map(n=>`<option value="${n}"${p.wrapSet===n?' selected':''}>${n}장</option>`).join('')}<option value="-1"${p.wrapSet===-1?' selected':''}>전부 (${p.colLabels.length}장)</option></select></label>
           <button class="btn btn-out" onclick="pptEdAdd('col')">+ 열</button><button class="btn btn-out" onclick="pptEdAdd('row')">+ 행</button>`:''}
         ${p.edited?`<button class="link-btn" onclick="pptEdReset()">처음 배치로</button>`:''}
-        <button class="btn btn-pri" style="margin-left:auto;" onclick="pptEdClose()">다 고쳤어요</button></div>
+        ${pptHistBtns()}<button class="btn btn-pri" onclick="pptEdClose()">다 고쳤어요</button></div>
       ${pptExpChipsHtml(p,pages)}
       <div class="pl-hint">사진을 끌어 다른 칸에 놓으면 옮겨지고, 사진 위에 놓으면 서로 바뀌어요 (Shift를 누른 채 놓으면 한 칸에 나란히). 열 이름 · 날짜 줄 · 행 이름을 끌면 통째로 옮겨져요. 글자는 눌러서 고치고, 가리키면 나오는 ×로 뺍니다.</div>
       <div class="pl-th ed" data-key="${esc(p.key)}">${D.html()}</div>
