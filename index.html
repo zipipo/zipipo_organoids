@@ -1223,13 +1223,13 @@ body[data-art] .main{position:relative;}
 .incu-dots i:nth-child(2){animation-delay:.18s;} .incu-dots i:nth-child(3){animation-delay:.36s;}
 @keyframes incuDot{0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-4px);}}
 @media (prefers-reduced-motion:reduce){ .incu-dots i{animation:none;} }
-.news-box{width:420px;padding:22px;}
+.news-box{width:460px;padding:22px;}
 .news-hd{display:flex;gap:12px;align-items:center;margin-bottom:12px;}
 .news-hd>span{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:var(--psoft);}
 .news-hd b{display:block;font-size:1rem;} .news-hd small{color:var(--sub);font-size:.72rem;}
 .news-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;}
-.news-list li{display:flex;gap:10px;align-items:flex-start;font-size:.82rem;line-height:1.45;padding:8px 10px;border-radius:10px;background:var(--psoft);}
-.news-list li span{flex:none;}
+.news-list li{display:flex;gap:8px;align-items:flex-start;font-size:.84rem;line-height:1.5;padding:2px 0;color:var(--tx);}
+.news-list li>i{flex:none;width:18px;font-style:normal;font-weight:800;color:var(--tx);} .news-list li b{font-weight:800;} .news-list li span{color:var(--sub);}
 .news-old{margin-top:2px;font-size:.76rem;color:var(--sub);}
 .news-old summary{cursor:pointer;padding:4px 2px;}
 .news-old .news-list{margin-top:6px;opacity:.85;}
@@ -4587,6 +4587,7 @@ function openLogModal(id){
   _eOrig={date:lg.date,action:lg.action,p:String(lg.passage),d:lg.dayInfo||'',pinned:!!(lg.pinP||lg.pinD),seed:isSeed(lg.action)};
   _eUnpin=false;
   eAutoRecalc();
+  { const lm=document.getElementById('logModal'); document.body.appendChild(lm); }   // 다른 창(완료 라인 기록 보기 등) 위에 뜨게 맨 뒤로 옮김
   document.getElementById('logModal').classList.add('open');
 }
 // 기록을 저장하면 항상 이 라인 전체 P/D를 다시 계산한다 (Split 날짜를 옮기거나 액션을 바꾸면 이후 기록이 자동으로 맞춰짐).
@@ -9448,31 +9449,27 @@ setTimeout(async()=>{ if(!mailUser()||!fbDb) return; try{ const q=await fbDb.col
 //  업데이트 안내: 올린 날부터 5일 동안 열 때마다 보여줌 (「다시 보지 않기」 체크하면 이 버전은 끝)
 //  새 기능을 올릴 때 NEWS의 id · date · items만 바꾸면 됨
 // ══════════════════════════════════════════
-const NEWS={id:'2026-11-13b', date:'2026-11-13', days:5, items:[
-  ['slides','<b>PPT figure</b> · 왼쪽 도구 → PPT figure → 새 Figure. 한 Figure에 Experiment Schedule(라인 여러 줄을 같은 날짜 축에) · Plate map(plate 여러 장, 행 · 열 이름) · 메모를 같이. PPT로 내보내면 글자 · 도형 하나하나를 PPT에서 고칠 수 있어요. 사진 PPT 만들기 위쪽에서 골라 넣기도 돼요'],
-  ['tank','<b>LN2 해동</b> · LN2 탱크 검색에서 vial의 「해동 → 새 라인」을 누르면 새 라인 칸이 채워져요. Stock 넣을 때 이름은 환자번호_종류로 (점선 칸을 눌러 고치기)'],
-  ['drop','<b>Media</b> · 왼쪽 도구 → Media. 배지별 plate당 양을 적어 두면 만든 튜브(50 · 15 ml)에서 쓴 만큼 자동으로 빠지고, 1주일에 얼마나 필요한지 계산'],
-  ['alert','<b>Reseeding 필요</b> · 오늘 작업 숫자 칸에 day14 지난 라인 수, 배양 현황에는 「지연」 표시'],
-  ['image','<b>사진</b> · 불러오기 · 저장이 훨씬 빨라짐, 4x·10x·20x 자동 채우기 켜고 끄기'],
-  ['print','<b>연구노트 인쇄</b> · 종류 · passage · 액션별 색, 가운데 정렬'],
-  ['edit','<b>Dome</b> · 기록 창 Well 옆 「+ dome」을 누르면 dome 개수도 적을 수 있어요'],
-  ['paw','<b>세포</b> · 누르면 「쉬게 하기」, 응가 · 꽃은 세포마다 36~48시간에 하나'],
-  ['image','<b>PPT</b> · 썸네일을 눌러 슬라이드에서 바로 고치기 (사진 · 열 끌어 옮기기), 같은 날짜는 날짜 줄로 묶기, 환자별 제목 · 열 개수'],
+const NEWS={id:'2026-11-14', date:'2026-11-14', days:5, items:[
+  ['<b>실험 기록</b>','다이어리 오른쪽 위 「+ 실험 기록」으로 qPCR · Aliquot 같은 실험을 자유롭게 적기. 「지난 기록 불러오기」로 예전 걸 가져와 고쳐 쓰기. 라인을 고르면 라인 기록 · 연구노트 인쇄에도 같이 나와요'],
+  ['<b>배양 완료</b>','오늘 작업 액션에서 「배양 완료」를 골라 저장하면 라인이 완료로 넘어가요'],
+  ['<b>PPT figure</b>','Plate는 라인 → 조건 → 글자 순서. 라인 · 조건을 누르고 그림에서 끌면 바로 칠해짐. 행(A) · 열(1)을 누르면 가로 · 세로 조건. 프로젝트별로 나눠 두기'],
+  ['<b>Experiment Schedule</b>','줄(라인)마다 탭, Day 0 = 그 라인 seeding 날. Day 숫자만 적으면 날짜가 계산돼요. 메모는 엔터로 줄바꿈'],
+  ['<b>PPT 슬라이드 고치기</b>','되돌리기 · 다시 하기(Ctrl+Z · Ctrl+Y), 한 줄에 몇 장, 같은 실험 다른 장 사진 가져오기, 같은 날짜 배율 행 묶기. 다 고친 뒤 아래 「닫기」'],
+  ['<b>PPT 만들기 figure</b>','썸네일 돋보기로 크게 보기, 「숨기기」, 2주 지난 건 아래로 접힘'],
 ], old:[
-  ['book','<b>기록</b> · 다이어리(먼슬리 · 위클리) · 분석'],
-  ['branch','<b>Tree</b> · passage별로 나뉜 모양'],
-  ['dish','<b>Incubator</b> · 키우는 plate 한눈에'],
-  ['tank','<b>LN2 탱크</b> · 검색, Stock 넣고 엑셀 내려받기'],
-  ['image','<b>PPT</b> · 조건별 · 날짜별 배치'],
-  ['paw','<b>세포</b> · 하루 한 번 뽑기'],
-  ['sliders','<b>설정</b> · 왼쪽 아래 (테마 · 글씨체 · 글씨 크기 · 우체통)'],
+  ['<b>PPT figure</b>','Experiment Schedule · Plate map · 메모를 한 Figure에, PPT에서 글자 · 도형 고치기'],
+  ['<b>LN2 해동</b>','vial의 「해동 → 새 라인」'],
+  ['<b>Media</b>','배지 튜브에서 쓴 만큼 자동으로 빠짐'],
+  ['<b>기록</b>','다이어리(먼슬리 · 위클리) · 분석'],
+  ['<b>Tree · Incubator · LN2 탱크 · 세포 · 설정</b>','왼쪽 메뉴'],
 ]};
 function newsShow(force){
   let hidden=false; try{ hidden=localStorage.getItem('orgNewsHide')===NEWS.id; }catch(e){}
   const start=new Date(NEWS.date+'T00:00:00'), end=new Date(start); end.setDate(end.getDate()+NEWS.days);
   if(!force && (hidden || new Date()>=end)) return;
   document.getElementById('newsDate').textContent=`${NEWS.date.replace(/-/g,'.')} 업데이트`;
-  const li=a=>a.map(([i,t])=>`<li><svg class="ic"><use href="#i-${i}"/></svg><div>${t}</div></li>`).join('');
+  // 「1. 이름 · 설명」 번호 목록으로 간단하게
+  const li=a=>a.map(([h,t],i)=>`<li><i>${i+1}.</i><div>${h} <span>${t}</span></div></li>`).join('');
   document.getElementById('newsList').innerHTML=li(NEWS.items)+(NEWS.old&&NEWS.old.length?`<details class="news-old"><summary>지난 업데이트 보기</summary><ul class="news-list">${li(NEWS.old)}</ul></details>`:'');
   document.getElementById('newsHide').checked=false;
   document.getElementById('newsModal').classList.add('open');
