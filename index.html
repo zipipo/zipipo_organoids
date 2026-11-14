@@ -9625,8 +9625,8 @@ function figLineAt(line,date){
 // 라인 정보: 등록된 라인이면 그날 P · d, 직접 적은 라인이면 적은 그대로
 function figLn(x,date){
   const l=lineById(x.id);
-  if(l){ const at=figLineAt(l,date); return {tag:figSp(lineTag(l)),pid:l.patientId,pd:`P${at.p} · ${at.d}`,type:l.type}; }
-  if(x.custom) return {tag:figSp(x.name),pid:String(x.name||'').split(/[_\s]/)[0],pd:[x.p?'P'+String(x.p).replace(/^p/i,''):'',x.d||''].filter(Boolean).join(' · '),type:''};
+  if(l){ const at=figLineAt(l,date); return {tag:figSp(lineTag(l)),pid:l.patientId,pd:`P${at.p} · ${at.d}`,p:`P${at.p}`,type:l.type}; }
+  if(x.custom) return {tag:figSp(x.name),pid:String(x.name||'').split(/[_\s]/)[0],pd:[x.p?'P'+String(x.p).replace(/^p/i,''):'',x.d||''].filter(Boolean).join(' · '),p:x.p?'P'+String(x.p).replace(/^p/i,''):'',type:''};
   return null;
 }
 function figCanvas(W,H,scale){ const c=document.createElement('canvas'); c.width=Math.round(W*scale); c.height=Math.round(H*scale); const ctx=c.getContext('2d'); ctx.scale(scale,scale); ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H); return {c,ctx}; }
@@ -9753,7 +9753,7 @@ function figPlateLayout(pm,date){
     rowsW=Math.max(rowsW,x-50); yy+=hdH+clH+rph+40; }
   const plateH=yy-40;
   let legW=0;
-  lns.forEach(x=>{ ctx.font=`700 21px ${F}`; const a=ctx.measureText(x.info.tag).width; ctx.font=`500 18px ${F}`; legW=Math.max(legW,52+a+10+ctx.measureText(x.info.pd).width); });
+  lns.forEach(x=>{ ctx.font=`700 21px ${F}`; const a=ctx.measureText(x.info.tag).width; ctx.font=`800 18px ${F}`; legW=Math.max(legW,52+a+10+ctx.measureText(x.info.p).width); });   // 범례는 passage만 (맵이라 day 뺌)
   ctx.font=`600 21px ${F}`; conds.forEach(cd=>{ legW=Math.max(legW,50+ctx.measureText(figSp(cd.name)).width); });
   const legRows=conds.length+(lns.length?lns.length+1:0)+(conds.length?1:0);
   const W=rowsW+(legW?50+legW:0), H=Math.max(plateH,legRows*44+10);
@@ -9869,7 +9869,7 @@ function figDrawPlates(D,L,ox,oy,f,sel,hl){
     D.text('LINE',lx,ly+10,{size:18,weight:700,color:'#6B727B',base:'middle'}); ly+=40;
     lns.forEach(x=>{ D.circle(lx+15,ly+8,13,{fill:'#FFFFFF',stroke:x.color,width:3.5});
       D.text(x.info.tag,lx+42,ly+8,{size:21,weight:700,base:'middle'});
-      figDrawRuns(D,x.info.pd,lx+52+D.measure(x.info.tag,21,700),ly+9,{size:18,weight:500,color:'#8A9099',base:'middle'}); ly+=44; });
+      if(x.info.p) figDrawRuns(D,x.info.p,lx+52+D.measure(x.info.tag,21,700),ly+9,{size:18,weight:500,color:'#8A9099',base:'middle'}); ly+=44; });
     ly+=10;
   }
   if(conds.length){
@@ -9934,7 +9934,7 @@ function figLineInfos(f){
 }
 function figAutoTitle(f){
   const ls=figLineInfos(f);
-  if(ls.length===1) return f.plate?[ls[0].tag,ls[0].pd].filter(Boolean).join(' · '):ls[0].tag;
+  if(ls.length===1) return f.plate?[ls[0].tag,ls[0].p].filter(Boolean).join(' · '):ls[0].tag;
   if(ls.length){ const pids=[...new Set(ls.map(l=>l.pid))], ty=[...new Set(ls.map(l=>l.type).filter(Boolean))]; return [pids.join(' · '),ty.join(' · ')].filter(Boolean).join('  '); }
   return f.plate?figPlateFmtText(f.plate.plates||[]):'Figure';
 }
@@ -10204,7 +10204,7 @@ function figPlLineAdd(id,lid){
   let ent;
   if(lid==='__custom'){
     const name=(prompt('라인 이름 (예: HCC40_Tumor-org)','')||'').trim(); if(!name){ renderFig(); return; }
-    const pd=(prompt('Passage · day (선택, 예: P3 d5)','')||'').trim();
+    const pd=(prompt('Passage (선택, 예: P3)','')||'').trim();
     const pmm=pd.match(/p\s*(\d+)/i), dm=pd.match(/\bd\s*[\d+]+/i);
     ent={id:'c_'+uid(),custom:true,name,p:pmm?pmm[1]:'',d:dm?dm[0].replace(/\s/g,''):'',color};
   } else ent={id:lid,color};
