@@ -152,6 +152,8 @@ match /mailbox/{id} {
 
 ## 작업 기록
 
+- 2026-11-14(17): 오늘 작업 액션 칩에 「배양 완료」(`ACTIONS`의 'Finish (완료)'). 고른 라인을 저장하면 확인 뒤 타임라인 「배양 완료」 버튼과 같은 처리(isCompleted · finishDate · finishDayStr · Finish 기록, 메모 비우면 「실험 종료」, 날짜 여럿이면 마지막 날, 되돌리기 알림). `saveDailyLog` 앞부분에서 따로 처리.
+
 - 2026-11-14(16): PPT 만들기 「PPT figure 같이 넣기」 썸네일에 돋보기(`.pf-zoom`): 누르면 figure를 크게 그려 띄움(`figZoom`), 바깥 · Esc · × 로 닫힘(PPT 만들기 창은 그대로).
 
 - 2026-11-14(15): 환자 요약 슬라이드 제목 「HCC38 요약」 → 「HCC38 Summary」, 부제 「Summary · 대표 사진 …」, 환자별 설정 표 칸 이름 「Summary 장」.

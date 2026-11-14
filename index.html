@@ -3939,6 +3939,7 @@ const ACTIONS=[
   {key:'Observation',    fields:['memo']},
   {key:'Fixation',       fields:['wells','memo']},
   {key:'Harvest',        fields:['wells','memo']},
+  {key:'Finish (완료)', label:'배양 완료', sub:'라인 완료 처리', fields:['memo']},   // 저장하면 라인이 「완료」로 (타임라인의 배양 완료 버튼과 같음)
   {key:'__custom__', label:'직접 입력', fields:['det','plate','wells','stocks','memo']},
 ];
 const RATIO_PRESETS=['1:2','1:3','1:4','1:6','1:8'];
@@ -4225,6 +4226,17 @@ function saveDailyLog(){
   const dates =bulkDates.length>0?[...bulkDates]:[document.getElementById('logDate').value].filter(Boolean);
   if(!lineIds.length) return toast('기록할 라인을 먼저 선택하세요.',{warn:true});
   if(!dates.length) return toast('날짜를 확인하세요.',{warn:true});
+  // 배양 완료: 고른 라인마다 완료 처리 (날짜가 여럿이면 마지막 날), 타임라인 「배양 완료」와 같은 기록
+  if(isFin(action)){
+    const ls=lineIds.map(lineById).filter(l=>l&&!l.isCompleted); if(!ls.length) return toast('이미 완료된 라인이에요.',{warn:true});
+    if(!confirm(`${ls.length}개 라인을 배양 완료로 처리할까요?\n${ls.map(lineTag).join(', ')}`)) return;
+    const snap=takeSnap(), t=dates.slice().sort().pop();
+    ls.forEach(line=>{ const ds=calcDayStr(line,t); line.isCompleted=true; line.finishDate=t; line.finishDayStr=ds;
+      logs.push({id:uid(),seq:nextSeq(),lineId:line.id,date:t,action:'Finish (완료)',passage:line.passage,dayInfo:ds,details:'',finalWells:'',stocks:'',memo:memo.trim()||'실험 종료',printedToNotebook:false}); });
+    bulkDates=[];renderBulkTags(); bulkLines=[]; document.getElementById('logMemo').value='';
+    setAction('Media Change'); updateUI(); previewDay();
+    return toast(`${ls.length}개 라인 배양 완료 처리했어요`,{undo:snap});
+  }
   const snap=takeSnap(), seq0=_logSeq;
 
   lineIds.forEach(lineId=>{
