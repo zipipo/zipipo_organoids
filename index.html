@@ -6908,12 +6908,8 @@ function pptPlanCut(title,items,th){
       if(z[1]-z[0]<=1&&z[1]-a[0]<=mc+1){ a[1]=z[1]; chunks.pop(); } }
     chunks.forEach(([c0,c1])=>{
       const n=c1-c0, cc=cols.slice(c0,c1);
-      let wrap=oneRow&&n>3?Math.ceil(n/Math.ceil(n/3)):0, bands=null;
-      // 행이 한 줄이라 여러 줄로 감을 때, 날짜를 열로면 날짜마다 새 줄 (한 날짜가 두 줄에 갈리지 않게). 한 날짜가 6장 넘으면 그 날짜 안에서만 고르게 나눔
-      if(wrap&&mode==='col'&&new Set(cc.map(c=>c.bi)).size>1){ bands=[];
-        cc.forEach((c,i)=>{ if(i&&cc[i-1].bi===c.bi) return; let e=cc.findIndex((x,j)=>j>i&&x.bi!==c.bi); if(e<0) e=cc.length;
-          const len=e-i, k=Math.ceil(len/6), sz=Math.ceil(len/k); pptChunks(len,sz).forEach(([a,b])=>bands.push([i+a,i+b])); });
-        wrap=Math.max(...bands.map(([a,b])=>b-a)); }
+      // 기본은 한 줄에 전부 (유진). 줄을 나누려면 고치는 장의 「한 줄에 n장」
+      const wrap=0, bands=null;
       // 이 장이 한 날짜뿐이면 날짜는 부제로만, 열 이름은 조건만
       // 날짜 머리글: 날짜를 열로는 날짜마다, 날짜마다 한 장은 장 전체에 하나 (날짜를 행으로는 행 이름에 날짜가 있음)
       const colGroups=mode==='col'?cc.reduce((a,c,i)=>{ if(i&&cc[i-1].bi===c.bi) a[a.length-1].c1=i+1; else a.push({c0:i,c1:i+1,lab:dateIn(c.bi)}); return a; },[])
@@ -7512,7 +7508,7 @@ function pptLayRender(fromHist){
       <div class="pl-edbar"><b>${i+1}번 슬라이드 고치는 중</b>
 
         <label class="pl-ck"><input type="checkbox"${p.noTitle?'':' checked'} onchange="pptEdTitle(this.checked)">제목</label>
-        ${p.kind==='matrix'?`<label class="pl-ck">한 줄에 <select onchange="pptEdWrap(+this.value)"><option value="0"${p.wrapSet?'':' selected'}>자동</option>${[2,3,4,5,6,7,8,9,10].filter(n=>n<p.colLabels.length).map(n=>`<option value="${n}"${p.wrapSet===n?' selected':''}>${n}장</option>`).join('')}<option value="-1"${p.wrapSet===-1?' selected':''}>전부 (${p.colLabels.length}장)</option></select></label>
+        ${p.kind==='matrix'?`<label class="pl-ck">한 줄에 <select onchange="pptEdWrap(+this.value)"><option value="0"${p.wrapSet>0?'':' selected'}>전부 (${p.colLabels.length}장)</option>${[2,3,4,5,6,7,8,9,10].filter(n=>n<p.colLabels.length).map(n=>`<option value="${n}"${p.wrapSet===n?' selected':''}>${n}장</option>`).join('')}</select></label>
           <button class="btn btn-out" onclick="pptEdAdd('col')">+ 열</button><button class="btn btn-out" onclick="pptEdAdd('row')">+ 행</button>`:''}
         ${p.edited?`<button class="link-btn" onclick="pptEdReset()">처음 배치로</button>`:''}
         ${pptHistBtns()}<button class="btn btn-pri" onclick="pptEdClose()">다 고쳤어요</button></div>
