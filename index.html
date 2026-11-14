@@ -894,6 +894,8 @@ body[data-tab="fig"] .pane[data-pane="fig"]{display:block;animation:paneIn .28s 
 .fg-stab.add{padding:4px 10px;color:var(--mut);font-weight:500;border-style:dashed;}
 .fg-lg .fg-when{width:40px;display:flex;flex-direction:column;line-height:1.2;} .fg-when b{font-size:.72rem;color:var(--tx);font-weight:700;}
 .fg-dayadd label{display:flex;align-items:center;gap:4px;margin:0;font-size:.72rem;color:var(--sub);flex:none;} .fg-dayadd input[type=number]{width:54px;flex:none;}
+.fg-z0{margin-left:auto;flex:none;align-self:center;border:1px solid var(--bd);background:var(--sur);border-radius:99px;font:inherit;font-size:.64rem;font-weight:600;color:var(--mut);padding:1px 7px;cursor:pointer;white-space:nowrap;} .fg-z0:hover{color:#2563EB;border-color:#2563EB;} .fg-z0.on{background:#2563EB;border-color:#2563EB;color:#fff;cursor:default;}
+.fg-zsrc{font-size:.68rem;color:var(--mut);margin-bottom:9px;flex:1;} .fg-zsrc .link-btn{font-size:.68rem;}
 .fg-dayhint{font-size:.7rem;color:var(--mut);align-self:center;flex:none;min-width:34px;}
 .fg-fdate{flex:none;width:150px;}
 .fg-plnote{height:30px;font-size:.76rem;margin-top:-1px;}
@@ -9676,7 +9678,7 @@ function figSchedLayout(sc){
   const all=tracks.flatMap(x=>x.items.map(i=>i.date)).sort();
   const zero0=sc.zero||all[0]||ymdLocal(new Date());
   const dayFrom=(z,d)=>Math.round((new Date(d)-new Date(z))/86400000);
-  tracks.forEach(T=>{ T.zero=T.t.zero||zero0; });
+  tracks.forEach(T=>{ T.zero=T.t.zero||figLineZero(T.t)||zero0; });
   const PILL_FS=24, PILL_MAXW=280, LINE_H=30;
   tracks.forEach(T=>{
     // 같은 날 항목은 한 눈금에 이름표를 쌓음
@@ -10074,8 +10076,16 @@ function figAddPlateTab(id){ const f=figById(id); if(!f) return;
 // Experiment Schedule 편집: 줄(라인)마다 탭. 고른 줄은 미리보기에 파란 점선 테두리
 let _figTrk='';
 function figTrkTab(id,tid){ _figTab='sched'; _figTrk=tid; renderFig(); }
-// 줄의 Day 0: 직접 정한 날 → 예전 전체 Day 0 → 전체 일정 맨 앞 날짜 → Figure 날짜
-function figTrackZero(f,t){ if(t.zero) return t.zero; if(f.sched.zero) return f.sched.zero;
+// 라인을 고른 줄의 Day 0 = 그 라인의 지금 d0 (마지막 Seeding · Split · Reseeding 날). 기록을 고르고 빼도 안 바뀜
+// 예전 passage 실험이면 목록에서 그 Seeding · Split 줄의 「Day 0」을 눌러 바꿈
+const figIsSeedLike=a=>isSeed(a)||isPassageUp(a)||/seed/i.test(a||'');
+function figLineZero(t){
+  const ln=t&&t.lineId&&lineById(t.lineId); if(!ln) return '';
+  const sd=logs.filter(l=>l.lineId===ln.id&&figIsSeedLike(l.action)).map(l=>l.date).sort().pop();
+  return ln.startDate?ymdLocal(new Date(ln.startDate)):(sd||'');
+}
+// 줄의 Day 0: 직접 정한 날 → 라인 seeding 날 → 예전 전체 Day 0 → 전체 일정 맨 앞 날짜 → Figure 날짜
+function figTrackZero(f,t){ if(t.zero) return t.zero; const lz=figLineZero(t); if(lz) return lz; if(f.sched.zero) return f.sched.zero;
   const ds=(f.sched.tracks||[]).flatMap(x=>(x.items||[]).map(i=>i.date)).sort(); return ds[0]||f.date||ymdLocal(new Date()); }
 const figDayOf=(z,d)=>Math.round((new Date(d)-new Date(z))/86400000);
 function figDayAdd(z,n){ const d=new Date(z+'T00:00:00'); d.setDate(d.getDate()+n); return ymdLocal(d); }
@@ -10100,12 +10110,14 @@ function figTrackEditor(f,t,n){
   const when=d=>`<span class="fg-when"><b>D${figDayOf(z,d)}</b>${d.slice(5).replace('-','/')}</span>`;
   const lgs=line?logs.filter(l=>l.lineId===line.id).sort((a,b)=>a.date.localeCompare(b.date)||(a.seq||0)-(b.seq||0)):[];
   const rows=lgs.map(lg=>{ const it=byLog[lg.id], memo=[lg.details&&!/split/i.test(lg.action)?lg.details:'',lg.memo||''].filter(Boolean).join(' · ');
-    return `<div class="fg-lg${it?' on':''}"><label class="fg-lgl"><input type="checkbox" ${it?'checked':''} onchange="figTrackPick(${T},'${lg.id}',this.checked)">${when(lg.date)}<i style="background:${figActColor(lg.action)}"></i><div class="fg-lgt"><b>${esc(figActLabel(lg))}</b>${memo?`<small>${esc(memo)}</small>`:''}</div></label>${it?edit(it):''}</div>`; }).join('');
+    const z0=figIsSeedLike(lg.action)?(lg.date===z?'<span class="fg-z0 on">Day 0</span>':`<button class="fg-z0" title="이 날을 Day 0으로" onclick="event.preventDefault();event.stopPropagation();figTrackSet(${T},'zero','${lg.date}')">Day 0</button>`):'';
+    return `<div class="fg-lg${it?' on':''}"><label class="fg-lgl"><input type="checkbox" ${it?'checked':''} onchange="figTrackPick(${T},'${lg.id}',this.checked)">${when(lg.date)}<i style="background:${figActColor(lg.action)}"></i><div class="fg-lgt"><b>${esc(figActLabel(lg))}</b>${memo?`<small>${esc(memo)}</small>`:''}</div>${z0}</label>${it?edit(it):''}</div>`; }).join('');
   const custom=items.filter(it=>!it.logId).sort((a,b)=>a.date.localeCompare(b.date)).map(it=>`<div class="fg-lg on"><div class="fg-lgl">${when(it.date)}<div class="fg-lgt"><b>${esc(it.label)}</b></div><button class="tbl-btn" style="margin-left:auto;" onclick="figItemDel(${T},'${it.id}')">${ic('x','ic-sm')}</button></div>${edit(it)}</div>`).join('');
   return `<div class="fg-track">
     <div class="fg-row2"><label class="fg-f">라인<select onchange="figTrackSet(${T},'lineId',this.value)">${figLineOptsHtml(t.lineId,null,'<option value="">라인 없이</option>')}</select></label>
       <label class="fg-f">줄 이름<input value="${esc(t.label||'')}" placeholder="${esc(line?lineTag(line):'예: Tumor-org')}" onchange="figTrackSet(${T},'label',this.value.trim())"></label></div>
     <div class="fg-row2"><label class="fg-f fg-fdate">Day 0<input type="date" value="${z}" onchange="figTrackSet(${T},'zero',this.value)"></label>
+      <small class="fg-zsrc">${t.zero&&t.zero!==figLineZero(t)?(figLineZero(t)?`<button class="link-btn" onclick="figTrackSet(${T},'zero','')">지금 d0으로</button>`:''):figLineZero(t)?'라인 지금 d0':''}</small>
       ${n>1?`<button class="link-btn fg-drop" style="margin-bottom:8px;" onclick="figTrackDel(${T})">이 줄 빼기</button>`:''}</div>
     ${line?`<div class="fg-sub">기록<span class="fg-allbtn"><button class="link-btn" onclick="figTrackAll(${T},true)">전체</button> · <button class="link-btn" onclick="figTrackAll(${T},false)">해제</button></span></div>`:''}
     <div class="fg-logs">${rows}${custom}${!rows&&!custom?'<div class="nil" style="padding:8px;">'+(line?'기록이 없어요':'아래에 Day와 이름을 넣어 주세요')+'</div>':''}</div>
@@ -10119,7 +10131,7 @@ function figSchedSet(id,k,v){ const f=figById(id); if(!f||!f.sched) return; f.sc
 function figTrackAdd(id){ const f=figById(id); if(!f||!f.sched) return;
   if(f.sched.tracks.length>=figMaxTracks(f)) return toast(`한 장에는 일정 ${figMaxTracks(f)}줄까지예요${f.plate?' (Plate map이 같이 있어서)':''}. 더 넣으려면 Figure를 복제해서 다음 장으로 만들어 주세요.`,{warn:true}); const nt={id:uid(),lineId:'',label:'',items:[]}; f.sched.tracks.push(nt); _figTrk=nt.id; figTouch(f); renderFig(); }
 function figTrackDel(id,tid){ const f=figById(id); if(!f||!f.sched) return; f.sched.tracks=f.sched.tracks.filter(t=>t.id!==tid); figTouch(f); renderFig(); }
-function figTrackSet(id,tid,k,v){ const f=figById(id), t=figTrack(f,tid); if(!t) return; t[k]=v; if(k==='lineId') t.items=(t.items||[]).filter(it=>!it.logId); figTouch(f); renderFig(); }
+function figTrackSet(id,tid,k,v){ const f=figById(id), t=figTrack(f,tid); if(!t) return; t[k]=v; if(k==='lineId'){ t.items=(t.items||[]).filter(it=>!it.logId); delete t.zero; } figTouch(f); renderFig(); }   // 라인을 바꾸면 Day 0도 새 라인 seeding 날로
 function figTrackPick(id,tid,logId,on){
   const f=figById(id), t=figTrack(f,tid); if(!t) return; t.items=t.items||[];
   if(on){ const lg=logs.find(l=>l.id===logId); if(lg&&!t.items.some(i=>i.logId===logId)) t.items.push({id:uid(),logId,date:lg.date,label:figActLabel(lg),color:figActColor(lg.action)}); }
