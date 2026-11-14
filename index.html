@@ -859,6 +859,12 @@ body[data-tab="fig"] .pane[data-pane="fig"]{display:block;animation:paneIn .28s 
 .pf-tgt{height:28px;width:auto;max-width:200px;font-size:.72rem;}
 .pf-hint{font-size:.7rem;color:var(--sub);line-height:1.6;margin-top:6px;}
 @media (max-width:640px){ .pf-row{flex-wrap:wrap;} .pf-seg{width:100%;} }
+/* 저장 공간 */
+.st-big{font-size:.9rem;margin:2px 0 8px;} .st-big b{font-size:1.4rem;} .st-big span{font-weight:700;margin-left:6px;}
+.st-ok{color:var(--ok);} .st-warn{color:var(--warn);} .st-bad{color:var(--due);}
+.st-bar{height:8px;border-radius:99px;background:var(--hov);overflow:hidden;margin-bottom:10px;} .st-bar i{display:block;height:100%;background:var(--tx);border-radius:99px;}
+.st-note{font-size:.76rem;color:var(--sub);line-height:1.6;margin:8px 0;}
+.st-tbl{width:100%;font-size:.78rem;border-collapse:collapse;} .st-tbl td{padding:4px 2px;border-bottom:1px solid var(--bd2);} .st-tbl td:nth-child(2),.st-tbl td:nth-child(3){text-align:right;color:var(--sub);}
 /* ═══ PPT figure ═══ */
 .fg-saved{display:inline-flex;align-items:center;gap:4px;font-size:.72rem;color:var(--ok);white-space:nowrap;}
 .fg-part{border:1px solid var(--bd2);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px;background:var(--sur);}
@@ -1783,6 +1789,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
         <div id="bkStatus" class="dd-status"></div>
         <div class="dd-sep"></div>
         <button onclick="openTrashModal()"><svg class="ic"><use href="#i-trash"/></svg>휴지통<span id="trashCount" class="dd-n"></span></button>
+        <button onclick="openStorageInfo()"><svg class="ic"><use href="#i-db"/></svg>저장 공간 보기</button>
       </div>
     </div>
     <button class="acct" id="cloudBtn" onclick="cloudToggle()"><svg class="ic"><use href="#i-cloud"/></svg><span>Google 로그인</span></button>
@@ -2285,6 +2292,25 @@ function merge3(base,local,remote,prefer){
   return {data:out, conflicts};
 }
 
+// 저장 공간: 계정(Firestore)에는 한 사람당 문서 1개, 문서 하나 최대 1 MiB. 지금 데이터 크기와 무엇이 차지하는지
+function openStorageInfo(){
+  const d=localSync(), enc=new TextEncoder(), sz=v=>enc.encode(JSON.stringify(v)).length;
+  const total=sz(d), LIM=1048576, pct=total/LIM*100;
+  const lab={lines:'라인',logs:'기록',stockChecks:'Stock 후처리',trash:'휴지통',plans:'예정 작업',shotSets:'촬영 순서 세트',shotNotes:'촬영 메모',freeSamples:'사진용 샘플',mediaDefs:'배지 설정',mediaTubes:'배지 튜브',figures:'PPT figure',tlCollapsed:'화면 접힘',typeColors:'종류 색',pptCuts:'PPT 설정',pets:'세포',prefs:'설정'};
+  const parts=Object.keys(d).map(k=>({k,b:sz(d[k]),n:Array.isArray(d[k])?d[k].length:null})).sort((a,b)=>b.b-a.b);
+  const kb=b=>b>=1024?(b/1024).toFixed(1)+' KB':b+' B';
+  const perLog=logs.length?sz(logs)/logs.length:230, left=Math.max(0,Math.floor((LIM*0.95-total)/perLog));
+  let ls=0; try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); ls+=(k.length+(localStorage.getItem(k)||'').length)*2; } }catch(e){}
+  const m=document.createElement('div'); m.className='modal open'; m.onclick=e=>{ if(e.target===m) m.remove(); };
+  m.innerHTML=`<div class="mbox" style="width:460px;"><h2>저장 공간</h2><div class="mscroll">
+    <div class="st-big"><b>${kb(total)}</b> / 1,024 KB <span class="${pct>80?'st-bad':pct>50?'st-warn':'st-ok'}">${pct.toFixed(1)}%</span></div>
+    <div class="st-bar"><i style="width:${Math.min(100,pct).toFixed(1)}%"></i></div>
+    <div class="st-note">계정(Google 로그인)에는 한 사람 데이터가 <b>문서 1개</b>로 저장되고, 문서 하나는 최대 <b>1 MB</b>예요. 지금 속도로 기록을 대략 <b>${left.toLocaleString()}건</b> 더 넣을 수 있어요 (기록 1건 ≈ ${Math.round(perLog)} B).</div>
+    <table class="st-tbl">${parts.filter(x=>x.b>4).map(x=>`<tr><td>${lab[x.k]||x.k}</td><td>${x.n!=null?x.n.toLocaleString()+'개':''}</td><td>${kb(x.b)}</td></tr>`).join('')}</table>
+    <div class="st-note">이 브라우저 저장소(localStorage)는 약 ${kb(ls)} 사용 중이에요 (보통 한도 5 MB 안팎, 브라우저마다 달라요). ${cloudUid?'':'지금은 로그인 전이라 계정에는 저장되지 않아요.'}</div>
+    </div><div class="mfoot"><button class="btn btn-pri" style="width:100%;" onclick="this.closest('.modal').remove()">닫기</button></div></div>`;
+  document.body.appendChild(m);
+}
 function cloudToggle(){
   if(cloudUid){
     if(confirm('로그아웃하시겠습니까? 이 기기에는 마지막으로 동기화된 데이터가 그대로 남아있습니다.')) fbAuth.signOut();
@@ -9629,15 +9655,18 @@ function figPlateLayout(pm,date){
   const maxC=Math.max(...dims.map(d=>d[1]));
   const cell=n===1?Math.min(maxC<=4?230:150,Math.floor(1040/maxC)):Math.min(maxC<=4?200:130,Math.floor((1500-50-70*perRow)/(perRow*maxC)));
   ctx.font=`700 20px ${F}`;
+  // 행 이름 칸 · 열 이름 칸은 모든 plate가 같은 크기로 (plate끼리 줄이 맞게), 한 줄에 놓인 plate는 아래쪽을 맞춤
+  let rlW=0, clH=0;
+  plates.forEach((pl,j)=>{ const [R,C]=dims[j];
+    const rl=Object.entries(pl.rowLab||{}).filter(([k,v])=>v&&k.charCodeAt(0)-65<R), cl=Object.entries(pl.colLab||{}).filter(([k,v])=>v&&+k<=C);
+    if(rl.length) rlW=Math.max(rlW,Math.min(220,Math.max(...rl.map(([,v])=>ctx.measureText(figSp(v)).width))+16)); if(cl.length) clH=34; });
   const pos=[]; let rowsW=0, yy=0;
-  for(let i=0;i<n;i+=perRow){ let x=0, rh=0;
+  for(let i=0;i<n;i+=perRow){ let x=0, rph=0;
+    for(let j=i;j<Math.min(n,i+perRow);j++){ const [R]=dims[j]; rph=Math.max(rph,R*cell+64); }
     for(let j=i;j<Math.min(n,i+perRow);j++){
-      const [R,C]=dims[j], pl=plates[j];
-      const rl=Object.entries(pl.rowLab||{}).filter(([k,v])=>v&&k.charCodeAt(0)-65<R), cl=Object.entries(pl.colLab||{}).filter(([k,v])=>v&&+k<=C);
-      const rlW=rl.length?Math.min(220,Math.max(...rl.map(([,v])=>ctx.measureText(figSp(v)).width))+16):0, clH=cl.length?34:0;
-      const pw=C*cell+70, ph=R*cell+64, bw=rlW+pw, bh=46+clH+ph;
-      pos[j]={x,y:yy,pw,ph,R,C,rlW,clH,bw,bh}; x+=bw+50; rh=Math.max(rh,bh); }
-    rowsW=Math.max(rowsW,x-50); yy+=rh+40; }
+      const [R,C]=dims[j], pw=C*cell+70, ph=R*cell+64, bw=rlW+pw, dy=rph-ph;
+      pos[j]={x,y:yy+dy,pw,ph,R,C,rlW,clH,bw,bh:46+clH+ph}; x+=bw+50; }
+    rowsW=Math.max(rowsW,x-50); yy+=46+clH+rph+40; }
   const plateH=yy-40;
   let legW=0;
   lns.forEach(x=>{ ctx.font=`700 21px ${F}`; const a=ctx.measureText(x.info.tag).width; ctx.font=`500 18px ${F}`; legW=Math.max(legW,52+a+10+ctx.measureText(x.info.pd).width); });
