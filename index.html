@@ -271,6 +271,11 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
 .fg-pchip.on{background:var(--tx);border-color:var(--tx);color:var(--sur);} .fg-pchip.on small{color:var(--sur);opacity:.7;}
 .fg-ptag{display:inline-block;background:#EFEBFA;color:#4B3F86;border-radius:4px;padding:0 5px;margin-right:5px;font-weight:600;}
 .fg-proj{display:flex;align-items:center;gap:6px;margin:0;font-size:.76rem;color:var(--sub);} .fg-proj input{height:34px;width:150px;}
+.pl-pttab{display:grid;grid-template-columns:70px 78px 70px 180px;gap:6px 10px;align-items:center;font-size:.76rem;margin:8px 0 4px;}
+.pl-pttab.s{grid-template-columns:70px 78px 70px 180px minmax(130px,260px);} .pl-pttab.m{grid-template-columns:70px 78px 70px 180px 120px;} .pl-pttab.s.m{grid-template-columns:70px 78px 70px 180px minmax(130px,260px) 120px;}
+.pl-pt{display:contents;} .pl-pt.hd>span{font-size:.68rem;color:var(--mut);font-weight:600;} .pl-pt select{height:28px;font-size:.74rem;width:100%;min-width:0;}
+.pl-ptsum{display:flex;align-items:center;gap:6px;flex-wrap:wrap;} .pl-ptin summary{cursor:pointer;font-size:.72rem;color:var(--sub);} .pl-ptin[open]{display:flex;flex-wrap:wrap;gap:4px 10px;} .pl-ptin[open] summary{width:100%;}
+.pl-pts>summary small,.pl-ms>summary small{color:var(--mut);font-weight:500;margin-left:6px;} .pl-ms{margin-top:4px;}
 .pf-at{font-style:normal;margin-left:6px;color:#2563EB;font-size:.66rem;} .pf-hide{font-size:.7rem;color:var(--mut);flex:none;margin-left:6px;}
 .pf-row.hid{opacity:.6;} .pf-old{margin-top:6px;} .pf-old>summary{cursor:pointer;font-size:.74rem;color:var(--sub);padding:4px 2px;}
 .pl-hist{display:inline-flex;gap:4px;} .pl-hist .btn{height:30px;padding:0 9px;font-size:.74rem;}
@@ -1254,7 +1259,7 @@ body[data-art] .main{position:relative;}
 .set-p{font-size:.76rem;color:var(--sub);margin:-2px 0 10px;line-height:1.5;}
 .set-x{position:absolute;top:12px;right:12px;width:30px;height:30px;border:none;background:none;border-radius:8px;cursor:pointer;color:var(--sub);display:grid;place-items:center;}
 .set-x:hover{background:var(--hov);}
-.th-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;}
+.th-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,260px));gap:10px;}
 .th-card{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:8px;border:1.5px solid var(--bd);border-radius:12px;background:var(--sur);font:inherit;font-size:.78rem;font-weight:600;color:var(--tx);cursor:pointer;text-align:left;}
 .th-card small{font-size:.66rem;color:var(--sub);font-weight:500;margin-top:-4px;}
 .th-card:hover{border-color:var(--pri);}
@@ -7486,8 +7491,7 @@ function pptLayRender(fromHist){
   }
   // 열 개수: 규칙 이름(날짜 열) · 제목 자르기(조건 열) · 기타 사진 행×열 배치에 모두 적용
   if(pages.some(p=>p.kind!=='flow')){
-    h+=`<div class="pl-opts"><label>한 슬라이드 열 개수 <select onchange="pptSetCols(+this.value)"><option value="0"${pptCols?'':' selected'}>자동</option>${[2,3,4,5,6,7,8,9,10].map(n=>`<option value="${n}"${pptCols===n?' selected':''}>${n}</option>`).join('')}</select></label><label class="pl-ck"><input type="checkbox"${pptCuts['title:*']!==0?' checked':''} onchange="pptSetTitleAll(this.checked)">슬라이드 제목 넣기</label></div>${pptPtRowsHtml(pages)}${pptSumPts.length?`<div class="pl-opts"><span>환자 요약 슬라이드 (그 환자 맨 앞)</span>${pptSumPts.map(pt=>`<label class="pl-ck"><input type="checkbox"${pptSumOn(pt)?' checked':''} onchange="pptSetSum('${esc(pt)}',this.checked)">${esc(pt)}</label>`).join('')}</div>`+
-      pptSumPts.filter(pptSumOn).map(pt=>`<div class="pl-opts"><span class="pl-mut">${esc(pt)} 요약에 넣을 실험</span>${(pptSumTitles[pt]||[]).map(t=>`<label class="pl-ck"><input type="checkbox"${pptSumIn(t)?' checked':''} data-t="${esc(t)}" onchange="pptSetSumIn(this.dataset.t,this.checked)">${esc(t.slice(pt.length).trim()||t)}</label>`).join('')}</div>`).join(''):''}${pptMergePts.length?`<div class="pl-opts"><span>한 날짜뿐인 실험을 같은 날끼리 한 장에</span>${pptMergePts.map(pt=>`<label class="pl-ck"><input type="checkbox"${pptMergeOn(pt)?' checked':''} onchange="pptSetMerge('${esc(pt)}',this.checked)">${esc(pt)}</label>`).join('')}</div>`:''}<div class="pl-opts"><span>오른쪽 위 마일스톤</span>${PPT_MS_ACTS.map(k=>`<label class="pl-ck"><input type="checkbox"${pptMsActs().includes(k)?' checked':''} onchange="pptToggleMs('${k}',this.checked)">${pptMsLabel(k)}</label>`).join('')}<span class="pl-mut">사진 기간의 기록 + 그 직전 기록 하나 (라인 기록과 제목이 맞는 실험만)</span><span class="pl-mut">조건 있는 실험은 썸네일 아래 칸에서 실험마다 배치를 고를 수 있어요 (저장됨)</span></div>`;
+    h+=`<div class="pl-opts"><label>한 슬라이드 열 개수 <select onchange="pptSetCols(+this.value)"><option value="0"${pptCols?'':' selected'}>자동</option>${[2,3,4,5,6,7,8,9,10].map(n=>`<option value="${n}"${pptCols===n?' selected':''}>${n}</option>`).join('')}</select></label><label class="pl-ck"><input type="checkbox"${pptCuts['title:*']!==0?' checked':''} onchange="pptSetTitleAll(this.checked)">슬라이드 제목 넣기</label></div>${pptPtRowsHtml(pages)}${pptMsHtml()}`;
   }
   const notes=[];
   if(model.dropped) notes.push(`겹치는 사진 ${model.dropped}장 뺌`);
@@ -7523,17 +7527,27 @@ function pptLayRender(fromHist){
 }
 // 환자별 설정: 제목 · 열 개수 · (조건 있는 실험) 배치
 let pptPtOpen=false;
+// 환자별 설정을 표 하나로: 환자마다 한 줄 = 제목 · 열 개수 · 배치 · 요약(넣을 실험은 접어 둠) · 같은 날 한 장
 function pptPtRowsHtml(pages){
-  const pts=[...new Set(pages.map(p=>p.pt).filter(Boolean))].sort(pptNatCmp); if(!pts.length) return '';
+  const pts=[...new Set(pages.map(p=>p.pt).filter(Boolean).concat(pptSumPts,pptMergePts))].sort(pptNatCmp); if(!pts.length) return '';
   const dm=pptDmBases().map(b=>b.split(' ')[0]);
   const sel=(cur,opts,on)=>`<select onchange="${on}">${opts.map(([v,t])=>`<option value="${v}"${String(cur)===String(v)?' selected':''}>${t}</option>`).join('')}</select>`;
-  return `<details class="pl-pts"${pptPtOpen?' open':''} ontoggle="pptPtOpen=this.open"><summary>환자별로 다르게 (${pts.length}명)</summary>`+pts.map(pt=>{
+  const anySum=pptSumPts.length, anyMerge=pptMergePts.length;
+  const head=`<div class="pl-pt hd"><span>환자</span><span>제목</span><span>열 개수</span><span>배치</span>${anySum?'<span>요약 장</span>':''}${anyMerge?'<span>하루뿐인 실험 한 장에</span>':''}</div>`;
+  return `<details class="pl-pts"${pptPtOpen?' open':''} ontoggle="pptPtOpen=this.open"><summary>환자별 설정 <small>${pts.length}명</small></summary><div class="pl-pttab${anySum?' s':''}${anyMerge?' m':''}">${head}`+pts.map(pt=>{
     const q=esc(pt), tv=pptCuts['title:'+pt], cp=pages.filter(p=>p.cond&&p.pt===pt), ms=[...new Set(cp.map(p=>p.modeSet))];
-    return `<div class="pl-opts"><b>${q}</b>
-      <label>제목 ${sel(tv===0?0:tv===1?1:'',[['','기본'],[1,'넣기'],[0,'빼기']],`pptSetPt('${q}','title',this.value)`)}</label>
-      <label>열 개수 ${sel(pptCuts['cols:'+pt]||'',[['','기본']].concat([2,3,4,5,6,7,8,9,10].map(n=>[n,n])),`pptSetPt('${q}','cols',this.value)`)}</label>
-      ${cp.length||dm.includes(pt)?`<label>배치 ${sel(ms.length===1?ms[0]:'',(ms.length===1?[]:[['','실험마다 다름']]).concat(PPT_MODES),`if(this.value)pptSetPtMode('${q}',this.value)`)}</label>`:''}</div>`; }).join('')+`</details>`;
+    const ts=pptSumTitles[pt]||[], nIn=ts.filter(pptSumIn).length;
+    const sum=!anySum?'':pptSumPts.includes(pt)?`<span class="pl-ptsum"><label class="pl-ck"><input type="checkbox"${pptSumOn(pt)?' checked':''} onchange="pptSetSum('${q}',this.checked)">넣기</label>${pptSumOn(pt)?`<details class="pl-ptin"><summary>실험 ${nIn}/${ts.length}</summary>${ts.map(t=>`<label class="pl-ck"><input type="checkbox"${pptSumIn(t)?' checked':''} data-t="${esc(t)}" onchange="pptSetSumIn(this.dataset.t,this.checked)">${esc(t.slice(pt.length).trim()||t)}</label>`).join('')}</details>`:''}</span>`:'<span class="pl-mut">-</span>';
+    const mg=!anyMerge?'':pptMergePts.includes(pt)?`<label class="pl-ck"><input type="checkbox"${pptMergeOn(pt)?' checked':''} onchange="pptSetMerge('${q}',this.checked)">켜기</label>`:'<span class="pl-mut">-</span>';
+    return `<div class="pl-pt"><b>${q}</b>
+      ${sel(tv===0?0:tv===1?1:'',[['','기본'],[1,'넣기'],[0,'빼기']],`pptSetPt('${q}','title',this.value)`)}
+      ${sel(pptCuts['cols:'+pt]||'',[['','기본']].concat([2,3,4,5,6,7,8,9,10].map(n=>[n,n])),`pptSetPt('${q}','cols',this.value)`)}
+      ${cp.length||dm.includes(pt)?sel(ms.length===1?ms[0]:'',(ms.length===1?[]:[['','실험마다 다름']]).concat(PPT_MODES),`if(this.value)pptSetPtMode('${q}',this.value)`):'<span class="pl-mut">-</span>'}
+      ${sum}${mg}</div>`; }).join('')+`</div></details>`;
 }
+// 마일스톤: 고른 액션만 한 줄로 보이고, 눌러야 바꾸기
+function pptMsHtml(){ const on=pptMsActs();
+  return `<details class="pl-pts pl-ms"><summary>오른쪽 위 마일스톤 <small>${on.length?on.map(pptMsLabel).join(' · '):'안 넣음'}</small></summary><div class="pl-opts">${PPT_MS_ACTS.map(k=>`<label class="pl-ck"><input type="checkbox"${on.includes(k)?' checked':''} onchange="pptToggleMs('${k}',this.checked)">${pptMsLabel(k)}</label>`).join('')}</div></details>`; }
 // 고치는 장의 실험 배치를 칩으로 (규칙 없는 사진의 배치 칩과 같은 방식): 날짜 · 조건 칩을 슬라이드 나누기 / 열 / 행 칸으로 끌고, 값을 끌어 순서를 바꿈
 function pptExpVals(p,pages){
   const ps=pages.filter(x=>x.exp===p.exp&&!x.merged);
@@ -11008,7 +11022,7 @@ if(curTab==='ana'||curTab==='diary'||curTab==='media'||curTab==='fig') setTab(cu
   .well-cell:hover .well-tip{ display:block; }
 
   /* ---------- Summary ---------- */
-  .stat-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-bottom:24px; }
+  .stat-grid{ display:grid; grid-template-columns:repeat(auto-fit,180px); gap:10px; margin-bottom:24px; }
   .stat-card{ border-radius:14px; padding:16px 16px; }
   .stat-card .stat-num{ font-size:24px; font-weight:800; letter-spacing:-0.02em; }
   .stat-card .stat-label{ font-size:12px; color:var(--sub); margin-top:4px; }
