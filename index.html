@@ -944,6 +944,7 @@ body[data-tab="fig"] .pane[data-pane="fig"]{display:block;animation:paneIn .28s 
 .fg-modal{align-items:center;padding:3vh 3vw;} .fg-mbox{width:min(1280px,92vw);height:min(860px,88vh);max-width:none;display:flex;flex-direction:column;padding:16px 18px;}
 .fg-ttl{margin-bottom:8px;} .fg-tabs{display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid var(--bd2);margin-bottom:10px;}
 .fg-tab{display:inline-flex;align-items:center;gap:5px;border:1px solid transparent;border-bottom:none;background:none;font:inherit;font-size:.78rem;font-weight:600;color:var(--sub);padding:7px 12px;border-radius:8px 8px 0 0;cursor:pointer;margin-bottom:-1px;}
+.fg-tab.dropl,.fg-stab.dropl{box-shadow:inset 3px 0 0 #2563EB;} .fg-tab.dropr,.fg-stab.dropr{box-shadow:inset -3px 0 0 #2563EB;}
 .fg-tab.on{background:var(--sur);border-color:var(--bd2);color:var(--tx);} .fg-tab:hover:not(.on){color:var(--tx);} .fg-tab.add{color:var(--mut);font-weight:500;}
 .fg-mbox .fg-ed{flex:1;min-height:0;align-items:stretch;} .fg-mbox .fg-side{max-height:none;height:100%;} .fg-mbox .fg-main{position:static;overflow:auto;height:100%;}
 .fg-mbox .fg-ehd{margin-bottom:10px;}
@@ -9452,7 +9453,7 @@ setTimeout(async()=>{ if(!mailUser()||!fbDb) return; try{ const q=await fbDb.col
 const NEWS={id:'2026-11-14', date:'2026-11-14', days:5, items:[
   ['<b>실험 기록</b>','다이어리 오른쪽 위 「+ 실험 기록」으로 qPCR · Aliquot 같은 실험을 자유롭게 적기. 「지난 기록 불러오기」로 예전 걸 가져와 고쳐 쓰기. 라인을 고르면 라인 기록 · 연구노트 인쇄에도 같이 나와요'],
   ['<b>배양 완료</b>','오늘 작업 액션에서 「배양 완료」를 골라 저장하면 라인이 완료로 넘어가요'],
-  ['<b>PPT figure</b>','Plate는 라인 → 조건 → 글자 순서. 라인 · 조건을 누르고 그림에서 끌면 바로 칠해짐. 행(A) · 열(1)을 누르면 가로 · 세로 조건. 프로젝트별로 나눠 두기'],
+  ['<b>PPT figure</b>','Plate는 라인 → 조건 → 글자 순서. 그림에서 well을 끌어 고르고 칠하기. 행(A) · 열(1)을 누르면 가로 · 세로 조건. 위 탭을 끌어 순서 바꾸기. 프로젝트별로 나눠 두기'],
   ['<b>Experiment Schedule</b>','줄(라인)마다 탭, Day 0 = 그 라인 seeding 날. Day 숫자만 적으면 날짜가 계산돼요. 메모는 엔터로 줄바꿈'],
   ['<b>PPT 슬라이드 고치기</b>','되돌리기 · 다시 하기(Ctrl+Z · Ctrl+Y), 한 줄에 몇 장, 같은 실험 다른 장 사진 가져오기, 같은 날짜 배율 행 묶기. 다 고친 뒤 아래 「닫기」'],
   ['<b>PPT 만들기 figure</b>','썸네일 돋보기로 크게 보기, 「숨기기」, 2주 지난 건 아래로 접힘'],
@@ -10083,8 +10084,10 @@ function figLayout(f){
   const memoLines=f.memo&&f.memo.trim()?String(f.memo).split('\n').flatMap(l=>figWrap(mc,l,W-2*px-40)):[];
   const sub=[f.date?f.date.replace(/-/g,'.'):'',PL&&PL.plates.length?figPlateFmtText(PL.plates):''].filter(Boolean).join(' · ');
   let H=30+44+(sub?34:0)+20;
-  const ySched=H; if(SL) H+=SL.H+40;
-  const yPlate=H; if(PL) H+=PL.H+40;
+  // 위에서 아래 순서는 편집 창 탭 순서 (탭을 끌어 바꿈): f.plateFirst면 Plate map이 먼저
+  let ySched, yPlate;
+  if(f.plateFirst){ yPlate=H; if(PL) H+=PL.H+40; ySched=H; if(SL) H+=SL.H+40; }
+  else { ySched=H; if(SL) H+=SL.H+40; yPlate=H; if(PL) H+=PL.H+40; }
   const yMemo=H; if(memoLines.length) H+=memoLines.length*32+36+30;
   if(!SL&&!PL&&!memoLines.length) H+=120;
   H+=10;
@@ -10255,7 +10258,22 @@ function figLineOptsHtml(sel,exclude,first){
 // ── 편집 화면 ──
 // 편집 창: 위에 탭(Experiment Schedule · Plate 1 · Plate 2 · 메모) → 왼쪽엔 고른 것 하나만. 미리보기에서 누른 곳으로도 탭이 바뀜
 let _figTab='';
-function figTabs(f){ const t=[]; if(f.sched) t.push(['sched','Experiment Schedule']); if(f.plate) f.plate.plates.forEach((p,i)=>t.push(['plate:'+i,p.name||`Plate ${i+1}`])); t.push(['memo','메모']); return t; }
+function figTabs(f){ const t=[], S=f.sched?[['sched','Experiment Schedule']]:[], P=f.plate?f.plate.plates.map((p,i)=>['plate:'+i,p.name||`Plate ${i+1}`]):[];
+  t.push(...(f.plateFirst?P.concat(S):S.concat(P))); t.push(['memo','메모']); return t; }
+// 탭 끌어 순서 바꾸기: plate끼리는 plate 순서, Schedule ↔ Plate는 위아래 순서(f.plateFirst). 메모는 늘 맨 끝
+let _figTabDrag=null;
+function figTabDrop(ev,id,to){ ev.preventDefault(); document.querySelectorAll('.fg-tab.dropl,.fg-tab.dropr,.fg-stab.dropl,.fg-stab.dropr').forEach(x=>x.classList.remove('dropl','dropr'));
+  const from=_figTabDrag; _figTabDrag=null; const f=figById(id); if(!f||!from||from===to) return;
+  const r=ev.currentTarget.getBoundingClientRect(), after=ev.clientX>r.left+r.width/2;
+  if(from.startsWith('trk:')){ if(!to.startsWith('trk:')) return; const ts=f.sched.tracks, a=ts.findIndex(t=>t.id===from.slice(4)); if(a<0) return; const [t]=ts.splice(a,1); let b=ts.findIndex(x=>x.id===to.slice(4)); if(b<0) return; ts.splice(b+(after?1:0),0,t); figTouch(f); renderFig(); return; }
+  if(to==='memo'||from==='memo'||to.startsWith('trk:')) return;
+  if(from==='sched'||to==='sched'){   // 탭 줄에서 옮긴 뒤 Schedule이 맨 앞이 아니면 Plate map이 먼저
+    const ks=figTabs(f).map(t=>t[0]).filter(k=>k!=='memo'); ks.splice(ks.indexOf(from),1); ks.splice(ks.indexOf(to)+(after?1:0),0,from); f.plateFirst=ks[0]!=='sched'; }
+  else { const ps=f.plate.plates, a=+from.split(':')[1]; let b=+to.split(':')[1]; const [p]=ps.splice(a,1); if(a<b) b--; ps.splice(b+(after?1:0),0,p); _figTab='plate:'+ps.indexOf(p); _figSel.clear(); }
+  if(from==='sched'||to==='sched'){ if(!f.plateFirst) delete f.plateFirst; }
+  figTouch(f); renderFig(); }
+function figTabOver(ev){ ev.preventDefault(); const r=ev.currentTarget.getBoundingClientRect(), after=ev.clientX>r.left+r.width/2; ev.currentTarget.classList.toggle('dropr',after); ev.currentTarget.classList.toggle('dropl',!after); }
+function figTabLeave(ev){ ev.currentTarget.classList.remove('dropl','dropr'); }
 function figSetTab(k){ if(_figTab!==k){ _figTab=k; _figSel.clear(); _figAnchor=null; _figAxis=null; if(!k.startsWith('plate:')) _figBrush=null; } renderFig(); }
 function figEditor(f){
   const tabs=figTabs(f); if(!tabs.some(t=>t[0]===_figTab)) _figTab=tabs[0][0];
@@ -10272,7 +10290,7 @@ function figEditor(f){
     <span class="fg-eacts"><button class="btn btn-out" onclick="figCopy('${f.id}')">이미지 복사</button><button class="btn btn-out" onclick="figPng('${f.id}')">PNG</button><button class="btn btn-pri" onclick="figPpt(['${f.id}'])">PPT</button></span></div>
   <div class="fg-row2 fg-ttl"><label class="fg-f">제목<input value="${esc(f.title||'')}" placeholder="비우면 라인 이름" onchange="figSetTitle('${f.id}',this.value)"></label>
     <label class="fg-f fg-fdate">날짜<input type="date" value="${f.date||''}" onchange="figSet('${f.id}','date',this.value)"></label></div>
-  <div class="fg-tabs">${tabs.map(([k,t])=>`<button class="fg-tab${k===_figTab?' on':''}" onclick="figSetTab('${k}')">${k==='sched'?ic('timeline','ic-sm'):k==='memo'?ic('edit','ic-sm'):ic('dish','ic-sm')}${esc(t)}</button>`).join('')}
+  <div class="fg-tabs">${tabs.map(([k,t])=>`<button class="fg-tab${k===_figTab?' on':''}" onclick="figSetTab('${k}')"${k==='memo'?'':` draggable="true" title="끌어서 순서 바꾸기" ondragstart="_figTabDrag='${k}'" ondragover="figTabOver(event)" ondragleave="figTabLeave(event)" ondrop="figTabDrop(event,'${f.id}','${k}')"`}>${k==='sched'?ic('timeline','ic-sm'):k==='memo'?ic('edit','ic-sm'):ic('dish','ic-sm')}${esc(t)}</button>`).join('')}
     ${canSched?`<button class="fg-tab add" onclick="figAddSched('${f.id}');figSetTab('sched')">+ Experiment Schedule</button>`:''}
     ${canPlate?`<button class="fg-tab add" onclick="figAddPlateTab('${f.id}')">+ Plate</button>`:''}</div>
   <div class="fg-ed"><div class="fg-side">${body}
@@ -10310,7 +10328,7 @@ function figSchedEditor(f){
       <label class="fg-ck"><input type="checkbox" ${sc.showDate!==false?'checked':''} onchange="figSchedSet('${f.id}','showDate',this.checked)">날짜</label>
       <label class="fg-ck" title="눈금 아래 작게: passage와 organoid 기준 day"><input type="checkbox" ${sc.showPD!==false?'checked':''} onchange="figSchedSet('${f.id}','showPD',this.checked)">P · d</label>
       <button class="link-btn fg-drop" onclick="figDropPart('${f.id}','sched')">빼기</button></div>
-    <div class="fg-stabs">${tracks.map((x,i)=>`<button class="fg-stab${x.id===_figTrk?' on':''}" onclick="figTrkTab('${f.id}','${x.id}')"><i>${i+1}</i>${esc(nm(x))}</button>`).join('')}${canAdd?`<button class="fg-stab add" onclick="figTrackAdd('${f.id}')" title="같은 실험의 다른 라인">+ 줄</button>`:''}</div>
+    <div class="fg-stabs">${tracks.map((x,i)=>`<button class="fg-stab${x.id===_figTrk?' on':''}" onclick="figTrkTab('${f.id}','${x.id}')" draggable="true" title="끌어서 순서 바꾸기" ondragstart="_figTabDrag='trk:${x.id}'" ondragover="figTabOver(event)" ondragleave="figTabLeave(event)" ondrop="figTabDrop(event,'${f.id}','trk:${x.id}')"><i>${i+1}</i>${esc(nm(x))}</button>`).join('')}${canAdd?`<button class="fg-stab add" onclick="figTrackAdd('${f.id}')" title="같은 실험의 다른 라인">+ 줄</button>`:''}</div>
     ${t?figTrackEditor(f,t,tracks.length):''}</div>`;
 }
 function figTrackEditor(f,t,n){
@@ -10370,10 +10388,8 @@ function figItemDel(id,tid,iid){ const f=figById(id), t=figTrack(f,tid); if(!t) 
 let _figAxis=null;   // {pi, kind:'row'|'col', idx:Set}
 // 붓: 고른 칸 없이 라인 · 조건을 누르면 그걸 들고 있다가, 그림에서 끌거나 A / 1을 누르는 대로 바로 칠함. 같은 걸 또 누르면 내려놓음
 let _figBrush=null;  // {k:'l'|'c', v:id}
-function figPick(id,k,v){
-  if(_figSel.size||_figAxis){ figAssign(id,k,v); return; }
-  _figBrush=_figBrush&&_figBrush.k===k&&_figBrush.v===v?null:{k,v}; renderFig();
-}
+// (붓으로 칠하기는 뺌: 유진 — 끌어서 고르고 칠하기면 충분) 라인 · 조건 누르기 = 고른 칸에 칠하기
+function figPick(id,k,v){ _figBrush=null; figAssign(id,k,v); }
 const figBrushOn=(k,v)=>_figBrush&&_figBrush.k===k&&_figBrush.v===v?' on':'';
 function figBrushPaint(f){ if(!_figBrush) return false; figAssign(f.id,_figBrush.k,_figBrush.v); _figSel.clear(); _figAxis=null; renderFig(); return true; }
 function figSelText(pi){
@@ -10389,7 +10405,7 @@ function figPlateEditor(f,pi){
     <div class="fg-pl"><input value="${esc(p.name||'')}" placeholder="Plate ${pi+1}" onchange="figPlateSet('${f.id}',${pi},'name',this.value)">
       <select onchange="figPlateSet('${f.id}',${pi},'format',this.value)">${Object.keys(FIG_FORMATS).map(k=>`<option value="${k}"${k===p.format?' selected':''}>${k} well</option>`).join('')}</select></div>
     <input class="fg-plnote" value="${esc(p.note||'')}" placeholder="설명 (예: 3×10⁴ cells/well)" onchange="figPlateSet('${f.id}',${pi},'note',this.value)"></div>
-  <div class="fg-selbar${st||_figBrush?' on':''}"><span>${_figBrush?`<b>${esc(figBrushName(pm,_figBrush))}</b> 붓 · 그림에서 끌면 바로 칠해요`:st?`고른 칸 <b>${st}</b>`:'라인 · 조건을 누르고 그림에서 끌면 칠해져요'}</span>
+  <div class="fg-selbar${st||_figBrush?' on':''}"><span>${_figBrush?`<b>${esc(figBrushName(pm,_figBrush))}</b> 붓 · 그림에서 끌면 바로 칠해요`:st?`고른 칸 <b>${st}</b>`:'그림에서 well을 끌거나 A / 1을 눌러 고르기'}</span>
     ${_figBrush?`<button class="tbl-btn" onclick="_figBrush=null;renderFig()">내려놓기</button>`:''}
     <button class="tbl-btn" onclick="figSelAll('${f.id}',${pi})">전체</button>${st?`<button class="tbl-btn" onclick="figSelNone()">풀기</button><button class="tbl-btn" onclick="figClearSel('${f.id}')">비우기</button>`:''}</div>
   <div class="fg-part">${step(2,'라인',`<small>어느 well에 seeding · 테두리 색</small>`)}
