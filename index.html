@@ -276,6 +276,11 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
 .pl-pt{display:contents;} .pl-pt.hd>span{font-size:.68rem;color:var(--mut);font-weight:600;} .pl-pt select{height:28px;font-size:.74rem;width:100%;min-width:0;}
 .pl-ptsum{display:flex;align-items:center;gap:6px;flex-wrap:wrap;} .pl-ptin summary{cursor:pointer;font-size:.72rem;color:var(--sub);} .pl-ptin[open]{display:flex;flex-wrap:wrap;gap:4px 10px;} .pl-ptin[open] summary{width:100%;}
 .pl-pts>summary small,.pl-ms>summary small{color:var(--mut);font-weight:500;margin-left:6px;} .pl-ms{margin-top:4px;}
+.pf-zoom{position:relative;padding:0;border:none;background:none;cursor:zoom-in;flex:none;line-height:0;} .pf-zoom i{position:absolute;right:3px;bottom:3px;width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.92);box-shadow:0 1px 3px rgba(0,0,0,.18);display:grid;place-items:center;color:var(--tx);opacity:.85;}
+.pf-zoom:hover i{opacity:1;}
+.fg-zoom{position:fixed;inset:0;z-index:400;background:rgba(15,18,22,.55);display:grid;place-items:center;padding:3vh 3vw;}
+.fg-zbox{background:#fff;border-radius:12px;padding:10px 12px 12px;max-width:94vw;max-height:94vh;display:flex;flex-direction:column;gap:8px;box-shadow:0 10px 40px rgba(0,0,0,.25);}
+.fg-zhd{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:.84rem;color:#1F2328;} .fg-zbox img{max-width:90vw;max-height:84vh;object-fit:contain;display:block;}
 .pf-at{font-style:normal;margin-left:6px;color:#2563EB;font-size:.66rem;} .pf-hide{font-size:.7rem;color:var(--mut);flex:none;margin-left:6px;}
 .pf-row.hid{opacity:.6;} .pf-old{margin-top:6px;} .pf-old>summary{cursor:pointer;font-size:.74rem;color:var(--sub);padding:4px 2px;}
 .pl-edbar .pl-ck{white-space:nowrap;}
@@ -6396,6 +6401,13 @@ function pptFigTargetOpts(id){
 // PPT 만들기의 figure 목록: 최근 2주 안에 고친 것만 펼쳐 두고, 오래된 것 · 숨긴 것은 아래 「이전 · 숨긴 figure」에 접어 둠
 // f.pptAt = 마지막으로 PPT에 넣은 날, f.hideInPpt = 이 목록에서 숨김 (figure 자체는 PPT figure 페이지에 그대로)
 let _pfOldOpen=false;
+// figure 크게 보기 (돋보기): 그 자리에서 크게 그려 띄움, 바깥 · Esc · × 로 닫기
+function figZoom(id){ const f=figById(id); if(!f) return; figZoomClose();
+  const {canvas}=figRender(f,1.5), m=document.createElement('div'); m.id='figZoom'; m.className='fg-zoom';
+  m.innerHTML=`<div class="fg-zbox"><div class="fg-zhd"><b>${esc(f.name||'')}</b><button class="tbl-btn" onclick="figZoomClose()">${ic('x','ic-sm')}</button></div><img src="${canvas.toDataURL('image/png')}" alt=""></div>`;
+  m.onclick=e=>{ if(e.target===m) figZoomClose(); }; document.body.appendChild(m); }
+function figZoomClose(){ const m=document.getElementById('figZoom'); if(m) m.remove(); }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&document.getElementById('figZoom')){ e.stopPropagation(); figZoomClose(); } },true);
 function figMarkPpt(ids){ const d=ymdLocal(new Date()); let ch=false; ids.forEach(id=>{ const f=figById(id); if(f&&f.pptAt!==d){ f.pptAt=d; ch=true; } }); if(ch) saveFigures(); }
 function pptFigHide(id,on){ const f=figById(id); if(!f) return; if(on){ f.hideInPpt=true; delete pptFigSel[id]; } else delete f.hideInPpt; saveFigures(); renderPptFigs(); renderPptBar(); }
 function renderPptFigs(){
@@ -6406,7 +6418,7 @@ function renderPptFigs(){
   const isOld=f=>!pptFigSel[f.id]&&(f.hideInPpt||(f.updated||f.created||0)<cut||!figInProj(f));
   const recent=list.filter(f=>!isOld(f)), old=list.filter(isOld);
   const row=f=>{ const v=pptFigSel[f.id]||'', at=f.pptAt?`<em class="pf-at">${f.pptAt.slice(5).replace('-','/')} PPT에 넣음</em>`:'';
-    return `<div class="pf-row${v?' on':''}${f.hideInPpt?' hid':''}"><img src="${figThumb(f)}" alt=""><div class="pf-nm"><b title="${esc(f.name||'')}">${esc(f.name||'')}</b><small>${f.project?`<span class="fg-ptag">${esc(f.project)}</span>`:''}${figKindText(figNorm(f))}${at}</small></div>
+    return `<div class="pf-row${v?' on':''}${f.hideInPpt?' hid':''}"><button class="pf-zoom" onclick="figZoom('${f.id}')" title="크게 보기"><img src="${figThumb(f)}" alt=""><i>${ic('search','ic-sm')}</i></button><div class="pf-nm"><b title="${esc(f.name||'')}">${esc(f.name||'')}</b><small>${f.project?`<span class="fg-ptag">${esc(f.project)}</span>`:''}${figKindText(figNorm(f))}${at}</small></div>
         <div class="seg-group pf-seg">${[['','안 넣음'],['page','넣기 (한 장)']].map(([k,t])=>`<button class="seg${v===k?' on':''}" onclick="pptSetFig('${f.id}','${k}')">${t}</button>`).join('')}</div>
         <button class="link-btn pf-hide" onclick="pptFigHide('${f.id}',${f.hideInPpt?'false':'true'})">${f.hideInPpt?'다시 보이기':'숨기기'}</button></div>`; };
   el.innerHTML=`<details class="pf-box"${n||recent.length?' open':''}><summary><b>PPT figure 같이 넣기</b> <span>${list.length?(n?`${n}개 넣음`:'Experiment Schedule · Plate map'):'아직 만든 figure가 없어요'}</span></summary>
