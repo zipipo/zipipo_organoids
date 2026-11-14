@@ -152,6 +152,8 @@ match /mailbox/{id} {
 
 ## 작업 기록
 
+- 2026-11-14(10): PPT figure 프로젝트로 나누기(`f.project`, 계정 동기화). 편집 창 머리 「프로젝트」 칸(전에 쓴 이름 자동완성), PPT figure 페이지 위 칩(전체 · 프로젝트별 · 미분류, 개수) 거르기(`_figProj`, `figInProj`), 고른 figure 한꺼번에 「프로젝트 지정」(`figProjMany`, 비우면 미분류), 카드에 보라 태그. 「전체 선택」은 지금 보이는 프로젝트 것만. PPT 만들기 figure 목록에도 같은 칩(고른 프로젝트 밖은 아래 접힘으로).
+
 - 2026-11-14(9): PPT 만들기의 「PPT figure 같이 넣기」 목록 정리(유진: 한 번 넣은 figure가 계속 남음). 최근 2주 안에 고친 figure만 펼치고, 그보다 오래된 것 · 숨긴 것은 「이전 · 숨긴 figure n개」에 접음(이번에 고른 건 늘 위). 줄마다 「숨기기 / 다시 보이기」(`f.hideInPpt`), PPT로 만들면 「11/14 PPT에 넣음」(`f.pptAt`, `figMarkPpt`, 사진 PPT · PPT figure 페이지 PPT 둘 다). 둘 다 figure에 저장돼 계정 동기화. figure 자체는 안 지움.
 
 - 2026-11-14(8): PPT 슬라이드 고치기 추가. ① 글자 고칠 때 Enter = 줄바꿈(행 이름 「날짜 / P d / 처리 전」), 저장은 칸 밖 누르기 · Ctrl(⌘)+Enter, Esc 취소(`pptEdText`). ② 날짜를 행으로 쓴 장에서 한 날짜에 배율이 여러 행이면 날짜 · P d를 그 행들 묶은 칸에 한 번 + 오른쪽 세로 선, 행 이름은 배율만(`pptRowGroups`, 그리기만 바꿈 · 데이터는 그대로). 묶음 이름(`rgrp`) · 첫 행 배율을 따로 고쳐도 나머지는 남음. ③ 뒤로 · 앞으로(`pptHist`, Ctrl+Z / Ctrl+Y · Ctrl+Shift+Z): 그릴 때마다 pptEdits · pptCuts · pptLay를 찍어(사진은 id로) 바뀌면 쌓음, 60번까지, 배치 창 열 때 비움. ④ 고치는 장 「한 줄에 [자동 · 2–10장 · 전부]」(`pptEdWrap`, `e.wrapSet`): 4x만 있어 3장씩 감던 장을 5장 한 줄로 등. 확인: Playwright(가짜 사진)로 묶음 그리기 · 줄바꿈 고치기 · 뒤로/앞으로 · 한 줄 전부.

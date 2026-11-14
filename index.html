@@ -266,6 +266,11 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
 .pl-slide .zx{position:absolute;left:2px;top:2px;width:18px;height:18px;line-height:15px;padding:0;border:1px solid var(--bd);border-radius:50%;background:#fff;color:#444;font-size:13px;cursor:pointer;display:none;}
 .pl-slide .z:hover>.zx{display:block;}
 .pl-slide .z textarea{position:absolute;left:0;top:0;width:100%;min-height:100%;min-width:90px;box-sizing:border-box;font:600 1.25cqw Pretendard,sans-serif;padding:2px 4px;border:1.5px solid var(--acc);border-radius:3px;background:#fff;color:#111;resize:none;z-index:5;}
+.fg-pchips{display:flex;flex-wrap:wrap;gap:5px;padding:10px 14px 0;} .pf-box .fg-pchips{padding:4px 0 8px;}
+.fg-pchip{border:1px solid var(--bd2);background:var(--sur);border-radius:99px;font:inherit;font-size:.74rem;font-weight:600;color:var(--sub);padding:4px 11px;cursor:pointer;} .fg-pchip small{color:var(--mut);font-weight:500;}
+.fg-pchip.on{background:var(--tx);border-color:var(--tx);color:var(--sur);} .fg-pchip.on small{color:var(--sur);opacity:.7;}
+.fg-ptag{display:inline-block;background:#EFEBFA;color:#4B3F86;border-radius:4px;padding:0 5px;margin-right:5px;font-weight:600;}
+.fg-proj{display:flex;align-items:center;gap:6px;margin:0;font-size:.76rem;color:var(--sub);} .fg-proj input{height:34px;width:150px;}
 .pf-at{font-style:normal;margin-left:6px;color:#2563EB;font-size:.66rem;} .pf-hide{font-size:.7rem;color:var(--mut);flex:none;margin-left:6px;}
 .pf-row.hid{opacity:.6;} .pf-old{margin-top:6px;} .pf-old>summary{cursor:pointer;font-size:.74rem;color:var(--sub);padding:4px 2px;}
 .pl-hist{display:inline-flex;gap:4px;} .pl-hist .btn{height:30px;padding:0 9px;font-size:.74rem;}
@@ -6389,14 +6394,14 @@ function renderPptFigs(){
   const list=(typeof figures!=='undefined'?figures:[]).slice().sort((a,b)=>(b.updated||0)-(a.updated||0));
   Object.keys(pptFigSel).forEach(id=>{ if(!list.some(f=>f.id===id)) delete pptFigSel[id]; });
   const n=Object.keys(pptFigSel).length, cut=Date.now()-14*86400000;
-  const isOld=f=>!pptFigSel[f.id]&&(f.hideInPpt||(f.updated||f.created||0)<cut);
+  const isOld=f=>!pptFigSel[f.id]&&(f.hideInPpt||(f.updated||f.created||0)<cut||!figInProj(f));
   const recent=list.filter(f=>!isOld(f)), old=list.filter(isOld);
   const row=f=>{ const v=pptFigSel[f.id]||'', at=f.pptAt?`<em class="pf-at">${f.pptAt.slice(5).replace('-','/')} PPT에 넣음</em>`:'';
-    return `<div class="pf-row${v?' on':''}${f.hideInPpt?' hid':''}"><img src="${figThumb(f)}" alt=""><div class="pf-nm"><b title="${esc(f.name||'')}">${esc(f.name||'')}</b><small>${figKindText(figNorm(f))}${at}</small></div>
+    return `<div class="pf-row${v?' on':''}${f.hideInPpt?' hid':''}"><img src="${figThumb(f)}" alt=""><div class="pf-nm"><b title="${esc(f.name||'')}">${esc(f.name||'')}</b><small>${f.project?`<span class="fg-ptag">${esc(f.project)}</span>`:''}${figKindText(figNorm(f))}${at}</small></div>
         <div class="seg-group pf-seg">${[['','안 넣음'],['page','넣기 (한 장)']].map(([k,t])=>`<button class="seg${v===k?' on':''}" onclick="pptSetFig('${f.id}','${k}')">${t}</button>`).join('')}</div>
         <button class="link-btn pf-hide" onclick="pptFigHide('${f.id}',${f.hideInPpt?'false':'true'})">${f.hideInPpt?'다시 보이기':'숨기기'}</button></div>`; };
   el.innerHTML=`<details class="pf-box"${n||recent.length?' open':''}><summary><b>PPT figure 같이 넣기</b> <span>${list.length?(n?`${n}개 넣음`:'Experiment Schedule · Plate map'):'아직 만든 figure가 없어요'}</span></summary>
-    ${list.length?`<div class="pf-list">${recent.map(row).join('')||'<div class="pf-hint">최근 2주 안에 고친 figure가 없어요.</div>'}</div>
+    ${list.length?`${figProjChips('renderPptFigs()')}<div class="pf-list">${recent.map(row).join('')||'<div class="pf-hint">최근 2주 안에 고친 figure가 없어요.</div>'}</div>
     ${old.length?`<details class="pf-old"${_pfOldOpen?' open':''} ontoggle="_pfOldOpen=this.open"><summary>이전 · 숨긴 figure ${old.length}개</summary><div class="pf-list">${old.map(row).join('')}</div></details>`:''}
     <div class="pf-hint">고른 figure는 사진 슬라이드 앞에 한 장씩 들어가요. 숨겨도 PPT figure 페이지에는 그대로 있어요.</div>`
     :`<div class="pf-hint">왼쪽 도구 → PPT figure에서 Experiment Schedule · Plate map을 만들면 여기서 골라 넣을 수 있어요.</div>`}</details>`;
@@ -10148,18 +10153,21 @@ function renderFig(){
   const f=_figEdit&&figById(_figEdit);
   // 편집은 새 창(팝업)에서: 다시 그릴 때 왼쪽 칸 스크롤 위치는 그대로
   const side=document.querySelector('#figModal .fg-side'), keep=side?side.scrollTop:0;
-  const list=figures.slice().sort((a,b)=>(b.updated||0)-(a.updated||0));
+  if(_figProj&&!figures.some(figInProj)) _figProj='';   // 고른 프로젝트에 남은 게 없으면 전체로
+  const list=figures.filter(figInProj).sort((a,b)=>(b.updated||0)-(a.updated||0));
   const pick=[..._figPick].filter(id=>figById(id));
   el.innerHTML=`<section class="panel sec"><div class="panel-hd"><span><i class="sec-ic">${ic('slides')}</i>PPT figure</span>
       <span class="panel-act"><button class="btn btn-pri" onclick="figNew()">${ic('plus')}새 Figure</button></span></div>
     <div class="fg-bar">${list.length?`<label class="fg-all"><input type="checkbox" ${pick.length===list.length?'checked':''} onchange="figPickAll(this.checked)"> 전체 선택</label>
       <span class="fg-n">${pick.length}개 골랐어요 · 고른 것마다 슬라이드 한 장</span>
+      <button class="btn btn-out" ${pick.length?'':'disabled'} onclick="figProjMany([..._figPick])">프로젝트 지정</button>
       <button class="btn btn-out fg-delsel" ${pick.length?'':'disabled'} onclick="figDelMany([..._figPick])">${ic('trash','ic-sm')}고른 것 삭제</button>
       <button class="btn btn-pri" ${pick.length?'':'disabled'} onclick="figPpt([..._figPick])">${ic('slides')}고른 것 PPT로</button>`:'<span class="fg-n">Figure 하나에 Experiment Schedule · Plate map · 메모를 같이 넣을 수 있어요. 자동으로 계정에 저장돼서 다른 기기에서도 꺼내 써요.</span>'}</div>
+    ${figProjChips('renderFig()')}
     <div class="fg-grid">${list.map(x=>`<div class="fg-card${_figPick.has(x.id)?' on':''}">
       <label class="fg-chk"><input type="checkbox" ${_figPick.has(x.id)?'checked':''} onchange="figPickOne('${x.id}',this.checked)"></label>
       <div class="fg-th" onclick="_figEdit='${x.id}';_figSel.clear();renderFig()"><img src="${figThumb(x)}" alt=""></div>
-      <div class="fg-meta"><b title="${esc(x.name||'')}">${esc(x.name||'')}</b><small>${figKindText(x)}</small></div>
+      <div class="fg-meta"><b title="${esc(x.name||'')}">${esc(x.name||'')}</b><small>${x.project?`<span class="fg-ptag">${esc(x.project)}</span>`:''}${figKindText(x)}</small></div>
       <div class="fg-acts"><button class="tbl-btn" onclick="figCopy('${x.id}')">복사</button><button class="tbl-btn" onclick="figPng('${x.id}')">PNG</button><button class="tbl-btn" onclick="figDup('${x.id}')" title="복사본을 만들어 다음 장으로 고쳐 쓰기">복제</button><button class="tbl-btn" onclick="figDel('${x.id}')">${ic('trash','ic-sm')}</button></div>
     </div>`).join('')}</div></section>`;
   // 편집 창은 body에 한 번만 만들고 안쪽만 바꿈 (다시 만들면 열리는 효과가 매번 다시 나와서 깜빡임)
@@ -10169,10 +10177,22 @@ function renderFig(){
   m.querySelector('.fg-mbox').innerHTML=figEditor(f);
   figDrawPreview(f); const s2=m.querySelector('.fg-side'); if(s2) s2.scrollTop=keep;
 }
+// 프로젝트로 나눠 두기: f.project (글자). 목록 위 칩으로 거르기 (_figProj: '' 전체 · '__none' 미분류 · 이름)
+let _figProj='';
+function figProjects(){ return [...new Set(figures.map(f=>(f.project||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true})); }
+const figInProj=f=>!_figProj||(_figProj==='__none'?!(f.project||'').trim():(f.project||'').trim()===_figProj);
+function figProjChips(re){ const ps=figProjects(); if(!ps.length) return '';
+  const n=k=>figures.filter(f=>k==='__none'?!(f.project||'').trim():(f.project||'').trim()===k).length, none=n('__none');
+  const chip=(k,t,c)=>`<button class="fg-pchip${_figProj===k?' on':''}" onclick="_figProj='${esc(jsEsc(k))}';${re}">${esc(t)}${c!=null?` <small>${c}</small>`:''}</button>`;
+  return `<div class="fg-pchips">${chip('','전체',figures.length)}${ps.map(k=>chip(k,k,n(k))).join('')}${none?chip('__none','미분류',none):''}</div>`; }
+function figSetProject(id,v){ const f=figById(id); if(!f) return; v=v.trim(); if(v) f.project=v; else delete f.project; f.updated=Date.now(); saveFigures(); renderFig(); }
+function figProjMany(ids){ ids=ids.filter(id=>figById(id)); if(!ids.length) return;
+  const ps=figProjects(), v=prompt(`고른 figure ${ids.length}개를 넣을 프로젝트 이름${ps.length?`\n(지금 있는 것: ${ps.join(', ')})`:''}\n비우면 미분류`,_figProj&&_figProj!=='__none'?_figProj:'');
+  if(v===null) return; ids.forEach(id=>{ const f=figById(id); if(v.trim()) f.project=v.trim(); else delete f.project; }); _figPick.clear(); saveFigures(); renderFig(); toast(v.trim()?`「${v.trim()}」에 넣었어요`:'미분류로 뺐어요'); }
 function figClose(){ _figEdit=null; _figSel.clear(); renderFig(); }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&_figEdit&&document.getElementById('figModal')&&!document.querySelector('.pet-pop')){ figClose(); } });
 function figPickOne(id,on){ on?_figPick.add(id):_figPick.delete(id); renderFig(); }
-function figPickAll(on){ _figPick=new Set(on?figures.map(f=>f.id):[]); renderFig(); }
+function figPickAll(on){ _figPick=new Set(on?figures.filter(figInProj).map(f=>f.id):[]); renderFig(); }   // 지금 보이는(고른 프로젝트) 것만
 function figSetName(id,v){ const f=figById(id); if(!f) return; v=v.trim(); if(v){ f.name=v; f._nameEdited=true; } else { delete f._nameEdited; } figTouch(f); renderFig(); }
 function figSetTitle(id,v){ const f=figById(id); if(!f) return; v=v.trim(); if(v){ f.title=v; f._titleEdited=true; } else { delete f._titleEdited; } figTouch(f); renderFig(); }
 function figSet(id,k,v){ const f=figById(id); if(!f) return; f[k]=v; figTouch(f); renderFig(); }
@@ -10204,6 +10224,7 @@ function figEditor(f){
       <textarea class="fg-memo" rows="6" placeholder="예: 3×10⁴ cells/well, CM 1.5 ml" onchange="figSet('${f.id}','memo',this.value)">${esc(f.memo||'')}</textarea></div>`;
   return `<div class="fg-ehd"><button class="btn btn-out" onclick="figClose()">${ic('x','ic-sm')}닫기</button>
     <label class="fg-name">이름<input value="${esc(f.name||'')}" onchange="figSetName('${f.id}',this.value)"></label>
+    <label class="fg-proj">프로젝트<input list="figProjList" value="${esc(f.project||'')}" placeholder="미분류" onchange="figSetProject('${f.id}',this.value)"><datalist id="figProjList">${figProjects().map(p=>`<option value="${esc(p)}">`).join('')}</datalist></label>
     <span class="fg-saved" title="고칠 때마다 계정에 저장돼요">${ic('check','ic-sm')}자동 저장</span>
     <span class="fg-eacts"><button class="btn btn-out" onclick="figCopy('${f.id}')">이미지 복사</button><button class="btn btn-out" onclick="figPng('${f.id}')">PNG</button><button class="btn btn-pri" onclick="figPpt(['${f.id}'])">PPT</button></span></div>
   <div class="fg-row2 fg-ttl"><label class="fg-f">제목<input value="${esc(f.title||'')}" placeholder="비우면 라인 이름" onchange="figSetTitle('${f.id}',this.value)"></label>
