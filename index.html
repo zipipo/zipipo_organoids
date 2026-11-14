@@ -1122,6 +1122,10 @@ body[data-tab="fig"] .pane[data-pane="fig"]{display:block;animation:paneIn .28s 
 .note-exhd{font-size:.74rem;font-weight:700;color:#4B3F86;margin:4px 0 2px;}
 .note-exr{display:flex;align-items:center;gap:8px;padding:5px 4px;border-bottom:1px solid #F1F5F9;font-size:.78rem;flex-wrap:wrap;background:rgba(124,111,176,.05);}
 .note-exr input{width:auto;flex:none;} .note-exr .d{color:var(--sub);width:78px;flex:none;} .note-exr b{flex:none;} .note-exr .t{flex:1;min-width:60px;color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;} .note-exr .ok{font-size:.68rem;color:#16A34A;font-weight:700;}
+.ex-past>.link-btn{display:inline-flex;align-items:center;gap:4px;font-size:.76rem;font-weight:600;color:#4B3F86;}
+.ex-plist{margin-top:6px;border:1px solid var(--bd2);border-radius:10px;padding:6px;display:flex;flex-direction:column;gap:2px;max-height:240px;overflow-y:auto;background:var(--hov);}
+.ex-plist input{height:32px;margin-bottom:4px;} .ex-pi{display:grid;grid-template-columns:40px auto 1fr;gap:8px;align-items:baseline;text-align:left;border:none;background:none;font:inherit;padding:6px 8px;border-radius:7px;cursor:pointer;color:var(--tx);}
+.ex-pi:hover{background:var(--sur);} .ex-pi span{font-size:.7rem;color:var(--mut);} .ex-pi b{font-size:.8rem;white-space:nowrap;} .ex-pi small{font-size:.72rem;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
 .ex-badge{background:#EFEBFA;color:#4B3F86;font-weight:700;} .ex-row td{background:rgba(124,111,176,.04);}
 .ex-box{width:min(560px,94vw);} .ex-body{display:flex;flex-direction:column;gap:12px;}
 .ex-row{display:flex;gap:10px;} .ex-f{display:flex;flex-direction:column;gap:4px;margin:0;font-size:.74rem;color:var(--sub);flex:1;min-width:0;} .ex-f small{color:var(--mut);} .ex-date{flex:none;width:150px;}
@@ -10532,38 +10536,51 @@ function expKeysFor(name){
 }
 function expVals(k){ const s=new Set(); exps.forEach(e=>(e.fields||[]).forEach(f=>{ if(f.k===k&&f.v) s.add(f.v); })); return [...s].slice(-30).reverse(); }
 const expLineNames=e=>(e.lineIds||[]).map(id=>{ const l=lineById(id); return l?`${l.patientId} ${l.type}`:''; }).filter(Boolean);
-const expShort=e=>(e.fields||[]).filter(f=>f.v).slice(0,2).map(f=>f.v).join(' · ');
+const expShort=e=>{ const fv=(e.fields||[]).filter(f=>f.v).slice(0,2).map(f=>f.v).join(' · '); return fv||String(e.memo||'').split('\n').map(t=>t.trim()).filter(Boolean)[0]||''; };   // 칸이 없으면 내용 첫 줄
 
 // ── 입력 창 ──
 let _expD=null;   // 고치는 중인 사본
 function expOpen(id,date,lineId){
   const e=id&&expById(id);
   _expD=e?JSON.parse(JSON.stringify(e)):{id:'',date:date||ymdLocal(new Date()),name:'',lineIds:lineId?[lineId]:[],fields:[],memo:''};
+  // 지금은 칸 없이 자유롭게 쓰는 방식: 예전에 칸으로 적은 값은 메모 앞줄 「칸: 값」으로 옮김
+  if((_expD.fields||[]).some(f=>f.v)) _expD.memo=_expD.fields.filter(f=>f.v).map(f=>f.k+': '+f.v).join('\n')+(_expD.memo?'\n'+_expD.memo:''); _expD.fields=[]; _expPast=false;
   let m=document.getElementById('expModal');
   if(!m){ m=document.createElement('div'); m.id='expModal'; m.className='modal open'; m.onclick=ev=>{ if(ev.target===m) expClose(); }; m.innerHTML='<div class="mbox ex-box"></div>'; document.body.appendChild(m); }
   m.classList.add('open'); expRender();
   setTimeout(()=>{ const n=document.getElementById('exName'); if(n&&!_expD.name) n.focus(); },30);
 }
 function expClose(){ const m=document.getElementById('expModal'); if(m) m.remove(); _expD=null; }
+let _expPast=false, _expQ='';
 function expRender(){
   const m=document.getElementById('expModal'); if(!m||!_expD) return; const d=_expD;
   const used=new Set(d.lineIds);
-  const keys=[...new Set(d.fields.map(f=>f.k))];
   m.querySelector('.ex-box').innerHTML=`<h2>${d.id?'실험 기록 고치기':'실험 기록 추가'}</h2>
     <div class="mscroll ex-body">
       <div class="ex-row"><label class="ex-f ex-date">날짜<input type="date" value="${d.date}" onchange="_expD.date=this.value"></label>
-        <label class="ex-f">실험 이름<input id="exName" list="exNameList" value="${esc(d.name)}" placeholder="예: Aliquot, qPCR" onchange="expSetName(this.value)" onkeydown="if(event.key==='Enter')this.blur()"></label></div>
-      <datalist id="exNameList">${expNames().map(n=>`<option value="${esc(n)}">`).join('')}</datalist>
+        <label class="ex-f">실험 이름<input id="exName" value="${esc(d.name)}" placeholder="예: Aliquot, qPCR" oninput="_expD.name=this.value.trim()"></label></div>
+      <div class="ex-past"><button class="link-btn" onclick="_expPast=!_expPast;expRender()">${ic(_expPast?'down':'right','ic-sm')}지난 기록 불러오기</button>${_expPast?expPastHtml():''}</div>
       <div class="ex-f"><span>라인 <small>(선택)</small></span>
         <div class="fg-chips">${d.lineIds.map(id=>{ const l=lineById(id); return l?`<span class="fg-chip"><button>${esc(lineTag(l))}</button><button class="x" onclick="expLineDel('${id}')">×</button></span>`:''; }).join('')}
           <select class="fg-addsel" onchange="expLineAdd(this.value)">${figLineOptsHtml('',used,'<option value="">+ 라인</option>')}</select></div></div>
-      ${d.fields.length?`<div class="ex-fields">${d.fields.map((f,i)=>`<label class="ex-fl"><input class="ex-k" value="${esc(f.k)}" onchange="_expD.fields[${i}].k=this.value.trim()" title="칸 이름"><input list="exV_${i}" value="${esc(f.v)}" onchange="_expD.fields[${i}].v=this.value.trim()"><datalist id="exV_${i}">${expVals(f.k).map(v=>`<option value="${esc(v)}">`).join('')}</datalist><button class="tbl-btn" onclick="expFieldDel(${i})" title="이 칸 빼기">${ic('x','ic-sm')}</button></label>`).join('')}</div>`:''}
-      <button class="link-btn ex-addf" onclick="expFieldAdd()">+ 칸 추가</button>
-      <label class="ex-f">메모<textarea rows="4" placeholder="자유롭게 (엔터로 줄바꿈)" onchange="_expD.memo=this.value">${esc(d.memo||'')}</textarea></label>
+      <label class="ex-f">내용<textarea id="exMemo" rows="8" placeholder="자유롭게 (엔터로 줄바꿈)&#10;예: Y-27632 10 mM, 50 µL × 20개, Lot A123, -20℃ 2번 칸" oninput="_expD.memo=this.value">${esc(d.memo||'')}</textarea></label>
     </div>
     <div class="mfoot ex-foot">${d.id?`<button class="btn btn-out ex-del" onclick="expDel('${d.id}')">${ic('trash','ic-sm')}삭제</button>`:''}
       <button class="btn btn-out" onclick="expClose()">닫기</button><button class="btn btn-pri" onclick="expSave()">저장</button></div>`;
+  const q=document.getElementById('exPastQ'); if(q&&_expPast&&document.activeElement!==q&&_expQ) { q.focus(); q.setSelectionRange(q.value.length,q.value.length); }
 }
+// 지난 기록: 최근 것부터, 이름 · 내용으로 찾기. 누르면 이름 · 내용(· 라인)을 그대로 가져옴 (날짜는 지금 고른 날)
+function expPastHtml(){
+  const q=_expQ.trim().toLowerCase(), body=e=>[(e.fields||[]).filter(f=>f.v).map(f=>f.k+': '+f.v).join('\n'),e.memo||''].filter(Boolean).join('\n');
+  const ls=exps.filter(e=>e.id!==_expD.id).filter(e=>!q||(e.name+' '+body(e)).toLowerCase().includes(q)).sort((a,b)=>b.date.localeCompare(a.date)||(b.updated||0)-(a.updated||0)).slice(0,30);
+  return `<div class="ex-plist"><input id="exPastQ" placeholder="이름 · 내용으로 찾기" value="${esc(_expQ)}" oninput="_expQ=this.value;expRender()">
+    ${ls.map(e=>`<button class="ex-pi" onclick="expUsePast('${e.id}')"><span>${e.date.slice(5).replace('-','/')}</span><b>${esc(e.name)}</b><small>${esc(body(e).replace(/\n/g,' · ').slice(0,80))}</small></button>`).join('')||'<div class="nil" style="padding:6px;">지난 기록이 없어요</div>'}</div>`;
+}
+function expUsePast(id){ const e=expById(id); if(!e) return; const d=_expD;
+  if((d.name||d.memo.trim())&&!confirm('지금 쓴 이름 · 내용을 지난 기록으로 바꿀까요?')) return;
+  d.name=e.name; d.memo=[(e.fields||[]).filter(f=>f.v).map(f=>f.k+': '+f.v).join('\n'),e.memo||''].filter(Boolean).join('\n');
+  if(!d.lineIds.length) d.lineIds=(e.lineIds||[]).slice();
+  _expPast=false; _expQ=''; expRender(); const t=document.getElementById('exMemo'); if(t){ t.focus(); t.setSelectionRange(t.value.length,t.value.length); } }
 // 이름을 바꾸면 그 실험 칸을 깔아 줌 (이미 적은 값은 남김)
 function expSetName(v){ const d=_expD; d.name=v.trim(); const ks=expKeysFor(d.name);
   const filled=d.fields.filter(f=>f.v); const out=ks.map(k=>({k,v:(filled.find(f=>f.k===k)||{}).v||''}));
