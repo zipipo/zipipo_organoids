@@ -10019,7 +10019,7 @@ function figEditor(f){
   let body='';
   if(_figTab==='sched') body=figSchedEditor(f);
   else if(_figTab.startsWith('plate:')) body=figPlateEditor(f,+_figTab.split(':')[1]);
-  else body=`<div class="fg-part"><div class="fg-ph"><b>메모</b><small>Figure 맨 아래에 들어가요 (cell 수 등)</small></div>
+  else body=(!f.sched&&!f.plate?`<div class="fg-addparts"><button class="fg-addpart" onclick="figAddSched('${f.id}');figSetTab('sched')">${ic('timeline')}<b>+ Experiment Schedule</b><small>기록을 골라 날짜 축 위에</small></button><button class="fg-addpart" onclick="figAddPlateTab('${f.id}')">${ic('dish')}<b>+ Plate map</b><small>well마다 라인 · 조건 칠하기</small></button></div>`:'')+`<div class="fg-part"><div class="fg-ph"><b>메모</b><small>Figure 맨 아래에 들어가요 (cell 수 등)</small></div>
       <textarea class="fg-memo" rows="6" placeholder="예: 3×10⁴ cells/well, CM 1.5 ml" onchange="figSet('${f.id}','memo',this.value)">${esc(f.memo||'')}</textarea></div>`;
   return `<div class="fg-ehd"><button class="btn btn-out" onclick="figClose()">${ic('x','ic-sm')}닫기</button>
     <label class="fg-name">이름<input value="${esc(f.name||'')}" onchange="figSetName('${f.id}',this.value)"></label>
