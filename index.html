@@ -881,6 +881,7 @@ body[data-tab="fig"] .pane[data-pane="fig"]{display:block;animation:paneIn .28s 
 .fg-rcg label{display:flex;align-items:center;gap:3px;margin:0;font-size:.68rem;color:var(--mut);} .fg-rcg input{width:74px;height:26px;font-size:.72rem;}
 .fg-fdate{flex:none;width:150px;}
 .fg-plnote{height:30px;font-size:.76rem;margin-top:-1px;}
+.fg-itnote{height:26px;font-size:.72rem;margin:-2px 0 4px 44px;width:calc(100% - 44px);}
 .fg-lim{font-size:.68rem;color:var(--mut);} .fg-limhint{font-size:.68rem;color:var(--mut);line-height:1.5;}
 
 .fg-bar{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--bd2);font-size:.78rem;color:var(--sub);flex-wrap:wrap;}
@@ -9605,6 +9606,13 @@ function figNormAll(){ let ch=false; figures.forEach(f=>{ if(f.kind!=='fig'){ fi
 
 // ══ 그리기 ══
 // Experiment Schedule: 줄(라인)마다 한 줄, 날짜 축은 모든 줄이 같은 비율. 이름표가 길면 두 줄로, 붙으면 위아래 번갈아, 그래도 모자라면 축을 길게
+// 항목의 P · organoid 기준 d: 기록에서 온 거면 그 기록 값(Split은 P5→P6), 직접 넣은 거면 그 줄 라인의 그날 값
+function figItemPD(t,it){
+  const lg=it.logId&&logs.find(l=>l.id===it.logId);
+  if(lg){ const p=parseP(lg.passage), up=isPassageUp(lg.action); return [`P${p}${up?'→P'+(p+1):''}`,lg.dayInfo||''].filter(Boolean).join(' · '); }
+  const ln=lineById(t.lineId); if(!ln) return '';
+  const at=figLineAt(ln,it.date); return [`P${at.p}`,at.d].filter(Boolean).join(' · ');
+}
 function figSchedLayout(sc){
   const ctx=figMeas(), F=figFont(), tracks=(sc.tracks||[]).map(t=>({t,items:(t.items||[]).slice().sort((a,b)=>a.date.localeCompare(b.date))})).filter(x=>x.items.length);
   const all=tracks.flatMap(x=>x.items.map(i=>i.date)).sort();
@@ -9615,8 +9623,13 @@ function figSchedLayout(sc){
     // 같은 날 항목은 한 눈금에 이름표를 쌓음
     const gs=[]; T.items.forEach(it=>{ const g=gs[gs.length-1]; if(g&&g.date===it.date) g.items.push(it); else gs.push({date:it.date,items:[it]}); });
     ctx.font=`700 ${PILL_FS}px ${F}`;
-    gs.forEach(g=>{ g.pills=g.items.map(it=>{ const ls=figWrap(ctx,figSp(it.label),PILL_MAXW,2); const w=Math.max(...ls.map(l=>ctx.measureText(l).width))+30; return {it,ls,w,h:ls.length*LINE_H+16}; });
-      g.w=Math.max(...g.pills.map(p=>p.w),110); g.h=g.pills.reduce((s,p)=>s+p.h,0)+(g.pills.length-1)*8; g.d=day(g.date); });
+    gs.forEach(g=>{ ctx.font=`700 ${PILL_FS}px ${F}`; g.pills=g.items.map(it=>{ const ls=figWrap(ctx,figSp(it.label),PILL_MAXW,2); const w=Math.max(...ls.map(l=>ctx.measureText(l).width))+30; return {it,ls,w,h:ls.length*LINE_H+16}; });
+      g.w=Math.max(...g.pills.map(p=>p.w),110); g.h=g.pills.reduce((s,p)=>s+p.h,0)+(g.pills.length-1)*8; g.d=day(g.date);
+      // 눈금 아래: 실험 기준 Day(크게) · P와 organoid 기준 d(작게) · 날짜 · 짧은 메모
+      g.pd=sc.showPD===false?'':figItemPD(T.t,g.items[0]);
+      ctx.font=`500 18px ${F}`; const memo=g.items.map(i=>(i.note||'').trim()).filter(Boolean).join(' · ');
+      g.notes=memo?figWrap(ctx,figSp(memo),240,3):[];
+      g.w=Math.max(g.w,...g.notes.map(l=>ctx.measureText(l).width+16),g.pd?figMeasure(g.pd,17,600)+16:0); });
     T.gs=gs;
     const ln=lineById(T.t.lineId); T.name=figSp(T.t.label||(ln?lineTag(ln):''));
   });
@@ -9641,7 +9654,8 @@ function figSchedLayout(sc){
   const padL=Math.max(70,...tracks.map(T=>T.gs[0]?T.gs[0].w/2+20-T.gs[0].x:0)), padR=Math.max(70,...tracks.map(T=>{ const g=T.gs[T.gs.length-1]; return g?g.w/2+20-(axW-g.x):0; }));
   tracks.forEach(T=>{
     const h0=Math.max(0,...T.gs.filter((g,i)=>T.lv[i]===0).map(g=>g.h)), h1=Math.max(0,...T.gs.filter((g,i)=>T.lv[i]===1).map(g=>g.h));
-    T.top=h0+(h1?h1+14:0)+40; T.h0=h0; T.bot=36+(sc.showDate===false?0:30)+18;
+    const nMax=Math.max(0,...T.gs.map(g=>g.notes.length)), anyPD=T.gs.some(g=>g.pd);
+    T.top=h0+(h1?h1+14:0)+40; T.h0=h0; T.bot=36+(anyPD?24:0)+(sc.showDate===false?0:28)+(nMax?nMax*23+6:0)+18;
     T.H=Math.max(T.top+T.bot,(T.nl||[]).length*32+20);
   });
   const W=LW+padL+axW+padR, H=tracks.reduce((s,T)=>s+T.H,0)+(tracks.length>1?(tracks.length-1)*24:0);
@@ -9734,7 +9748,10 @@ function figDrawSched(D,L,ox,oy,sc){
         D.rrect(x-pl.w/2,py,pl.w,pl.h,Math.min(pl.h/2,22),{fill:figMix(c,.82),stroke:c,width:2});
         pl.ls.forEach((l,li)=>D.text(l,x,py+8+15+li*30+1,{size:24,weight:700,color:figDark(c),align:'center',base:'middle'})); py+=pl.h+8; });
       D.text(`Day ${L.day(g.date)}`,x,ay+th+8,{size:26,weight:800,align:'center'});
-      if(sc.showDate!==false) D.text(g.date.slice(2).replace(/-/g,'.'),x,ay+th+42,{size:19,weight:500,color:'#8A9099',align:'center'});
+      let yy=ay+th+42;
+      if(g.pd){ D.text(g.pd,x,yy,{size:17,weight:600,color:'#6B727B',align:'center'}); yy+=24; }
+      if(sc.showDate!==false){ D.text(g.date.slice(2).replace(/-/g,'.'),x,yy,{size:19,weight:500,color:'#8A9099',align:'center'}); yy+=28; }
+      g.notes.forEach((l,li)=>D.text(l,x,yy+6+li*23,{size:18,weight:500,color:'#3A3F45',align:'center'}));
     });
     y+=T.H+24;
   });
@@ -9951,7 +9968,8 @@ function figSchedEditor(f){
   const dates=[...new Set(tracks.flatMap(t=>(t.items||[]).map(i=>i.date)))].sort();
   return `<div class="fg-part"><div class="fg-ph"><b>Experiment Schedule</b><button class="link-btn fg-drop" onclick="figDropPart('${f.id}','sched')">빼기</button></div>
     <div class="fg-row2"><label class="fg-f">Day 0<select onchange="figSchedSet('${f.id}','zero',this.value)">${dates.map(d=>`<option${d===(sc.zero||dates[0])?' selected':''}>${d}</option>`).join('')||'<option>-</option>'}</select></label>
-      <label class="fg-ck"><input type="checkbox" ${sc.showDate!==false?'checked':''} onchange="figSchedSet('${f.id}','showDate',this.checked)"> 날짜도 표시</label></div>
+      <label class="fg-ck"><input type="checkbox" ${sc.showDate!==false?'checked':''} onchange="figSchedSet('${f.id}','showDate',this.checked)"> 날짜</label>
+      <label class="fg-ck" title="눈금 아래 작게: P와 organoid 기준 day (위의 큰 Day는 실험 기준)"><input type="checkbox" ${sc.showPD!==false?'checked':''} onchange="figSchedSet('${f.id}','showPD',this.checked)"> P · organoid d</label></div>
     ${tracks.map((t,ti)=>figTrackEditor(f,t,ti,tracks.length)).join('')}
     <button class="tbl-btn" onclick="figTrackAdd('${f.id}')">+ 줄 추가 (같은 실험의 다른 라인)</button> <small class="fg-lim">${tracks.length}/${figMaxTracks(f)}줄</small></div>`;
 }
@@ -9970,7 +9988,8 @@ function figTrackEditor(f,t,ti,n){
     <div class="fg-add"><input type="date" id="figAddDate_${t.id}" value="${ymdLocal(new Date())}"><input id="figAddLab_${t.id}" placeholder="직접 넣기 (예: Drug 처리)"><button class="btn btn-out" onclick="figTrackAddItem(${T})">추가</button></div>
     ${(t.items||[]).length?`<div class="fg-items">${t.items.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(it=>`<div class="fg-it"><span>${it.date.slice(5).replace('-','/')}</span>
       <button class="fg-dot" style="background:${it.color}" onclick="figTlColorPick(this,${T},'${it.id}')" title="색 고르기"></button>
-      <input value="${esc(it.label)}" onchange="figItemSet(${T},'${it.id}',this.value)"><button class="tbl-btn" onclick="figItemDel(${T},'${it.id}')">${ic('x','ic-sm')}</button></div>`).join('')}</div>`:''}
+      <input value="${esc(it.label)}" onchange="figItemSet(${T},'${it.id}',this.value)"><button class="tbl-btn" onclick="figItemDel(${T},'${it.id}')">${ic('x','ic-sm')}</button></div>
+      <input class="fg-itnote" value="${esc(it.note||'')}" placeholder="짧은 메모 (선택 · 예: 3×10⁴ cells/well)" onchange="figItemNote(${T},'${it.id}',this.value)">`).join('')}</div>`:''}
   </div>`;
 }
 const figTrack=(f,tid)=>f&&f.sched&&(f.sched.tracks||[]).find(t=>t.id===tid);
@@ -9994,6 +10013,7 @@ function figTrackAll(id,tid,on){
 function figTrackAddItem(id,tid){ const f=figById(id), t=figTrack(f,tid); if(!t) return; const d=document.getElementById('figAddDate_'+tid).value, lab=document.getElementById('figAddLab_'+tid).value.trim(); if(!d||!lab) return toast('날짜와 이름을 적어 주세요.',{warn:true});
   const ac=figActColor(lab); t.items=t.items||[]; t.items.push({id:uid(),date:d,label:lab,color:ac===FIG_ACT['기타']?'#E07A5F':ac}); figTouch(f); renderFig(); }
 function figItemSet(id,tid,iid,v){ const f=figById(id), t=figTrack(f,tid), it=t&&t.items.find(x=>x.id===iid); if(!it) return; it.label=v; figTouch(f); renderFig(); }
+function figItemNote(id,tid,iid,v){ const f=figById(id), t=figTrack(f,tid), it=t&&t.items.find(x=>x.id===iid); if(!it) return; it.note=v.trim(); figTouch(f); renderFig(); }
 function figItemDel(id,tid,iid){ const f=figById(id), t=figTrack(f,tid); if(!t) return; t.items=t.items.filter(x=>x.id!==iid); figTouch(f); renderFig(); }
 
 // Plate map 편집
