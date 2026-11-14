@@ -9618,10 +9618,11 @@ function figNormAll(){ let ch=false; figures.forEach(f=>{ if(f.kind!=='fig'){ fi
 // 항목의 P · organoid 기준 d: 기록에서 온 거면 그 기록 값(Split은 P5→P6), 직접 넣은 거면 그 줄 라인의 그날 값
 function figItemPD(t,it){
   const lg=it.logId&&logs.find(l=>l.id===it.logId);
-  // 기록에 적힌 P · d는 그 일을 하기 직전 값 → Split은 한 뒤(P+1 · d0), Reseeding은 d를 이어 붙인 뒤(d6+0)로 보여 줌
+  // 기록에 적힌 P · d는 그 일을 하기 직전 값 → Split · Reseeding은 하기 전 → 한 뒤 둘 다 (P3 · d6 → P4 · d0)
   if(lg){ const p=parseP(lg.passage);
-    if(isPassageUp(lg.action)) return `P${p+1} · d0`;
-    if(lg.action==='Reseeding') return [`P${p}`,lg.dayInfo?lg.dayInfo+'+0':''].filter(Boolean).join(' · ');
+    const before=[`P${p}`,lg.dayInfo||''].filter(Boolean).join(' · ');
+    if(isPassageUp(lg.action)) return `${before} → P${p+1} · d0`;   // 하기 전 → 한 뒤
+    if(lg.action==='Reseeding'&&lg.dayInfo) return `${before} → ${lg.dayInfo}+0`;
     return [`P${p}`,lg.dayInfo||''].filter(Boolean).join(' · '); }
   const ln=lineById(t.lineId); if(!ln) return '';
   const at=figLineAt(ln,it.date); return [`P${at.p}`,at.d].filter(Boolean).join(' · ');
