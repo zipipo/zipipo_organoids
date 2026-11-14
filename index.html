@@ -883,6 +883,8 @@ body[data-tab="fig"] .pane[data-pane="fig"]{display:block;animation:paneIn .28s 
 /* 편집 칸: 번호 붙은 단계 · 일정 줄 탭 */
 .fg-step{display:flex;align-items:center;gap:7px;min-width:0;} .fg-step>i{width:19px;height:19px;border-radius:50%;background:var(--tx);color:var(--sur);font-style:normal;font-size:.66rem;font-weight:700;display:grid;place-items:center;flex:none;}
 .fg-step>b{font-size:.82rem;} .fg-step>small{font-size:.68rem;color:var(--mut);}
+.fg-selbar{position:sticky;top:-12px;z-index:2;display:flex;align-items:center;gap:5px;flex-wrap:wrap;padding:7px 10px;border-radius:10px;background:var(--hov);font-size:.72rem;color:var(--mut);}
+.fg-selbar>span{margin-right:auto;} .fg-chip.on{border-color:#2563EB;box-shadow:0 0 0 2px #BFD3FE;background:#EFF4FF;} .fg-cd.on{border-radius:8px;background:#EFF4FF;box-shadow:0 0 0 2px #BFD3FE;} .fg-cd.on .fg-apply{color:#2563EB;border-color:#2563EB;} .fg-selbar.on{background:#EFF4FF;color:#2563EB;box-shadow:0 0 0 1px #BFD3FE;} .fg-selbar b{font-weight:700;}
 .fg-hint{margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;} .fg-hint.on{color:#2563EB;font-weight:650;}
 .fg-ph .fg-ck{margin:0 0 0 6px;font-size:.7rem;color:var(--sub);} .fg-ph .fg-ck:first-of-type{margin-left:auto;} .fg-ph .fg-ck~.fg-drop{margin-left:8px;}
 .fg-stabs{display:flex;gap:4px;flex-wrap:wrap;}
@@ -9717,7 +9719,7 @@ function figSchedLayout(sc){
     T.H=Math.max(T.top+T.bot,(T.nl||[]).length*32+20);
   });
   const W=LW+padL+axW+padR, H=tracks.reduce((s,T)=>s+T.H,0)+(tracks.length>1?(tracks.length-1)*24:0);
-  return {tracks,W:Math.max(W,600),H,LW,padL,mode,empty:!tracks.length};
+  return {tracks,W:Math.max(W,600),H:tracks.length?H:70,LW,padL,mode,empty:!tracks.length};   // 빈 일정도 안내 글 칸만큼 자리 (plate와 겹치지 않게)
 }
 // Plate map: plate 여러 장 (한 줄에 2장), 행 · 열 이름, 쓴 well 수
 // 가로 · 세로 조건: 행 글자(A) · 열 번호(1)를 골라 조건을 누르면 그 줄 전체 조건 (pl.rowC · pl.colC), 줄 이름도 그 조건 이름
@@ -9948,11 +9950,14 @@ function figNew(what){
   if(what==='sched') figAddSched(f.id,true); else if(what==='plate') figAddPlate(f.id,true);
   figTouch(f); _figEdit=f.id; _figSel.clear(); renderFig();
 }
-function figAddSched(id,quiet){ const f=figById(id); if(!f) return; const sel=bulkLines.filter(x=>lineById(x));
+function figAddSched(id,quiet){ const f=figById(id); if(!f) return; const sel=figKnownLines(f);
   if(f.plate&&f.plate.plates.length>FIG_MAX.platesWith) return toast(`plate가 ${f.plate.plates.length}장이라 일정까지 넣으면 한 장에 너무 작아져요. plate를 ${FIG_MAX.platesWith}장까지 줄이거나 Figure를 따로 만들어 주세요.`,{warn:true});
   f.sched={zero:'',showDate:true,tracks:(sel.length?sel.slice(0,figMaxTracks(f)):['']).map(l=>({id:uid(),lineId:l,label:'',items:[]}))};
   if(!quiet){ figTouch(f); renderFig(); } }
-function figAddPlate(id,quiet){ const f=figById(id); if(!f) return; const sel=bulkLines.filter(x=>lineById(x));
+// 라인은 한 번만 정하게: Figure에 이미 들어간 라인(일정 줄 · plate)을 먼저, 없으면 메인에서 고른 라인
+function figKnownLines(f){ const a=[]; const add=x=>{ if(x&&lineById(x)&&!a.includes(x)) a.push(x); };
+  if(f.sched) (f.sched.tracks||[]).forEach(t=>add(t.lineId)); if(f.plate) (f.plate.lines||[]).forEach(x=>add(x.id)); if(!a.length) bulkLines.forEach(add); return a; }
+function figAddPlate(id,quiet){ const f=figById(id); if(!f) return; const sel=figKnownLines(f);
   if(f.sched&&(f.sched.tracks||[]).length>FIG_MAX.tracksWith) return toast(`일정이 ${f.sched.tracks.length}줄이라 plate까지 넣으면 한 장에 너무 작아져요. 일정을 ${FIG_MAX.tracksWith}줄까지 줄이거나 Figure를 따로 만들어 주세요.`,{warn:true});
   f.plate={conds:[{id:uid(),name:'Control',color:FIG_COND[8]}],lines:sel.slice(0,FIG_RING.length).map((x,i)=>({id:x,color:FIG_RING[i]})),plates:[{id:uid(),name:'',format:'24',wells:{}}]};
   if(sel.length){ const m=String(latestPlate(lineById(sel[0]))||'').match(/(\d+)\s*well/); if(m&&FIG_FORMATS[m[1]]) f.plate.plates[0].format=m[1]; }
@@ -10038,7 +10043,7 @@ function figLineOptsHtml(sel,exclude,first){
 // 편집 창: 위에 탭(Experiment Schedule · Plate 1 · Plate 2 · 메모) → 왼쪽엔 고른 것 하나만. 미리보기에서 누른 곳으로도 탭이 바뀜
 let _figTab='';
 function figTabs(f){ const t=[]; if(f.sched) t.push(['sched','Experiment Schedule']); if(f.plate) f.plate.plates.forEach((p,i)=>t.push(['plate:'+i,p.name||`Plate ${i+1}`])); t.push(['memo','메모']); return t; }
-function figSetTab(k){ if(_figTab!==k){ _figTab=k; _figSel.clear(); _figAnchor=null; _figAxis=null; } renderFig(); }
+function figSetTab(k){ if(_figTab!==k){ _figTab=k; _figSel.clear(); _figAnchor=null; _figAxis=null; if(!k.startsWith('plate:')) _figBrush=null; } renderFig(); }
 function figEditor(f){
   const tabs=figTabs(f); if(!tabs.some(t=>t[0]===_figTab)) _figTab=tabs[0][0];
   const canSched=!f.sched&&!(f.plate&&f.plate.plates.length>FIG_MAX.platesWith), canPlate=!f.plate||f.plate.plates.length<figMaxPlates(f);
@@ -10135,9 +10140,18 @@ function figItemNote(id,tid,iid,v){ const f=figById(id), t=figTrack(f,tid), it=t
 function figItemDel(id,tid,iid){ const f=figById(id), t=figTrack(f,tid); if(!t) return; t.items=t.items.filter(x=>x.id!==iid); figTouch(f); renderFig(); }
 
 // Plate map 편집
-// Plate 하나 편집: 위에서 아래로 ① plate ② 고르기 ③ 조건 ④ 라인 ⑤ 글자. 라인 · 조건 목록은 모든 plate가 같이 씀
+// Plate 하나 편집: 실제 작업 순서대로 ① plate 규격 ② 라인(어느 well에 seeding) ③ 조건(처리) ④ 글자. 라인 · 조건 목록은 모든 plate가 같이 씀
+// well 고르기는 단계가 아니라 ②–④ 어디서든 쓰는 것 → 위에 붙어 있는 「고른 칸」 줄 (.fg-selbar)
 // 행 글자(A) · 열 번호(1)를 누르면 「그 줄」을 고른 상태(_figAxis) → 조건 = 가로 · 세로 조건, 글자 = 줄 이름
 let _figAxis=null;   // {pi, kind:'row'|'col', idx:Set}
+// 붓: 고른 칸 없이 라인 · 조건을 누르면 그걸 들고 있다가, 그림에서 끌거나 A / 1을 누르는 대로 바로 칠함. 같은 걸 또 누르면 내려놓음
+let _figBrush=null;  // {k:'l'|'c', v:id}
+function figPick(id,k,v){
+  if(_figSel.size||_figAxis){ figAssign(id,k,v); return; }
+  _figBrush=_figBrush&&_figBrush.k===k&&_figBrush.v===v?null:{k,v}; renderFig();
+}
+const figBrushOn=(k,v)=>_figBrush&&_figBrush.k===k&&_figBrush.v===v?' on':'';
+function figBrushPaint(f){ if(!_figBrush) return false; figAssign(f.id,_figBrush.k,_figBrush.v); _figSel.clear(); _figAxis=null; renderFig(); return true; }
 function figSelText(pi){
   if(_figAxis&&_figAxis.pi===pi){ const ks=[..._figAxis.idx].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true})); return `${ks.join(' · ')} ${_figAxis.kind==='row'?'행':'열'} 전체`; }
   const n=[..._figSel].filter(k=>k.startsWith(pi+':')).length; return n?`${n}칸`:'';
@@ -10150,17 +10164,18 @@ function figPlateEditor(f,pi){
   return `<div class="fg-part">${step(1,'Plate',`<span class="fg-phacts"><button class="link-btn" onclick="figPlateDup('${f.id}',${pi})">복제</button><button class="link-btn fg-drop" onclick="${plates.length>1?`figPlateDel('${f.id}',${pi})`:`figDropPart('${f.id}','plate')`}">빼기</button></span>`)}
     <div class="fg-pl"><input value="${esc(p.name||'')}" placeholder="Plate ${pi+1}" onchange="figPlateSet('${f.id}',${pi},'name',this.value)">
       <select onchange="figPlateSet('${f.id}',${pi},'format',this.value)">${Object.keys(FIG_FORMATS).map(k=>`<option value="${k}"${k===p.format?' selected':''}>${k} well</option>`).join('')}</select></div>
-    <input class="fg-plnote" value="${esc(p.note||'')}" placeholder="설명 (예: IFNg 10 ng/ml)" onchange="figPlateSet('${f.id}',${pi},'note',this.value)"></div>
-  <div class="fg-part">${step(2,'고르기',`<span class="fg-hint${st?' on':''}">${st||'그림에서 끌기 · A / 1 누르면 그 줄'}</span>`)}
-    <div class="fg-btns"><button class="tbl-btn" onclick="figSelAll('${f.id}',${pi})">전체</button><button class="tbl-btn" onclick="figSelNone()">풀기</button><button class="tbl-btn" onclick="figClearSel('${f.id}')">비우기</button></div></div>
-  <div class="fg-part">${step(3,'조건',`<small>${ax?'누르면 이 줄 조건':'well 안 색'}</small>`)}
-    <div class="fg-conds">${(pm.conds||[]).map(cd=>`<div class="fg-cd"><button class="fg-dot" style="background:${cd.color}" onclick="figCondColorPick(this,'${f.id}','${cd.id}')" title="색"></button>
-      <input value="${esc(cd.name)}" onchange="figCondName('${f.id}','${cd.id}',this.value)"><button class="btn btn-out fg-apply" onclick="figAssign('${f.id}','c','${cd.id}')">칠하기</button><button class="tbl-btn" onclick="figCondDel('${f.id}','${cd.id}')">${ic('x','ic-sm')}</button></div>`).join('')}</div>
-    <div class="fg-add"><input id="figCondNew" placeholder="새 조건 · 여러 개는 쉼표 (0, 1, 10 µM)" onkeydown="if(event.key==='Enter')figCondAdd('${f.id}')"><button class="btn btn-out" onclick="figCondAdd('${f.id}')">추가</button></div></div>
-  <div class="fg-part">${step(4,'라인',`<small>well 테두리</small>`)}
-    <div class="fg-chips">${(pm.lines||[]).map(x=>{ const L=figLn(x,date); return L?`<span class="fg-chip" style="--rc:${x.color}"><button class="rc" onclick="figLineColorPick(this,'${f.id}','${x.id}')" title="색"><i class="ring"></i></button><button onclick="figAssign('${f.id}','l','${x.id}')">${esc(L.tag)}</button><button class="x" onclick="figPlLineDel('${f.id}','${x.id}')" title="빼기">×</button></span>`:''; }).join('')}
+    <input class="fg-plnote" value="${esc(p.note||'')}" placeholder="설명 (예: 3×10⁴ cells/well)" onchange="figPlateSet('${f.id}',${pi},'note',this.value)"></div>
+  <div class="fg-selbar${st||_figBrush?' on':''}"><span>${_figBrush?`<b>${esc(figBrushName(pm,_figBrush))}</b> 붓 · 그림에서 끌면 바로 칠해요`:st?`고른 칸 <b>${st}</b>`:'라인 · 조건을 누르고 그림에서 끌면 칠해져요'}</span>
+    ${_figBrush?`<button class="tbl-btn" onclick="_figBrush=null;renderFig()">내려놓기</button>`:''}
+    <button class="tbl-btn" onclick="figSelAll('${f.id}',${pi})">전체</button>${st?`<button class="tbl-btn" onclick="figSelNone()">풀기</button><button class="tbl-btn" onclick="figClearSel('${f.id}')">비우기</button>`:''}</div>
+  <div class="fg-part">${step(2,'라인',`<small>어느 well에 seeding · 테두리 색</small>`)}
+    <div class="fg-chips">${(pm.lines||[]).map(x=>{ const L=figLn(x,date); return L?`<span class="fg-chip${figBrushOn('l',x.id)}" style="--rc:${x.color}"><button class="rc" onclick="figLineColorPick(this,'${f.id}','${x.id}')" title="색"><i class="ring"></i></button><button onclick="figPick('${f.id}','l','${x.id}')">${esc(L.tag)}</button><button class="x" onclick="figPlLineDel('${f.id}','${x.id}')" title="빼기">×</button></span>`:''; }).join('')}
       <select class="fg-addsel" onchange="figPlLineAdd('${f.id}',this.value)">${figLineOptsHtml('',used,'<option value="">+ 라인</option><option value="__custom">직접 입력</option>')}</select></div></div>
-  <div class="fg-part">${step(5,'글자',`<small>${ax?'이 줄 이름':'well 안 (비우면 조건 이름)'}</small>`)}
+  <div class="fg-part">${step(3,'조건',`<small>${ax?'이 줄 전체 조건':'처리 · well 안 색'}</small>`)}
+    <div class="fg-conds">${(pm.conds||[]).map(cd=>`<div class="fg-cd${figBrushOn('c',cd.id)}"><button class="fg-dot" style="background:${cd.color}" onclick="figCondColorPick(this,'${f.id}','${cd.id}')" title="색"></button>
+      <input value="${esc(cd.name)}" onchange="figCondName('${f.id}','${cd.id}',this.value)"><button class="btn btn-out fg-apply" onclick="figPick('${f.id}','c','${cd.id}')">${figBrushOn('c',cd.id)?'붓 내려놓기':'칠하기'}</button><button class="tbl-btn" onclick="figCondDel('${f.id}','${cd.id}')">${ic('x','ic-sm')}</button></div>`).join('')}</div>
+    <div class="fg-add"><input id="figCondNew" placeholder="새 조건 · 여러 개는 쉼표 (0, 1, 10 µM)" onkeydown="if(event.key==='Enter')figCondAdd('${f.id}')"><button class="btn btn-out" onclick="figCondAdd('${f.id}')">추가</button></div></div>
+  <div class="fg-part">${step(4,'글자',`<small>${ax?'이 줄 이름':'well 안 (비우면 조건 이름)'}</small>`)}
     <div class="fg-add"><input id="figTxt" placeholder="${ax?'예: 10 µM':'예: R1'}" onkeydown="if(event.key==='Enter')figAssign('${f.id}','t',this.value.trim())"><button class="btn btn-out" onclick="figAssign('${f.id}','t',document.getElementById('figTxt').value.trim())">쓰기</button></div></div>`;
 }
 const figWellOf=(f,key,make)=>{ const [pi,wk]=key.split(':'), pl=f.plate&&f.plate.plates[+pi]; if(!pl) return null; pl.wells=pl.wells||{}; if(make&&!pl.wells[wk]) pl.wells[wk]={}; return {pl,wk,w:pl.wells[wk]}; };
@@ -10199,7 +10214,8 @@ function figAssign(id,k,v){
   os.forEach(o=>{ if(v&&!off) o.w[k]=v; else delete o.w[k]; if(!o.w.c&&!o.w.l&&!o.w.t) delete o.pl.wells[o.wk]; });
   figTouch(f); renderFig();
 }
-function figSelNone(){ _figSel.clear(); _figAxis=null; renderFig(); }
+function figSelNone(){ _figSel.clear(); _figAxis=null; _figBrush=null; renderFig(); }
+function figBrushName(pm,b){ if(b.k==='c'){ const c=(pm.conds||[]).find(x=>x.id===b.v); return c?c.name:''; } const x=(pm.lines||[]).find(y=>y.id===b.v), L=x&&figLn(x,ymdLocal(new Date())); return L?L.tag:''; }
 function figClearSel(id){ const f=figById(id); if(!f) return;
   if(_figAxis){ const pl=f.plate&&f.plate.plates[_figAxis.pi]; if(pl){ const row=_figAxis.kind==='row'; [_figAxis.kind+'C',_figAxis.kind+'Lab'].forEach(key=>{ if(pl[key]) _figAxis.idx.forEach(x=>delete pl[key][x]); }); } }
   _figSel.forEach(k=>{ const o=figWellOf(f,k); if(o) delete o.pl.wells[o.wk]; }); figTouch(f); renderFig(); }
@@ -10253,14 +10269,14 @@ function figWirePlate(f,cv){
       if(h.hdr==='row') for(let j=0;j<C;j++) s.add(h.pi+':'+String.fromCharCode(65+h.idx)+(j+1)); else for(let i=0;i<R;i++) s.add(h.pi+':'+String.fromCharCode(65+i)+(h.idx+1));
       const add=(e.shiftKey||e.ctrlKey||e.metaKey)&&_figAxis&&_figAxis.pi===h.pi&&_figAxis.kind===h.hdr, k=h.hdr==='row'?String.fromCharCode(65+h.idx):String(h.idx+1);
       if(add){ _figAxis.idx.add(k); _figSel=new Set([..._figSel,...s]); } else { _figAxis={pi:h.pi,kind:h.hdr,idx:new Set([k])}; _figSel=s; }
-      _figDrag=null; renderFig(); return; }
+      _figDrag=null; if(!figBrushPaint(f)) renderFig(); return; }
     const g=hit(e); if(!g) return; cv.setPointerCapture(e.pointerId); _figAxis=null;
     if(e.shiftKey&&_figAnchor){ _figDrag={from:_figAnchor,base:new Set(_figSel)}; _figSel=new Set([..._figDrag.base,...rect(_figAnchor,g.key)]); }
     else if(e.ctrlKey||e.metaKey){ _figSel.has(g.key)?_figSel.delete(g.key):_figSel.add(g.key); _figAnchor=g.key; _figDrag={from:g.key,base:new Set(_figSel),noMove:true}; }
     else { _figAnchor=g.key; _figDrag={from:g.key,base:new Set(),toggle:_figSel.size===1&&_figSel.has(g.key)}; _figSel=new Set([g.key]); }
     figRedrawSel(f); };
   cv.onpointermove=e=>{ if(!_figDrag||_figDrag.noMove) return; const g=hit(e); if(!g) return; _figSel=new Set([..._figDrag.base,...rect(_figDrag.from,g.key)]); figRedrawSel(f); };
-  cv.onpointerup=e=>{ if(!_figDrag) return; const g=hit(e); if(_figDrag.toggle&&g&&g.key===_figDrag.from) _figSel.clear(); _figDrag=null; renderFig(); };
+  cv.onpointerup=e=>{ if(!_figDrag) return; const g=hit(e); if(_figBrush){ _figDrag=null; figBrushPaint(f); return; } if(_figDrag.toggle&&g&&g.key===_figDrag.from) _figSel.clear(); _figDrag=null; renderFig(); };
 }
 function figRedrawSel(f){ const box=document.getElementById('figPrev'); const old=box&&box.querySelector('canvas'); if(!old) return; const {canvas}=figRender(f,2,true);
   // 처음 그릴 때 걸어 둔 2배 확대를 풀고 그대로 덮어써야 함 (안 풀면 2배로 커져 보임)
