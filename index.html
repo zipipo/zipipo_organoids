@@ -890,13 +890,13 @@ body[data-tab="fig"] .pane[data-pane="fig"]{display:block;animation:paneIn .28s 
 
 .fg-bar{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--bd2);font-size:.78rem;color:var(--sub);flex-wrap:wrap;}
 .fg-all{display:flex;align-items:center;gap:5px;margin:0;cursor:pointer;} .fg-all input,.fg-chk input{width:auto;}
-.fg-bar .btn-pri{margin-left:auto;}
+.fg-bar .btn-pri{margin-left:6px;} .fg-bar .fg-delsel:first-of-type{margin-left:auto;} .fg-delsel{color:var(--due);}
 .fg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;padding:14px;}
 .fg-card{position:relative;border:1px solid var(--bd2);border-radius:10px;background:var(--sur);overflow:hidden;display:flex;flex-direction:column;}
 .fg-card.on{border-color:var(--tx);box-shadow:0 0 0 1px var(--tx);}
 .fg-chk{position:absolute;top:8px;left:8px;margin:0;z-index:1;background:var(--sur);border-radius:5px;padding:2px 4px;}
 .fg-th{cursor:pointer;background:#fff;border-bottom:1px solid var(--bd2);height:150px;display:grid;place-items:center;padding:8px;}
-.fg-th img{max-width:100%;max-height:100%;display:block;}
+.fg-th{overflow:hidden;} .fg-th img{max-width:100%;max-height:134px;object-fit:contain;display:block;}
 .fg-meta{padding:8px 10px 2px;display:flex;flex-direction:column;gap:2px;min-width:0;}
 .fg-meta b{font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;} .fg-meta small{font-size:.68rem;color:var(--mut);}
 .fg-acts{display:flex;gap:4px;padding:6px 8px 9px;flex-wrap:wrap;}
@@ -9922,6 +9922,12 @@ function figAddPlate(id,quiet){ const f=figById(id); if(!f) return; const sel=bu
   if(!quiet){ figTouch(f); renderFig(); } }
 function figDropPart(id,part){ const f=figById(id); if(!f) return; if(!confirm(part==='sched'?'Experiment Schedule을 이 Figure에서 뺄까요?':'Plate map을 이 Figure에서 뺄까요?')) return; f[part]=null; _figSel.clear(); figTouch(f); renderFig(); }
 function figDel(id){ const f=figById(id); if(!f||!confirm(`「${f.name}」을 지울까요?`)) return; figures=figures.filter(x=>x.id!==id); _figPick.delete(id); if(_figEdit===id) _figEdit=null; saveFigures(); renderFig(); }
+function figDelMany(ids,all){
+  ids=ids.filter(id=>figById(id)); if(!ids.length) return;
+  if(!confirm(all?`PPT figure ${ids.length}개를 모두 지울까요? 되돌릴 수 없어요.`:`고른 figure ${ids.length}개를 지울까요? 되돌릴 수 없어요.`)) return;
+  const del=new Set(ids); figures=figures.filter(f=>!del.has(f.id)); ids.forEach(id=>_figPick.delete(id)); if(del.has(_figEdit)) _figEdit=null;
+  saveFigures(); renderFig(); toast(`figure ${ids.length}개를 지웠어요`);
+}
 function figDup(id){ const f=figById(id); if(!f) return; const g=JSON.parse(JSON.stringify(f)); g.id=uid(); g.created=g.updated=Date.now(); g.name=f.name+' (복사)'; g._nameEdited=true; figures.unshift(g); saveFigures(); renderFig(); }
 
 // ── 내보내기 ──
@@ -9954,7 +9960,10 @@ function renderFig(){
   el.innerHTML=`<section class="panel sec"><div class="panel-hd"><span><i class="sec-ic">${ic('slides')}</i>PPT figure</span>
       <span class="panel-act"><button class="btn btn-pri" onclick="figNew()">${ic('plus')}새 Figure</button></span></div>
     <div class="fg-bar">${list.length?`<label class="fg-all"><input type="checkbox" ${pick.length===list.length?'checked':''} onchange="figPickAll(this.checked)"> 전체 선택</label>
-      <span class="fg-n">${pick.length}개 골랐어요 · 고른 것마다 슬라이드 한 장</span><button class="btn btn-pri" ${pick.length?'':'disabled'} onclick="figPpt([..._figPick])">${ic('slides')}고른 것 PPT로</button>`:'<span class="fg-n">Figure 하나에 Experiment Schedule · Plate map · 메모를 같이 넣을 수 있어요. 자동으로 계정에 저장돼서 다른 기기에서도 꺼내 써요.</span>'}</div>
+      <span class="fg-n">${pick.length}개 골랐어요 · 고른 것마다 슬라이드 한 장</span>
+      <button class="btn btn-out fg-delsel" ${pick.length?'':'disabled'} onclick="figDelMany([..._figPick])">${ic('trash','ic-sm')}고른 것 삭제</button>
+      <button class="btn btn-out fg-delsel" onclick="figDelMany(figures.map(f=>f.id),true)">전체 삭제</button>
+      <button class="btn btn-pri" ${pick.length?'':'disabled'} onclick="figPpt([..._figPick])">${ic('slides')}고른 것 PPT로</button>`:'<span class="fg-n">Figure 하나에 Experiment Schedule · Plate map · 메모를 같이 넣을 수 있어요. 자동으로 계정에 저장돼서 다른 기기에서도 꺼내 써요.</span>'}</div>
     <div class="fg-grid">${list.map(x=>`<div class="fg-card${_figPick.has(x.id)?' on':''}">
       <label class="fg-chk"><input type="checkbox" ${_figPick.has(x.id)?'checked':''} onchange="figPickOne('${x.id}',this.checked)"></label>
       <div class="fg-th" onclick="_figEdit='${x.id}';_figSel.clear();renderFig()"><img src="${figThumb(x)}" alt=""></div>
