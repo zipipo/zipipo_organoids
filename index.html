@@ -6365,6 +6365,7 @@ async function pptBuildFromFiles(btn){
   try{
     await pptEnsureLib();
     try{ await document.fonts.load('600 24px Pretendard'); await document.fonts.ready; }catch(e){}
+    await pptResolveFont();
     const {pages,dark}=pptPlanAll();
     if(!pages.length) throw new Error('넣을 사진이 없어요. 배치 창에서 뺀 값이 있는지 확인해 주세요.');
     const used=[], seen=new Set();
@@ -7138,12 +7139,20 @@ function pptEdText(z){
 }
 
 // ── 그리기: 같은 좌표로 PPT 슬라이드와 미리보기(HTML)를 그림 ──
+// PPT 글꼴: 이 컴퓨터에 Pretendard가 깔려 있으면 Pretendard, 없으면 맑은 고딕 (PPT를 열 때 글꼴이 없어서 모양이 바뀌지 않게)
+window.PPT_FONT='Pretendard';
+async function pptResolveFont(){
+  if(window._pptFontChecked) return window.PPT_FONT;
+  let ok=false;
+  try{ const ff=new FontFace('__pretendardLocal','local("Pretendard"), local("Pretendard Regular"), local("Pretendard-Regular"), local("Pretendard Variable")'); await ff.load(); ok=true; }catch(e){ ok=false; }
+  window.PPT_FONT=ok?'Pretendard':'Malgun Gothic'; window._pptFontChecked=true; return window.PPT_FONT;
+}
 // PPT에 들어가는 글자: 파일 이름 때문에 쓴 _ 는 띄어쓰기로 (사진 PPT · PPT figure · LN2 PPT 모두)
 const pptSp=t=>Array.isArray(t)?t.map(x=>Object.assign({},x,{text:String(x.text==null?'':x.text).replace(/_/g,' ')})):String(t==null?'':t).replace(/_/g,' ');
 function pptSlideBackend(slide,data){
   return {
     bg(c){ slide.background={color:c}; },
-    text(t,x,y,w,h,o){ t=pptSp(t); slide.addText(t,Object.assign({x:pptIN(x),y:pptIN(y),w:pptIN(w),h:pptIN(h),fontFace:'Pretendard',margin:0},o)); },
+    text(t,x,y,w,h,o){ t=pptSp(t); slide.addText(t,Object.assign({x:pptIN(x),y:pptIN(y),w:pptIN(w),h:pptIN(h),fontFace:window.PPT_FONT||'Pretendard',margin:0},o)); },
     image(f,x,y,w,h){ slide.addImage({data:data.get(f).dataURL,x:pptIN(x),y:pptIN(y),w:pptIN(w),h:pptIN(h)}); }
   };
 }
@@ -9609,7 +9618,11 @@ function figNormAll(){ let ch=false; figures.forEach(f=>{ if(f.kind!=='fig'){ fi
 // 항목의 P · organoid 기준 d: 기록에서 온 거면 그 기록 값(Split은 P5→P6), 직접 넣은 거면 그 줄 라인의 그날 값
 function figItemPD(t,it){
   const lg=it.logId&&logs.find(l=>l.id===it.logId);
-  if(lg){ const p=parseP(lg.passage), up=isPassageUp(lg.action); return [`P${p}${up?'→P'+(p+1):''}`,lg.dayInfo||''].filter(Boolean).join(' · '); }
+  // 기록에 적힌 P · d는 그 일을 하기 직전 값 → Split은 한 뒤(P+1 · d0), Reseeding은 d를 이어 붙인 뒤(d6+0)로 보여 줌
+  if(lg){ const p=parseP(lg.passage);
+    if(isPassageUp(lg.action)) return `P${p+1} · d0`;
+    if(lg.action==='Reseeding') return [`P${p}`,lg.dayInfo?lg.dayInfo+'+0':''].filter(Boolean).join(' · ');
+    return [`P${p}`,lg.dayInfo||''].filter(Boolean).join(' · '); }
   const ln=lineById(t.lineId); if(!ln) return '';
   const at=figLineAt(ln,it.date); return [`P${at.p}`,at.d].filter(Boolean).join(' · ');
 }
@@ -9719,7 +9732,7 @@ function figPptD(pptx,slide,X0,Y0,k){
     text(t,x,y,o){ o=o||{}; const size=o.size||20, w=figMeasure(t,size,o.weight)*1.12+6, h=size*1.4;
       const bx=o.align==='center'?x-w/2:o.align==='right'?x-w:x, by=o.base==='middle'?y-h/2:o.base==='bottom'?y-h:y-(h-size)/2;
       const c=col(o.color||'#1F2328');
-      slide.addText(String(t),{x:X(bx),y:Y(by),w:S(w),h:S(h),fontSize:PT(size),bold:(o.weight||400)>=600,color:c.color,align:o.align||'left',valign:'middle',margin:0,fontFace:'Pretendard',wrap:false}); },
+      slide.addText(String(t),{x:X(bx),y:Y(by),w:S(w),h:S(h),fontSize:PT(size)*(window.PPT_FONT==='Pretendard'?1:0.94),bold:(o.weight||400)>=600,color:c.color,align:o.align||'left',valign:'middle',margin:0,fontFace:window.PPT_FONT||'Pretendard',wrap:false}); },
     line(x1,y1,x2,y2,o){ o=o||{}; const c=col(o.color||'#000');
       slide.addShape(ST.line||'line',{x:X(Math.min(x1,x2)),y:Y(Math.min(y1,y2)),w:Math.max(0,Math.abs(x2-x1)*k),h:Math.max(0,Math.abs(y2-y1)*k),flipV:(x2-x1)*(y2-y1)<0,line:{color:c.color,width:PT(o.width||1),dashType:o.dash?'dash':'solid'}}); },
     circle(cx,cy,r,o){ o=o||{}; slide.addShape(ST.ellipse||'ellipse',{x:X(cx-r),y:Y(cy-r),w:S(2*r),h:S(2*r),fill:fillOf(o),line:lineOf(o)}); },
@@ -9898,7 +9911,7 @@ async function figPng(id){ const f=figById(id); if(!f) return; await document.fo
 async function figPpt(ids){
   ids=ids.filter(id=>figById(id)); if(!ids.length) return toast('PPT로 만들 figure를 골라 주세요.',{warn:true});
   try{ await pptEnsureLib(); }catch(e){ return toast(e.message,{warn:true}); }
-  await document.fonts.ready;
+  await document.fonts.ready; await pptResolveFont();
   const PG=window.PptxGenJS||window.pptxgen, pptx=new PG(); pptx.layout='LAYOUT_WIDE';   // 13.33 × 7.5 in
   // 그림이 아니라 도형 · 글상자로 넣음 → PPT에서 하나하나 고칠 수 있음
   for(const id of ids){ const f=figById(id), s=pptx.addSlide(); figToSlide(pptx,s,f,0.4,0.35,12.53,6.8); }
@@ -11740,7 +11753,7 @@ async function exportMatchPPT(m){
   if(!window.PptxGenJS) throw new Error('pptxgenjs not loaded');
   const pptx = new PptxGenJS();
   pptx.layout = 'LAYOUT_WIDE';
-  const FONT = 'Pretendard';
+  let FONT='Pretendard'; try{ FONT=await parent.pptResolveFont(); }catch(err){}   // 없는 컴퓨터는 맑은 고딕
   const PER = 8;
   const pages = Math.ceil(m.rows.length/PER);
   const X = 0.5, TW = 13.333-1;
