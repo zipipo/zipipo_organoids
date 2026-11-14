@@ -266,6 +266,8 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
 .pl-slide .zx{position:absolute;left:2px;top:2px;width:18px;height:18px;line-height:15px;padding:0;border:1px solid var(--bd);border-radius:50%;background:#fff;color:#444;font-size:13px;cursor:pointer;display:none;}
 .pl-slide .z:hover>.zx{display:block;}
 .pl-slide .z textarea{position:absolute;left:0;top:0;width:100%;min-height:100%;min-width:90px;box-sizing:border-box;font:600 1.25cqw Pretendard,sans-serif;padding:2px 4px;border:1.5px solid var(--acc);border-radius:3px;background:#fff;color:#111;resize:none;z-index:5;}
+.pf-at{font-style:normal;margin-left:6px;color:#2563EB;font-size:.66rem;} .pf-hide{font-size:.7rem;color:var(--mut);flex:none;margin-left:6px;}
+.pf-row.hid{opacity:.6;} .pf-old{margin-top:6px;} .pf-old>summary{cursor:pointer;font-size:.74rem;color:var(--sub);padding:4px 2px;}
 .pl-hist{display:inline-flex;gap:4px;} .pl-hist .btn{height:30px;padding:0 9px;font-size:.74rem;}
 .pl-other{border-style:solid;background:var(--sur2);} .pl-ono{font-weight:700;color:var(--tx);margin-left:6px;}
 .pl-tray{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px;padding:6px 8px;border:1px dashed var(--bd);border-radius:8px;min-height:46px;font-size:.74rem;color:var(--sub);}
@@ -6377,17 +6379,26 @@ function pptFigTargetOpts(id){
   const cur=pptFigTarget[id]||'';
   return `<option value="">자동 (같은 환자 첫 장)</option>`+titles.map(t=>`<option${t===cur?' selected':''}>${esc(t)}</option>`).join('');
 }
+// PPT 만들기의 figure 목록: 최근 2주 안에 고친 것만 펼쳐 두고, 오래된 것 · 숨긴 것은 아래 「이전 · 숨긴 figure」에 접어 둠
+// f.pptAt = 마지막으로 PPT에 넣은 날, f.hideInPpt = 이 목록에서 숨김 (figure 자체는 PPT figure 페이지에 그대로)
+let _pfOldOpen=false;
+function figMarkPpt(ids){ const d=ymdLocal(new Date()); let ch=false; ids.forEach(id=>{ const f=figById(id); if(f&&f.pptAt!==d){ f.pptAt=d; ch=true; } }); if(ch) saveFigures(); }
+function pptFigHide(id,on){ const f=figById(id); if(!f) return; if(on){ f.hideInPpt=true; delete pptFigSel[id]; } else delete f.hideInPpt; saveFigures(); renderPptFigs(); renderPptBar(); }
 function renderPptFigs(){
   const el=document.getElementById('pptFigs'); if(!el) return;
   const list=(typeof figures!=='undefined'?figures:[]).slice().sort((a,b)=>(b.updated||0)-(a.updated||0));
   Object.keys(pptFigSel).forEach(id=>{ if(!list.some(f=>f.id===id)) delete pptFigSel[id]; });
-  const n=Object.keys(pptFigSel).length;
-  el.innerHTML=`<details class="pf-box"${n||list.length?' open':''}><summary><b>PPT figure 같이 넣기</b> <span>${list.length?(n?`${n}개 넣음`:'Experiment Schedule · Plate map'):'아직 만든 figure가 없어요'}</span></summary>
-    ${list.length?`<div class="pf-list">${list.map(f=>{ const v=pptFigSel[f.id]||'';
-      return `<div class="pf-row${v?' on':''}"><img src="${figThumb(f)}" alt=""><div class="pf-nm"><b title="${esc(f.name||'')}">${esc(f.name||'')}</b><small>${figKindText(figNorm(f))}</small></div>
+  const n=Object.keys(pptFigSel).length, cut=Date.now()-14*86400000;
+  const isOld=f=>!pptFigSel[f.id]&&(f.hideInPpt||(f.updated||f.created||0)<cut);
+  const recent=list.filter(f=>!isOld(f)), old=list.filter(isOld);
+  const row=f=>{ const v=pptFigSel[f.id]||'', at=f.pptAt?`<em class="pf-at">${f.pptAt.slice(5).replace('-','/')} PPT에 넣음</em>`:'';
+    return `<div class="pf-row${v?' on':''}${f.hideInPpt?' hid':''}"><img src="${figThumb(f)}" alt=""><div class="pf-nm"><b title="${esc(f.name||'')}">${esc(f.name||'')}</b><small>${figKindText(figNorm(f))}${at}</small></div>
         <div class="seg-group pf-seg">${[['','안 넣음'],['page','넣기 (한 장)']].map(([k,t])=>`<button class="seg${v===k?' on':''}" onclick="pptSetFig('${f.id}','${k}')">${t}</button>`).join('')}</div>
-</div>`; }).join('')}</div>
-    <div class="pf-hint">고른 figure는 사진 슬라이드 앞에 한 장씩 들어가요. Plate map에 Experiment Schedule을 같이 넣어 두면 둘이 한 장에 같이 나와요.</div>`
+        <button class="link-btn pf-hide" onclick="pptFigHide('${f.id}',${f.hideInPpt?'false':'true'})">${f.hideInPpt?'다시 보이기':'숨기기'}</button></div>`; };
+  el.innerHTML=`<details class="pf-box"${n||recent.length?' open':''}><summary><b>PPT figure 같이 넣기</b> <span>${list.length?(n?`${n}개 넣음`:'Experiment Schedule · Plate map'):'아직 만든 figure가 없어요'}</span></summary>
+    ${list.length?`<div class="pf-list">${recent.map(row).join('')||'<div class="pf-hint">최근 2주 안에 고친 figure가 없어요.</div>'}</div>
+    ${old.length?`<details class="pf-old"${_pfOldOpen?' open':''} ontoggle="_pfOldOpen=this.open"><summary>이전 · 숨긴 figure ${old.length}개</summary><div class="pf-list">${old.map(row).join('')}</div></details>`:''}
+    <div class="pf-hint">고른 figure는 사진 슬라이드 앞에 한 장씩 들어가요. 숨겨도 PPT figure 페이지에는 그대로 있어요.</div>`
     :`<div class="pf-hint">왼쪽 도구 → PPT figure에서 Experiment Schedule · Plate map을 만들면 여기서 골라 넣을 수 있어요.</div>`}</details>`;
 }
 function pptRemove(i){ pptFiles.splice(i,1); renderPptList(); }
@@ -6448,6 +6459,7 @@ async function pptBuildFromFiles(btn){
       if(ff){ const s=pptx.addSlide(); figToSlide(pptx,s,ff,0.4,0.35,12.53,6.8); return; }   // figure는 도형으로 (PPT에서 고칠 수 있게)
       pptRenderPage(pptSlideBackend(pptx.addSlide(),data),p,th); });
     const blob=await pptx.write({outputType:'blob'});
+    figMarkPpt(Object.keys(pptFigSel));   // 넣은 figure에 「PPT에 넣은 날」 표시
     const fname=pptReportName(pptFiles.map(f=>({meta:pptParse(f.name)})));
     const a=document.createElement('a');
     a.href=URL.createObjectURL(blob); a.download=fname; a.click();
@@ -10124,6 +10136,7 @@ async function figPpt(ids){
   const PG=window.PptxGenJS||window.pptxgen, pptx=new PG(); pptx.layout='LAYOUT_WIDE';   // 13.33 × 7.5 in
   // 그림이 아니라 도형 · 글상자로 넣음 → PPT에서 하나하나 고칠 수 있음
   for(const id of ids){ const f=figById(id), s=pptx.addSlide(); figToSlide(pptx,s,f,0.4,0.35,12.53,6.8); }
+  figMarkPpt(ids);
   await pptx.writeFile({fileName:safeFileName(ids.length===1?(figById(ids[0]).name||'figure'):`${ymd6(ymdLocal(new Date()))} figures ${ids.length}`)+'.pptx'});
 }
 
