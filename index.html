@@ -904,7 +904,11 @@ body[data-tab="fig"] .pane[data-pane="fig"]{display:block;animation:paneIn .28s 
 .fg-name{display:flex;align-items:center;gap:6px;margin:0;font-size:.76rem;color:var(--sub);flex:1;min-width:220px;}
 .fg-name input{height:34px;font-weight:650;flex:1;}
 .fg-eacts{display:flex;gap:6px;}
-.fg-ed{display:grid;grid-template-columns:340px minmax(0,1fr);gap:14px;align-items:start;}
+.fg-ed{display:grid;grid-template-columns:360px minmax(0,1fr);gap:14px;align-items:start;}
+.fg-modal{align-items:center;padding:2vh 2vw;} .fg-mbox{width:min(1600px,96vw);height:94vh;max-width:none;display:flex;flex-direction:column;padding:16px 18px;}
+.fg-mbox .fg-ed{flex:1;min-height:0;align-items:stretch;} .fg-mbox .fg-side{max-height:none;height:100%;} .fg-mbox .fg-main{position:static;overflow:auto;height:100%;}
+.fg-mbox .fg-ehd{margin-bottom:10px;}
+@media (max-width:900px){ .fg-modal{padding:0;} .fg-mbox{width:100vw;height:100vh;border-radius:0;padding:12px;} .fg-mbox .fg-ed{overflow:auto;display:flex;flex-direction:column;} .fg-mbox .fg-side,.fg-mbox .fg-main{height:auto;} }
 .fg-side{border:1px solid var(--bd2);border-radius:10px;background:var(--sur);padding:12px;display:flex;flex-direction:column;gap:8px;max-height:calc(100vh - 160px);overflow-y:auto;}
 .fg-main{position:sticky;top:12px;}
 .fg-prev{border:1px solid var(--bd2);border-radius:10px;background:#fff;padding:10px;}
@@ -5158,6 +5162,7 @@ function setTab(t, instant){
     if(t==='ln2') openLn2();
     if(t==='media' && window._lateReady) renderMedia();
     if(t==='fig' && window._lateReady) renderFig();
+    if(t!=='fig'){ const fm=document.getElementById('figModal'); if(fm){ fm.remove(); _figEdit=null; } }   // 다른 페이지로 가면 Figure 편집 창 닫기
     // 분석 · 다이어리 코드는 스크립트 뒤쪽에 있어서, 첫 로딩 때는 스크립트 끝(_lateReady)에서 다시 그린다
     if(t==='ana'){ if(window._lateReady) renderAnalytics(); } else anaTipHide();
     if(t==='diary' && window._lateReady) renderDiary();
@@ -9954,7 +9959,8 @@ function renderFig(){
   const el=document.getElementById('figContent'); if(!el) return;
   figNormAll();
   const f=_figEdit&&figById(_figEdit);
-  if(f){ el.innerHTML=figEditor(f); figDrawPreview(f); return; }
+  // 편집은 새 창(팝업)에서: 다시 그릴 때 왼쪽 칸 스크롤 위치는 그대로
+  const side=document.querySelector('#figModal .fg-side'), keep=side?side.scrollTop:0;
   const list=figures.slice().sort((a,b)=>(b.updated||0)-(a.updated||0));
   const pick=[..._figPick].filter(id=>figById(id));
   el.innerHTML=`<section class="panel sec"><div class="panel-hd"><span><i class="sec-ic">${ic('slides')}</i>PPT figure</span>
@@ -9970,7 +9976,15 @@ function renderFig(){
       <div class="fg-meta"><b title="${esc(x.name||'')}">${esc(x.name||'')}</b><small>${figKindText(x)}</small></div>
       <div class="fg-acts"><button class="tbl-btn" onclick="figCopy('${x.id}')">복사</button><button class="tbl-btn" onclick="figPng('${x.id}')">PNG</button><button class="tbl-btn" onclick="figDup('${x.id}')" title="복사본을 만들어 다음 장으로 고쳐 쓰기">복제</button><button class="tbl-btn" onclick="figDel('${x.id}')">${ic('trash','ic-sm')}</button></div>
     </div>`).join('')}</div></section>`;
+  // 편집 창은 body에 한 번만 만들고 안쪽만 바꿈 (다시 만들면 열리는 효과가 매번 다시 나와서 깜빡임)
+  let m=document.getElementById('figModal');
+  if(!f){ if(m) m.remove(); return; }
+  if(!m){ m=document.createElement('div'); m.id='figModal'; m.className='modal open fg-modal'; m.onclick=e=>{ if(e.target===m) figClose(); }; m.innerHTML='<div class="mbox fg-mbox"></div>'; document.body.appendChild(m); }
+  m.querySelector('.fg-mbox').innerHTML=figEditor(f);
+  figDrawPreview(f); const s2=m.querySelector('.fg-side'); if(s2) s2.scrollTop=keep;
 }
+function figClose(){ _figEdit=null; _figSel.clear(); renderFig(); }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&_figEdit&&document.getElementById('figModal')&&!document.querySelector('.pet-pop')){ figClose(); } });
 function figPickOne(id,on){ on?_figPick.add(id):_figPick.delete(id); renderFig(); }
 function figPickAll(on){ _figPick=new Set(on?figures.map(f=>f.id):[]); renderFig(); }
 function figSetName(id,v){ const f=figById(id); if(!f) return; v=v.trim(); if(v){ f.name=v; f._nameEdited=true; } else { delete f._nameEdited; } figTouch(f); renderFig(); }
@@ -9992,7 +10006,7 @@ function figLineOptsHtml(sel,exclude,first){
 // ── 편집 화면 ──
 function figEditor(f){
   const sc=f.sched, pm=f.plate;
-  return `<div class="fg-ehd"><button class="btn btn-out" onclick="_figEdit=null;renderFig()">← 목록</button>
+  return `<div class="fg-ehd"><button class="btn btn-out" onclick="figClose()">${ic('x','ic-sm')}닫기</button>
     <label class="fg-name">이름<input value="${esc(f.name||'')}" onchange="figSetName('${f.id}',this.value)"></label>
     <span class="fg-saved" title="고칠 때마다 계정에 저장돼요">${ic('check','ic-sm')}자동 저장</span>
     <span class="fg-eacts"><button class="btn btn-out" onclick="figCopy('${f.id}')">이미지 복사</button><button class="btn btn-out" onclick="figPng('${f.id}')">PNG</button><button class="btn btn-pri" onclick="figPpt(['${f.id}'])">PPT</button></span></div>
