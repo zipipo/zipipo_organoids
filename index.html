@@ -178,16 +178,16 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
 .bhv{background:#FFE4E6;color:#BE123C;border-color:#FECDD3;}
 
 .pb{padding:2px 6px;border-radius:4px;font-weight:700;font-size:.77rem;display:inline-block;border:1px solid transparent;}
-.p0{background:#F1F5F9;color:#475569;border-color:#E2E8F0;}
-.p1{background:#E0F2FE;color:#0284C7;border-color:#BAE6FD;}
-.p2{background:#D1FAE5;color:#059669;border-color:#A7F3D0;}
-.p3{background:#FEF3C7;color:#D97706;border-color:#FDE68A;}
-.p4{background:#EDE9FE;color:#7C3AED;border-color:#DDD6FE;}
-.p5{background:#FCE7F3;color:#DB2777;border-color:#FBCFE8;}
-.p6{background:#E0E7FF;color:#4F46E5;border-color:#C7D2FE;}
-.p7{background:#CCFBF1;color:#0D9488;border-color:#99F6E4;}
-.p8{background:#FEE2E2;color:#DC2626;border-color:#FECACA;}
-.p9{background:#FFEDD5;color:#EA580C;border-color:#FED7AA;}
+.p0{background:#EDEEF0;color:#6B7280;border-color:#D3D5D9;}
+.p1{background:#E8EFFD;color:#3D7BF0;border-color:#C5D7FA;}
+.p2{background:#E3F4EF;color:#16A37A;border-color:#B9E3D7;}
+.p3{background:#FBEFE3;color:#E07B14;border-color:#F6D7B8;}
+.p4{background:#F1EBFE;color:#8B5CF6;border-color:#DCCEFC;}
+.p5{background:#FBE9EF;color:#E0457B;border-color:#F6C7D7;}
+.p6{background:#E4F4F6;color:#1BA3B8;border-color:#BBE3EA;}
+.p7{background:#FCEAE9;color:#E5534B;border-color:#F7CBC9;}
+.p8{background:#EFF4E4;color:#7CA51E;border-color:#D8E4BC;}
+.p9{background:#F6EFE4;color:#B7791F;border-color:#E9D7BC;}
 .ph{background:#1E293B;color:#F8FAFC;border-color:#0F172A;}
 
 /* MODAL */
@@ -873,7 +873,11 @@ body[data-tab="fig"] .pane[data-pane="fig"]{display:block;animation:paneIn .28s 
 .fg-addparts{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 .fg-addpart{display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 8px;border:2px dashed var(--bd);border-radius:10px;background:transparent;font:inherit;color:var(--sub);cursor:pointer;}
 .fg-addpart:hover{background:var(--hov);color:var(--tx);} .fg-addpart b{font-size:.8rem;} .fg-addpart small{font-size:.66rem;color:var(--mut);} .fg-addpart .ic{width:18px;height:18px;}
-.fg-track{border-left:3px solid var(--bd);padding-left:9px;display:flex;flex-direction:column;gap:6px;}
+.fg-track{border:1px solid var(--bd2);border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:6px;} .fg-track.closed{padding:4px 8px;}
+.fg-trh,.fg-tog{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;} .fg-trh b{font-size:.8rem;} .fg-trh small,.fg-tog small{font-size:.68rem;color:var(--mut);}
+.fg-trh .tbl-btn{margin-left:auto;} .fg-car{width:12px;font-size:.7rem;color:var(--mut);}
+.fg-lg{flex-direction:column;align-items:stretch!important;gap:4px;} .fg-lgl{display:flex;align-items:flex-start;gap:7px;margin:0;cursor:pointer;}
+.fg-ied{display:flex;gap:5px;align-items:center;padding-left:24px;} .fg-ied input{height:28px;font-size:.74rem;min-width:0;flex:1;} .fg-ied .fg-inote{flex:1.3;}
 .fg-allbtn{float:right;font-weight:500;font-size:.7rem;} .fg-allbtn .link-btn{font-size:.7rem;}
 .fg-memo{width:100%;font:inherit;font-size:.8rem;resize:vertical;}
 .fg-rc summary{cursor:pointer;font-size:.72rem;color:var(--sub);} .fg-rc summary small{color:var(--mut);}
@@ -993,6 +997,8 @@ body[data-tab="fig"] .pane[data-pane="fig"]{display:block;animation:paneIn .28s 
 .md-colors{display:flex;gap:4px;}
 .md-cdot{width:16px;height:16px;border-radius:50%;border:2px solid transparent;padding:0;cursor:pointer;}
 .md-cdot.on{border-color:var(--tx);}
+.md-cpick{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 10px 0 6px;border:1px solid var(--bd);border-radius:8px;background:var(--sur);font:inherit;font-size:.74rem;color:var(--sub);cursor:pointer;}
+.md-cpick i{width:20px;height:20px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);}
 .md-name{width:180px;height:32px;font-weight:650;}
 .md-pw{display:flex;align-items:center;gap:5px;margin:0;font-size:.76rem;color:var(--sub);}
 .md-pw input{width:52px;height:30px;}
@@ -6435,7 +6441,7 @@ function pptParse(name){
 function pptFmtDate(d){ return (d&&d.length===6)?`${d.slice(0,2)}.${d.slice(2,4)}.${d.slice(4,6)}`:d; }
 function pptColHeader(c){ const a=[pptFmtDate(c.date)]; if(c.passage)a.push(c.passage.toUpperCase()); if(c.day)a.push(c.day); if(c.well)a.push(c.well); if(c.extra)a.push(c.extra); return a.join('  '); }
 // passage 색상 (P0~P9 순환, P10·P20… 동일 색 / pretty palette)
-const PPT_PASS_PAL=['059669','2563EB','D97706','7C3AED','DB2777','0891B2','DC2626','4F46E5','CA8A04','0D9488'];
+const PPT_PASS_PAL=['6B7280','3D7BF0','16A37A','E07B14','8B5CF6','E0457B','1BA3B8','E5534B','7CA51E','B7791F'];   // passage 색 (앱 뱃지와 같은 색)
 function pptPassageColor(passageVal){ const n=((Math.floor(passageVal)%10)+10)%10; return PPT_PASS_PAL[n]; }
 // 열 헤더를 리치텍스트 런으로: passage 토큰만 색칠
 function pptHeaderRuns(c,th){
@@ -7571,9 +7577,9 @@ const NOTE_CLR={
   bm:['#E0F2FE','#0369A1','#BAE6FD'], bsp:['#FFEDD5','#C2410C','#FED7AA'], br:['#D1FAE5','#047857','#A7F3D0'],
   bpl:['#F3E8FF','#7E22CE','#E9D5FF'], bst:['#FCE7F3','#BE185D','#FBCFE8'], bf:['#F1F5F9','#475569','#CBD5E1'],
   bo:['#FEF9C3','#A16207','#FEF08A'], bsd:['#CCFBF1','#0F766E','#99F6E4'], bfx:['#E0E7FF','#4338CA','#C7D2FE'], bhv:['#FFE4E6','#BE123C','#FECDD3'],
-  p0:['#F1F5F9','#475569','#E2E8F0'], p1:['#E0F2FE','#0284C7','#BAE6FD'], p2:['#D1FAE5','#059669','#A7F3D0'], p3:['#FEF3C7','#B45309','#FDE68A'],
-  p4:['#EDE9FE','#7C3AED','#DDD6FE'], p5:['#FCE7F3','#DB2777','#FBCFE8'], p6:['#E0E7FF','#4F46E5','#C7D2FE'], p7:['#CCFBF1','#0D9488','#99F6E4'],
-  p8:['#FEE2E2','#DC2626','#FECACA'], p9:['#FFEDD5','#EA580C','#FED7AA']};
+  p0:['#EDEEF0','#6B7280','#D3D5D9'], p1:['#E8EFFD','#3D7BF0','#C5D7FA'], p2:['#E3F4EF','#16A37A','#B9E3D7'], p3:['#FBEFE3','#E07B14','#F6D7B8'],
+  p4:['#F1EBFE','#8B5CF6','#DCCEFC'], p5:['#FBE9EF','#E0457B','#F6C7D7'], p6:['#E4F4F6','#1BA3B8','#BBE3EA'], p7:['#FCEAE9','#E5534B','#F7CBC9'],
+  p8:['#EFF4E4','#7CA51E','#D8E4BC'], p9:['#F6EFE4','#B7791F','#E9D7BC']};
 function noteDoPrint(){
   const ids=[...document.querySelectorAll('.note-chk:checked')].map(c=>c.dataset.id);
   if(!ids.length){ alert('인쇄할 기록을 선택하세요.'); return; }
@@ -9375,7 +9381,7 @@ function renderMedia(){
     const draft=d.id==='__draft', others=new Set(mediaDefs.filter(o=>o.id!==d.id).flatMap(o=>o.types||[]));
     return `<div class="md-set" id="mdset_${d.id}" style="--mdc:${d.color||MD_COLORS[0]}">
       <div class="md-set-hd">
-        <span class="md-colors">${MD_COLORS.map(c=>`<button class="md-cdot${c===d.color?' on':''}" style="background:${c}" onclick="mdSetDef('${d.id}','color','${c}')" title="색"></button>`).join('')}</span>
+        <button class="md-cpick" onclick="figColorPick(this,'t',c=>mdSetDef('${d.id}','color',c))" title="색 고르기 (종류 색상 맵)"><i style="background:${d.color||MD_COLORS[0]}"></i>색</button>
         <input class="md-name" value="${esc(d.name||'')}" placeholder="배지 이름 (예: EM)" ${draft?`oninput="_mdDraft.name=this.value"`:''} onchange="mdSetDef('${d.id}','name',this.value.trim())">
         <label class="md-pw">1주일에 <input type="number" min="1" max="14" value="${+d.perWeek||3}" onchange="mdSetDef('${d.id}','perWeek',Math.max(1,parseInt(this.value)||3))"> 번 교체</label>
         ${draft?'':`<button class="link-btn md-del" onclick="mdDelDef('${d.id}')">배지 삭제</button>`}
@@ -9986,39 +9992,49 @@ function figEditor(f){
 }
 
 // Experiment Schedule 편집: 줄(라인)마다 기록 고르기
+// 접기 상태 (화면에서만): 일정 줄 · 큰 칸. 줄은 하나만 펼쳐 둠 → 스크롤 줄이기
+let _figOpen=new Set(), _figClosed=new Set();
+function figToggleTrack(id,tid){ const f=figById(id); if(!f) return; if(_figOpen.has(tid)) _figOpen.delete(tid); else { (f.sched.tracks||[]).forEach(t=>_figOpen.delete(t.id)); _figOpen.add(tid); } renderFig(); }
+function figTogglePart(key){ _figClosed.has(key)?_figClosed.delete(key):_figClosed.add(key); renderFig(); }
 function figSchedEditor(f){
-  const sc=f.sched, tracks=sc.tracks||[];
+  const sc=f.sched, tracks=sc.tracks||[], key='S:'+f.id, closed=_figClosed.has(key);
+  if(tracks.length&&!tracks.some(t=>_figOpen.has(t.id))) _figOpen.add(tracks[0].id);
   const dates=[...new Set(tracks.flatMap(t=>(t.items||[]).map(i=>i.date)))].sort();
-  return `<div class="fg-part"><div class="fg-ph"><b>Experiment Schedule</b><button class="link-btn fg-drop" onclick="figDropPart('${f.id}','sched')">빼기</button></div>
-    <div class="fg-row2"><label class="fg-f">Day 0<select onchange="figSchedSet('${f.id}','zero',this.value)">${dates.map(d=>`<option${d===(sc.zero||dates[0])?' selected':''}>${d}</option>`).join('')||'<option>-</option>'}</select></label>
+  const nItems=tracks.reduce((s2,t)=>s2+(t.items||[]).length,0);
+  return `<div class="fg-part"><div class="fg-ph fg-tog" onclick="figTogglePart('${key}')"><span class="fg-car">${closed?'▸':'▾'}</span><b>Experiment Schedule</b><small>${tracks.length}줄 · 항목 ${nItems}개</small><button class="link-btn fg-drop" onclick="event.stopPropagation();figDropPart('${f.id}','sched')">빼기</button></div>
+    ${closed?'':`<div class="fg-row2"><label class="fg-f">Day 0<select onchange="figSchedSet('${f.id}','zero',this.value)">${dates.map(d=>`<option${d===(sc.zero||dates[0])?' selected':''}>${d}</option>`).join('')||'<option>-</option>'}</select></label>
       <label class="fg-ck"><input type="checkbox" ${sc.showDate!==false?'checked':''} onchange="figSchedSet('${f.id}','showDate',this.checked)"> 날짜</label>
       <label class="fg-ck" title="눈금 아래 작게: P와 organoid 기준 day (위의 큰 Day는 실험 기준)"><input type="checkbox" ${sc.showPD!==false?'checked':''} onchange="figSchedSet('${f.id}','showPD',this.checked)"> P · organoid d</label></div>
     ${tracks.map((t,ti)=>figTrackEditor(f,t,ti,tracks.length)).join('')}
-    <button class="tbl-btn" onclick="figTrackAdd('${f.id}')">+ 줄 추가 (같은 실험의 다른 라인)</button> <small class="fg-lim">${tracks.length}/${figMaxTracks(f)}줄</small></div>`;
+    <div><button class="tbl-btn" onclick="figTrackAdd('${f.id}')">+ 줄 추가 (같은 실험의 다른 라인)</button> <small class="fg-lim">${tracks.length}/${figMaxTracks(f)}줄</small></div>`}</div>`;
 }
+// 한 줄: 접으면 이름 · 항목 수만. 펼치면 기록 목록 하나에서 고르고, 고른 기록은 그 자리에서 글자 · 색 · 메모 고치기
 function figTrackEditor(f,t,ti,n){
-  const line=lineById(t.lineId);
+  const line=lineById(t.lineId), open=_figOpen.has(t.id), items=t.items||[];
+  const T=`'${f.id}','${t.id}'`, name=t.label||(line?lineTag(line):'라인 없음');
+  const head=`<div class="fg-trh" onclick="figToggleTrack(${T})"><span class="fg-car">${open?'▾':'▸'}</span><b>${n>1?`${ti+1}. `:''}${esc(name)}</b><small>${items.length}개</small>
+    ${n>1?`<button class="tbl-btn" onclick="event.stopPropagation();figTrackDel(${T})" title="이 줄 빼기">${ic('x','ic-sm')}</button>`:''}</div>`;
+  if(!open) return `<div class="fg-track closed">${head}</div>`;
+  const byLog={}; items.forEach(it=>{ if(it.logId) byLog[it.logId]=it; });
+  const edit=it=>`<div class="fg-ied"><button class="fg-dot" style="background:${it.color}" onclick="figTlColorPick(this,${T},'${it.id}')" title="색 고르기"></button>
+      <input value="${esc(it.label)}" title="그림에 들어갈 이름" onchange="figItemSet(${T},'${it.id}',this.value)">
+      <input class="fg-inote" value="${esc(it.note||'')}" placeholder="메모 (선택)" onchange="figItemNote(${T},'${it.id}',this.value)"></div>`;
   const lgs=line?logs.filter(l=>l.lineId===line.id).sort((a,b)=>a.date.localeCompare(b.date)||(a.seq||0)-(b.seq||0)):[];
-  const chosen=new Set((t.items||[]).filter(it=>it.logId).map(it=>it.logId));
-  const T=`'${f.id}','${t.id}'`;
-  return `<div class="fg-track">
-    <div class="fg-row2"><label class="fg-f">${n>1?`${ti+1}번 줄 · `:''}라인<select onchange="figTrackSet(${T},'lineId',this.value)">${figLineOptsHtml(t.lineId,null,'<option value="">라인 없이 (직접 넣기만)</option>')}</select></label>
-      ${n>1?`<button class="tbl-btn" onclick="figTrackDel(${T})" title="이 줄 빼기">${ic('x','ic-sm')}</button>`:''}</div>
-    ${!line||n>1?`<label class="fg-f">줄 이름 <small>(비우면 라인 이름)</small><input value="${esc(t.label||'')}" placeholder="${esc(line?lineTag(line):'예: Tumor-org')}" onchange="figTrackSet(${T},'label',this.value.trim())"></label>`:''}
-    ${line?`<div class="fg-sub">넣을 기록 고르기 <span class="fg-allbtn"><button class="link-btn" onclick="figTrackAll(${T},true)">전체 선택</button> · <button class="link-btn" onclick="figTrackAll(${T},false)">전체 해제</button></span></div>
-    <div class="fg-logs">${lgs.map(lg=>{ const memo=[lg.details&&!/split/i.test(lg.action)?lg.details:'',lg.memo||''].filter(Boolean).join(' · ');
-        return `<label class="fg-lg${chosen.has(lg.id)?' on':''}"><input type="checkbox" ${chosen.has(lg.id)?'checked':''} onchange="figTrackPick(${T},'${lg.id}',this.checked)"><span>${lg.date.slice(5).replace('-','/')}</span><i style="background:${figActColor(lg.action)}"></i><div class="fg-lgt"><b>${esc(figActLabel(lg))}</b>${memo?`<small>${esc(memo)}</small>`:''}</div></label>`; }).join('')||'<div class="nil" style="padding:8px;">기록이 없어요</div>'}</div>`:''}
+  const rows=lgs.map(lg=>{ const it=byLog[lg.id], memo=[lg.details&&!/split/i.test(lg.action)?lg.details:'',lg.memo||''].filter(Boolean).join(' · ');
+    return `<div class="fg-lg${it?' on':''}"><label class="fg-lgl"><input type="checkbox" ${it?'checked':''} onchange="figTrackPick(${T},'${lg.id}',this.checked)"><span>${lg.date.slice(5).replace('-','/')}</span><i style="background:${figActColor(lg.action)}"></i><div class="fg-lgt"><b>${esc(figActLabel(lg))}</b>${memo?`<small>${esc(memo)}</small>`:''}</div></label>${it?edit(it):''}</div>`; }).join('');
+  const custom=items.filter(it=>!it.logId).sort((a,b)=>a.date.localeCompare(b.date)).map(it=>`<div class="fg-lg on"><div class="fg-lgl"><span>${it.date.slice(5).replace('-','/')}</span><div class="fg-lgt"><b>직접 넣은 항목</b></div><button class="tbl-btn" style="margin-left:auto;" onclick="figItemDel(${T},'${it.id}')">${ic('x','ic-sm')}</button></div>${edit(it)}</div>`).join('');
+  return `<div class="fg-track">${head}
+    <div class="fg-row2"><label class="fg-f">라인<select onchange="figTrackSet(${T},'lineId',this.value)">${figLineOptsHtml(t.lineId,null,'<option value="">라인 없이 (직접 넣기만)</option>')}</select></label>
+      <label class="fg-f">줄 이름<input value="${esc(t.label||'')}" placeholder="${esc(line?lineTag(line):'예: Tumor-org')}" onchange="figTrackSet(${T},'label',this.value.trim())"></label></div>
+    ${line?`<div class="fg-sub">기록 고르기 <small>(고르면 그 자리에서 이름 · 색 · 메모 고치기)</small><span class="fg-allbtn"><button class="link-btn" onclick="figTrackAll(${T},true)">전체 선택</button> · <button class="link-btn" onclick="figTrackAll(${T},false)">전체 해제</button></span></div>`:''}
+    <div class="fg-logs">${rows}${custom}${!rows&&!custom?'<div class="nil" style="padding:8px;">'+(line?'기록이 없어요':'아래에서 날짜와 이름을 적어 넣어 주세요')+'</div>':''}</div>
     <div class="fg-add"><input type="date" id="figAddDate_${t.id}" value="${ymdLocal(new Date())}"><input id="figAddLab_${t.id}" placeholder="직접 넣기 (예: Drug 처리)"><button class="btn btn-out" onclick="figTrackAddItem(${T})">추가</button></div>
-    ${(t.items||[]).length?`<div class="fg-items">${t.items.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(it=>`<div class="fg-it"><span>${it.date.slice(5).replace('-','/')}</span>
-      <button class="fg-dot" style="background:${it.color}" onclick="figTlColorPick(this,${T},'${it.id}')" title="색 고르기"></button>
-      <input value="${esc(it.label)}" onchange="figItemSet(${T},'${it.id}',this.value)"><button class="tbl-btn" onclick="figItemDel(${T},'${it.id}')">${ic('x','ic-sm')}</button></div>
-      <input class="fg-itnote" value="${esc(it.note||'')}" placeholder="짧은 메모 (선택 · 예: 3×10⁴ cells/well)" onchange="figItemNote(${T},'${it.id}',this.value)">`).join('')}</div>`:''}
   </div>`;
 }
 const figTrack=(f,tid)=>f&&f.sched&&(f.sched.tracks||[]).find(t=>t.id===tid);
 function figSchedSet(id,k,v){ const f=figById(id); if(!f||!f.sched) return; f.sched[k]=v; figTouch(f); renderFig(); }
 function figTrackAdd(id){ const f=figById(id); if(!f||!f.sched) return;
-  if(f.sched.tracks.length>=figMaxTracks(f)) return toast(`한 장에는 일정 ${figMaxTracks(f)}줄까지예요${f.plate?' (Plate map이 같이 있어서)':''}. 더 넣으려면 Figure를 복제해서 다음 장으로 만들어 주세요.`,{warn:true}); f.sched.tracks.push({id:uid(),lineId:'',label:'',items:[]}); figTouch(f); renderFig(); }
+  if(f.sched.tracks.length>=figMaxTracks(f)) return toast(`한 장에는 일정 ${figMaxTracks(f)}줄까지예요${f.plate?' (Plate map이 같이 있어서)':''}. 더 넣으려면 Figure를 복제해서 다음 장으로 만들어 주세요.`,{warn:true}); const nt={id:uid(),lineId:'',label:'',items:[]}; f.sched.tracks.push(nt); f.sched.tracks.forEach(t=>_figOpen.delete(t.id)); _figOpen.add(nt.id); figTouch(f); renderFig(); }
 function figTrackDel(id,tid){ const f=figById(id); if(!f||!f.sched) return; f.sched.tracks=f.sched.tracks.filter(t=>t.id!==tid); figTouch(f); renderFig(); }
 function figTrackSet(id,tid,k,v){ const f=figById(id), t=figTrack(f,tid); if(!t) return; t[k]=v; if(k==='lineId') t.items=(t.items||[]).filter(it=>!it.logId); figTouch(f); renderFig(); }
 function figTrackPick(id,tid,logId,on){
@@ -10042,7 +10058,9 @@ function figItemDel(id,tid,iid){ const f=figById(id), t=figTrack(f,tid); if(!t) 
 // Plate map 편집
 function figPlateEditor(f){
   const pm=f.plate, used=new Set((pm.lines||[]).map(x=>x.id)), plates=pm.plates, date=f.date||ymdLocal(new Date());
-  return `<div class="fg-part"><div class="fg-ph"><b>Plate map</b><button class="link-btn fg-drop" onclick="figDropPart('${f.id}','plate')">빼기</button></div>
+  const key='P:'+f.id, closed=_figClosed.has(key);
+  if(closed) return `<div class="fg-part"><div class="fg-ph fg-tog" onclick="figTogglePart('${key}')"><span class="fg-car">▸</span><b>Plate map</b><small>plate ${plates.length}장 · 조건 ${(pm.conds||[]).length}개</small><button class="link-btn fg-drop" onclick="event.stopPropagation();figDropPart('${f.id}','plate')">빼기</button></div></div>`;
+  return `<div class="fg-part"><div class="fg-ph fg-tog" onclick="figTogglePart('${key}')"><span class="fg-car">▾</span><b>Plate map</b><small>plate ${plates.length}장 · 조건 ${(pm.conds||[]).length}개</small><button class="link-btn fg-drop" onclick="event.stopPropagation();figDropPart('${f.id}','plate')">빼기</button></div>
       <div class="fg-plates">${plates.map((p,i)=>{ const [R,C]=FIG_FORMATS[p.format]||[4,6]; return `<div class="fg-pl"><input value="${esc(p.name||'')}" placeholder="Plate ${i+1}" onchange="figPlateSet('${f.id}',${i},'name',this.value)">
         <select onchange="figPlateSet('${f.id}',${i},'format',this.value)">${Object.keys(FIG_FORMATS).map(k=>`<option value="${k}"${k===p.format?' selected':''}>${k} well</option>`).join('')}</select>
         ${plates.length>1?`<button class="tbl-btn" onclick="figPlateDel('${f.id}',${i})" title="이 plate 빼기">${ic('x','ic-sm')}</button>`:''}</div>
