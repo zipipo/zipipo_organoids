@@ -7086,12 +7086,12 @@ function pptPatientSummary(files,th){
     even(dates.length,CP).forEach(([d0,d1])=>{ const dd=dates.slice(d0,d1), present=titles.filter(t=>dd.some(d=>get(t,d)));
      even(present.length,RP).forEach(([r0,r1])=>{
       const ri=present.slice(r0,r1), di=dd.filter(d=>ri.some(t=>get(t,d)));
-      pages.push({kind:'matrix',summary:true,pt,sub:'환자 요약 · 대표 사진 (조건 없는 사진 · 4x 우선)',
+      pages.push({kind:'matrix',summary:true,pt,sub:'Summary · 대표 사진 (조건 없는 사진 · 4x 우선)',
         colLabels:di.map(d=>pptFmtDate(d)),rowLabels:ri.map(t=>t.slice(pt.length).trim()||t),
         cells:ri.map(t=>di.map(d=>{ const x=get(t,d); return x?x.f:null; })),
         caps:ri.map(t=>di.map(d=>{ const x=get(t,d); return x?[x.m.passage.toUpperCase(),x.m.day].filter(Boolean).join(' '):''; }))});
     }); });
-    out[pt]=pptNumber(pages,pt+' 요약');
+    out[pt]=pptNumber(pages,pt+' Summary');
   });
   return out;
 }
@@ -7442,7 +7442,9 @@ function pptDrawFlow(D,p,th){
 // ── 배치 · 미리보기 팝업 ──
 let pptCutEd=null;   // 제목 자르기 중인 사진 이름
 function openPptLay(){ pptLaySel=null; pptCutEd=null; pptEdKey=null; pptEdSel=null; _pptUndo=[]; _pptRedo=[]; _pptSnap=null; pptLayWire(); pptLayRender(); document.getElementById('pptLayModal').classList.add('open'); }
-function closePptLay(){ document.getElementById('pptLayModal').classList.remove('open'); pptEdKey=null; pptEdSel=null; renderPptBar(); }
+// 장을 고치는 중이면 「닫기」는 그 장만 닫고 슬라이드 목록으로 (고친 건 바로바로 반영돼 있음), 목록에서 누르면 창을 닫음
+function closePptLay(){ if(pptEdKey){ const k=pptEdKey; pptEdClose(); const t=document.querySelector(`#plBody .pl-th[data-key="${CSS.escape(k)}"]`); if(t) t.scrollIntoView({block:'center'}); return; }
+  document.getElementById('pptLayModal').classList.remove('open'); pptEdKey=null; pptEdSel=null; renderPptBar(); }
 function pptChipHtml(n){
   const L=pptLay, off=L.off[n]||[], emp=L.zones.page.includes(n)?'(공통)':'(없음)';
   return `<div class="pl-chip${pptLaySel===n?' sel':''}" draggable="true" data-f="${esc(n)}"><span class="pl-cn">${esc(n)}</span>`+
@@ -7510,7 +7512,7 @@ function pptLayRender(fromHist){
         ${p.kind==='matrix'?`<label class="pl-ck">한 줄에 <select onchange="pptEdWrap(+this.value)"><option value="0"${p.wrapSet>0?'':' selected'}>전부 (${p.colLabels.length}장)</option>${[2,3,4,5,6,7,8,9,10].filter(n=>n<p.colLabels.length).map(n=>`<option value="${n}"${p.wrapSet===n?' selected':''}>${n}장</option>`).join('')}</select></label>
           <button class="btn btn-out" onclick="pptEdAdd('col')">+ 열</button><button class="btn btn-out" onclick="pptEdAdd('row')">+ 행</button>`:''}
         ${p.edited?`<button class="link-btn" onclick="pptEdReset()">처음 배치로</button>`:''}
-        ${pptHistBtns()}<button class="btn btn-pri" onclick="pptEdClose()">저장</button></div>
+        ${pptHistBtns()}</div>
       ${pptExpChipsHtml(p,pages)}
       <div class="pl-hint">사진을 끌어 다른 칸에 놓으면 옮겨지고, 사진 위에 놓으면 서로 바뀌어요 (Shift를 누른 채 놓으면 한 칸에 나란히). 열 이름 · 날짜 줄 · 행 이름을 끌면 통째로 옮겨져요. 글자는 눌러서 고치고, 가리키면 나오는 ×로 뺍니다.</div>
       <div class="pl-th ed" data-key="${esc(p.key)}">${D.html()}</div>
@@ -7534,7 +7536,7 @@ function pptPtRowsHtml(pages){
   const dm=pptDmBases().map(b=>b.split(' ')[0]);
   const sel=(cur,opts,on)=>`<select onchange="${on}">${opts.map(([v,t])=>`<option value="${v}"${String(cur)===String(v)?' selected':''}>${t}</option>`).join('')}</select>`;
   const anySum=pptSumPts.length, anyMerge=pptMergePts.length;
-  const head=`<div class="pl-pt hd"><span>환자</span><span>제목</span><span>열 개수</span><span>배치</span>${anySum?'<span>요약 장</span>':''}${anyMerge?'<span>하루뿐인 실험 한 장에</span>':''}</div>`;
+  const head=`<div class="pl-pt hd"><span>환자</span><span>제목</span><span>열 개수</span><span>배치</span>${anySum?'<span>Summary 장</span>':''}${anyMerge?'<span>하루뿐인 실험 한 장에</span>':''}</div>`;
   return `<details class="pl-pts"${pptPtOpen?' open':''} ontoggle="pptPtOpen=this.open"><summary>환자별 설정 <small>${pts.length}명</small></summary><div class="pl-pttab${anySum?' s':''}${anyMerge?' m':''}">${head}`+pts.map(pt=>{
     const q=esc(pt), tv=pptCuts['title:'+pt], cp=pages.filter(p=>p.cond&&p.pt===pt), ms=[...new Set(cp.map(p=>p.modeSet))];
     const ts=pptSumTitles[pt]||[], nIn=ts.filter(pptSumIn).length;
@@ -10622,7 +10624,7 @@ if(curTab==='ana'||curTab==='diary'||curTab==='media'||curTab==='fig') setTab(cu
     <div class="mscroll" id="plBody"></div>
     <div class="mfoot" style="display:flex;gap:8px;">
       <button class="btn btn-out" style="flex:1;" onclick="closePptLay()">닫기</button>
-      <button class="btn btn-pri" style="flex:2;" onclick="closePptLay();pptBuildFromFiles(this)">이대로 PPT 만들기</button>
+      <button class="btn btn-pri" style="flex:2;" onclick="pptEdKey=null;closePptLay();pptBuildFromFiles(this)">이대로 PPT 만들기</button>
     </div>
   </div>
 </div>
