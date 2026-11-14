@@ -880,6 +880,7 @@ body[data-tab="fig"] .pane[data-pane="fig"]{display:block;animation:paneIn .28s 
 .fg-rcg{display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center;margin-top:5px;} .fg-rcg>small{width:20px;font-size:.68rem;color:var(--mut);}
 .fg-rcg label{display:flex;align-items:center;gap:3px;margin:0;font-size:.68rem;color:var(--mut);} .fg-rcg input{width:74px;height:26px;font-size:.72rem;}
 .fg-fdate{flex:none;width:150px;}
+.fg-plnote{height:30px;font-size:.76rem;margin-top:-1px;}
 .fg-lim{font-size:.68rem;color:var(--mut);} .fg-limhint{font-size:.68rem;color:var(--mut);line-height:1.5;}
 
 .fg-bar{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--bd2);font-size:.78rem;color:var(--sub);flex-wrap:wrap;}
@@ -9660,13 +9661,14 @@ function figPlateLayout(pm,date){
   plates.forEach((pl,j)=>{ const [R,C]=dims[j];
     const rl=Object.entries(pl.rowLab||{}).filter(([k,v])=>v&&k.charCodeAt(0)-65<R), cl=Object.entries(pl.colLab||{}).filter(([k,v])=>v&&+k<=C);
     if(rl.length) rlW=Math.max(rlW,Math.min(220,Math.max(...rl.map(([,v])=>ctx.measureText(figSp(v)).width))+16)); if(cl.length) clH=34; });
+  const hdH=plates.some(pl=>(pl.note||'').trim())?78:46;   // plate 설명이 하나라도 있으면 모든 plate 머리를 같은 높이로
   const pos=[]; let rowsW=0, yy=0;
   for(let i=0;i<n;i+=perRow){ let x=0, rph=0;
     for(let j=i;j<Math.min(n,i+perRow);j++){ const [R]=dims[j]; rph=Math.max(rph,R*cell+64); }
     for(let j=i;j<Math.min(n,i+perRow);j++){
       const [R,C]=dims[j], pw=C*cell+70, ph=R*cell+64, bw=rlW+pw, dy=rph-ph;
-      pos[j]={x,y:yy+dy,pw,ph,R,C,rlW,clH,bw,bh:46+clH+ph}; x+=bw+50; }
-    rowsW=Math.max(rowsW,x-50); yy+=46+clH+rph+40; }
+      pos[j]={x,y:yy+dy,pw,ph,R,C,rlW,clH,hdH,bw,bh:hdH+clH+ph}; x+=bw+50; }
+    rowsW=Math.max(rowsW,x-50); yy+=hdH+clH+rph+40; }
   const plateH=yy-40;
   let legW=0;
   lns.forEach(x=>{ ctx.font=`700 21px ${F}`; const a=ctx.measureText(x.info.tag).width; ctx.font=`500 18px ${F}`; legW=Math.max(legW,52+a+10+ctx.measureText(x.info.pd).width); });
@@ -9747,7 +9749,9 @@ function figDrawPlates(D,L,ox,oy,f,sel){
     let hx=bx+rlW+2;
     if(nm){ D.text(nm,hx,by+4,{size:24,weight:700}); hx+=D.measure(nm,24,700)+14; }
     D.text(`${pl.format} well plate${used?` · ${used} well${used>1?'s':''}`:''}`,hx,by+(nm?9:6),{size:19,weight:500,color:'#8A9099'});
-    const ox2=bx+rlW, oy2=by+46+clH;
+    const note=figSp((pl.note||'').trim());
+    if(note){ let s2=20; while(s2>13&&D.measure(note,s2,500)>pw) s2--; D.text(note,bx+rlW+2,by+40,{size:s2,weight:500,color:'#1F2328'}); }
+    const ox2=bx+rlW, oy2=by+P.hdH+clH;
     D.plate(ox2,oy2,pw,ph,{fill:'#F6F7F9',stroke:'#B8BEC6',width:2.5});
     const gx=ox2+52, gy=oy2+48, fs=Math.min(20,cell*.3);
     for(let j=0;j<C;j++){ const cx=gx+j*cell+cell/2; D.text(String(j+1),cx,oy2+24,{size:fs,weight:700,color:'#6B727B',align:'center',base:'middle'});
@@ -9999,6 +10003,7 @@ function figPlateEditor(f){
       <div class="fg-plates">${plates.map((p,i)=>{ const [R,C]=FIG_FORMATS[p.format]||[4,6]; return `<div class="fg-pl"><input value="${esc(p.name||'')}" placeholder="Plate ${i+1}" onchange="figPlateSet('${f.id}',${i},'name',this.value)">
         <select onchange="figPlateSet('${f.id}',${i},'format',this.value)">${Object.keys(FIG_FORMATS).map(k=>`<option value="${k}"${k===p.format?' selected':''}>${k} well</option>`).join('')}</select>
         ${plates.length>1?`<button class="tbl-btn" onclick="figPlateDel('${f.id}',${i})" title="이 plate 빼기">${ic('x','ic-sm')}</button>`:''}</div>
+        <input class="fg-plnote" value="${esc(p.note||'')}" placeholder="${esc(p.name||`Plate ${i+1}`)} 설명 (선택 · 예: IFNg 10 ng/ml, 3×10⁴ cells/well)" onchange="figPlateSet('${f.id}',${i},'note',this.value)">
         <details class="fg-rc"${Object.values(p.rowLab||{}).some(Boolean)||Object.values(p.colLab||{}).some(Boolean)?' open':''}><summary>행 · 열 이름 <small>(예: 가로는 처리, 세로는 농도)</small></summary>
           <div class="fg-rcg"><small>행</small>${Array.from({length:R},(_,r)=>{ const k=String.fromCharCode(65+r); return `<label>${k}<input value="${esc((p.rowLab||{})[k]||'')}" onchange="figPlateLab('${f.id}',${i},'rowLab','${k}',this.value)"></label>`; }).join('')}</div>
           <div class="fg-rcg"><small>열</small>${Array.from({length:C},(_,c)=>`<label>${c+1}<input value="${esc((p.colLab||{})[String(c+1)]||'')}" onchange="figPlateLab('${f.id}',${i},'colLab','${c+1}',this.value)"></label>`).join('')}</div></details>`; }).join('')}
@@ -10018,7 +10023,7 @@ function figPlateEditor(f){
     </div>`;
 }
 const figWellOf=(f,key,make)=>{ const [pi,wk]=key.split(':'), pl=f.plate&&f.plate.plates[+pi]; if(!pl) return null; pl.wells=pl.wells||{}; if(make&&!pl.wells[wk]) pl.wells[wk]={}; return {pl,wk,w:pl.wells[wk]}; };
-function figPlateSet(id,i,k,v){ const f=figById(id), pl=f&&f.plate&&f.plate.plates[i]; if(!pl) return; pl[k]=k==='name'?v.trim():v;
+function figPlateSet(id,i,k,v){ const f=figById(id), pl=f&&f.plate&&f.plate.plates[i]; if(!pl) return; pl[k]=(k==='name'||k==='note')?v.trim():v;
   if(k==='format'){ const [R,C]=FIG_FORMATS[v]; Object.keys(pl.wells||{}).forEach(key=>{ const r=key.charCodeAt(0)-65, c=parseInt(key.slice(1))-1; if(r>=R||c>=C) delete pl.wells[key]; }); _figSel.clear(); }
   figTouch(f); renderFig(); }
 function figPlateLab(id,i,which,k,v){ const f=figById(id), pl=f&&f.plate&&f.plate.plates[i]; if(!pl) return; pl[which]=pl[which]||{}; if(v.trim()) pl[which][k]=v.trim(); else delete pl[which][k]; figTouch(f); renderFig(); }
