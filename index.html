@@ -9973,7 +9973,6 @@ function renderFig(){
     <div class="fg-bar">${list.length?`<label class="fg-all"><input type="checkbox" ${pick.length===list.length?'checked':''} onchange="figPickAll(this.checked)"> 전체 선택</label>
       <span class="fg-n">${pick.length}개 골랐어요 · 고른 것마다 슬라이드 한 장</span>
       <button class="btn btn-out fg-delsel" ${pick.length?'':'disabled'} onclick="figDelMany([..._figPick])">${ic('trash','ic-sm')}고른 것 삭제</button>
-      <button class="btn btn-out fg-delsel" onclick="figDelMany(figures.map(f=>f.id),true)">전체 삭제</button>
       <button class="btn btn-pri" ${pick.length?'':'disabled'} onclick="figPpt([..._figPick])">${ic('slides')}고른 것 PPT로</button>`:'<span class="fg-n">Figure 하나에 Experiment Schedule · Plate map · 메모를 같이 넣을 수 있어요. 자동으로 계정에 저장돼서 다른 기기에서도 꺼내 써요.</span>'}</div>
     <div class="fg-grid">${list.map(x=>`<div class="fg-card${_figPick.has(x.id)?' on':''}">
       <label class="fg-chk"><input type="checkbox" ${_figPick.has(x.id)?'checked':''} onchange="figPickOne('${x.id}',this.checked)"></label>
