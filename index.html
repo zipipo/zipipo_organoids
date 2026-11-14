@@ -3176,6 +3176,13 @@ function slLoadSet(id){
     : true;
   doLoad(replace);
 }
+// 저장된 촬영 순서를 한 번에 지움 (지금 작성 중인 순서는 남김). 계정 저장 공간도 줄어듦
+function slDeleteAllSets(){
+  const del=shotSets.filter(s=>!s.draft); if(!del.length) return toast('지울 저장된 순서가 없어요.');
+  if(!confirm(`저장된 촬영 순서 ${del.length}개를 모두 지울까요?\n지금 작성 중인 순서는 남아요. 지운 건 되돌릴 수 없어요.`)) return;
+  shotSets=shotSets.filter(s=>s.draft); saveShotSets(); renderShotSets();
+  toast(`촬영 순서 ${del.length}개를 지웠어요`);
+}
 function slDeleteSet(id){
   const s=shotSets.find(x=>x.id===id); if(!s) return;
   if(!confirm(`세트 "${s.name}"을(를) 삭제할까요?`)) return;
@@ -3203,6 +3210,7 @@ function renderShotSets(){
   const el=document.getElementById('slSets');
   if(!el) return;
   if(dedupeShotSets()) saveShotSets();
+  const nEl=document.getElementById('slSetN'); if(nEl) nEl.textContent=shotSets.length?`${shotSets.length}개`:'';
   if(!shotSets.length){ el.innerHTML='<div class="hint" style="padding:4px 2px;">없음</div>'; return; }
   el.innerHTML = shotSets.slice().sort((a,b)=>b.updatedTs-a.updatedTs).map(s=>{
     const labels=s.items.map(it=>sampleLabel(it.lineId));
@@ -10257,8 +10265,8 @@ if(curTab==='ana'||curTab==='diary'||curTab==='media'||curTab==='fig') setTab(cu
       <div id="slList"></div>
 
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin:14px 0 6px;padding-top:10px;border-top:1px solid #E2E8F0;flex-wrap:wrap;">
-        <span style="font-size:.78rem;font-weight:700;color:#475569;">저장된 순서</span>
-        <button class="tbl-btn" onclick="slSaveAsSet()">순서 저장</button>
+        <span style="font-size:.78rem;font-weight:700;color:#475569;">저장된 순서 <span id="slSetN" style="font-weight:500;color:#94A3B8;"></span></span>
+        <span style="display:flex;gap:6px;"><button class="tbl-btn" onclick="slSaveAsSet()">순서 저장</button><button class="tbl-btn" style="color:#DC2626;" onclick="slDeleteAllSets()">저장된 순서 전체 삭제</button></span>
       </div>
       <div id="slSets"></div>
     </div>
