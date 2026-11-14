@@ -877,7 +877,7 @@ body[data-tab="fig"] .pane[data-pane="fig"]{display:block;animation:paneIn .28s 
 .fg-trh,.fg-tog{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;} .fg-trh b{font-size:.8rem;} .fg-trh small,.fg-tog small{font-size:.68rem;color:var(--mut);}
 .fg-trh .tbl-btn{margin-left:auto;} .fg-car{width:12px;font-size:.7rem;color:var(--mut);}
 .fg-lg{flex-direction:column;align-items:stretch!important;gap:4px;} .fg-lgl{display:flex;align-items:flex-start;gap:7px;margin:0;cursor:pointer;}
-.fg-ied{display:flex;gap:5px;align-items:center;padding-left:24px;} .fg-ied input{height:28px;font-size:.74rem;min-width:0;flex:1;} .fg-ied .fg-inote{flex:1.3;}
+.fg-ied{display:flex;gap:5px;align-items:flex-start;padding-left:24px;} .fg-ied textarea.fg-inote{font:inherit;font-size:.74rem;min-height:28px;padding:5px 8px;resize:none;line-height:1.35;font-weight:400;} .fg-ied input{height:28px;font-size:.74rem;min-width:0;flex:1;} .fg-ied .fg-inote{flex:1.3;}
 .fg-allbtn{float:right;font-weight:500;font-size:.7rem;} .fg-allbtn .link-btn{font-size:.7rem;}
 .fg-memo{width:100%;font:inherit;font-size:.8rem;resize:vertical;}
 /* 편집 칸: 번호 붙은 단계 · 일정 줄 탭 */
@@ -9688,8 +9688,9 @@ function figSchedLayout(sc){
       g.w=Math.max(...g.pills.map(p=>p.w),110); g.h=g.pills.reduce((s,p)=>s+p.h,0)+(g.pills.length-1)*8; g.d=dayFrom(T.zero,g.date);
       // 눈금 아래: 실험 기준 Day(크게) · P와 organoid 기준 d(작게) · 날짜 · 짧은 메모
       g.pd=sc.showPD===false?'':figItemPD(T.t,g.items[0]);
-      ctx.font=`500 18px ${F}`; const memo=g.items.map(i=>(i.note||'').trim()).filter(Boolean).join(' · ');
-      g.notes=memo?figWrap(ctx,figSp(memo),240,3):[];
+      // 메모는 엔터로 나눈 줄 그대로 (줄마다 폭에 맞춰 다시 줄바꿈), 같은 날 여러 항목이면 이어서
+      ctx.font=`500 18px ${F}`; const memo=g.items.map(i=>(i.note||'').trim()).filter(Boolean).join('\n');
+      g.notes=memo?memo.split('\n').map(l=>l.trim()).filter(Boolean).flatMap(l=>figWrap(ctx,figSp(l),240)).slice(0,8):[];
       g.w=Math.max(g.w,...g.notes.map(l=>ctx.measureText(l).width+16),g.pd?figMeasure(g.pd,17,600)+16:0); });
     T.gs=gs;
     const ln=lineById(T.t.lineId); T.name=figSp(T.t.label||(ln?lineTag(ln):''));
@@ -9717,7 +9718,7 @@ function figSchedLayout(sc){
   tracks.forEach(T=>{
     const h0=Math.max(0,...T.gs.filter((g,i)=>T.lv[i]===0).map(g=>g.h)), h1=Math.max(0,...T.gs.filter((g,i)=>T.lv[i]===1).map(g=>g.h));
     const nMax=Math.max(0,...T.gs.map(g=>g.notes.length)), anyPD=T.gs.some(g=>g.pd);
-    T.top=h0+(h1?h1+14:0)+40; T.h0=h0; T.bot=36+(anyPD?24:0)+(sc.showDate===false?0:28)+(nMax?nMax*23+6:0)+18;
+    T.top=h0+(h1?h1+14:0)+40; T.h0=h0; T.bot=24+42+(anyPD?24:0)+(sc.showDate===false?0:28)+(nMax?nMax*23+10:0)+14;   // 눈금(끝 24) · Day · P·d · 날짜 · 메모 줄 수만큼
     T.H=Math.max(T.top+T.bot,(T.nl||[]).length*32+20);
   });
   const W=LW+padL+axW+padR, H=tracks.reduce((s,T)=>s+T.H,0)+(tracks.length>1?(tracks.length-1)*24:0);
@@ -10106,7 +10107,7 @@ function figTrackEditor(f,t,n){
   const byLog={}; items.forEach(it=>{ if(it.logId) byLog[it.logId]=it; });
   const edit=it=>`<div class="fg-ied"><button class="fg-dot" style="background:${it.color}" onclick="figTlColorPick(this,${T},'${it.id}')" title="색"></button>
       <input value="${esc(it.label)}" title="그림에 들어갈 이름" onchange="figItemSet(${T},'${it.id}',this.value)">
-      <input class="fg-inote" value="${esc(it.note||'')}" placeholder="메모" onchange="figItemNote(${T},'${it.id}',this.value)"></div>`;
+      <textarea class="fg-inote" rows="${Math.min(6,Math.max(1,(it.note||'').split('\n').length))}" placeholder="메모 (엔터로 줄바꿈)" oninput="this.rows=Math.min(6,Math.max(1,this.value.split(String.fromCharCode(10)).length))" onchange="figItemNote(${T},'${it.id}',this.value)">${esc(it.note||'')}</textarea></div>`;
   const when=d=>`<span class="fg-when"><b>D${figDayOf(z,d)}</b>${d.slice(5).replace('-','/')}</span>`;
   const lgs=line?logs.filter(l=>l.lineId===line.id).sort((a,b)=>a.date.localeCompare(b.date)||(a.seq||0)-(b.seq||0)):[];
   const rows=lgs.map(lg=>{ const it=byLog[lg.id], memo=[lg.details&&!/split/i.test(lg.action)?lg.details:'',lg.memo||''].filter(Boolean).join(' · ');
