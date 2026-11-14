@@ -1092,6 +1092,22 @@ body[data-tab="fig"] .pane[data-pane="fig"]{display:block;animation:paneIn .28s 
 .dy-n{font-family:var(--hand);font-size:1.05rem;line-height:1;width:26px;height:24px;display:grid;place-items:center;font-synthesis:none;}
 .dy-d.now .dy-n{background:#F9D9D6;border-radius:50%;color:#C2413A;}
 .dy-stk{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.dy-it.exp i{background:#7C6FB0;border-radius:2px;} .dy-it.exp b{font-weight:700;overflow:hidden;text-overflow:ellipsis;}
+.dy-rec.exp{cursor:pointer;grid-template-columns:7px 1fr;row-gap:0;} .dy-rec.exp small{grid-column:2;color:var(--ink2);font-size:.72rem;} .dy-rec.exp .dot{background:#7C6FB0;border-radius:2px;} .dy-rec.exp b{font-weight:800;} .dy-rec.exp:hover b{text-decoration:underline;}
+.dy-add{margin-left:auto;border:1px dashed var(--bd);background:none;border-radius:6px;width:22px;height:22px;line-height:1;font-size:.9rem;color:var(--mut);cursor:pointer;font-family:inherit;} .dy-add:hover{color:#7C6FB0;border-color:#7C6FB0;}
+.dy-addexp{margin-left:6px;height:32px;}
+.note-exhd{font-size:.74rem;font-weight:700;color:#4B3F86;margin:4px 0 2px;}
+.note-exr{display:flex;align-items:center;gap:8px;padding:5px 4px;border-bottom:1px solid #F1F5F9;font-size:.78rem;flex-wrap:wrap;background:rgba(124,111,176,.05);}
+.note-exr input{width:auto;flex:none;} .note-exr .d{color:var(--sub);width:78px;flex:none;} .note-exr b{flex:none;} .note-exr .t{flex:1;min-width:60px;color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;} .note-exr .ok{font-size:.68rem;color:#16A34A;font-weight:700;}
+.ex-badge{background:#EFEBFA;color:#4B3F86;font-weight:700;} .ex-row td{background:rgba(124,111,176,.04);}
+.ex-box{width:min(560px,94vw);} .ex-body{display:flex;flex-direction:column;gap:12px;}
+.ex-row{display:flex;gap:10px;} .ex-f{display:flex;flex-direction:column;gap:4px;margin:0;font-size:.74rem;color:var(--sub);flex:1;min-width:0;} .ex-f small{color:var(--mut);} .ex-date{flex:none;width:150px;}
+.ex-f input{height:36px;} #exName{font-weight:700;font-size:.95rem;} .ex-f textarea{font:inherit;font-size:.82rem;resize:vertical;}
+.ex-fields{display:flex;flex-direction:column;gap:6px;padding:10px;border:1px solid var(--bd2);border-radius:10px;background:var(--hov);}
+.ex-fl{display:grid;grid-template-columns:110px 1fr auto;gap:6px;align-items:center;margin:0;} .ex-fl input{height:32px;min-width:0;} .ex-k{font-size:.74rem;font-weight:650;color:var(--sub);background:transparent;border-color:transparent;}
+.ex-k:focus{background:var(--sur);border-color:var(--bd);} .ex-addf{align-self:flex-start;font-size:.74rem;margin-top:-6px;}
+.ex-foot{display:flex;gap:8px;} .ex-foot .btn-pri{flex:2;} .ex-foot .btn-out{flex:1;} .ex-del{color:var(--due);flex:none!important;}
+@media (max-width:600px){ .ex-row{flex-direction:column;} .ex-date{width:auto;} .ex-fl{grid-template-columns:90px 1fr auto;} }
 .dy-it{display:flex;align-items:center;gap:4px;font-size:.66rem;line-height:1.25;color:var(--ink);white-space:nowrap;overflow:hidden;}
 .dy-it i{flex:0 0 6px;height:6px;border-radius:50%;}
 .dy-it em{font-style:normal;color:var(--ink2);}
@@ -2158,6 +2174,7 @@ let freeSamples=JSON.parse(localStorage.getItem('orgFreeSamples')||'[]');   // �
 let typeColors  = JSON.parse(localStorage.getItem('orgTypeColors')) || {};    // 종류(type)별로 직접 고른 색상 { type: PAL 인덱스 }
 let mediaDefs = JSON.parse(localStorage.getItem('orgMediaDefs')||'[]');   // 배지 종류·양 설정 (Media 페이지)
 let mediaTubes= JSON.parse(localStorage.getItem('orgMediaTubes')||'[]');  // 만들어 둔 배지 튜브
+let exps      = JSON.parse(localStorage.getItem('orgExps')||'[]');        // 실험 기록 (배양 말고 그날 한 실험)
 let figures   = JSON.parse(localStorage.getItem('orgFigures')||'[]');     // PPT figure (일정 도식 · 플레이트) 그리는 정보
 let pptCuts   = JSON.parse(localStorage.getItem('orgPptCuts')) || {};       // PPT 제목 자르기 { JSON[기본, 조각…]: 1 } — 이 조각까지 제목, 뒤는 조건
 function savePptCuts(){ localStorage.setItem('orgPptCuts', JSON.stringify(pptCuts)); cloudPushDebounced(); }
@@ -2229,7 +2246,7 @@ let cloudReady=false;      // 로그인 직후 클라우드와 처음 맞추기 
 let cloudApplying=false;   // 받은 데이터를 화면에 반영하는 동안(updateUI→saveData) 다시 올리지 않도록
 let cloudPushing=false, cloudPushAgain=false;
 let cloudBase=null;        // { uid, rev, sig, data } 마지막으로 클라우드와 맞춘 상태
-const SYNC_ARR=['lines','logs','stockChecks','trash','plans','shotSets','shotNotes','freeSamples','mediaDefs','mediaTubes','figures'];
+const SYNC_ARR=['lines','logs','stockChecks','trash','plans','shotSets','shotNotes','freeSamples','mediaDefs','mediaTubes','figures','exps'];
 const SYNC_OBJ=['tlCollapsed','typeColors','pptCuts','pets','prefs'];
 
 function cloudDocRef(uid){ return fbDb.collection('users').doc(uid).collection('data').doc('appData'); }
@@ -2255,7 +2272,7 @@ function pickSync(d){
 // 깊은 복사: 올리는 도중이나 base로 기억한 뒤에 화면에서 배열을 고쳐도 비교 기준이 같이 바뀌지 않도록
 const syncClone = d => JSON.parse(JSON.stringify(d));
 // 펫은 Google 계정에 같이 저장 (펫 코드가 뒤에 있어서 window._petsOut / _petsIn으로 이어 줌)
-function localSync(){ return syncClone(pickSync({lines,logs,stockChecks,trash,plans,shotSets,shotNotes:_slRecentNotes,freeSamples,mediaDefs,mediaTubes,figures,tlCollapsed,typeColors,pptCuts,pets:window._petsOut?window._petsOut():{}, prefs:_prefsOut()})); }
+function localSync(){ return syncClone(pickSync({lines,logs,stockChecks,trash,plans,shotSets,shotNotes:_slRecentNotes,freeSamples,mediaDefs,mediaTubes,figures,exps,tlCollapsed,typeColors,pptCuts,pets:window._petsOut?window._petsOut():{}, prefs:_prefsOut()})); }
 // 이니셜처럼 기기마다 다시 입력하기 귀찮은 설정은 계정에 같이 저장
 function _prefsOut(){ const o={}; try{ const v=localStorage.getItem('orgInitials'); if(v) o.ini=v; const fz=localStorage.getItem('orgFontSize'); if(fz) o.size=fz; const ft=localStorage.getItem('orgFont'); if(ft&&ft!=='pretendard') o.font=ft; const ml=localStorage.getItem('orgMyLine'); if(ml) o.myLine=ml; }catch(e){} return o; }
 const syncHas = d => d.lines.length>0 || d.logs.length>0 || d.freeSamples.length>0;
@@ -2325,7 +2342,7 @@ function merge3(base,local,remote,prefer){
 function openStorageInfo(){
   const d=localSync(), enc=new TextEncoder(), sz=v=>enc.encode(JSON.stringify(v)).length;
   const total=sz(d), LIM=1048576, pct=total/LIM*100;
-  const lab={lines:'라인',logs:'기록',stockChecks:'Stock 후처리',trash:'휴지통',plans:'예정 작업',shotSets:'촬영 순서 세트',shotNotes:'촬영 메모',freeSamples:'사진용 샘플',mediaDefs:'배지 설정',mediaTubes:'배지 튜브',figures:'PPT figure',tlCollapsed:'화면 접힘',typeColors:'종류 색',pptCuts:'PPT 설정',pets:'세포',prefs:'설정'};
+  const lab={lines:'라인',logs:'기록',stockChecks:'Stock 후처리',trash:'휴지통',plans:'예정 작업',shotSets:'촬영 순서 세트',shotNotes:'촬영 메모',freeSamples:'사진용 샘플',mediaDefs:'배지 설정',mediaTubes:'배지 튜브',figures:'PPT figure',exps:'실험 기록',tlCollapsed:'화면 접힘',typeColors:'종류 색',pptCuts:'PPT 설정',pets:'세포',prefs:'설정'};
   const parts=Object.keys(d).map(k=>({k,b:sz(d[k]),n:Array.isArray(d[k])?d[k].length:null})).sort((a,b)=>b.b-a.b);
   const kb=b=>b>=1024?(b/1024).toFixed(1)+' KB':b+' B';
   const perLog=logs.length?sz(logs)/logs.length:230, left=Math.max(0,Math.floor((LIM*0.95-total)/perLog));
@@ -2371,7 +2388,7 @@ function applySyncData(d){
   cloudApplying=true;
   try{
     lines=d.lines; logs=d.logs; stockChecks=d.stockChecks; trash=d.trash;
-    plans=d.plans; shotSets=d.shotSets; tlCollapsed=d.tlCollapsed; typeColors=d.typeColors; pptCuts=d.pptCuts; _slRecentNotes=d.shotNotes; freeSamples=d.freeSamples; mediaDefs=d.mediaDefs; mediaTubes=d.mediaTubes; figures=d.figures;
+    plans=d.plans; shotSets=d.shotSets; tlCollapsed=d.tlCollapsed; typeColors=d.typeColors; pptCuts=d.pptCuts; _slRecentNotes=d.shotNotes; freeSamples=d.freeSamples; mediaDefs=d.mediaDefs; mediaTubes=d.mediaTubes; figures=d.figures; exps=d.exps; localStorage.setItem('orgExps', JSON.stringify(exps));
     localStorage.setItem('orgFigures', JSON.stringify(figures)); if(typeof _figThumbs!=='undefined') _figThumbs={};
     localStorage.setItem('orgMediaDefs', JSON.stringify(mediaDefs)); localStorage.setItem('orgMediaTubes', JSON.stringify(mediaTubes));
     _logSeq=logs.reduce((m,l)=>Math.max(m,l.seq||0),0);
@@ -3551,7 +3568,12 @@ function buildLogTable(line){
     return (b.seq||0)-(a.seq||0);   // 같은 날짜: 나중에 기록한 게 위로 (등록 순서 보존)
   });
   let rows='';
+  // 이 라인을 고른 실험 기록: 날짜만 (P · d 없음), 같은 날이면 배양 기록 위에
+  const ex=(typeof exps!=='undefined'?exps:[]).filter(e=>(e.lineIds||[]).includes(line.id)).sort((a,b)=>b.date.localeCompare(a.date));
+  const exRow=e=>`<tr class="lg-row ex-row" onclick="expOpen('${e.id}')" title="클릭해서 수정"><td style="color:var(--sub)">${e.date}</td><td><span class="badge ex-badge">${esc(e.name)}</span></td><td colspan="6"><span class="mcell">${esc([(e.fields||[]).filter(f=>f.v).map(f=>f.k+' '+f.v).join(' · '),e.memo||''].filter(Boolean).join(' / ')||'-')}</span></td></tr>`;
+  let xi=0;
   lgs.forEach(lg=>{
+    while(xi<ex.length&&!isFin(lg.action)&&ex[xi].date>=lg.date) rows+=exRow(ex[xi++]);
     rows+=`<tr class="lg-row" onclick="openLogModal('${lg.id}')" title="클릭해서 수정">
       <td style="color:var(--sub)">${lg.date}</td>
       <td><span class="badge ${badgeCls(lg.action)}">${esc(lg.action)}</span></td>
@@ -3563,6 +3585,7 @@ function buildLogTable(line){
       <td><span class="mcell">${esc(lg.memo||'-')}</span></td>
     </tr>`;
   });
+  while(xi<ex.length) rows+=exRow(ex[xi++]);
   return `<table><thead><tr>
     <th style="width:104px">Date</th><th style="width:188px">Action</th>
     <th style="width:104px">P / D</th><th style="width:12%">Plate</th><th style="width:10%">Ratio</th>
@@ -3778,8 +3801,8 @@ function _idb(){return new Promise((res,rej)=>{const o=indexedDB.open('orgBackup
 async function idbSet(k,v){const db=await _idb();return new Promise((res,rej)=>{const t=db.transaction('kv','readwrite');t.objectStore('kv').put(v,k);t.oncomplete=()=>res();t.onerror=()=>rej(t.error);});}
 async function idbGet(k){const db=await _idb();return new Promise((res,rej)=>{const t=db.transaction('kv','readonly');const r=t.objectStore('kv').get(k);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});}
 
-function bkPayload(){ return JSON.stringify({app:'organoid-log',v:2,exportedAt:new Date().toISOString(),lines,logs,stockChecks,mediaDefs,mediaTubes,figures}); }
-function bkSig(){ const s=JSON.stringify({lines,logs,stockChecks,mediaDefs,mediaTubes,figures}); let h=0; for(let i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))|0;} return s.length+':'+h; }
+function bkPayload(){ return JSON.stringify({app:'organoid-log',v:2,exportedAt:new Date().toISOString(),lines,logs,stockChecks,mediaDefs,mediaTubes,figures,exps}); }
+function bkSig(){ const s=JSON.stringify({lines,logs,stockChecks,mediaDefs,mediaTubes,figures,exps}); let h=0; for(let i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))|0;} return s.length+':'+h; }
 
 async function bkPerm(request){
   if(!bkHandle) return false;
@@ -3862,6 +3885,7 @@ async function restoreBackup(ev){
     lines=data.lines; logs=data.logs; stockChecks=Array.isArray(data.stockChecks)?data.stockChecks:[];
     if(Array.isArray(data.mediaDefs)){ mediaDefs=data.mediaDefs; mediaTubes=Array.isArray(data.mediaTubes)?data.mediaTubes:[]; saveMedia(); }
     if(Array.isArray(data.figures)){ figures=data.figures; saveFigures(); }
+    if(Array.isArray(data.exps)){ exps=data.exps; saveExps(); }
     localStorage.removeItem('orgBkSig');   // 복원 직후 1회 백업되도록
     saveData(); updateUI();
     toast('백업을 불러왔어요');
@@ -7564,12 +7588,22 @@ function noteFilteredLogs(){
   }).sort((a,b)=> a.date.localeCompare(b.date) || (a.seq||0)-(b.seq||0));
 }
 
+// 실험 기록도 같은 조건(라인 · 기간 · 안 찍은 것만)으로
+function noteFilteredExps(){
+  const lineId=document.getElementById('noteLine').value, from=document.getElementById('noteFrom').value, to=document.getElementById('noteTo').value, onlyUn=document.getElementById('noteOnlyUnprinted').checked;
+  return exps.filter(e=>!(lineId&&!(e.lineIds||[]).includes(lineId))&&!(from&&e.date<from)&&!(to&&e.date>to)&&!(onlyUn&&e.printed)).sort((a,b)=>a.date.localeCompare(b.date)||(a.created||0)-(b.created||0));
+}
+function noteExpToggle(id){ const e=expById(id); if(!e) return; e.printed=!e.printed; saveExps(); renderNoteList(); }
 function renderNoteList(){
-  const list=noteFilteredLogs();
-  document.getElementById('noteCount').textContent=`${list.length}건`;
+  const list=noteFilteredLogs(), xl=noteFilteredExps();
+  document.getElementById('noteCount').textContent=`배양 ${list.length}건${xl.length?` · 실험 ${xl.length}건`:''}`;
   const el=document.getElementById('noteList');
-  if(!list.length){ el.innerHTML='<div style="color:#94A3B8;font-size:.85rem;padding:10px 0;">조건에 맞는 기록이 없습니다.</div>'; return; }
-  el.innerHTML=list.map(lg=>{
+  const exHtml=xl.length?`<div class="note-exhd">실험 기록</div>`+xl.map(e=>`<div class="note-exr">
+      <input type="checkbox" class="note-exp-chk" data-id="${e.id}" ${e.printed?'':'checked'}>
+      <span class="d">${esc(e.date)}</span><b>${esc(e.name)}</b><span class="t">${esc([expLineNames(e).join(' · '),expShort(e)].filter(Boolean).join(' / '))}</span>
+      ${e.printed?'<span class="ok">인쇄됨</span>':''}<button class="tbl-btn" onclick="noteExpToggle('${e.id}')">${e.printed?'미인쇄로 표시':'인쇄됨으로 표시'}</button></div>`).join(''):'';
+  if(!list.length&&!xl.length){ el.innerHTML='<div style="color:#94A3B8;font-size:.85rem;padding:10px 0;">조건에 맞는 기록이 없습니다.</div>'; return; }
+  el.innerHTML=exHtml+list.map(lg=>{
     const line=lines.find(l=>l.id===lg.lineId);
     const label=line?lineTag(line):'(삭제된 라인)';
     return `<div style="display:flex;align-items:center;gap:8px;padding:5px 4px;border-bottom:1px solid #F1F5F9;font-size:.78rem;flex-wrap:wrap;">
@@ -7586,7 +7620,7 @@ function renderNoteList(){
   }).join('');
 }
 
-function noteSelectAll(checked){ document.querySelectorAll('.note-chk').forEach(c=>c.checked=checked); }
+function noteSelectAll(checked){ document.querySelectorAll('.note-chk,.note-exp-chk').forEach(c=>c.checked=checked); }
 
 function noteToggleManual(id){
   const lg=logs.find(l=>l.id===id); if(!lg) return;
@@ -7611,8 +7645,8 @@ const NOTE_CLR={
   p4:['#F1EBFE','#8B5CF6','#DCCEFC'], p5:['#FBE9EF','#E0457B','#F6C7D7'], p6:['#E4F4F6','#1BA3B8','#BBE3EA'], p7:['#FCEAE9','#E5534B','#F7CBC9'],
   p8:['#EFF4E4','#7CA51E','#D8E4BC'], p9:['#F6EFE4','#B7791F','#E9D7BC']};
 function noteDoPrint(){
-  const ids=[...document.querySelectorAll('.note-chk:checked')].map(c=>c.dataset.id);
-  if(!ids.length){ alert('인쇄할 기록을 선택하세요.'); return; }
+  const ids=[...document.querySelectorAll('.note-chk:checked')].map(c=>c.dataset.id), xids=[...document.querySelectorAll('.note-exp-chk:checked')].map(c=>c.dataset.id);
+  if(!ids.length&&!xids.length){ alert('인쇄할 기록을 선택하세요.'); return; }
   const widthCm=parseFloat(document.getElementById('noteWidth').value)||17;
   const list=ids.map(id=>logs.find(l=>l.id===id)).filter(Boolean);
 
@@ -7659,24 +7693,34 @@ function noteDoPrint(){
     return tree+g.ids.map(tableOf).join('');
   }).join('');
   _lgSel=keepSel;
-  const pa=document.getElementById('notePrintArea'); pa.innerHTML=html;
+  // 실험 기록: 날짜순 한 표 (실험 이름 굵게 · 라인 · 칸 값 · 메모)
+  const xs=xids.map(expById).filter(Boolean).sort((a,b)=>a.date.localeCompare(b.date)||(a.created||0)-(b.created||0));
+  const exTable=xs.length?`<div class="note-group" style="width:${widthCm}cm;--nh:#EFEBFA;--nt:#4B3F86;--nb:#CFC6EC;--nl:#EFEBFA;">
+      <div class="note-group-hd">실험 기록<small>${esc(xs[0].date===xs[xs.length-1].date?xs[0].date:xs[0].date+' ~ '+xs[xs.length-1].date)} · ${xs.length}건</small></div>
+      <table><thead><tr><th>Date</th><th>실험</th><th>Line</th><th>내용</th><th>Memo</th></tr></thead><tbody>${xs.map(e=>`<tr>
+        <td>${esc(e.date)}</td><td><b>${esc(e.name)}</b></td><td>${esc(expLineNames(e).join(', '))||'<span class="nil">-</span>'}</td>
+        <td>${(e.fields||[]).filter(f=>f.v).map(f=>`<span class="nd">${esc(f.k)}</span> ${esc(f.v)}`).join('<br>')||'<span class="nil">-</span>'}</td>
+        <td>${e.memo?esc(e.memo).replace(/\n/g,'<br>'):'<span class="nil">-</span>'}</td></tr>`).join('')}</tbody></table></div>`:'';
+  const pa=document.getElementById('notePrintArea'); pa.innerHTML=exTable+html;
   // Tree가 폭보다 넓으면 줄여서 한 줄에 맞춤 (재려고 잠깐 화면 밖에 펼침)
   pa.style.cssText='display:block;position:absolute;left:-99999px;top:0;';
   pa.querySelectorAll('.note-tree-in').forEach(t=>{ const w=t.parentElement.clientWidth, sw=t.scrollWidth; if(sw>w) t.style.zoom=(w/sw).toFixed(3); });
   pa.style.cssText='';
-  _notePrintIds=ids;
+  _notePrintIds=ids; _notePrintX=xids;
   setTimeout(()=>window.print(),50);
 }
+let _notePrintX=null;
 window.addEventListener('afterprint',()=>{
-  if(_notePrintIds && _notePrintIds.length){
-    const n=_notePrintIds.length;
+  if((_notePrintIds && _notePrintIds.length)||(_notePrintX&&_notePrintX.length)){
+    const n=(_notePrintIds||[]).length+(_notePrintX||[]).length;
     if(confirm(`선택한 ${n}건을 "인쇄됨"으로 표시할까요?\n(인쇄를 취소했다면 '취소'를 누르세요)`)){
-      _notePrintIds.forEach(id=>{ const lg=logs.find(l=>l.id===id); if(lg) lg.printedToNotebook=true; });
+      (_notePrintX||[]).forEach(id=>{ const e=expById(id); if(e) e.printed=true; }); if((_notePrintX||[]).length) saveExps();
+      (_notePrintIds||[]).forEach(id=>{ const lg=logs.find(l=>l.id===id); if(lg) lg.printedToNotebook=true; });
       updateUI();
       if(document.getElementById('noteModal').classList.contains('open')) renderNoteList();
     }
   }
-  _notePrintIds=null;
+  _notePrintIds=null; _notePrintX=null;
 });
 
 // ══════════════════════════════════════════
@@ -8092,7 +8136,7 @@ function renderDiary(){
   const t0=today(), mon=['January','February','March','April','May','June','July','August','September','October','November','December'];
   const head=(title,sub)=>`<div class="dy-top"><div class="dy-title">${title}<small>${sub}</small></div><div class="dy-ctl">
     <span class="seg-group"><button class="seg${_dyMode==='month'?' on':''}" onclick="dySetMode('month')">먼슬리</button><button class="seg${_dyMode==='week'?' on':''}" onclick="dySetMode('week')">위클리</button></span>
-    <span class="seg-group"><button class="seg" onclick="dyMove(-1)">‹</button><button class="seg" onclick="dyMove(0)">오늘</button><button class="seg" onclick="dyMove(1)">›</button></span></div></div>`;
+    <span class="seg-group"><button class="seg" onclick="dyMove(-1)">‹</button><button class="seg" onclick="dyMove(0)">오늘</button><button class="seg" onclick="dyMove(1)">›</button></span><button class="btn btn-pri dy-addexp" onclick="expOpen()">${ic('plus')}실험 기록</button></div></div>`;
   const lineOf=id=>lines.find(l=>l.id===id);
   if(_dyMode==='month'){
     const y=a.getFullYear(), m=a.getMonth();
@@ -8110,7 +8154,8 @@ function renderDiary(){
       const items=TW_GROUPS.filter(g=>grp[g[0]]).map(g=>({k:g[0], n:grp[g[0]], c:_dyGc(g[0])}));
       const pl=plans.filter(p=>!p.done&&p.date===ds&&ds>=t0);
       const short=k=>({'Media Change':'MC','Observation':'Obs','Reseeding':'Reseed'}[k]||k);
-      const rows=items.map(it=>`<span class="dy-it"><i style="background:${it.c}"></i>${esc(short(it.k))}${it.n>1?` <em>${it.n}</em>`:''}</span>`)
+      const rows=expOnDay(ds).map(e=>`<span class="dy-it exp"><i></i><b>${esc(e.name)}</b></span>`)
+        .concat(items.map(it=>`<span class="dy-it"><i style="background:${it.c}"></i>${esc(short(it.k))}${it.n>1?` <em>${it.n}</em>`:''}</span>`))
         .concat(pl.map(p=>`<span class="dy-it plan"><i></i>${esc(p.action)}</span>`));
       const stk=rows.slice(0,3).join('')+(rows.length>3?`<span class="dy-more">+${rows.length-3}</span>`:'');
       const dots=items.slice(0,6).map(it=>`<i style="background:${it.c}"></i>`).join('');
@@ -8137,7 +8182,10 @@ function renderDiary(){
           : `<small>${names.map(esc).join(' · ')}</small>`;
         return `<div class="dy-rec"><i class="dot" style="background:${_dyGc(k)}"></i><b>${esc(lab)}</b>${body}</div>`; }).join('');
       const pl=ds>=t0?plans.filter(p=>!p.done&&p.date===ds).map(p=>`<div class="dy-rec plan"><i class="dot"></i><b>${esc(p.action)}</b><small>예정 · ${(p.lineIds||[]).length}라인</small></div>`).join(''):'';
-      return `<div class="dy-wd${ds===t0?' now':''}${dow===6?' sat':dow===0?' sun':''}"><h4><span>${c.getMonth()+1}/${c.getDate()}</span><small>${wd[i]}</small></h4>${rows+pl||'<div class="dy-empty">쉬는 날</div>'}</div>`;
+      // 실험 기록: 이름 굵게 · 라인 · 주요 칸 값 (누르면 고치기)
+      const ex=expOnDay(ds).map(e=>{ const sub=[expLineNames(e).join(' · '),expShort(e)].filter(Boolean).join(' / ');
+        return `<div class="dy-rec exp" onclick="expOpen('${e.id}')" title="${esc([e.name,...(e.fields||[]).filter(f=>f.v).map(f=>f.k+': '+f.v),e.memo||''].filter(Boolean).join('\n'))}"><i class="dot"></i><b>${esc(e.name)}</b><small>${esc(sub)}</small></div>`; }).join('');
+      return `<div class="dy-wd${ds===t0?' now':''}${dow===6?' sat':dow===0?' sun':''}"><h4><span>${c.getMonth()+1}/${c.getDate()}</span><small>${wd[i]}</small><button class="dy-add" onclick="expOpen('','${ds}')" title="이 날 실험 기록 추가">+</button></h4>${ex+rows+pl||'<div class="dy-empty">쉬는 날</div>'}</div>`;
     };
     const from=ymdLocal(days[0]), to=ymdLocal(days[6]), st=_twStats(from,to);
     const typeCnt={}; st.ls.forEach(lg=>{ const l=lineOf(lg.lineId); if(l) typeCnt[l.type]=(typeCnt[l.type]||0)+1; });
@@ -10294,6 +10342,85 @@ function figWirePlate(f,cv){
 function figRedrawSel(f){ const box=document.getElementById('figPrev'); const old=box&&box.querySelector('canvas'); if(!old) return; const {canvas}=figRender(f,2,true);
   // 처음 그릴 때 걸어 둔 2배 확대를 풀고 그대로 덮어써야 함 (안 풀면 2배로 커져 보임)
   const ctx=old.getContext('2d'); ctx.setTransform(1,0,0,1,0,0); ctx.drawImage(canvas,0,0); }
+
+// ══════════════════════════════════════════
+//  실험 기록: 배양 말고 그날 한 실험 (qPCR · RNA extraction · Aliquot · Plate coating …)
+//  배양 기록(logs)과 따로 둠 → P · d 계산에 안 섞임. 다이어리 · 라인 타임라인 · 연구노트 인쇄에서 같이 보임
+// exps: [{id, date, name, lineIds:[], fields:[{k,v}], memo, printed, created, updated}]
+// ══════════════════════════════════════════
+// 실험마다 미리 깔아 두는 칸. 여기 없는 이름은 마지막으로 그 이름으로 적은 기록의 칸을 그대로 씀
+const EXP_TPL={
+  'Aliquot':['시약','농도','Lot','양 × 개수','보관'],
+  'Plate coating':['시약','농도','Lot','Plate','양 / well'],
+  'RNA extraction':['샘플','Kit','Lot','RNA 농도'],
+  'cDNA synthesis':['샘플','Kit','Lot','RNA 양'],
+  'qPCR':['샘플','Primer','Kit','Lot','Plate'],
+  'Fixation':['샘플','시약','농도','시간'],
+  'Staining':['샘플','Antibody','희석','Lot','시간'],
+  '배지 제조':['배지','첨가','Lot','양']
+};
+const EXP_CLR='#7C6FB0';
+function saveExps(){ localStorage.setItem('orgExps',JSON.stringify(exps)); cloudPushDebounced(); }
+const expById=id=>exps.find(e=>e.id===id);
+function expNames(){ const s=new Set(Object.keys(EXP_TPL)); exps.forEach(e=>e.name&&s.add(e.name)); return [...s]; }
+function expKeysFor(name){
+  if(EXP_TPL[name]) return EXP_TPL[name].slice();
+  const last=exps.filter(e=>e.name===name&&(e.fields||[]).length).sort((a,b)=>(b.updated||0)-(a.updated||0))[0];
+  return last?last.fields.map(f=>f.k):[];
+}
+function expVals(k){ const s=new Set(); exps.forEach(e=>(e.fields||[]).forEach(f=>{ if(f.k===k&&f.v) s.add(f.v); })); return [...s].slice(-30).reverse(); }
+const expLineNames=e=>(e.lineIds||[]).map(id=>{ const l=lineById(id); return l?`${l.patientId} ${l.type}`:''; }).filter(Boolean);
+const expShort=e=>(e.fields||[]).filter(f=>f.v).slice(0,2).map(f=>f.v).join(' · ');
+
+// ── 입력 창 ──
+let _expD=null;   // 고치는 중인 사본
+function expOpen(id,date,lineId){
+  const e=id&&expById(id);
+  _expD=e?JSON.parse(JSON.stringify(e)):{id:'',date:date||ymdLocal(new Date()),name:'',lineIds:lineId?[lineId]:[],fields:[],memo:''};
+  let m=document.getElementById('expModal');
+  if(!m){ m=document.createElement('div'); m.id='expModal'; m.className='modal open'; m.onclick=ev=>{ if(ev.target===m) expClose(); }; m.innerHTML='<div class="mbox ex-box"></div>'; document.body.appendChild(m); }
+  m.classList.add('open'); expRender();
+  setTimeout(()=>{ const n=document.getElementById('exName'); if(n&&!_expD.name) n.focus(); },30);
+}
+function expClose(){ const m=document.getElementById('expModal'); if(m) m.remove(); _expD=null; }
+function expRender(){
+  const m=document.getElementById('expModal'); if(!m||!_expD) return; const d=_expD;
+  const used=new Set(d.lineIds);
+  const keys=[...new Set(d.fields.map(f=>f.k))];
+  m.querySelector('.ex-box').innerHTML=`<h2>${d.id?'실험 기록 고치기':'실험 기록 추가'}</h2>
+    <div class="mscroll ex-body">
+      <div class="ex-row"><label class="ex-f ex-date">날짜<input type="date" value="${d.date}" onchange="_expD.date=this.value"></label>
+        <label class="ex-f">실험 이름<input id="exName" list="exNameList" value="${esc(d.name)}" placeholder="예: Aliquot, qPCR" onchange="expSetName(this.value)" onkeydown="if(event.key==='Enter')this.blur()"></label></div>
+      <datalist id="exNameList">${expNames().map(n=>`<option value="${esc(n)}">`).join('')}</datalist>
+      <div class="ex-f"><span>라인 <small>(선택)</small></span>
+        <div class="fg-chips">${d.lineIds.map(id=>{ const l=lineById(id); return l?`<span class="fg-chip"><button>${esc(lineTag(l))}</button><button class="x" onclick="expLineDel('${id}')">×</button></span>`:''; }).join('')}
+          <select class="fg-addsel" onchange="expLineAdd(this.value)">${figLineOptsHtml('',used,'<option value="">+ 라인</option>')}</select></div></div>
+      ${d.fields.length?`<div class="ex-fields">${d.fields.map((f,i)=>`<label class="ex-fl"><input class="ex-k" value="${esc(f.k)}" onchange="_expD.fields[${i}].k=this.value.trim()" title="칸 이름"><input list="exV_${i}" value="${esc(f.v)}" onchange="_expD.fields[${i}].v=this.value.trim()"><datalist id="exV_${i}">${expVals(f.k).map(v=>`<option value="${esc(v)}">`).join('')}</datalist><button class="tbl-btn" onclick="expFieldDel(${i})" title="이 칸 빼기">${ic('x','ic-sm')}</button></label>`).join('')}</div>`:''}
+      <button class="link-btn ex-addf" onclick="expFieldAdd()">+ 칸 추가</button>
+      <label class="ex-f">메모<textarea rows="4" placeholder="자유롭게 (엔터로 줄바꿈)" onchange="_expD.memo=this.value">${esc(d.memo||'')}</textarea></label>
+    </div>
+    <div class="mfoot ex-foot">${d.id?`<button class="btn btn-out ex-del" onclick="expDel('${d.id}')">${ic('trash','ic-sm')}삭제</button>`:''}
+      <button class="btn btn-out" onclick="expClose()">닫기</button><button class="btn btn-pri" onclick="expSave()">저장</button></div>`;
+}
+// 이름을 바꾸면 그 실험 칸을 깔아 줌 (이미 적은 값은 남김)
+function expSetName(v){ const d=_expD; d.name=v.trim(); const ks=expKeysFor(d.name);
+  const filled=d.fields.filter(f=>f.v); const out=ks.map(k=>({k,v:(filled.find(f=>f.k===k)||{}).v||''}));
+  filled.forEach(f=>{ if(!ks.includes(f.k)) out.push(f); }); d.fields=out; expRender(); }
+function expFieldAdd(){ const k=(prompt('칸 이름 (예: Lot, 농도)','')||'').trim(); if(!k) return; _expD.fields.push({k,v:''}); expRender(); }
+function expFieldDel(i){ _expD.fields.splice(i,1); expRender(); }
+function expLineAdd(id){ if(id&&!_expD.lineIds.includes(id)) _expD.lineIds.push(id); expRender(); }
+function expLineDel(id){ _expD.lineIds=_expD.lineIds.filter(x=>x!==id); expRender(); }
+function expSave(){
+  // 포커스가 남은 칸의 값도 반영 (onchange 전에 저장을 누른 경우)
+  const a=document.activeElement; if(a&&a.blur) a.blur();
+  const d=_expD; if(!d) return; if(!d.name) return toast('실험 이름을 적어 주세요.',{warn:true}); if(!d.date) return toast('날짜를 골라 주세요.',{warn:true});
+  d.fields=d.fields.filter(f=>f.k); d.updated=Date.now();
+  if(d.id){ const i=exps.findIndex(e=>e.id===d.id); if(i>=0) exps[i]=d; else exps.push(d); }
+  else { d.id=uid(); d.created=d.updated; exps.push(d); }
+  saveExps(); expClose(); updateUI(); toast('실험 기록을 저장했어요');
+}
+function expDel(id){ const e=expById(id); if(!e||!confirm(`${e.date} 「${e.name}」 기록을 지울까요?`)) return; exps=exps.filter(x=>x.id!==id); saveExps(); expClose(); updateUI(); }
+const expOnDay=ds=>exps.filter(e=>e.date===ds).sort((a,b)=>(a.created||0)-(b.created||0));
 
 // 스크립트를 끝까지 읽은 뒤에야 분석 · 다이어리를 그릴 수 있다 (setTab 참고)
 window._lateReady=true;
