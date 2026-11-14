@@ -959,6 +959,10 @@ body[data-tab="fig"] .pane[data-pane="fig"]{display:block;animation:paneIn .28s 
 .md-addcard:hover{background:var(--sur);color:var(--tx);border-color:var(--mut);}
 .md-addcard .ic{width:22px;height:22px;} .md-addcard b{font-size:.9rem;} .md-addcard small{font-size:.72rem;color:var(--mut);}
 .md-go{margin-left:8px;font-size:.72rem;}
+.md-inset{margin-bottom:12px;} .md-inset .md-set,.md-draft .md-set{border:none;border-left:4px solid var(--mdc);border-radius:0;padding:2px 0 2px 12px;}
+.md-draft{border:2px dashed var(--bd);} .md-draft .panel-hd span{display:flex;align-items:center;gap:6px;}
+.md-draft-ft{display:flex;justify-content:flex-end;gap:8px;margin-top:12px;}
+.md-hint{margin:2px 4px 14px;line-height:1.6;}
 .md-set.flash{animation:flash 1.2s var(--ease);}
 .md-set{border:1px solid var(--bd2);border-left:4px solid var(--mdc);border-radius:8px;padding:10px 12px;}
 .md-set-hd{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;}
@@ -9310,12 +9314,31 @@ function renderMedia(){
   const types=[...new Set(lines.map(l=>l.type).filter(Boolean))].sort();
   const usedPlates=[...new Set(lines.filter(l=>!l.isCompleted).map(l=>latestPlate(l)).filter(Boolean))];
   const plates=[...new Set([...PLATE_TYPES,...usedPlates])];
-  if(!mediaDefs.length){
-    el.innerHTML=`<section class="panel sec"><div class="panel-hd"><span><i class="sec-ic">${ic('drop')}</i>Media</span></div>
-      <div class="md-empty">아직 등록한 배지가 없어요.<br>배지 이름(EM 같은)과 이 배지를 쓰는 라인 종류, plate별 well당 양을 적어 두면<br>만들어 둔 튜브에서 쓴 만큼 자동으로 빠지고, 1주일에 얼마나 필요한지 계산해 줘요.
-      <div style="margin-top:12px;"><button class="btn btn-pri" onclick="mdNewDef()">${ic('plus')}배지 추가</button></div></div></section>`;
-    return;
-  }
+  // 배지 설정 (카드 안에서 펼침 · 새 배지 칸에서도 같은 모양)
+  const opt=(arr,v,all)=>`<option value="*"${v==='*'?' selected':''}>${all}</option>`+arr.map(x=>`<option${x===v?' selected':''}>${esc(x)}</option>`).join('');
+  const setHtml=d=>{
+    const draft=d.id==='__draft', others=new Set(mediaDefs.filter(o=>o.id!==d.id).flatMap(o=>o.types||[]));
+    return `<div class="md-set" id="mdset_${d.id}" style="--mdc:${d.color||MD_COLORS[0]}">
+      <div class="md-set-hd">
+        <span class="md-colors">${MD_COLORS.map(c=>`<button class="md-cdot${c===d.color?' on':''}" style="background:${c}" onclick="mdSetDef('${d.id}','color','${c}')" title="색"></button>`).join('')}</span>
+        <input class="md-name" value="${esc(d.name||'')}" placeholder="배지 이름 (예: EM)" ${draft?`oninput="_mdDraft.name=this.value"`:''} onchange="mdSetDef('${d.id}','name',this.value.trim())">
+        <label class="md-pw">1주일에 <input type="number" min="1" max="14" value="${+d.perWeek||3}" onchange="mdSetDef('${d.id}','perWeek',Math.max(1,parseInt(this.value)||3))"> 번 교체</label>
+        ${draft?'':`<button class="link-btn md-del" onclick="mdDelDef('${d.id}')">배지 삭제</button>`}
+      </div>
+      <div class="md-types-pick"><small>이 배지를 쓰는 종류</small>${types.map(t=>{ const on=(d.types||[]).includes(t), taken=!on&&others.has(t);
+        return `<label class="md-chip${on?' on':''}${taken?' taken':''}" title="${taken?'다른 배지에 이미 들어 있어요':''}"><input type="checkbox" ${on?'checked':''} ${taken?'disabled':''} onchange="mdToggleType('${d.id}',${JSON.stringify(t).replace(/"/g,'&quot;')},this.checked)">${esc(t)}</label>`; }).join('')||'<span class="nil">라인을 먼저 등록하세요</span>'}</div>
+      <div class="md-scroll"><table class="md-rows"><thead><tr><th>종류</th><th>Plate</th><th>교체 (ml/well)</th><th>Addition (ml/well)</th><th></th></tr></thead><tbody>
+        ${(d.rows||[]).map((r,i)=>`<tr>
+          <td><select onchange="mdSetRow('${d.id}',${i},'type',this.value)">${opt(d.types||[],r.type,'모든 종류')}</select></td>
+          <td><select onchange="mdSetRow('${d.id}',${i},'plate',this.value)">${opt(plates,r.plate,'모든 plate')}</select></td>
+          <td><input type="number" min="0" step="0.05" value="${r.mc??''}" placeholder="-" onchange="mdSetRow('${d.id}',${i},'mc',this.value)"></td>
+          <td><input type="number" min="0" step="0.05" value="${r.ma??''}" placeholder="-" onchange="mdSetRow('${d.id}',${i},'ma',this.value)"></td>
+          <td><button class="tbl-btn" onclick="mdDelRow('${d.id}',${i})" title="행 삭제">${ic('x','ic-sm')}</button></td></tr>`).join('')}
+      </tbody></table></div>
+      <div class="md-set-ft"><button class="link-btn" onclick="mdAddRow('${d.id}')">+ 행 추가</button>
+        <button class="link-btn" onclick="mdFillRows('${d.id}')">지금 키우는 종류·plate 채우기</button></div>
+    </div>`;
+  };
   // 1) 보관함 + 계산기 (배지마다 한 칸)
   const cards=calc.map(c=>{
     const d=c.def, col=d.color||MD_COLORS[0];
@@ -9339,8 +9362,8 @@ function renderMedia(){
         </tbody></table></div>`:'';
     return `<section class="panel sec md-card" style="--mdc:${col}">
       <div class="panel-hd"><span><i class="md-sw"></i>${esc(d.name||'(이름 없음)')}<em class="md-types">${(d.types||[]).map(esc).join(' · ')||'쓰는 종류 없음'}</em></span>
-        <span class="panel-act">${st}<button class="link-btn md-go" onclick="mdGoSet('${d.id}')">설정</button></span></div>
-      <div class="md-body">
+        <span class="panel-act">${st}<button class="link-btn md-go" onclick="_mdSetOpen['${d.id}']=!_mdSetOpen['${d.id}'];renderMedia()">${_mdSetOpen[d.id]?'설정 닫기':'설정'}</button></span></div>
+      <div class="md-body">${_mdSetOpen[d.id]?`<div class="md-inset">${setHtml(d)}</div>`:''}
         <div class="md-rack">${tubes||'<div class="md-none">튜브가 없어요</div>'}
           <button class="md-t md-plus" onclick="_mdAdd='${d.id}';renderMedia()" title="튜브 추가">${ic('plus')}<span>튜브</span></button></div>
         ${add}
@@ -9357,52 +9380,38 @@ function renderMedia(){
         ${det}
       </div></section>`;
   }).join('');
-  // 2) 배지 설정
-  const opt=(arr,v,all)=>`<option value="*"${v==='*'?' selected':''}>${all}</option>`+arr.map(x=>`<option${x===v?' selected':''}>${esc(x)}</option>`).join('');
-  const sets=mediaDefs.map(d=>{
-    const others=new Set(mediaDefs.filter(o=>o.id!==d.id).flatMap(o=>o.types||[]));
-    return `<div class="md-set" id="mdset_${d.id}" style="--mdc:${d.color||MD_COLORS[0]}">
-      <div class="md-set-hd">
-        <span class="md-colors">${MD_COLORS.map(c=>`<button class="md-cdot${c===d.color?' on':''}" style="background:${c}" onclick="mdSetDef('${d.id}','color','${c}')" title="색"></button>`).join('')}</span>
-        <input class="md-name" value="${esc(d.name||'')}" placeholder="배지 이름 (예: EM)" onchange="mdSetDef('${d.id}','name',this.value.trim())">
-        <label class="md-pw">1주일에 <input type="number" min="1" max="14" value="${+d.perWeek||3}" onchange="mdSetDef('${d.id}','perWeek',Math.max(1,parseInt(this.value)||3))"> 번 교체</label>
-        <button class="link-btn md-del" onclick="mdDelDef('${d.id}')">배지 삭제</button>
-      </div>
-      <div class="md-types-pick"><small>이 배지를 쓰는 종류</small>${types.map(t=>{ const on=(d.types||[]).includes(t), taken=!on&&others.has(t);
-        return `<label class="md-chip${on?' on':''}${taken?' taken':''}" title="${taken?'다른 배지에 이미 들어 있어요':''}"><input type="checkbox" ${on?'checked':''} ${taken?'disabled':''} onchange="mdToggleType('${d.id}',${JSON.stringify(t).replace(/"/g,'&quot;')},this.checked)">${esc(t)}</label>`; }).join('')||'<span class="nil">라인을 먼저 등록하세요</span>'}</div>
-      <div class="md-scroll"><table class="md-rows"><thead><tr><th>종류</th><th>Plate</th><th>교체 (ml/well)</th><th>Addition (ml/well)</th><th></th></tr></thead><tbody>
-        ${(d.rows||[]).map((r,i)=>`<tr>
-          <td><select onchange="mdSetRow('${d.id}',${i},'type',this.value)">${opt(d.types||[],r.type,'모든 종류')}</select></td>
-          <td><select onchange="mdSetRow('${d.id}',${i},'plate',this.value)">${opt(plates,r.plate,'모든 plate')}</select></td>
-          <td><input type="number" min="0" step="0.05" value="${r.mc??''}" placeholder="-" onchange="mdSetRow('${d.id}',${i},'mc',this.value)"></td>
-          <td><input type="number" min="0" step="0.05" value="${r.ma??''}" placeholder="-" onchange="mdSetRow('${d.id}',${i},'ma',this.value)"></td>
-          <td><button class="tbl-btn" onclick="mdDelRow('${d.id}',${i})" title="행 삭제">${ic('x','ic-sm')}</button></td></tr>`).join('')}
-      </tbody></table></div>
-      <div class="md-set-ft"><button class="link-btn" onclick="mdAddRow('${d.id}')">+ 행 추가</button>
-        <button class="link-btn" onclick="mdFillRows('${d.id}')">지금 키우는 종류·plate 채우기</button></div>
-    </div>`;
-  }).join('');
-  el.innerHTML=`<div class="md-grid">${cards}<button class="md-addcard" onclick="mdNewDef()">${ic('plus')}<b>새 배지 추가</b><small>EM, DM처럼 다른 배지를 하나 더 만들어요</small></button></div>
-    <section class="panel sec" id="mdSettings"><div class="panel-hd"><span><i class="sec-ic">${ic('sliders')}</i>배지 설정</span><span class="panel-act"><button class="btn btn-out" onclick="mdNewDef()">${ic('plus')}배지 추가</button></span></div>
-      <div class="md-sets">${sets}
-      <div class="hint" style="margin:4px 2px 0;line-height:1.6;">· 한 라인 종류는 배지 하나에만 넣을 수 있어요. 같은 종류라도 plate마다 양이 다르면 plate별로 행을 나눠 주세요.<br>
-      · 같은 조합에 행이 여러 개면 <b>종류+plate</b> → <b>모든 종류+plate</b> → <b>종류+모든 plate</b> → <b>모두</b> 순서로 찾아요.<br>
-      · Media Change · Split · Reseeding · Seeding은 교체 양, Media Addition은 Addition 양만큼 먼저 만든 튜브부터 빠져요. 만든 지 ${MD_EXPIRE}일 지난 튜브는 그 뒤로는 안 써요.</div></div></section>`;
+  const add=_mdDraft?`<section class="panel sec md-card md-draft" id="mdDraftCard"><div class="panel-hd"><span>${ic('plus')}새 배지 처음 설정</span></div>
+      <div class="md-body">${setHtml(_mdDraft)}
+        <div class="md-draft-ft"><button class="btn btn-out" onclick="_mdDraft=null;renderMedia()">취소</button><button class="btn btn-pri" onclick="mdCreateDraft()">만들기</button></div></div></section>`
+    :`<button class="md-addcard" onclick="mdNewDef()">${ic('plus')}<b>새 배지 추가</b><small>${mediaDefs.length?'EM, DM처럼 다른 배지를 하나 더 만들어요':'배지 이름 · 쓰는 종류 · plate별 well당 양을 적어 두면 튜브에서 쓴 만큼 자동으로 빠져요'}</small></button>`;
+  el.innerHTML=`<div class="md-grid">${cards}${add}</div>
+    <div class="hint md-hint">· 한 라인 종류는 배지 하나에만 넣을 수 있어요. 같은 종류라도 plate마다 양이 다르면 행을 나눠 주세요 (종류+plate → 모든 종류+plate → 종류+모든 plate → 모두 순서로 찾아요).<br>
+      · Media Change · Split · Reseeding · Seeding은 교체 양, Media Addition은 Addition 양만큼 먼저 만든 튜브부터 빠져요. 만든 지 ${MD_EXPIRE}일 지난 튜브는 그 뒤로는 안 써요.</div>`;
 }
-// 새 배지: 이름부터 묻고, 만든 뒤 그 배지 설정으로 바로 이동 (쓰는 종류 · plate별 양 채우기)
+// 새 배지: 점선 칸이 그 자리에서 처음 설정 칸으로 바뀜 → [만들기]
+let _mdDraft=null, _mdSetOpen={};
 function mdNewDef(){
-  const name=(prompt('새 배지 이름 (예: EM, DM, FM)','')||'').trim(); if(!name) return;
-  if(mediaDefs.some(d=>(d.name||'').toLowerCase()===name.toLowerCase())&&!confirm(`「${name}」 배지가 이미 있어요. 하나 더 만들까요?`)) return;
-  const used=new Set(mediaDefs.map(d=>d.color)), d={id:uid(),name,color:MD_COLORS.find(c=>!used.has(c))||MD_COLORS[0],types:[],perWeek:3,rows:[{type:'*',plate:'*',mc:'',ma:''}]};
-  mediaDefs.push(d); saveMedia(); renderMedia(); mdGoSet(d.id);
-  toast(`「${name}」을 만들었어요. 아래에서 이 배지를 쓰는 종류를 고르고 plate별 양을 적어 주세요.`);
+  const used=new Set(mediaDefs.map(d=>d.color));
+  _mdDraft={id:'__draft',name:'',color:MD_COLORS.find(c=>!used.has(c))||MD_COLORS[0],types:[],perWeek:3,rows:[{type:'*',plate:'*',mc:'',ma:''}]};
+  renderMedia();
+  setTimeout(()=>{ const c=document.getElementById('mdDraftCard'); if(c) c.scrollIntoView({behavior:'smooth',block:'center'}); const i=c&&c.querySelector('.md-name'); if(i) i.focus(); },60);
 }
-function mdGoSet(id){ setTimeout(()=>{ const el=document.getElementById('mdset_'+id); if(!el) return; el.scrollIntoView({behavior:'smooth',block:'center'}); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); },60); }
-function mdDef(id){ return mediaDefs.find(d=>d.id===id); }
-function mdSetDef(id,k,v){ const d=mdDef(id); if(!d) return; d[k]=v; saveMedia(); renderMedia(); }
+function mdCreateDraft(){
+  const d=_mdDraft; if(!d) return;
+  const n=document.querySelector('#mdDraftCard .md-name'); if(n&&n.value.trim()) d.name=n.value.trim();
+  if(!d.name) return toast('배지 이름을 적어 주세요.',{warn:true});
+  if(mediaDefs.some(x=>(x.name||'').toLowerCase()===d.name.toLowerCase())&&!confirm(`「${d.name}」 배지가 이미 있어요. 하나 더 만들까요?`)) return;
+  const nd=Object.assign({},JSON.parse(JSON.stringify(d)),{id:uid()});
+  mediaDefs.push(nd); _mdDraft=null; saveMedia(); renderMedia();
+  toast(`「${nd.name}」을 만들었어요. 카드에서 [튜브]를 눌러 만들어 둔 배지를 넣어 주세요.`);
+}
+function mdGoSet(id){ _mdSetOpen[id]=true; renderMedia(); setTimeout(()=>{ const el=document.getElementById('mdset_'+id); if(el) el.scrollIntoView({behavior:'smooth',block:'center'}); },60); }
+function mdDef(id){ return id==='__draft'?_mdDraft:mediaDefs.find(d=>d.id===id); }
+// 새 배지 칸(draft)에서 글자 · 숫자 고치기는 다시 그리지 않음 (다시 그리면 바로 누른 [만들기]가 사라짐)
+function mdSetDef(id,k,v){ const d=mdDef(id); if(!d) return; d[k]=v; if(id==='__draft'&&k!=='color') return; saveMedia(); renderMedia(); }
 function mdDelDef(id){ const d=mdDef(id); if(!d) return; const n=mediaTubes.filter(t=>t.mediaId===id).length; if(!confirm(`${d.name||'이 배지'}를 지울까요?${n?`\n등록된 튜브 ${n}개도 같이 지워져요.`:''}`)) return; mediaDefs=mediaDefs.filter(x=>x.id!==id); mediaTubes=mediaTubes.filter(t=>t.mediaId!==id); saveMedia(); renderMedia(); }
 function mdToggleType(id,t,on){ const d=mdDef(id); if(!d) return; d.types=(d.types||[]).filter(x=>x!==t); if(on) d.types.push(t); saveMedia(); renderMedia(); }
-function mdSetRow(id,i,k,v){ const d=mdDef(id); if(!d||!d.rows[i]) return; d.rows[i][k]=(k==='mc'||k==='ma')?(v===''?'':parseFloat(v)):v; saveMedia(); renderMedia(); }
+function mdSetRow(id,i,k,v){ const d=mdDef(id); if(!d||!d.rows[i]) return; d.rows[i][k]=(k==='mc'||k==='ma')?(v===''?'':parseFloat(v)):v; if(id==='__draft') return; saveMedia(); renderMedia(); }
 function mdAddRow(id){ const d=mdDef(id); if(!d) return; d.rows=d.rows||[]; d.rows.push({type:'*',plate:'*',mc:'',ma:''}); saveMedia(); renderMedia(); }
 function mdDelRow(id,i){ const d=mdDef(id); if(!d) return; d.rows.splice(i,1); saveMedia(); renderMedia(); }
 function mdFillRows(id){
