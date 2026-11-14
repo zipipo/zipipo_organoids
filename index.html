@@ -1117,7 +1117,8 @@ body[data-tab="fig"] .pane[data-pane="fig"]{display:block;animation:paneIn .28s 
 .dy-it.exp i{background:#7C6FB0;border-radius:2px;} .dy-it.exp b{font-weight:700;overflow:hidden;text-overflow:ellipsis;}
 .dy-rec.exp{cursor:pointer;grid-template-columns:7px 1fr;row-gap:0;} .dy-rec.exp small{grid-column:2;color:var(--ink2);font-size:.72rem;} .dy-rec.exp .dot{background:#7C6FB0;border-radius:2px;} .dy-rec.exp b{font-weight:800;} .dy-rec.exp:hover b{text-decoration:underline;}
 .dy-add{margin-left:auto;border:1px dashed var(--bd);background:none;border-radius:6px;width:22px;height:22px;line-height:1;font-size:.9rem;color:var(--mut);cursor:pointer;font-family:inherit;} .dy-add:hover{color:#7C6FB0;border-color:#7C6FB0;}
-.dy-addexp{margin-left:6px;height:32px;}
+.dy-addexp{margin-left:6px;height:32px;background:#EFEBFA;color:#4B3F86;border:1px solid #CFC6EC;font-weight:700;border-radius:8px;}   /* 실험 기록 = 보라 (다이어리의 실험 점과 같은 색) */
+.dy-addexp:hover{background:#E4DDF6;border-color:#B9ADE3;} .dy-addexp .ic{color:#7C6FB0;}
 .note-exhd{font-size:.74rem;font-weight:700;color:#4B3F86;margin:4px 0 2px;}
 .note-exr{display:flex;align-items:center;gap:8px;padding:5px 4px;border-bottom:1px solid #F1F5F9;font-size:.78rem;flex-wrap:wrap;background:rgba(124,111,176,.05);}
 .note-exr input{width:auto;flex:none;} .note-exr .d{color:var(--sub);width:78px;flex:none;} .note-exr b{flex:none;} .note-exr .t{flex:1;min-width:60px;color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;} .note-exr .ok{font-size:.68rem;color:#16A34A;font-weight:700;}
@@ -8280,7 +8281,7 @@ function renderDiary(){
   const t0=today(), mon=['January','February','March','April','May','June','July','August','September','October','November','December'];
   const head=(title,sub)=>`<div class="dy-top"><div class="dy-title">${title}<small>${sub}</small></div><div class="dy-ctl">
     <span class="seg-group"><button class="seg${_dyMode==='month'?' on':''}" onclick="dySetMode('month')">먼슬리</button><button class="seg${_dyMode==='week'?' on':''}" onclick="dySetMode('week')">위클리</button></span>
-    <span class="seg-group"><button class="seg" onclick="dyMove(-1)">‹</button><button class="seg" onclick="dyMove(0)">오늘</button><button class="seg" onclick="dyMove(1)">›</button></span><button class="btn btn-pri dy-addexp" onclick="expOpen()">${ic('plus')}실험 기록</button></div></div>`;
+    <span class="seg-group"><button class="seg" onclick="dyMove(-1)">‹</button><button class="seg" onclick="dyMove(0)">오늘</button><button class="seg" onclick="dyMove(1)">›</button></span><button class="btn dy-addexp" onclick="expOpen()">${ic('plus')}실험 기록</button></div></div>`;
   const lineOf=id=>lines.find(l=>l.id===id);
   if(_dyMode==='month'){
     const y=a.getFullYear(), m=a.getMonth();
