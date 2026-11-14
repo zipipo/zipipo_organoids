@@ -7511,7 +7511,7 @@ function pptLayRender(fromHist){
         ${p.kind==='matrix'?`<label class="pl-ck">한 줄에 <select onchange="pptEdWrap(+this.value)"><option value="0"${p.wrapSet>0?'':' selected'}>전부 (${p.colLabels.length}장)</option>${[2,3,4,5,6,7,8,9,10].filter(n=>n<p.colLabels.length).map(n=>`<option value="${n}"${p.wrapSet===n?' selected':''}>${n}장</option>`).join('')}</select></label>
           <button class="btn btn-out" onclick="pptEdAdd('col')">+ 열</button><button class="btn btn-out" onclick="pptEdAdd('row')">+ 행</button>`:''}
         ${p.edited?`<button class="link-btn" onclick="pptEdReset()">처음 배치로</button>`:''}
-        ${pptHistBtns()}<button class="btn btn-pri" onclick="pptEdClose()">다 고쳤어요</button></div>
+        ${pptHistBtns()}<button class="btn btn-pri" onclick="pptEdClose()">저장</button></div>
       ${pptExpChipsHtml(p,pages)}
       <div class="pl-hint">사진을 끌어 다른 칸에 놓으면 옮겨지고, 사진 위에 놓으면 서로 바뀌어요 (Shift를 누른 채 놓으면 한 칸에 나란히). 열 이름 · 날짜 줄 · 행 이름을 끌면 통째로 옮겨져요. 글자는 눌러서 고치고, 가리키면 나오는 ×로 뺍니다.</div>
       <div class="pl-th ed" data-key="${esc(p.key)}">${D.html()}</div>
