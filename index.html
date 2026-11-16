@@ -2538,7 +2538,8 @@ function downloadSyncBackup(tag, d){
 }
 
 if(fbAuth) fbAuth.onAuthStateChanged(async user=>{
-  setTimeout(()=>{ try{ if(typeof plazaMiniLoad==='function') plazaMiniLoad(); }catch(e){} },1500);   // 로그인 · 로그아웃하면 메인 광장도 다시
+  try{ if(!user) localStorage.removeItem('orgPlazaCache'); }catch(e){}   // 로그아웃이면 광장 캐시도 지움
+  setTimeout(()=>{ try{ if(typeof plazaMiniLoad==='function') plazaMiniLoad(); }catch(e){} },0);   // 로그인 · 로그아웃하면 메인 광장도 바로 다시
   if(cloudUnsub){ cloudUnsub(); cloudUnsub=null; }
   cloudReady=false; clearTimeout(cloudPushTimer);
   if(!user){
@@ -9364,7 +9365,8 @@ function plazaSetOff(off){ _plazaOff=off; try{ localStorage.setItem('orgPlazaOff
   const u=mailUser(); if(off&&u&&fbDb) fbDb.collection('players').doc(u.uid).delete().catch(()=>{}); else plazaPublish(true); plazaMiniSync(); plazaPanelRefresh(); }
 function plazaSetNick(v){ try{ localStorage.setItem('orgNickPlaza',String(v||'').trim().slice(0,12)); }catch(e){} plazaPublish(true); }
 async function plazaFetch(){
-  try{ const q=await fbDb.collection('players').limit(200).get(); _plaza=q.docs.map(d=>d.data()); _plazaErr=''; }
+  try{ const q=await fbDb.collection('players').limit(200).get(); _plaza=q.docs.map(d=>d.data()); _plazaErr='';
+    try{ localStorage.setItem('orgPlazaCache',JSON.stringify({uid:mailUser().uid,list:_plaza})); }catch(e){} }   // 새로고침하면 이걸로 먼저 그림
   catch(e){ _plaza=null; _plazaErr=/permission/i.test(e.code||e.message||'')?'아직 광장이 열리지 않았어요 (관리자 설정 필요).':'불러오지 못했어요.'; }
   plazaMiniSync();
 }
@@ -9446,8 +9448,11 @@ setInterval(()=>{ if(mailUser()&&window._lateReady){ plazaInbox(); plazaPublish(
 const _pmMini={ents:[],t:null,frame:0,W:0,H:136,deco:null,pairT:0,sp:PET_N*PET_PX*0.6,k:1,fs:7,cvId:'pmCv'};
 let _pm=_pmMini, _pmBig=null;
 function pmWith(S,fn){ const o=_pm; _pm=S; try{ return fn(); } finally{ _pm=o; } }
+// 로그인 확인(1초쯤) · 목록 받기 전에는 지난번에 받아 둔 목록(orgPlazaCache)으로 먼저 그림
+function plazaCache(){ try{ return JSON.parse(localStorage.getItem('orgPlazaCache')||'null'); }catch(e){ return null; } }
 function plazaMiniPeople(){
-  const me=mailUser(); if(!me||_plazaOff||!plazaOn()) return null;
+  const c=plazaCache(); if(!_plaza&&c&&Array.isArray(c.list)) _plaza=c.list;
+  const me=mailUser()||(c&&c.uid?{uid:c.uid}:null); if(!me||_plazaOff||!plazaOn()) return null;
   const mine=Object.assign({uid:me.uid,me:true},plazaMe());
   const others=(_plaza||[]).filter(p=>p.uid!==me.uid&&p.rep&&petKind(p.rep)).slice(0,11);
   return [mine].concat(others).filter(p=>p.rep&&petKind(p.rep));
@@ -9563,7 +9568,7 @@ function plazaPanelRefresh(){ const el=document.getElementById('pzSide'); if(!el
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&document.getElementById('plazaModal')) plazaClose(); });
 // 로그인 뒤 · 5분마다 광장 사람들 불러오기
 async function plazaMiniLoad(){ if(!mailUser()||!fbDb||!plazaOn()||_plazaOff){ plazaMiniSync(); return; } plazaPublish(); await plazaFetch(); }
-setTimeout(()=>{ try{ plazaMiniLoad(); }catch(e){} },3000);
+setTimeout(()=>{ try{ plazaMiniSync(); }catch(e){} },0);   // 페이지 열리자마자 지난번 목록으로
 setInterval(()=>{ try{ if(mailUser()) plazaMiniLoad(); }catch(e){} },300000);
 
 
