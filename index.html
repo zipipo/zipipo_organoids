@@ -5421,7 +5421,7 @@ function setFont(k){
 function openSide(){ document.body.classList.add('side-open'); }
 function closeSide(){ document.body.classList.remove('side-open'); }
 // 모바일: 사이드 메뉴에서 도구(촬영 순서, 이름·스케일바 등)를 열면 메뉴는 알아서 닫는다
-document.getElementById('side').addEventListener('click',e=>{ if(e.target.closest('.nav-i')) closeSide(); });
+document.getElementById('side').addEventListener('click',e=>{ if(e.target.closest('.nav-i, .pm-box')) closeSide(); });   // 휴대폰: 메뉴 · 광장을 누르면 메뉴 닫기
 // 모바일: 라인을 고르면 아래에 "n개 선택 · 기록" 버튼을 띄워 입력 패널로 바로 이동
 function renderSelFab(){
   const f=document.getElementById('selFab'); if(!f) return;
@@ -9577,6 +9577,7 @@ function pmTick(){
 }
 // 크게 연 광장: 왼쪽 큰 풀밭(모두 이름표), 오른쪽 내 설정 · 랩 목표 · 함께 쓰는 사람
 function plazaOpen(){
+  if(typeof closeSide==='function') closeSide();   // 휴대폰에서 열린 메뉴는 닫고 광장만
   if(!mailUser()) return toast('Google 로그인하면 광장에 들어갈 수 있어요',{warn:true});
   plazaClose();
   const m=document.createElement('div'); m.id='plazaModal'; m.className='modal open pz-modal'; m.onclick=e=>{ if(e.target===m) plazaClose(); };
