@@ -9480,12 +9480,17 @@ const PM_SLOT=7000, PM_PAIR=42000, PM_ACTS=['idle','idle','hop','dance','sleep',
 function pmHash(s){ let h=2166136261; for(const ch of String(s)){ h^=ch.charCodeAt(0); h=Math.imul(h,16777619); } h^=h>>>13; h=Math.imul(h,0x5bd1e995); h^=h>>>15; return h>>>0; }
 const pmRand=(...k)=>pmHash(k.join('|'))/4294967296;
 const pmDay=()=>ymdLocal(new Date());
-const pmWay=(uid,slot)=>({x:pmRand(uid,pmDay(),slot,'x'),y:pmRand(uid,pmDay(),slot,'y')});
+// 걷는 길: 사람마다 느리게 굽이치는 길(두 사인파, 2–3분 주기) → 아무 데나 순간 이동 · 미끄러짐 없이 천천히 같은 빠르기로 걸음
+// 7초 칸 중 앞 60%만 걷고(그동안만 길 위 시간이 흐름) 나머지는 그 자리에서 쉬기 · 폴짝 · 춤 · 낮잠 · 인사
+function pmPath(uid,sec,ax){ const r=k=>pmRand(uid,ax,k);
+  const v=0.5+0.3*Math.sin(2*Math.PI*sec/(120+60*r(1))+6.283*r(2))+0.17*Math.sin(2*Math.PI*sec/(60+30*r(3))+6.283*r(4));
+  return Math.max(0,Math.min(1,v)); }
 function pmState(uid,t){
-  const slot=Math.floor(t/PM_SLOT), f=(t%PM_SLOT)/PM_SLOT, A=pmWay(uid,slot), B=pmWay(uid,slot+1);
-  const act=PM_ACTS[Math.floor(pmRand(uid,pmDay(),slot,'a')*PM_ACTS.length)], wp=act==='sleep'?0.35:0.6, dir=B.x<A.x?-1:1;
-  if(f<wp){ const g=f/wp, s=g*g*(3-2*g); return {x:A.x+(B.x-A.x)*s,y:A.y+(B.y-A.y)*s,dir,act:'walk'}; }
-  return {x:B.x,y:B.y,dir,act};
+  const slot=Math.floor(t/PM_SLOT), f=(t%PM_SLOT)/PM_SLOT, wp=0.6;
+  const act=PM_ACTS[Math.floor(pmRand(uid,pmDay(),slot,'a')*PM_ACTS.length)];
+  const sec=(slot*wp+Math.min(f,wp))*PM_SLOT/1000, x=pmPath(uid,sec,'x'), y=pmPath(uid,sec,'y');
+  const dir=pmPath(uid,sec+0.5,'x')<x?-1:1;
+  return {x,y,dir,act:f<wp?'walk':act};
 }
 function pmPairs(uids,ps){ const d=pmDay(), a=uids.slice().sort().map(u=>[pmRand(u,d,ps,'p'),u]).sort((x,y)=>x[0]-y[0]).map(x=>x[1]), m={};
   for(let i=0;i+1<a.length;i+=2) if(pmRand(a[i],a[i+1],d,ps,'pp')<0.55){ m[a[i]]={lead:true,mate:a[i+1]}; m[a[i+1]]={lead:false,mate:a[i]}; }
@@ -9525,7 +9530,7 @@ function pmTick(){
   const now=Date.now(), dn=_pmDance&&now<_pmDance.until?_pmDance:null; if(_pmDance&&!dn) _pmDance=null;
   const ents=_pm.ents, top=20*_pm.k+_pm.fs*2.2, X0=4, XW=W-_pm.sp*1.9-8, YH=H-_pm.sp-top-_pm.fs-6;
   const Wd=pmWorld(ents.map(e=>e.uid),dn?dn.start:now), byU={}; ents.forEach(e=>byU[e.uid]=e);
-  _pm.frame=Math.floor(now/280);
+  _pm.frame=Math.floor(now/140);   // 다리는 280ms마다 바꿔 딛기 (drawPet frame = frame>>1)
   ents.forEach(e=>{ const s=Wd[e.uid]; e.x=X0+s.x*XW; e.y=top+s.y*YH; e.dir=s.dir; e.act=s.act; e.partner=s.mate&&byU[s.mate]||null; e.lead=!!s.lead; });
   ents.forEach(e=>{ if(e.partner&&!e.lead){ e.x=e.partner.x+_pm.sp*0.82; e.y=e.partner.y; } });
   const ord=ents.slice().sort((a,b)=>a.x-b.x);
