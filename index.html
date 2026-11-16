@@ -9512,7 +9512,12 @@ function pmWorld(uids,t){
 // 다같이 춤추기 (지금 이 화면의 광장 모두): 같은 춤 · 같은 박자로 6.5초, 끝나면 다시 걷기
 const PM_MOVES=[['sway','좌우 흔들기'],['jump','점프'],['spin','빙글 돌기'],['wave','웨이브']];
 let _pmDance=null;
-function plazaDance(){ const mv=PM_MOVES[Math.floor(Math.random()*PM_MOVES.length)]; _pmDance={start:Date.now(),until:Date.now()+6500,move:mv[0]}; toast(`다같이 ${mv[1]}!`); }
+// 춤 순서: 가운데로 모여 둥글게 서기(PM_DG) → 같은 춤(PM_DD) → 다시 원래 자리로 걸어감(PM_DB)
+const PM_DG=1600, PM_DD=6000, PM_DB=1600;
+// 가운데 둥근 대형: 사람 순서(uid)대로 한 바퀴, 사람이 많으면 원이 커짐 (0–1 좌표)
+function pmRing(uids){ const a=uids.slice().sort(), n=a.length, R={}; const rx=n<2?0:Math.min(0.3,0.05+0.022*n), ry=n<2?0:Math.min(0.36,0.08+0.03*n);
+  a.forEach((u,i)=>{ const t=-Math.PI/2+2*Math.PI*i/Math.max(1,n); R[u]={x:0.5+rx*Math.cos(t),y:0.5+ry*Math.sin(t)}; }); return R; }
+function plazaDance(){ const mv=PM_MOVES[Math.floor(Math.random()*PM_MOVES.length)]; _pmDance={start:Date.now(),until:Date.now()+PM_DG+PM_DD+PM_DB,move:mv[0]}; toast(`다같이 ${mv[1]}!`); }
 function pmSetEnts(ppl){
   const keep=new Map(_pm.ents.map(e=>[e.uid,e]));
   _pm.ents=ppl.map(p=>{ const e=keep.get(p.uid)||{uid:p.uid,x:0,y:0,dir:1,off:document.createElement('canvas')};
@@ -9532,13 +9537,24 @@ function pmTick(){
   // 세계 좌표(0–1) → 이 화면 px. 짝꿍 따라가는 쪽은 리더 옆에. 춤추는 동안은 춤 시작 때 자리에서
   const now=Date.now(), dn=_pmDance&&now<_pmDance.until?_pmDance:null; if(_pmDance&&!dn) _pmDance=null;
   const ents=_pm.ents, top=20*_pm.k+_pm.fs*2.2, X0=4, XW=W-_pm.sp*1.9-8, YH=H-_pm.sp-top-_pm.fs-6;
-  const Wd=pmWorld(ents.map(e=>e.uid),dn?dn.start:now), byU={}; ents.forEach(e=>byU[e.uid]=e);
+  const uids=ents.map(e=>e.uid), Wd=pmWorld(uids,now), byU={}; ents.forEach(e=>byU[e.uid]=e);
   _pm.frame=Math.floor(now/140);   // 다리는 280ms마다 바꿔 딛기 (drawPet frame = frame>>1)
-  ents.forEach(e=>{ const s=Wd[e.uid]; e.x=X0+s.x*XW; e.y=top+s.y*YH; e.dir=s.dir; e.act=s.act; e.partner=s.mate&&byU[s.mate]||null; e.lead=!!s.lead; });
-  ents.forEach(e=>{ if(e.partner&&!e.lead){ e.x=e.partner.x+_pm.sp*0.82; e.y=e.partner.y; } });
+  const px=s=>({x:X0+s.x*XW,y:top+s.y*YH});
+  const worldPx=W0=>{ const o={}; uids.forEach(u=>o[u]=px(W0[u])); uids.forEach(u=>{ const s=W0[u]; if(s.mate&&!s.lead&&o[s.mate]) o[u]={x:o[s.mate].x+_pm.sp*0.82,y:o[s.mate].y}; }); return o; };
+  const nowPx=worldPx(Wd);
+  ents.forEach(e=>{ const s=Wd[e.uid]; e.x=nowPx[e.uid].x; e.y=nowPx[e.uid].y; e.dir=s.dir; e.act=s.act; e.partner=s.mate&&byU[s.mate]||null; e.lead=!!s.lead; });
+  // 다같이 춤추기: 가운데로 걸어 모이고 → 제자리 춤 → 지금 있어야 할 자리로 걸어 돌아감 (짝꿍 손잡기는 잠깐 쉼)
+  let dPhase='';
+  if(dn){ const el=now-dn.start, ring=pmRing(uids), st=(dn._st=dn._st||{})[_pm.cvId]||(dn._st[_pm.cvId]=worldPx(pmWorld(uids,dn.start))), ez=g=>g*g*(3-2*g);
+    dPhase=el<PM_DG?'go':el<PM_DG+PM_DD?'dance':'back';
+    ents.forEach(e=>{ const R=px(ring[e.uid]), A=dPhase==='go'?st[e.uid]:R, B=dPhase==='back'?nowPx[e.uid]:R;
+      const g=dPhase==='go'?ez(el/PM_DG):dPhase==='back'?ez((el-PM_DG-PM_DD)/PM_DB):1;
+      e.x=A.x+(B.x-A.x)*g; e.y=A.y+(B.y-A.y)*g; e.partner=null;
+      if(dPhase!=='dance'){ e.act='walk'; if(Math.abs(B.x-A.x)>1) e.dir=B.x<A.x?-1:1; } else e.dir=e.x<X0+0.5*XW?1:-1;   // 춤출 땐 가운데를 봄
+    }); }
   const ord=ents.slice().sort((a,b)=>a.x-b.x);
   ents.forEach(e=>{ let mode='idle', jump=0; const q=_pm.k;
-    if(dn){ const beat=Math.floor((now-dn.start)/260), r=ord.indexOf(e); mode='happy';
+    if(dn&&dPhase==='dance'){ const beat=Math.floor((now-dn.start-PM_DG)/260), r=ord.indexOf(e); mode='happy';
       if(dn.move==='sway'){ e.dir=beat%2?1:-1; e.x+=(beat%2?1:-1)*_pm.sp*0.12; }
       else if(dn.move==='jump') jump=[0,2,4,2][beat%4]*q;
       else if(dn.move==='spin'){ e.dir=[1,1,-1,-1][beat%4]; jump=beat%2?1.5*q:0; }
@@ -9660,7 +9676,7 @@ setTimeout(async()=>{ if(!mailUser()||!fbDb) return; try{ const q=await fbDb.col
 //  새 기능을 올릴 때 NEWS의 id · date · items만 바꾸면 됨
 // ══════════════════════════════════════════
 const NEWS={id:'2026-11-16b', date:'2026-11-16', days:5, items:[
-  ['<b>다같이 춤추기</b>','광장을 크게 열고 「다같이 춤추기」를 누르면 모두 같은 춤(좌우 흔들기 · 점프 · 빙글 돌기 · 웨이브 중 하나)을 같은 박자로 춰요'],
+  ['<b>다같이 춤추기</b>','광장을 크게 열고 「다같이 춤추기」를 누르면 모두 가운데로 모여 둥글게 서서 같은 춤(좌우 흔들기 · 점프 · 빙글 돌기 · 웨이브 중 하나)을 같은 박자로 추고, 다시 제자리로 돌아가요'],
   ['<b>광장 자리</b>','작은 광장 · 큰 광장 · 다른 사람 화면에서 세포가 같은 자리에서 같이 움직여요'],
   ['<b>광장</b>','왼쪽 아래 인큐베이터 위 풀밭에서 다 같이 돌아다녀요. 설정 › 광장에서 대표 세포 고르기, 랩 목표는 이번 주 MC 60회'],
   ['<b>실험 찾기</b>','다이어리 위 「실험 찾기」에 Aliquot처럼 적으면 언제 했는지 다 나와요'],
