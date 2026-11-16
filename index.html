@@ -1390,6 +1390,7 @@ body.pet-on[data-tab="today"] #petLayer{display:block;}
 .pz-body{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:14px;} .pz-field{border:1px solid #BFDDA5;border-radius:14px;overflow:hidden;background:#DDEFC9;min-height:0;} .pz-field canvas{display:block;image-rendering:pixelated;}
 .pz-side{overflow-y:auto;min-height:0;padding-right:4px;} .pz-side .set-row{gap:10px;}
 @media (max-width:900px){ .pz-body{grid-template-columns:1fr;grid-template-rows:300px auto;overflow:auto;} .pz-side{overflow:visible;} }
+.panel.sec.sec-board > .panel-hd{flex-wrap:wrap;row-gap:6px;height:auto;min-height:46px;padding-top:6px;padding-bottom:6px;} .sec-board .panel-hd>span:first-child{white-space:nowrap;} .sec-board .panel-act{flex-wrap:wrap;}   /* 휴대폰: 제목이 세로로 쪼개지지 않게, 버튼은 다음 줄로 */
 .side-plaza{margin-top:auto;padding:10px 8px 0;} .side-plaza+.side-incu{margin-top:0;padding-top:8px;}
 .pm-box{border:1px solid #BFDDA5;border-radius:12px;overflow:hidden;background:#DDEFC9;cursor:pointer;} .pm-hd{display:flex;justify-content:space-between;align-items:center;padding:4px 8px;font-size:.7rem;color:#46663A;background:#CFE7B6;} .pm-hd b{font-weight:800;}
 .pm-box canvas{display:block;image-rendering:pixelated;}
@@ -3009,6 +3010,7 @@ function renderDash(){
     <div class="panel-hd"><span><i class="sec-ic">${ic('flask')}</i>배양 현황</span>
       <span class="panel-act">
         <span class="seg-group"><button class="seg${byProj?'':' on'}" onclick="setBoardBy('type')">종류</button><button class="seg${byProj?' on':''}" onclick="setBoardBy('project')">프로젝트</button></span>
+        ${(()=>{ const act=lines.filter(l=>!l.isCompleted), all=act.length&&act.every(l=>bulkLines.includes(l.id)); return act.length&&!all?`<button class="btn btn-ghost" onclick="selectAllActive()">${ic('check')}전체 선택</button>`:''; })()}
         ${bulkLines.length?`<button class="btn btn-ghost" onclick="setProjectBulk()">${ic('folder')}프로젝트 지정</button><button class="btn btn-ghost" onclick="clearBulkLines()">${bulkLines.length}개 선택 해제</button>`:''}
         <button class="btn btn-icon pal-btn" onclick="openColorModal()" title="종류별 색상 바꾸기">${ic('palette')}</button>
       </span></div>
@@ -4297,6 +4299,8 @@ function startLogForLine(id){
   bulkLines=[id]; onLinesChanged();
   document.getElementById('logCard').scrollIntoView({behavior:'smooth',block:'start'});
 }
+// 배양 현황 「전체 선택」: 진행 중인 라인 모두 (해제는 옆 「n개 선택 해제」)
+function selectAllActive(){ bulkLines=[...new Set([...bulkLines,...lines.filter(l=>!l.isCompleted).map(l=>l.id)])]; onLinesChanged(); }
 // 대시보드 종류 헤더 클릭: 그 종류 라인 전체 선택 (이미 전부 선택돼 있으면 해제)
 // ── 프로젝트: 라인마다 하나(선택). 배양 현황을 종류별 / 프로젝트별로 묶어 보기 ──
 const projectsAll=()=>[...new Set(lines.map(l=>l.project).filter(Boolean))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
