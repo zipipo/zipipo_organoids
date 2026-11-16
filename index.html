@@ -9343,7 +9343,7 @@ const PLAZA_OPEN='2026-11-15';
 const plazaOn=()=>ymdLocal(new Date())>=PLAZA_OPEN;
 const LAB_GOAL=60;    // 이번 주 랩 전체 MC 목표 (유진: 300은 많음 → 60)
 let _plaza=null, _plazaErr='', _plazaOff=false;
-try{ _plazaOff=localStorage.getItem('orgPlazaOff')==='1'; }catch(e){}
+_plazaOff=false; try{ localStorage.removeItem('orgPlazaOff'); }catch(e){}   // 광장에는 늘 나옴 (유진: 「나 보이기」 끄기 없앰)
 const plazaWeek=()=>{ const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-((d.getDay()+6)%7)); return ymdLocal(d); };
 // 광장 대표 세포: 직접 고른 것(orgPlazaRep) → 산책 중 첫 번째 → 가진 것 첫 번째
 function plazaRep(){ let r=''; try{ r=localStorage.getItem('orgPlazaRep')||''; }catch(e){} if(r&&petSt.owned[r]) return r; return petSt.active[0]||Object.keys(petSt.owned)[0]||''; }
@@ -9401,8 +9401,7 @@ function plazaHTML(){
     <label class="set-row"><span><b>한 줄 상태</b></span><input value="${esc((()=>{ try{ return localStorage.getItem('orgPlazaMsg')||''; }catch(e){ return ''; } })())}" maxlength="24" placeholder="오늘은 split 데이" style="width:180px;" onchange="try{localStorage.setItem('orgPlazaMsg',this.value.trim())}catch(e){} plazaPublish(true); plazaMiniSync()"></label>
     <div class="set-row plz-reprow"><span><b>광장 대표 세포</b><small>메인 화면 광장에 이 세포가 나가 돌아다녀요</small></span></div>
     <div class="plz-reps">${Object.keys(petSt.owned).filter(id=>petKind(id)).map(id=>`<button class="plz-rep${id===plazaRep()?' on':''}" onclick="plazaSetRep('${id}')" title="${esc(plazaCellName(id))}"><canvas data-k="${id}" width="48" height="48"></canvas><span>${esc(plazaCellName(id))}</span></button>`).join('')||'<p class="set-p">아직 세포가 없어요.</p>'}</div>
-    <label class="set-row"><span><b>광장에 나 보이기</b><small>별명 · 한 줄 상태 · 대표 세포 · 도감 · 도장깨기 · 이번 주 MC 수만 보여요</small></span><input type="checkbox" class="set-tg" ${_plazaOff?'':'checked'} onchange="plazaSetOff(!this.checked)"></label></div>
-    ${_plazaOff?'':'<div id="plazaList"><p class="set-p">불러오는 중…</p></div>'}`;
+    <div id="plazaList"><p class="set-p">불러오는 중…</p></div>`;
 }
 // 보내기: 꽃은 하루 3번, 세포는 겹친(2마리 이상) 친구만 하루 1번. 보내면 내 쪽 마릿수가 하나 줄어요
 function _plazaDay(k){ const d=petTodayKey(); petSt.sent=petSt.sent||{}; if(petSt.sent.d!==d) petSt.sent={d,flower:0,cell:0}; return petSt.sent; }
