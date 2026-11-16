@@ -1352,9 +1352,9 @@ body.pet-on[data-tab="today"] #petLayer{display:block;}
 .pet-item.bye{transform:scale(0);transition:transform .25s;}
 @keyframes petDrop{from{transform:translateY(-14px);opacity:0;}}
 .pet-menu{position:fixed;left:248px;bottom:50px;z-index:600;width:250px;background:var(--sur);border:1px solid var(--bd);border-radius:14px;padding:12px;box-shadow:0 10px 30px rgba(0,0,0,.12);font-size:.78rem;}
-.pm-hd{display:flex;gap:10px;align-items:center;margin-bottom:8px;}
-.pm-hd canvas{image-rendering:pixelated;background:var(--psoft);border-radius:10px;}
-.pm-hd b{display:block;font-size:.9rem;} .pm-hd small{color:var(--sub);font-size:.7rem;}
+.pd-hd{display:flex;gap:10px;align-items:center;margin-bottom:8px;}
+.pd-hd canvas{image-rendering:pixelated;background:var(--psoft);border-radius:10px;}
+.pd-hd b{display:block;font-size:.9rem;} .pd-hd small{color:var(--sub);font-size:.7rem;}
 .pm-bars label{display:flex;align-items:center;gap:8px;font-size:.72rem;color:var(--sub);margin:4px 0;}
 .pm-bars span{flex:1;height:7px;border-radius:9px;background:var(--hov,#F1F5F9);overflow:hidden;}
 .pm-bars i{display:block;height:100%;background:var(--pri);opacity:.6;border-radius:9px;}
@@ -1386,7 +1386,7 @@ body.pet-on[data-tab="today"] #petLayer{display:block;}
 .dex.walk::after{content:'';position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;background:var(--pri);}
 /* 사이드바 안 인큐베이터: 작게 */
 .pz-modal{align-items:center;padding:3vh 3vw;} .pz-box{width:min(1180px,94vw);height:min(760px,88vh);max-width:none;display:flex;flex-direction:column;padding:14px 16px;}
-.pz-hd{display:flex;align-items:center;gap:8px;margin-bottom:10px;} .pz-hd b{font-size:1.05rem;} .pz-hd span{font-size:.76rem;color:var(--mut);} .pz-hd .tbl-btn{margin-left:auto;}
+.pz-hd{display:flex;align-items:center;gap:8px;margin-bottom:10px;} .pz-hd b{font-size:1.05rem;} .pz-hd span{font-size:.76rem;color:var(--mut);} .pz-hd .pz-dance{margin-left:auto;height:30px;padding:0 12px;background:#FFF1D6;color:#8A5A12;border:1px solid #EFC77D;font-weight:700;border-radius:8px;} .pz-hd .pz-dance:hover{background:#FFE7B8;} .pz-hd .tbl-btn{margin-left:4px;}
 .pz-body{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:14px;} .pz-field{border:1px solid #BFDDA5;border-radius:14px;overflow:hidden;background:#DDEFC9;min-height:0;} .pz-field canvas{display:block;image-rendering:pixelated;}
 .pz-side{overflow-y:auto;min-height:0;padding-right:4px;} .pz-side .set-row{gap:10px;}
 @media (max-width:900px){ .pz-body{grid-template-columns:1fr;grid-template-rows:300px auto;overflow:auto;} .pz-side{overflow:visible;} }
@@ -1802,6 +1802,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
   <symbol id="i-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
   <symbol id="i-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
   <symbol id="i-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+  <symbol id="i-music" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></symbol>
   <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></symbol>
   <symbol id="i-redo" viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></symbol>
   <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></symbol>
@@ -9153,7 +9154,7 @@ function petPanelHTML(){
     const days=Math.max(1,Math.round((Date.now()-(o.born||Date.now()))/864e5)+1);
     const full=Math.max(0,Math.round(100-Math.min(100,(Date.now()-(o.fedTs||0))/PET_FULL_MS*100)));
     const walking=petSt.active.includes(id);
-    det=`<div class="set-sec pet-det"><div class="pm-hd"><canvas id="pmCv" width="48" height="48"></canvas><div><b>${esc(petName(id))}</b><small>${esc(K.name)} ${K.gift?'선물':petStars(K.r)} · 함께한 지 ${days}일${o.n>1?` · ${o.n}번 만남`:''}</small></div></div>
+    det=`<div class="set-sec pet-det"><div class="pd-hd"><canvas id="petDetCv" width="48" height="48"></canvas><div><b>${esc(petName(id))}</b><small>${esc(K.name)} ${K.gift?'선물':petStars(K.r)} · 함께한 지 ${days}일${o.n>1?` · ${o.n}번 만남`:''}</small></div></div>
       <div class="pm-bars"><label>기분 <span><i style="width:${o.hap||0}%"></i></span></label><label>배부름 <span><i style="width:${full}%"></i></span></label></div>
       <div class="pm-meta"><svg class="ic"><use href="#i-flower"/></svg> 받은 꽃 ${o.flowers||0}　<svg class="ic"><use href="#i-heart"/></svg> 쓰다듬기 ${o.pats||0}</div>
       <div class="pm-btns"><button class="btn ${walking?'btn-out':'btn-pri'}" onclick="petWalk('${id}')"><svg class="ic"><use href="#i-paw"/></svg>${walking?'쉬게 하기':'산책 보내기'}</button><button class="btn btn-out" onclick="petFeed('${id}')"><svg class="ic"><use href="#i-cookie"/></svg>밥 주기</button><button class="btn btn-out" onclick="petRename('${id}')"><svg class="ic"><use href="#i-edit"/></svg>이름 짓기</button></div></div>`;
@@ -9162,7 +9163,7 @@ function petPanelHTML(){
   return draw+det+dex+tg;
 }
 function petPanelDraw(){
-  const c=document.getElementById('pmCv'); if(c&&_petSel) drawPet(c,_petSel,{frame:0,mode:'happy'});
+  const c=document.getElementById('petDetCv'); if(c&&_petSel) drawPet(c,_petSel,{frame:0,mode:'happy'});
   document.querySelectorAll('.pet-dex canvas[data-k]').forEach(c=>drawPet(c,c.dataset.k,{frame:0,mode:'idle'}));
 }
 function petMenu(){ openSettings('pet'); }
@@ -9472,60 +9473,74 @@ function plazaMiniSync(){
   if(!_pm.t) _pm.t=setInterval(plazaMiniTick,140);
   if(_pmBig&&document.getElementById('pzCv')){ pmWith(_pmBig,()=>pmSetEnts(ppl)); const n=document.getElementById('pzN'); if(n) n.textContent=`${_pmBig.ents.length}명`; }
 }
-function pmSetEnts(ppl){ const W=_pm.W;
+// ── 광장 「세계」: 작은 광장 · 큰 광장 · 다른 사람 PC가 모두 같은 자리를 씀 ──
+// 위치 = (사람 id, 날짜, 시각)으로 정해지는 0–1 좌표 → 각 화면은 자기 크기로 늘리거나 줄여서 그림 (시계만 맞으면 어디서나 같은 장면)
+// 7초마다 한 칸: 앞부분은 다음 자리로 걸어가고, 뒷부분은 그 자리에서 쉬기 · 폴짝 · 춤 · 낮잠 · 인사 중 하나. 42초마다 짝꿍(손잡고 같이 걷기)을 새로 정함
+const PM_SLOT=7000, PM_PAIR=42000, PM_ACTS=['idle','idle','hop','dance','sleep','wave'];
+function pmHash(s){ let h=2166136261; for(const ch of String(s)){ h^=ch.charCodeAt(0); h=Math.imul(h,16777619); } h^=h>>>13; h=Math.imul(h,0x5bd1e995); h^=h>>>15; return h>>>0; }
+const pmRand=(...k)=>pmHash(k.join('|'))/4294967296;
+const pmDay=()=>ymdLocal(new Date());
+const pmWay=(uid,slot)=>({x:pmRand(uid,pmDay(),slot,'x'),y:pmRand(uid,pmDay(),slot,'y')});
+function pmState(uid,t){
+  const slot=Math.floor(t/PM_SLOT), f=(t%PM_SLOT)/PM_SLOT, A=pmWay(uid,slot), B=pmWay(uid,slot+1);
+  const act=PM_ACTS[Math.floor(pmRand(uid,pmDay(),slot,'a')*PM_ACTS.length)], wp=act==='sleep'?0.35:0.6, dir=B.x<A.x?-1:1;
+  if(f<wp){ const g=f/wp, s=g*g*(3-2*g); return {x:A.x+(B.x-A.x)*s,y:A.y+(B.y-A.y)*s,dir,act:'walk'}; }
+  return {x:B.x,y:B.y,dir,act};
+}
+function pmPairs(uids,ps){ const d=pmDay(), a=uids.slice().sort().map(u=>[pmRand(u,d,ps,'p'),u]).sort((x,y)=>x[0]-y[0]).map(x=>x[1]), m={};
+  for(let i=0;i+1<a.length;i+=2) if(pmRand(a[i],a[i+1],d,ps,'pp')<0.55){ m[a[i]]={lead:true,mate:a[i+1]}; m[a[i+1]]={lead:false,mate:a[i]}; }
+  return m; }
+// 모든 사람의 그 시각 상태 (0–1 좌표). 짝꿍은 리더를 따라감, 짝꿍 아닌 사람끼리는 살짝 떨어뜨림(이름표 겹침 줄이기)
+function pmWorld(uids,t){
+  const pr=pmPairs(uids,Math.floor(t/PM_PAIR)), W={};
+  uids.forEach(u=>{ W[u]=pmState(u,t); });
+  uids.forEach(u=>{ const p=pr[u]; if(!p||!W[p.mate]) return; const L=p.lead?W[u]:W[p.mate]; if(L.act==='sleep') L.act='idle'; });
+  uids.forEach(u=>{ const p=pr[u]; if(!p||!W[p.mate]) return; if(!p.lead){ const L=W[p.mate]; W[u]={x:L.x,y:L.y,dir:L.dir,act:L.act}; } W[u].mate=p.mate; W[u].lead=p.lead; });
+  for(let it=0;it<3;it++) for(let i=0;i<uids.length;i++) for(let j=i+1;j<uids.length;j++){ const a=W[uids[i]], b=W[uids[j]]; if(a.mate===uids[j]) continue;
+    const dx=b.x-a.x, dy=(b.y-a.y)*0.7, d=Math.hypot(dx,dy)||1e-4, g=0.14; if(d<g){ const k=(g-d)/d*0.5; a.x-=dx*k; b.x+=dx*k; a.y-=dy*k; b.y+=dy*k; } }
+  uids.forEach(u=>{ const s=W[u]; s.x=Math.max(0,Math.min(1,s.x)); s.y=Math.max(0,Math.min(1,s.y)); });
+  return W;
+}
+// 다같이 춤추기 (지금 이 화면의 광장 모두): 같은 춤 · 같은 박자로 6.5초, 끝나면 다시 걷기
+const PM_MOVES=[['sway','좌우 흔들기'],['jump','점프'],['spin','빙글 돌기'],['wave','웨이브']];
+let _pmDance=null;
+function plazaDance(){ const mv=PM_MOVES[Math.floor(Math.random()*PM_MOVES.length)]; _pmDance={start:Date.now(),until:Date.now()+6500,move:mv[0]}; toast(`다같이 ${mv[1]}!`); }
+function pmSetEnts(ppl){
   const keep=new Map(_pm.ents.map(e=>[e.uid,e]));
-  _pm.ents=ppl.map(p=>{ const e=keep.get(p.uid)||{uid:p.uid,x:10+Math.random()*(W-_pm.sp-20),y:30+Math.random()*(_pm.H-_pm.sp-30),vx:0,vy:0,act:'idle',t:0,dir:1,off:document.createElement('canvas')};
+  _pm.ents=ppl.map(p=>{ const e=keep.get(p.uid)||{uid:p.uid,x:0,y:0,dir:1,off:document.createElement('canvas')};
     e.rep=p.rep; e.lab=`${p.repName||(petKind(p.rep)||{}).name||''} (${p.nick||'?'})`; e.me=!!p.me; e.msg=String(p.msg||'').trim(); e.off.width=e.off.height=PET_N*PET_PX; return e; });
 }
 function plazaMiniStop(){ if(_pm.t){ clearInterval(_pm.t); _pm.t=null; } }
-// 행동 고르기: 걷기 · 쉬기 · 폴짝 · 춤 · 낮잠 · 인사, 가끔 둘이 짝꿍(손잡고 같이 걷기)
-function pmPick(e){
-  const r=Math.random(), W=_pm.W, H=_pm.H;
-  e.partner=null;
-  if(r<0.42){ e.act='walk'; e.tx=8+Math.random()*(W-_pm.sp-16); e.ty=22+Math.random()*(H-_pm.sp-36); e.t=40+Math.random()*60; }
-  else if(r<0.6){ e.act='idle'; e.t=20+Math.random()*30; }
-  else if(r<0.72){ e.act='hop'; e.t=14; }
-  else if(r<0.82){ e.act='dance'; e.t=24; }
-  else if(r<0.9){ e.act='sleep'; e.t=50+Math.random()*40; }
-  else { e.act='wave'; e.t=16; }
-}
-function pmPair(){
-  const free=_pm.ents.filter(e=>!e.partner&&e.act!=='sleep'); if(free.length<2) return;
-  const a=free[Math.floor(Math.random()*free.length)], b=free.filter(x=>x!==a)[Math.floor(Math.random()*(free.length-1))];
-  const tx=8+Math.random()*(_pm.W-2*_pm.sp-16), ty=22+Math.random()*(_pm.H-_pm.sp-36);
-  a.act=b.act='pair'; a.partner=b; b.partner=a; a.lead=true; b.lead=false; a.tx=tx; a.ty=ty; a.t=b.t=90;
-}
 function plazaMiniTick(){ pmWith(_pmMini,pmTick); }
 function pmTick(){
   const cv=document.getElementById(_pm.cvId); if(!cv){ if(_pm===_pmMini) plazaMiniStop(); return; }
   if(document.hidden) return;
-  const ctx=cv.getContext('2d'), W=_pm.W, H=_pm.H; _pm.frame++;
+  const ctx=cv.getContext('2d'), W=_pm.W, H=_pm.H;
   ctx.setTransform(2,0,0,2,0,0); ctx.imageSmoothingEnabled=false;
   // 풀밭: 연두 바탕 + 풀 · 작은 꽃 (한 번 정해 둠)
-  if(!_pm.deco){ _pm.deco=[]; for(let i=0;i<Math.round(W/9);i++) _pm.deco.push({x:Math.random()*W,y:22+Math.random()*(H-24),k:Math.random()<0.18?'f':'g',c:['#F7A8B8','#FFD27A','#B9A2E8','#FFFFFF'][i%4]}); }
+  if(!_pm.deco){ _pm.deco=[]; const d=pmDay(); for(let i=0;i<60;i++) _pm.deco.push({x:pmRand(d,i,'dx')*W,y:22*_pm.k+pmRand(d,i,'dy')*(H-24*_pm.k),k:pmRand(d,i,'dk')<0.18?'f':'g',c:['#F7A8B8','#FFD27A','#B9A2E8','#FFFFFF'][i%4]}); }   // 풀 · 꽃 자리도 화면마다 같게 (크기만 비례)
   ctx.fillStyle='#DDEFC9'; ctx.fillRect(0,0,W,H); ctx.fillStyle='#CFE7B6'; ctx.fillRect(0,0,W,18*_pm.k);
   _pm.deco.forEach(d=>{ if(d.k==='g'){ ctx.fillStyle='#A9D18E'; const q=_pm.k; ctx.fillRect(d.x,d.y,1.5*q,4*q); ctx.fillRect(d.x+2*q,d.y+q,1.5*q,3*q); } else { ctx.fillStyle=d.c; const q=_pm.k; ctx.fillRect(d.x,d.y,3*q,3*q); ctx.fillStyle='#FFE37A'; ctx.fillRect(d.x+q,d.y+q,q,q); } });
-  if(--_pm.pairT<=0){ _pm.pairT=120+Math.random()*120; if(_pm.ents.length>1&&Math.random()<0.7) pmPair(); }
-  _pm.ents.forEach(e=>{
-    if(e.t<=0&&!(e.partner&&!e.lead)) pmPick(e);
-    e.t--; let mode='idle', jump=0;
-    const go=(tx,ty,sp)=>{ const dx=tx-e.x, dy=ty-e.y, d=Math.hypot(dx,dy); if(d>1){ e.x+=dx/d*Math.min(sp,d); e.y+=dy/d*Math.min(sp,d); e.dir=dx<0?-1:1; return true; } return false; };
-    if(e.act==='walk'){ if(go(e.tx,e.ty,1.1*_pm.k)) mode='walk'; }
-    else if(e.act==='hop'){ jump=[0,1,2,3,2,1][_pm.frame%6]; mode='happy'; }
-    else if(e.act==='dance'){ jump=_pm.frame%4<2?2:0; e.dir=_pm.frame%8<4?1:-1; mode='happy'; }
+  // 세계 좌표(0–1) → 이 화면 px. 짝꿍 따라가는 쪽은 리더 옆에. 춤추는 동안은 춤 시작 때 자리에서
+  const now=Date.now(), dn=_pmDance&&now<_pmDance.until?_pmDance:null; if(_pmDance&&!dn) _pmDance=null;
+  const ents=_pm.ents, top=20*_pm.k+_pm.fs*2.2, X0=4, XW=W-_pm.sp*1.9-8, YH=H-_pm.sp-top-_pm.fs-6;
+  const Wd=pmWorld(ents.map(e=>e.uid),dn?dn.start:now), byU={}; ents.forEach(e=>byU[e.uid]=e);
+  _pm.frame=Math.floor(now/280);
+  ents.forEach(e=>{ const s=Wd[e.uid]; e.x=X0+s.x*XW; e.y=top+s.y*YH; e.dir=s.dir; e.act=s.act; e.partner=s.mate&&byU[s.mate]||null; e.lead=!!s.lead; });
+  ents.forEach(e=>{ if(e.partner&&!e.lead){ e.x=e.partner.x+_pm.sp*0.82; e.y=e.partner.y; } });
+  const ord=ents.slice().sort((a,b)=>a.x-b.x);
+  ents.forEach(e=>{ let mode='idle', jump=0; const q=_pm.k;
+    if(dn){ const beat=Math.floor((now-dn.start)/260), r=ord.indexOf(e); mode='happy';
+      if(dn.move==='sway'){ e.dir=beat%2?1:-1; e.x+=(beat%2?1:-1)*_pm.sp*0.12; }
+      else if(dn.move==='jump') jump=[0,2,4,2][beat%4]*q;
+      else if(dn.move==='spin'){ e.dir=[1,1,-1,-1][beat%4]; jump=beat%2?1.5*q:0; }
+      else { const ph=((beat-r)%(ents.length+2)+(ents.length+2))%(ents.length+2); jump=[4,2.5,1][ph]*q||0; } }
+    else if(e.act==='walk') mode='walk';
+    else if(e.act==='hop'){ jump=[0,1,2,3,2,1][_pm.frame%6]*q; mode='happy'; }
+    else if(e.act==='dance'){ jump=_pm.frame%4<2?2*q:0; e.dir=_pm.frame%8<4?1:-1; mode='happy'; }
     else if(e.act==='sleep') mode='sleep';
     else if(e.act==='wave') mode='happy';
-    else if(e.act==='pair'&&e.partner){ const P=e.partner;
-      if(e.lead){ if(go(e.tx,e.ty,0.9*_pm.k)) mode='walk'; else { e.tx=8+Math.random()*(W-2*_pm.sp-16); e.ty=22+Math.random()*(H-_pm.sp-36); } }
-      else { if(go(P.x+_pm.sp*0.82,P.y,1.4*_pm.k)) mode='walk'; else { e.dir=P.dir; mode=P._mode||'idle'; } }
-      if(e.t<=0&&e.lead){ e.partner=null; P.partner=null; e.t=0; P.t=0; } }
-    e._mode=mode; e._jump=jump;
-  });
-  // 짝꿍이 아니면 너무 붙지 않게 살짝 밀어냄 (이름표가 겹치지 않게), 풀밭 밖으로 안 나가게
-  const es=_pm.ents, gap=_pm.sp*1.25;
-  for(let i=0;i<es.length;i++) for(let j=i+1;j<es.length;j++){ const a=es[i], b=es[j]; if(a.partner===b) continue;
-    const dx=b.x-a.x, dy=(b.y-a.y)*1.6, d=Math.hypot(dx,dy)||0.1; if(d<gap){ const k=(gap-d)/d*0.12; a.x-=dx*k; b.x+=dx*k; a.y-=dy*k/1.6; b.y+=dy*k/1.6; } }
-  es.forEach(e=>{ e.x=Math.max(2,Math.min(W-_pm.sp-2,e.x)); e.y=Math.max(20*_pm.k,Math.min(H-_pm.sp-(_pm.fs+5),e.y)); });
+    e._mode=mode; e._jump=jump/q; });
   // 아래쪽(앞)에 있는 세포를 나중에 그림
   _pm.ents.slice().sort((a,b)=>a.y-b.y).forEach(e=>{
     drawPet(e.off,e.rep,{frame:_pm.frame>>1,mode:e._mode,jump:e._jump});
@@ -9561,11 +9576,11 @@ function plazaOpen(){
   if(!mailUser()) return toast('Google 로그인하면 광장에 들어갈 수 있어요',{warn:true});
   plazaClose();
   const m=document.createElement('div'); m.id='plazaModal'; m.className='modal open pz-modal'; m.onclick=e=>{ if(e.target===m) plazaClose(); };
-  m.innerHTML=`<div class="mbox pz-box"><div class="pz-hd"><b>광장</b><span id="pzN"></span><button class="tbl-btn" onclick="plazaClose()">${ic('x','ic-sm')}</button></div>
+  m.innerHTML=`<div class="mbox pz-box"><div class="pz-hd"><b>광장</b><span id="pzN"></span><button class="btn pz-dance" onclick="plazaDance()">${ic('music','ic-sm')}다같이 춤추기</button><button class="tbl-btn" onclick="plazaClose()">${ic('x','ic-sm')}</button></div>
     <div class="pz-body"><div class="pz-field"><canvas id="pzCv"></canvas></div><div class="pz-side" id="pzSide"></div></div></div>`;
   document.body.appendChild(m);
   const f=m.querySelector('.pz-field'), W=f.clientWidth, H=f.clientHeight, cv=document.getElementById('pzCv');
-  _pmBig={ents:[],t:null,frame:0,W,H,deco:null,pairT:30,sp:PET_N*PET_PX*1.15,k:1.9,fs:12,cvId:'pzCv',hover:1};
+  _pmBig={ents:[],t:null,frame:0,W,H,deco:null,sp:PET_N*PET_PX*1.15,k:1.9,fs:12,cvId:'pzCv',hover:1};
   cv.width=W*2; cv.height=H*2; cv.style.width=W+'px'; cv.style.height=H+'px';
   const ppl=plazaMiniPeople()||[]; pmWith(_pmBig,()=>pmSetEnts(ppl)); document.getElementById('pzN').textContent=`${ppl.length}명`;
   _pmBig.t=setInterval(()=>pmWith(_pmBig,pmTick),140);
@@ -9635,7 +9650,9 @@ setTimeout(async()=>{ if(!mailUser()||!fbDb) return; try{ const q=await fbDb.col
 //  업데이트 안내: 올린 날부터 5일 동안 열 때마다 보여줌 (「다시 보지 않기」 체크하면 이 버전은 끝)
 //  새 기능을 올릴 때 NEWS의 id · date · items만 바꾸면 됨
 // ══════════════════════════════════════════
-const NEWS={id:'2026-11-16', date:'2026-11-16', days:5, items:[
+const NEWS={id:'2026-11-16b', date:'2026-11-16', days:5, items:[
+  ['<b>다같이 춤추기</b>','광장을 크게 열고 「다같이 춤추기」를 누르면 모두 같은 춤(좌우 흔들기 · 점프 · 빙글 돌기 · 웨이브 중 하나)을 같은 박자로 춰요'],
+  ['<b>광장 자리</b>','작은 광장 · 큰 광장 · 다른 사람 화면에서 세포가 같은 자리에서 같이 움직여요'],
   ['<b>광장</b>','왼쪽 아래 인큐베이터 위 풀밭에서 다 같이 돌아다녀요. 설정 › 광장에서 대표 세포 고르기, 랩 목표는 이번 주 MC 60회'],
   ['<b>실험 찾기</b>','다이어리 위 「실험 찾기」에 Aliquot처럼 적으면 언제 했는지 다 나와요'],
   ['<b>실험 기록</b>','다이어리 오른쪽 위 「+ 실험 기록」으로 qPCR · Aliquot 같은 실험을 자유롭게 적기. 「지난 기록 불러오기」로 예전 걸 가져와 고쳐 쓰기. 라인을 고르면 라인 기록 · 연구노트 인쇄에도 같이 나와요'],
