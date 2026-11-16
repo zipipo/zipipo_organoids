@@ -152,6 +152,8 @@ match /mailbox/{id} {
 
 ## 작업 기록
 
+- 2026-11-16(2): 광장을 설정에서 빼고, 메인 작은 광장을 누르면 큰 광장 창(`plazaOpen`, `#plazaModal`): 왼쪽 큰 풀밭(모두 이름표, 세포 크게), 오른쪽 내 별명 · 한 줄 상태 · 대표 세포 · 나 보이기 · 랩 목표 · 함께 쓰는 사람(`plazaPanelRefresh` = 예전 `plazaHTML` + `plazaLoad`). 그리는 코드는 무대 두 개가 같이 씀(`_pmMini` · `_pmBig`, `pmWith`, `pmTick`, `pmSetEnts`; sp 세포 크기 · k 배율 · fs 이름표 글씨). 설정 › 광장 버튼은 늘 숨김, `openSettings('plaza')`는 큰 광장으로. Esc · 바깥 · × 로 닫힘. Firestore 규칙은 유진이 넣음(우체통 관리자 = 유진 계정, 규칙에만).
+
 - 2026-11-16: 광장 · 다이어리. ① 랩 협동 목표 이번 주 MC 300 → 60(`LAB_GOAL`, 유진 「well당 60회」를 주당 랩 전체 60회로 읽음, 확인 필요). ② 설정 › 광장에 「광장 대표 세포」 고르기(`orgPlazaRep`, `plazaRep`, players 문서에 `repName` 추가). ③ 광장 목록 맨 위에 내 카드(「나」), 카드 이름은 「세포 이름 (별명)」, 「받은 꽃」 대신 이번 주 MC. ④ 꽃 보내기 뺌(버튼 · `plazaSend` flower 막음), 세포 보내기는 남김. ⑤ 메인 화면 사이드바 인큐베이터 위 작은 풀밭 광장(`#plazaMini`, `plazaMiniSync` · `plazaMiniTick`): 나 + 광장에 나온 사람(최대 11명)의 대표 세포가 돌아다님. 걷기 · 쉬기 · 폴짝 · 춤 · 낮잠(z) · 인사, 가끔 둘이 손잡고 같이 걷기(하트). 이름표 「쿠뽀 (YJ)」는 나 + 한 명씩 돌아가며, 마우스 올리면 모두. 누르면 설정 › 광장. 로그인 · 광장 열림 · 「나 보이기」일 때만, 5분마다 새로. ⑥ 다이어리 「실험 찾기」 칸(`_dyQ`, `dySearchRender`): 이름 · 내용으로 실험 기록 찾기, 「Aliquot 2번 (마지막 11/12)」 요약, 누르면 그 주 위클리.
 
 - 2026-11-14(21): ① 붓으로 칠하기 뺌(유진: 끌어서 고르고 칠하기면 됨). `figPick` = 바로 `figAssign`(고른 칸 없으면 알림), 붓 관련 변수 · 함수는 비활성으로 남김. ② Figure 편집 창 위 탭 끌어 순서 바꾸기(`figTabDrop`): plate끼리 = plate 순서, Schedule ↔ Plate = 그림 위아래 순서(`f.plateFirst`, Schedule이 맨 앞 아니면 Plate map 먼저), 메모는 늘 끝. Schedule 안 줄(라인) 탭도 끌어 순서 바꾸기(tracks 순서 = 그림 줄 순서). 놓을 자리에 파란 세로줄. 새 기능 안내 3번 문구도 고침.

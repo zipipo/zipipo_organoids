@@ -1385,6 +1385,11 @@ body.pet-on[data-tab="today"] #petLayer{display:block;}
 .dex.on{border-color:var(--pri);box-shadow:0 0 0 3px var(--psoft);}
 .dex.walk::after{content:'';position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;background:var(--pri);}
 /* 사이드바 안 인큐베이터: 작게 */
+.pz-modal{align-items:center;padding:3vh 3vw;} .pz-box{width:min(1180px,94vw);height:min(760px,88vh);max-width:none;display:flex;flex-direction:column;padding:14px 16px;}
+.pz-hd{display:flex;align-items:center;gap:8px;margin-bottom:10px;} .pz-hd b{font-size:1.05rem;} .pz-hd span{font-size:.76rem;color:var(--mut);} .pz-hd .tbl-btn{margin-left:auto;}
+.pz-body{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:14px;} .pz-field{border:1px solid #BFDDA5;border-radius:14px;overflow:hidden;background:#DDEFC9;min-height:0;} .pz-field canvas{display:block;image-rendering:pixelated;}
+.pz-side{overflow-y:auto;min-height:0;padding-right:4px;} .pz-side .set-row{gap:10px;}
+@media (max-width:900px){ .pz-body{grid-template-columns:1fr;grid-template-rows:300px auto;overflow:auto;} .pz-side{overflow:visible;} }
 .side-plaza{margin-top:auto;padding:10px 8px 0;} .side-plaza+.side-incu{margin-top:0;padding-top:8px;}
 .pm-box{border:1px solid #BFDDA5;border-radius:12px;overflow:hidden;background:#DDEFC9;cursor:pointer;} .pm-hd{display:flex;justify-content:space-between;align-items:center;padding:4px 8px;font-size:.7rem;color:#46663A;background:#CFE7B6;} .pm-hd b{font-weight:800;}
 .pm-box canvas{display:block;image-rendering:pixelated;}
@@ -9266,7 +9271,8 @@ petMount();
 //  설정 창 (Claude 설정처럼 왼쪽 탭): 모양 · 글씨체 · 홈 화면 · 펫 · LN2
 // ══════════════════════════════════════════
 let _setTab='look';
-function openSettings(tab){ const pb=document.querySelector('.set-nav button[data-st="plaza"]'); if(pb) pb.style.display=plazaOn()?'':'none'; if(tab==='plaza'&&!plazaOn()) tab='look'; document.getElementById('setModal').classList.add('open'); renderSettings(tab||_setTab); }
+function openSettings(tab){ const pb=document.querySelector('.set-nav button[data-st="plaza"]'); if(pb) pb.style.display='none';   // 광장은 설정이 아니라 메인 광장을 눌러 크게 엶
+  if(tab==='plaza'){ if(plazaOn()) return plazaOpen(); tab='look'; } document.getElementById('setModal').classList.add('open'); renderSettings(tab||_setTab); }
 function closeSettings(){ document.getElementById('setModal').classList.remove('open'); }
 function incuOn(){ try{ return localStorage.getItem('orgIncuOff')!=='1'; }catch(e){ return true; } }
 function setIncu(on){ try{ localStorage.setItem('orgIncuOff', on?'0':'1'); }catch(e){} document.body.classList.toggle('incu-off',!on); }
@@ -9339,7 +9345,7 @@ const plazaWeek=()=>{ const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDa
 // 광장 대표 세포: 직접 고른 것(orgPlazaRep) → 산책 중 첫 번째 → 가진 것 첫 번째
 function plazaRep(){ let r=''; try{ r=localStorage.getItem('orgPlazaRep')||''; }catch(e){} if(r&&petSt.owned[r]) return r; return petSt.active[0]||Object.keys(petSt.owned)[0]||''; }
 const plazaCellName=id=>{ const o=petSt.owned[id], k=petKind(id); return (o&&o.name)||(k&&k.name)||''; };
-function plazaSetRep(id){ try{ localStorage.setItem('orgPlazaRep',id); }catch(e){} plazaPublish(true); plazaMiniSync(); renderSettings('plaza'); toast(`${plazaCellName(id)}를 광장 대표로 보냈어요`); }
+function plazaSetRep(id){ try{ localStorage.setItem('orgPlazaRep',id); }catch(e){} plazaPublish(true); plazaMiniSync(); plazaPanelRefresh(); toast(`${plazaCellName(id)}를 광장 대표로 보냈어요`); }
 function plazaNick(){ try{ return localStorage.getItem('orgNickPlaza')||cclLn2.getInitials()||'세포 친구'; }catch(e){ return '세포 친구'; } }
 function plazaMe(){
   const wk=plazaWeek(), ls=logs.filter(l=>(l.date||'')>=wk);
@@ -9355,7 +9361,7 @@ function plazaPublish(force){
   fbDb.collection('players').doc(u.uid).set(Object.assign({uid:u.uid},plazaMe())).catch(()=>{});
 }
 function plazaSetOff(off){ _plazaOff=off; try{ localStorage.setItem('orgPlazaOff',off?'1':'0'); }catch(e){}
-  const u=mailUser(); if(off&&u&&fbDb) fbDb.collection('players').doc(u.uid).delete().catch(()=>{}); else plazaPublish(true); renderSettings('plaza'); }
+  const u=mailUser(); if(off&&u&&fbDb) fbDb.collection('players').doc(u.uid).delete().catch(()=>{}); else plazaPublish(true); plazaMiniSync(); plazaPanelRefresh(); }
 function plazaSetNick(v){ try{ localStorage.setItem('orgNickPlaza',String(v||'').trim().slice(0,12)); }catch(e){} plazaPublish(true); }
 async function plazaFetch(){
   try{ const q=await fbDb.collection('players').limit(200).get(); _plaza=q.docs.map(d=>d.data()); _plazaErr=''; }
@@ -9387,7 +9393,7 @@ function plazaRender(){
 function plazaHTML(){
   const u=mailUser();
   if(!u) return `<h3>광장</h3><div class="set-sec"><p class="set-p">Google 로그인하면 이 사이트를 쓰는 사람들과 세포를 구경하고 선물할 수 있어요.</p><button class="btn btn-pri" onclick="cloudToggle()">Google 로그인</button></div>`;
-  return `<h3>광장</h3><div class="set-sec"><label class="set-row"><span><b>내 별명</b></span><input value="${esc(plazaNick())}" maxlength="12" style="width:130px;" onchange="plazaSetNick(this.value)"></label>
+  return `<div class="set-sec"><label class="set-row"><span><b>내 별명</b></span><input value="${esc(plazaNick())}" maxlength="12" style="width:130px;" onchange="plazaSetNick(this.value)"></label>
     <label class="set-row"><span><b>한 줄 상태</b></span><input value="${esc((()=>{ try{ return localStorage.getItem('orgPlazaMsg')||''; }catch(e){ return ''; } })())}" maxlength="24" placeholder="오늘은 split 데이" style="width:180px;" onchange="try{localStorage.setItem('orgPlazaMsg',this.value.trim())}catch(e){} plazaPublish(true)"></label>
     <div class="set-row plz-reprow"><span><b>광장 대표 세포</b><small>메인 화면 광장에 이 세포가 나가 돌아다녀요</small></span></div>
     <div class="plz-reps">${Object.keys(petSt.owned).filter(id=>petKind(id)).map(id=>`<button class="plz-rep${id===plazaRep()?' on':''}" onclick="plazaSetRep('${id}')" title="${esc(plazaCellName(id))}"><canvas data-k="${id}" width="48" height="48"></canvas><span>${esc(plazaCellName(id))}</span></button>`).join('')||'<p class="set-p">아직 세포가 없어요.</p>'}</div>
@@ -9435,8 +9441,11 @@ setInterval(()=>{ if(mailUser()&&window._lateReady){ plazaInbox(); plazaPublish(
 //  메인 화면 광장 (인큐베이터 위 작은 풀밭): 나 + 광장에 나온 사람들의 대표 세포가 「이름 (별명)」을 달고 돌아다님
 //  가끔 둘이 손잡고 같이 걷기 · 폴짝 · 춤 · 낮잠 · 인사. 누르면 설정 › 광장
 // ══════════════════════════════════════════
-let _pm={ents:[],t:null,frame:0,W:0,H:136,deco:null,pairT:0};
-const PM_SC=0.6, PM_SP=PET_N*PET_PX*PM_SC;   // 화면에서 세포 한 마리 크기
+// 무대(stage) 두 개: 사이드바 작은 광장(_pmMini) · 크게 연 광장(_pmBig). 그리는 코드는 같고 _pm이 지금 그리는 무대를 가리킴
+// sp = 세포 한 마리 크기(px), k = 작은 광장 대비 배율, fs = 이름표 글씨
+const _pmMini={ents:[],t:null,frame:0,W:0,H:136,deco:null,pairT:0,sp:PET_N*PET_PX*0.6,k:1,fs:7,cvId:'pmCv'};
+let _pm=_pmMini, _pmBig=null;
+function pmWith(S,fn){ const o=_pm; _pm=S; try{ return fn(); } finally{ _pm=o; } }
 function plazaMiniPeople(){
   const me=mailUser(); if(!me||_plazaOff||!plazaOn()) return null;
   const mine=Object.assign({uid:me.uid,me:true},plazaMe());
@@ -9449,21 +9458,25 @@ function plazaMiniSync(){
   const ppl=plazaMiniPeople();
   if(!ppl||!ppl.length){ el.style.display='none'; plazaMiniStop(); return; }
   el.style.display='';
-  if(!el.querySelector('canvas')){ el.innerHTML=`<div class="pm-box" onclick="openSettings('plaza')" onmouseenter="_pm.hover=1" onmouseleave="_pm.hover=0" title="누르면 광장 (설정)"><div class="pm-hd"><b>광장</b><span id="pmN"></span></div><canvas id="pmCv"></canvas></div>`; }
+  if(!el.querySelector('canvas')){ el.innerHTML=`<div class="pm-box" onclick="plazaOpen()" onmouseenter="_pmMini.hover=1" onmouseleave="_pmMini.hover=0" title="누르면 광장 크게"><div class="pm-hd"><b>광장</b><span id="pmN"></span></div><canvas id="pmCv"></canvas></div>`; }
   const cv=document.getElementById('pmCv'), W=Math.max(160,cv.parentElement.clientWidth-2);
   if(_pm.W!==W){ _pm.W=W; _pm.deco=null; cv.width=W*2; cv.height=_pm.H*2; cv.style.width=W+'px'; cv.style.height=_pm.H+'px'; }
-  const keep=new Map(_pm.ents.map(e=>[e.uid,e]));
-  _pm.ents=ppl.map(p=>{ const e=keep.get(p.uid)||{uid:p.uid,x:10+Math.random()*(W-PM_SP-20),y:30+Math.random()*(_pm.H-PM_SP-30),vx:0,vy:0,act:'idle',t:0,dir:1,off:document.createElement('canvas')};
-    e.rep=p.rep; e.lab=`${p.repName||(petKind(p.rep)||{}).name||''} (${p.nick||'?'})`; e.me=!!p.me; e.off.width=e.off.height=PET_N*PET_PX; return e; });
+  pmSetEnts(ppl);
   document.getElementById('pmN').textContent=`${_pm.ents.length}명`;
   if(!_pm.t) _pm.t=setInterval(plazaMiniTick,140);
+  if(_pmBig&&document.getElementById('pzCv')){ pmWith(_pmBig,()=>pmSetEnts(ppl)); const n=document.getElementById('pzN'); if(n) n.textContent=`${_pmBig.ents.length}명`; }
+}
+function pmSetEnts(ppl){ const W=_pm.W;
+  const keep=new Map(_pm.ents.map(e=>[e.uid,e]));
+  _pm.ents=ppl.map(p=>{ const e=keep.get(p.uid)||{uid:p.uid,x:10+Math.random()*(W-_pm.sp-20),y:30+Math.random()*(_pm.H-_pm.sp-30),vx:0,vy:0,act:'idle',t:0,dir:1,off:document.createElement('canvas')};
+    e.rep=p.rep; e.lab=`${p.repName||(petKind(p.rep)||{}).name||''} (${p.nick||'?'})`; e.me=!!p.me; e.off.width=e.off.height=PET_N*PET_PX; return e; });
 }
 function plazaMiniStop(){ if(_pm.t){ clearInterval(_pm.t); _pm.t=null; } }
 // 행동 고르기: 걷기 · 쉬기 · 폴짝 · 춤 · 낮잠 · 인사, 가끔 둘이 짝꿍(손잡고 같이 걷기)
 function pmPick(e){
   const r=Math.random(), W=_pm.W, H=_pm.H;
   e.partner=null;
-  if(r<0.42){ e.act='walk'; e.tx=8+Math.random()*(W-PM_SP-16); e.ty=22+Math.random()*(H-PM_SP-36); e.t=40+Math.random()*60; }
+  if(r<0.42){ e.act='walk'; e.tx=8+Math.random()*(W-_pm.sp-16); e.ty=22+Math.random()*(H-_pm.sp-36); e.t=40+Math.random()*60; }
   else if(r<0.6){ e.act='idle'; e.t=20+Math.random()*30; }
   else if(r<0.72){ e.act='hop'; e.t=14; }
   else if(r<0.82){ e.act='dance'; e.t=24; }
@@ -9473,60 +9486,81 @@ function pmPick(e){
 function pmPair(){
   const free=_pm.ents.filter(e=>!e.partner&&e.act!=='sleep'); if(free.length<2) return;
   const a=free[Math.floor(Math.random()*free.length)], b=free.filter(x=>x!==a)[Math.floor(Math.random()*(free.length-1))];
-  const tx=8+Math.random()*(_pm.W-2*PM_SP-16), ty=22+Math.random()*(_pm.H-PM_SP-36);
+  const tx=8+Math.random()*(_pm.W-2*_pm.sp-16), ty=22+Math.random()*(_pm.H-_pm.sp-36);
   a.act=b.act='pair'; a.partner=b; b.partner=a; a.lead=true; b.lead=false; a.tx=tx; a.ty=ty; a.t=b.t=90;
 }
-function plazaMiniTick(){
-  const cv=document.getElementById('pmCv'); if(!cv){ plazaMiniStop(); return; }
+function plazaMiniTick(){ pmWith(_pmMini,pmTick); }
+function pmTick(){
+  const cv=document.getElementById(_pm.cvId); if(!cv){ if(_pm===_pmMini) plazaMiniStop(); return; }
   if(document.hidden) return;
   const ctx=cv.getContext('2d'), W=_pm.W, H=_pm.H; _pm.frame++;
   ctx.setTransform(2,0,0,2,0,0); ctx.imageSmoothingEnabled=false;
   // 풀밭: 연두 바탕 + 풀 · 작은 꽃 (한 번 정해 둠)
   if(!_pm.deco){ _pm.deco=[]; for(let i=0;i<Math.round(W/9);i++) _pm.deco.push({x:Math.random()*W,y:22+Math.random()*(H-24),k:Math.random()<0.18?'f':'g',c:['#F7A8B8','#FFD27A','#B9A2E8','#FFFFFF'][i%4]}); }
-  ctx.fillStyle='#DDEFC9'; ctx.fillRect(0,0,W,H); ctx.fillStyle='#CFE7B6'; ctx.fillRect(0,0,W,18);
-  _pm.deco.forEach(d=>{ if(d.k==='g'){ ctx.fillStyle='#A9D18E'; ctx.fillRect(d.x,d.y,1.5,4); ctx.fillRect(d.x+2,d.y+1,1.5,3); } else { ctx.fillStyle=d.c; ctx.fillRect(d.x,d.y,3,3); ctx.fillStyle='#FFE37A'; ctx.fillRect(d.x+1,d.y+1,1,1); } });
+  ctx.fillStyle='#DDEFC9'; ctx.fillRect(0,0,W,H); ctx.fillStyle='#CFE7B6'; ctx.fillRect(0,0,W,18*_pm.k);
+  _pm.deco.forEach(d=>{ if(d.k==='g'){ ctx.fillStyle='#A9D18E'; const q=_pm.k; ctx.fillRect(d.x,d.y,1.5*q,4*q); ctx.fillRect(d.x+2*q,d.y+q,1.5*q,3*q); } else { ctx.fillStyle=d.c; const q=_pm.k; ctx.fillRect(d.x,d.y,3*q,3*q); ctx.fillStyle='#FFE37A'; ctx.fillRect(d.x+q,d.y+q,q,q); } });
   if(--_pm.pairT<=0){ _pm.pairT=120+Math.random()*120; if(_pm.ents.length>1&&Math.random()<0.7) pmPair(); }
   _pm.ents.forEach(e=>{
     if(e.t<=0&&!(e.partner&&!e.lead)) pmPick(e);
     e.t--; let mode='idle', jump=0;
     const go=(tx,ty,sp)=>{ const dx=tx-e.x, dy=ty-e.y, d=Math.hypot(dx,dy); if(d>1){ e.x+=dx/d*Math.min(sp,d); e.y+=dy/d*Math.min(sp,d); e.dir=dx<0?-1:1; return true; } return false; };
-    if(e.act==='walk'){ if(go(e.tx,e.ty,1.1)) mode='walk'; }
+    if(e.act==='walk'){ if(go(e.tx,e.ty,1.1*_pm.k)) mode='walk'; }
     else if(e.act==='hop'){ jump=[0,1,2,3,2,1][_pm.frame%6]; mode='happy'; }
     else if(e.act==='dance'){ jump=_pm.frame%4<2?2:0; e.dir=_pm.frame%8<4?1:-1; mode='happy'; }
     else if(e.act==='sleep') mode='sleep';
     else if(e.act==='wave') mode='happy';
     else if(e.act==='pair'&&e.partner){ const P=e.partner;
-      if(e.lead){ if(go(e.tx,e.ty,0.9)) mode='walk'; else { e.tx=8+Math.random()*(W-2*PM_SP-16); e.ty=22+Math.random()*(H-PM_SP-36); } }
-      else { if(go(P.x+PM_SP*0.82,P.y,1.4)) mode='walk'; else { e.dir=P.dir; mode=P._mode||'idle'; } }
+      if(e.lead){ if(go(e.tx,e.ty,0.9*_pm.k)) mode='walk'; else { e.tx=8+Math.random()*(W-2*_pm.sp-16); e.ty=22+Math.random()*(H-_pm.sp-36); } }
+      else { if(go(P.x+_pm.sp*0.82,P.y,1.4*_pm.k)) mode='walk'; else { e.dir=P.dir; mode=P._mode||'idle'; } }
       if(e.t<=0&&e.lead){ e.partner=null; P.partner=null; e.t=0; P.t=0; } }
     e._mode=mode; e._jump=jump;
   });
   // 짝꿍이 아니면 너무 붙지 않게 살짝 밀어냄 (이름표가 겹치지 않게), 풀밭 밖으로 안 나가게
-  const es=_pm.ents, gap=PM_SP*1.25;
+  const es=_pm.ents, gap=_pm.sp*1.25;
   for(let i=0;i<es.length;i++) for(let j=i+1;j<es.length;j++){ const a=es[i], b=es[j]; if(a.partner===b) continue;
     const dx=b.x-a.x, dy=(b.y-a.y)*1.6, d=Math.hypot(dx,dy)||0.1; if(d<gap){ const k=(gap-d)/d*0.12; a.x-=dx*k; b.x+=dx*k; a.y-=dy*k/1.6; b.y+=dy*k/1.6; } }
-  es.forEach(e=>{ e.x=Math.max(2,Math.min(W-PM_SP-2,e.x)); e.y=Math.max(20,Math.min(H-PM_SP-12,e.y)); });
+  es.forEach(e=>{ e.x=Math.max(2,Math.min(W-_pm.sp-2,e.x)); e.y=Math.max(20*_pm.k,Math.min(H-_pm.sp-(_pm.fs+5),e.y)); });
   // 아래쪽(앞)에 있는 세포를 나중에 그림
   _pm.ents.slice().sort((a,b)=>a.y-b.y).forEach(e=>{
     drawPet(e.off,e.rep,{frame:_pm.frame>>1,mode:e._mode,jump:e._jump});
     const x=Math.round(e.x), y=Math.round(e.y);
-    ctx.save(); if(e.dir<0){ ctx.translate(x+PM_SP,y); ctx.scale(-1,1); ctx.drawImage(e.off,0,0,PM_SP,PM_SP); } else ctx.drawImage(e.off,x,y,PM_SP,PM_SP); ctx.restore();
-    if(e._mode==='sleep'&&_pm.frame%10<6){ ctx.fillStyle='#7C8A9C'; ctx.font='700 7px sans-serif'; ctx.fillText('z',x+PM_SP-4,y+4); }
-    if(e.act==='wave'&&_pm.frame%6<3){ ctx.fillStyle='#3B3346'; ctx.fillRect(x+(e.dir>0?PM_SP-2:0),y+10,3,2); }
-    if(e.partner&&e.lead&&Math.hypot(e.partner.x-e.x,e.partner.y-e.y)<PM_SP*1.1){ const hx=(x+e.partner.x)/2+PM_SP/2-2, hy=Math.min(y,e.partner.y)+PM_SP*0.62;
-      ctx.fillStyle='#3B3346'; ctx.fillRect(hx-3,hy,8,1.5);   // 맞잡은 손
-      if(_pm.frame%16<10){ ctx.fillStyle='#F28AA0'; ctx.fillRect(hx,hy-14,2,2); ctx.fillRect(hx+3,hy-14,2,2); ctx.fillRect(hx-1,hy-13,7,2); ctx.fillRect(hx,hy-11,5,1.5); ctx.fillRect(hx+1,hy-10,3,1.5); } }
+    ctx.save(); if(e.dir<0){ ctx.translate(x+_pm.sp,y); ctx.scale(-1,1); ctx.drawImage(e.off,0,0,_pm.sp,_pm.sp); } else ctx.drawImage(e.off,x,y,_pm.sp,_pm.sp); ctx.restore();
+    if(e._mode==='sleep'&&_pm.frame%10<6){ ctx.fillStyle='#7C8A9C'; ctx.font=`700 ${_pm.fs}px sans-serif`; ctx.fillText('z',x+_pm.sp-4*_pm.k,y+4*_pm.k); }
+    if(e.act==='wave'&&_pm.frame%6<3){ ctx.fillStyle='#3B3346'; ctx.fillRect(x+(e.dir>0?_pm.sp-2*_pm.k:0),y+10*_pm.k,3*_pm.k,2*_pm.k); }
+    if(e.partner&&e.lead&&Math.hypot(e.partner.x-e.x,e.partner.y-e.y)<_pm.sp*1.1){ const hx=(x+e.partner.x)/2+_pm.sp/2-2, hy=Math.min(y,e.partner.y)+_pm.sp*0.62;
+      const q=_pm.k; ctx.fillStyle='#3B3346'; ctx.fillRect(hx-3*q,hy,8*q,1.5*q);   // 맞잡은 손
+      if(_pm.frame%16<10){ ctx.fillStyle='#F28AA0'; ctx.fillRect(hx,hy-14*q,2*q,2*q); ctx.fillRect(hx+3*q,hy-14*q,2*q,2*q); ctx.fillRect(hx-q,hy-13*q,7*q,2*q); ctx.fillRect(hx,hy-11*q,5*q,1.5*q); ctx.fillRect(hx+q,hy-10*q,3*q,1.5*q); } }
   });
   // 이름표는 세포를 다 그린 뒤 맨 위에
   _pm.ents.slice().sort((a,b)=>a.y-b.y).forEach(e=>{ const x=Math.round(e.x), y=Math.round(e.y);
     // 이름표: 마우스를 올리면 모두, 아니면 나 + 다른 사람 한 명씩 돌아가며 (좁은 칸에서 겹치지 않게)
     const others=_pm.ents.filter(x=>!x.me), turn=others.length?others[Math.floor(_pm.frame/22)%others.length]:null;
     if(!(_pm.hover||e.me||e===turn)) return;
-    ctx.font=`${e.me?700:600} 7px ${getComputedStyle(document.body).fontFamily}`; ctx.textAlign='center';
-    const tw=ctx.measureText(e.lab).width; ctx.fillStyle=e.me?'rgba(255,255,255,.95)':'rgba(255,255,255,.8)'; ctx.fillRect(x+PM_SP/2-tw/2-2,y+PM_SP,tw+4,9);
-    ctx.fillStyle=e.me?'#2F5E99':'#3B3346'; ctx.fillText(e.lab,x+PM_SP/2,y+PM_SP+7); ctx.textAlign='left';
+    ctx.font=`${e.me?700:600} ${_pm.fs}px ${getComputedStyle(document.body).fontFamily}`; ctx.textAlign='center';
+    const tw=ctx.measureText(e.lab).width; ctx.fillStyle=e.me?'rgba(255,255,255,.95)':'rgba(255,255,255,.8)'; ctx.fillRect(x+_pm.sp/2-tw/2-3,y+_pm.sp,tw+6,_pm.fs+3);
+    ctx.fillStyle=e.me?'#2F5E99':'#3B3346'; ctx.fillText(e.lab,x+_pm.sp/2,y+_pm.sp+_pm.fs); ctx.textAlign='left';
   });
 }
+// 크게 연 광장: 왼쪽 큰 풀밭(모두 이름표), 오른쪽 내 설정 · 랩 목표 · 함께 쓰는 사람
+function plazaOpen(){
+  if(!mailUser()) return toast('Google 로그인하면 광장에 들어갈 수 있어요',{warn:true});
+  plazaClose();
+  const m=document.createElement('div'); m.id='plazaModal'; m.className='modal open pz-modal'; m.onclick=e=>{ if(e.target===m) plazaClose(); };
+  m.innerHTML=`<div class="mbox pz-box"><div class="pz-hd"><b>광장</b><span id="pzN"></span><button class="tbl-btn" onclick="plazaClose()">${ic('x','ic-sm')}</button></div>
+    <div class="pz-body"><div class="pz-field"><canvas id="pzCv"></canvas></div><div class="pz-side" id="pzSide"></div></div></div>`;
+  document.body.appendChild(m);
+  const f=m.querySelector('.pz-field'), W=f.clientWidth, H=f.clientHeight, cv=document.getElementById('pzCv');
+  _pmBig={ents:[],t:null,frame:0,W,H,deco:null,pairT:30,sp:PET_N*PET_PX*1.15,k:1.9,fs:12,cvId:'pzCv',hover:1};
+  cv.width=W*2; cv.height=H*2; cv.style.width=W+'px'; cv.style.height=H+'px';
+  const ppl=plazaMiniPeople()||[]; pmWith(_pmBig,()=>pmSetEnts(ppl)); document.getElementById('pzN').textContent=`${ppl.length}명`;
+  _pmBig.t=setInterval(()=>pmWith(_pmBig,pmTick),140);
+  plazaPanelRefresh();
+}
+function plazaClose(){ const m=document.getElementById('plazaModal'); if(m) m.remove(); if(_pmBig&&_pmBig.t) clearInterval(_pmBig.t); _pmBig=null; }
+// 오른쪽 칸 (예전 설정 › 광장 내용)
+function plazaPanelRefresh(){ const el=document.getElementById('pzSide'); if(!el) return;
+  el.innerHTML=plazaHTML(); el.querySelectorAll('.plz-reps canvas[data-k]').forEach(c=>drawPet(c,c.dataset.k,{frame:0,mode:'idle'})); plazaLoad(); }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&document.getElementById('plazaModal')) plazaClose(); });
 // 로그인 뒤 · 5분마다 광장 사람들 불러오기
 async function plazaMiniLoad(){ if(!mailUser()||!fbDb||!plazaOn()||_plazaOff){ plazaMiniSync(); return; } plazaPublish(); await plazaFetch(); }
 setTimeout(()=>{ try{ plazaMiniLoad(); }catch(e){} },3000);
