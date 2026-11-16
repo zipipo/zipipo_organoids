@@ -5296,17 +5296,18 @@ function setLineFilter(f,silent){
 }
 // 화면 테마: 파스텔(기본) / 다크 / 모노(흰 바탕 + 검정 글씨, 강조는 차콜 바탕 + 흰 글씨). 데이터와 무관한 화면 설정이라 이 브라우저에만 저장
 // 밤하늘 · 바다는 다크 · 파스텔 위에 색과 그림 배경만 바꾼 테마 (기존 data-theme 규칙을 그대로 씀)
-// 그림 배경은 고르지 않고 매주 월요일마다 자동으로 바뀐다 (모두 같은 순서 · 같은 주에는 같은 그림).
+// 그림 배경은 고르지 않고 4일마다 자동으로 바뀐다 (2026-11-16부터, 유진: 매주 → 4일). 모두 같은 순서 · 같은 날에는 같은 그림.
 // 12/18 ~ 12/26은 크리스마스 고정. 파스텔 테마에서만 보이고 다크 · 모노에서는 꺼진다. 어떤 그림이 언제 나오는지는 화면에 안 보여줌(비공개).
 const ART_ROTA=['ocean','snail','freesia','pencil','autumn','acorn','chick','clover','plant','dumpling','night','tree','forest','earth','winter','cat','dreamy'];
 function weeklyArt(d){
   d=d||new Date();
   const m=d.getMonth()+1, day=d.getDate();
   if(m===12 && day>=18 && day<=26) return 'xmas';
-  const mon=new Date(d); mon.setHours(0,0,0,0); mon.setDate(mon.getDate()-((mon.getDay()+6)%7));
-  const wk=Math.round((mon-new Date(2026,10,2))/(7*864e5));   // 2026-11-02(월) 주가 바다(ART_ROTA[0])
-  return ART_ROTA[((wk%ART_ROTA.length)+ART_ROTA.length)%ART_ROTA.length];
+  const t=new Date(d); t.setHours(0,0,0,0);
+  const n=Math.floor(Math.round((t-new Date(2026,10,2))/864e5)/4);   // 2026-11-02부터 4일씩 한 칸 (11/02–05 바다)
+  return ART_ROTA[((n%ART_ROTA.length)+ART_ROTA.length)%ART_ROTA.length];
 }
+setInterval(()=>{ try{ if(document.body.dataset.theme==='pastel'){ const a=weeklyArt(); if(document.body.dataset.art!==a) document.body.dataset.art=a; } }catch(e){} },600000);   // 켜 둔 채 날이 바뀌어도 그림 바뀜
 const THEME_BASE={};   // 배경만 바뀌는 테마 (화면 색은 파스텔 그대로)
 let _themeKey='pastel';
 function setTheme(t){
