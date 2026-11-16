@@ -9396,7 +9396,7 @@ function plazaHTML(){
   const u=mailUser();
   if(!u) return `<h3>광장</h3><div class="set-sec"><p class="set-p">Google 로그인하면 이 사이트를 쓰는 사람들과 세포를 구경하고 선물할 수 있어요.</p><button class="btn btn-pri" onclick="cloudToggle()">Google 로그인</button></div>`;
   return `<div class="set-sec"><label class="set-row"><span><b>내 별명</b></span><input value="${esc(plazaNick())}" maxlength="12" style="width:130px;" onchange="plazaSetNick(this.value)"></label>
-    <label class="set-row"><span><b>한 줄 상태</b></span><input value="${esc((()=>{ try{ return localStorage.getItem('orgPlazaMsg')||''; }catch(e){ return ''; } })())}" maxlength="24" placeholder="오늘은 split 데이" style="width:180px;" onchange="try{localStorage.setItem('orgPlazaMsg',this.value.trim())}catch(e){} plazaPublish(true)"></label>
+    <label class="set-row"><span><b>한 줄 상태</b></span><input value="${esc((()=>{ try{ return localStorage.getItem('orgPlazaMsg')||''; }catch(e){ return ''; } })())}" maxlength="24" placeholder="오늘은 split 데이" style="width:180px;" onchange="try{localStorage.setItem('orgPlazaMsg',this.value.trim())}catch(e){} plazaPublish(true); plazaMiniSync()"></label>
     <div class="set-row plz-reprow"><span><b>광장 대표 세포</b><small>메인 화면 광장에 이 세포가 나가 돌아다녀요</small></span></div>
     <div class="plz-reps">${Object.keys(petSt.owned).filter(id=>petKind(id)).map(id=>`<button class="plz-rep${id===plazaRep()?' on':''}" onclick="plazaSetRep('${id}')" title="${esc(plazaCellName(id))}"><canvas data-k="${id}" width="48" height="48"></canvas><span>${esc(plazaCellName(id))}</span></button>`).join('')||'<p class="set-p">아직 세포가 없어요.</p>'}</div>
     <label class="set-row"><span><b>광장에 나 보이기</b><small>별명 · 한 줄 상태 · 대표 세포 · 도감 · 도장깨기 · 이번 주 MC 수만 보여요</small></span><input type="checkbox" class="set-tg" ${_plazaOff?'':'checked'} onchange="plazaSetOff(!this.checked)"></label></div>
@@ -9474,7 +9474,7 @@ function plazaMiniSync(){
 function pmSetEnts(ppl){ const W=_pm.W;
   const keep=new Map(_pm.ents.map(e=>[e.uid,e]));
   _pm.ents=ppl.map(p=>{ const e=keep.get(p.uid)||{uid:p.uid,x:10+Math.random()*(W-_pm.sp-20),y:30+Math.random()*(_pm.H-_pm.sp-30),vx:0,vy:0,act:'idle',t:0,dir:1,off:document.createElement('canvas')};
-    e.rep=p.rep; e.lab=`${p.repName||(petKind(p.rep)||{}).name||''} (${p.nick||'?'})`; e.me=!!p.me; e.off.width=e.off.height=PET_N*PET_PX; return e; });
+    e.rep=p.rep; e.lab=`${p.repName||(petKind(p.rep)||{}).name||''} (${p.nick||'?'})`; e.me=!!p.me; e.msg=String(p.msg||'').trim(); e.off.width=e.off.height=PET_N*PET_PX; return e; });
 }
 function plazaMiniStop(){ if(_pm.t){ clearInterval(_pm.t); _pm.t=null; } }
 // 행동 고르기: 걷기 · 쉬기 · 폴짝 · 춤 · 낮잠 · 인사, 가끔 둘이 짝꿍(손잡고 같이 걷기)
@@ -9544,6 +9544,15 @@ function pmTick(){
     ctx.font=`${e.me?700:600} ${_pm.fs}px ${getComputedStyle(document.body).fontFamily}`; ctx.textAlign='center';
     const tw=ctx.measureText(e.lab).width; ctx.fillStyle=e.me?'rgba(255,255,255,.95)':'rgba(255,255,255,.8)'; ctx.fillRect(x+_pm.sp/2-tw/2-3,y+_pm.sp,tw+6,_pm.fs+3);
     ctx.fillStyle=e.me?'#2F5E99':'#3B3346'; ctx.fillText(e.lab,x+_pm.sp/2,y+_pm.sp+_pm.fs); ctx.textAlign='left';
+    // 한 줄 상태 = 세포 머리 위 말풍선 (풀밭 밖으로 안 나가게, 아래 꼬리)
+    if(e.msg){ const f=_pm.fs, pad=f*0.55; ctx.font=`600 ${f}px ${getComputedStyle(document.body).fontFamily}`;
+      const mw=ctx.measureText(e.msg).width, bw=mw+pad*2, bh=f+pad*1.4, cx=x+_pm.sp/2, by=y-bh-f*0.7+(e._jump||0)*0;
+      const bx=Math.max(2,Math.min(_pm.W-bw-2,cx-bw/2));
+      ctx.fillStyle='#FFFFFF'; ctx.strokeStyle='#B9C6D3'; ctx.lineWidth=1;
+      ctx.beginPath(); if(ctx.roundRect) ctx.roundRect(bx,by,bw,bh,bh/2.4); else ctx.rect(bx,by,bw,bh); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx-f*0.35,by+bh-0.5); ctx.lineTo(cx,by+bh+f*0.55); ctx.lineTo(cx+f*0.35,by+bh-0.5); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(cx-f*0.35,by+bh); ctx.lineTo(cx,by+bh+f*0.55); ctx.lineTo(cx+f*0.35,by+bh); ctx.stroke();
+      ctx.fillStyle='#3B3346'; ctx.textBaseline='middle'; ctx.fillText(e.msg,bx+pad,by+bh/2+0.5); ctx.textBaseline='alphabetic'; }
   });
 }
 // 크게 연 광장: 왼쪽 큰 풀밭(모두 이름표), 오른쪽 내 설정 · 랩 목표 · 함께 쓰는 사람
