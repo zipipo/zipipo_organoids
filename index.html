@@ -7299,6 +7299,25 @@ function pptEdAdd(what){ pptEdDo(e=>{ if(!e.colLabels) return;
 function pptEdWrap(n){ pptEdDo(e=>{ if(!n){ delete e.wrap; delete e.bands; delete e.wrapSet; } else { e.wrap=n<0?0:n; e.bands=null; e.wrapSet=n; } }); }
 // 다음 장 붙이기: 같은 실험의 바로 다음 장을 이 장에 합침 (그 장은 비어서 없어짐)
 // 두 장의 열(조건 · well)이 같으면 아래로 이어 붙이고(행 추가), 다르면 옆으로 이어 붙임(열 추가). 같은 이름의 행 · 열은 맞춰서
+// 날짜를 행으로: 날짜 줄로 묶인 열(날짜 × well)을 → 행 = 날짜 × 배율, 열 = well (같은 well이 위아래로 줄 맞춤)
+function pptDateGroupsOf(e){ return (e.colGroups||[]).filter(g=>g.lab!=null); }
+function pptEdDatesToRows(e){
+  const gs=pptDateGroupsOf(e); if(gs.length<2) return false;
+  const K=t=>pptPlain(t).trim(), cols=[]; e.colLabels.forEach(t=>{ if(!cols.some(c=>K(c)===K(t))) cols.push(t); });
+  const rows=[], brk=[], cells=[];
+  gs.forEach(g=>{ e.rowLabels.forEach((rl,r)=>{
+    const first=r===0, mag=K(rl);
+    rows.push(first?(Array.isArray(g.lab)?g.lab.concat([{text:'\n'+mag,options:{}}]):K(g.lab)+'\n'+mag):rl); brk.push(first);
+    cells.push(cols.map(c=>{ for(let j=g.c0;j<g.c1;j++) if(K(e.colLabels[j])===K(c)) return e.cells[r][j]; return null; })); }); });
+  // 사진이 하나도 없는 행은 뺌 (그 날 안 찍은 배율)
+  const keep=cells.map((row,i)=>row.some(c=>c&&c.length)?i:-1).filter(i=>i>=0);
+  const R=e.rowLabels.length;
+  e.rowLabels=keep.map(i=>rows[i]); e.rowBreaks=keep.map(()=>false); e.cells=keep.map(i=>cells[i]);
+  // 날짜가 바뀌는 행에 묶음 표시 · 날짜 글자 (그 날 첫 배율이 빠졌으면 다음 배율 행에 날짜를 붙임)
+  let gi=-1; keep.forEach((i,n)=>{ const g=Math.floor(i/R); if(g!==gi){ gi=g; e.rowBreaks[n]=n>0; if(!brk[i]){ const G=gs[g], mag=K(rows[i]); e.rowLabels[n]=Array.isArray(G.lab)?G.lab.concat([{text:'\n'+mag,options:{}}]):K(G.lab)+'\n'+mag; } } });
+  e.colLabels=cols; e.colG=cols.map(()=>null); e.caps=null; e.bands=null; e.wrap=0; pptEdGroups(e); return true;
+}
+function pptEdToRows(){ pptEdDo(e=>{ if(!pptEdDatesToRows(e)) toast('날짜가 하나뿐이라 바꿀 게 없어요',{warn:true}); }); }
 function pptNextOf(p){ const i=pptLastPages.indexOf(p), q=pptLastPages[i+1]; return q&&q.kind==='matrix'&&p.kind==='matrix'&&q.exp&&q.exp===p.exp&&!q.summary?q:null; }
 function pptEdMerge(){
   const p=pptEdPage(), q=p&&pptNextOf(p); if(!q) return;
@@ -7316,6 +7335,7 @@ function pptEdMerge(){
         rl.forEach((k,r)=>{ const qr=f.rowLabels.findIndex(x=>K(x)===k); e.cells[r].push(qr>=0?f.cells[qr][j]:null); if(e.caps) e.caps[r].push(qr>=0&&f.caps?f.caps[qr][j]:''); }); });
     }
     e.bands=null; f.cells=f.cells.map(r=>r.map(()=>null)); pptEdGroups(e);
+    pptEdDatesToRows(e);   // 날짜가 여럿이 되면 날짜를 행으로 (같은 well을 위아래로 비교)
   });
   toast('다음 장을 이 장에 붙였어요 (되돌리기 Ctrl+Z)');
 }
@@ -7629,6 +7649,7 @@ function pptLayRender(fromHist){
 
         <label class="pl-ck"><input type="checkbox"${p.noTitle?'':' checked'} onchange="pptEdTitle(this.checked)">제목</label>
         ${p.kind==='matrix'?`<label class="pl-ck">한 줄에 <select onchange="pptEdWrap(+this.value)"><option value="0"${p.wrapSet>0?'':' selected'}>전부 (${p.colLabels.length}장)</option>${[2,3,4,5,6,7,8,9,10].filter(n=>n<p.colLabels.length).map(n=>`<option value="${n}"${p.wrapSet===n?' selected':''}>${n}장</option>`).join('')}</select></label>
+          ${pptDateGroupsOf(p).length>1?`<button class="btn btn-out" onclick="pptEdToRows()" title="같은 well을 위아래로 비교">날짜를 행으로</button>`:''}
           ${pptNextOf(p)?`<button class="btn btn-out pl-merge" onclick="pptEdMerge()" title="같은 실험 다음 장(${pages.indexOf(pptNextOf(p))+1}번)을 이 장에 합치기">${ic('plus','ic-sm')}다음 장 붙이기</button>`:''}`:''}
         ${p.edited?`<button class="link-btn" onclick="pptEdReset()">처음 배치로</button>`:''}
         ${pptHistBtns()}</div>
@@ -9758,7 +9779,7 @@ setTimeout(async()=>{ if(!mailUser()||!fbDb) return; try{ const q=await fbDb.col
 // ══════════════════════════════════════════
 const NEWS={id:'2026-11-17', date:'2026-11-17', days:5, items:[
   ['<b>세포</b>','「모두 밥 주기」로 한 번에. 기분 대신 친화도 Lv.1–10 (쓰다듬을수록), Lv.3 볼 하트 · Lv.5 리본 · Lv.8 왕관 · Lv.10 반짝반짝'],
-  ['<b>PPT 슬라이드 고치기</b>','「다음 장 붙이기」로 같은 실험 다음 장을 이 장에 합치기'],
+  ['<b>PPT 슬라이드 고치기</b>','「다음 장 붙이기」로 같은 실험 다음 장을 이 장에 합치기 (날짜는 행, well은 열로 맞춰 같은 well을 위아래로 비교), 「날짜를 행으로」 버튼'],
   ['<b>배양 라인</b>','종류 / 프로젝트로 묶어 보기, 라인 옆 칩으로 프로젝트 정하기'],
   ['<b>사진 이름 · 스케일바</b>','「이름순 정렬」, 큰 TIFF 불러오기가 빨라졌어요'],
   ['<b>다같이 춤추기</b>','광장을 크게 열고 「다같이 춤추기」를 누르면 모두 가운데로 모여 둥글게 서서 같은 춤(좌우 흔들기 · 점프 · 빙글 돌기 · 웨이브 중 하나)을 같은 박자로 추고, 다시 제자리로 돌아가요'],
