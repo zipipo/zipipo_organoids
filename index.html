@@ -1354,7 +1354,7 @@ body.pet-on[data-tab="today"] #petLayer{display:block;}
 .pet-menu{position:fixed;left:248px;bottom:50px;z-index:600;width:250px;background:var(--sur);border:1px solid var(--bd);border-radius:14px;padding:12px;box-shadow:0 10px 30px rgba(0,0,0,.12);font-size:.78rem;}
 .pd-hd{display:flex;gap:10px;align-items:center;margin-bottom:8px;}
 .pd-hd canvas{image-rendering:pixelated;background:var(--psoft);border-radius:10px;}
-.pd-hd b{display:block;font-size:.9rem;} .pd-hd small{color:var(--sub);font-size:.7rem;}
+.pm-lv{font-weight:800;color:#D9607A;margin:0 4px;} .pd-hd b{display:block;font-size:.9rem;} .pd-hd small{color:var(--sub);font-size:.7rem;}
 .pm-bars label{display:flex;align-items:center;gap:8px;font-size:.72rem;color:var(--sub);margin:4px 0;}
 .pm-bars span{flex:1;height:7px;border-radius:9px;background:var(--hov,#F1F5F9);overflow:hidden;}
 .pm-bars i{display:block;height:100%;background:var(--pri);opacity:.6;border-radius:9px;}
@@ -8892,6 +8892,11 @@ function petGrid(shape, frame){
   }
   return g;
 }
+// 친화도: 쓰다듬을 때마다 1점(o.pats). 10단계. 올라갈수록 꾸밈: Lv.3 볼 하트 · Lv.5 리본 · Lv.8 왕관 · Lv.10 반짝반짝
+const PET_LV=[0,6,15,30,50,80,120,170,240,320];
+const PET_LV_GIFT={3:'볼에 하트',5:'리본',8:'왕관',10:'반짝반짝'};
+function petLvOf(pts){ let l=1; PET_LV.forEach((t,i)=>{ if(pts>=t) l=i+1; }); return l; }
+function petLv(id){ const o=petSt&&petSt.owned&&petSt.owned[id]; return o?petLvOf(o.pats||0):0; }
 function drawPet(cv, kindId, st){
   const K=PET_KINDS.find(k=>k.id===kindId)||PET_KINDS[0];
   const ctx=cv.getContext('2d'); ctx.clearRect(0,0,cv.width,cv.height);
@@ -8909,6 +8914,12 @@ function drawPet(cv, kindId, st){
   else [6,10].forEach(x=>{ P(x,ey-1,ink); P(x,ey,ink); P(x+1,ey-1,'#fff'); });
   P(4,ey+1,'#F4A3B5'); P(12,ey+1,'#F4A3B5');
   if(st.mode==='happy'){ P(7,ey+2,ink); P(9,ey+2,ink); P(8,ey+2,ink); } else P(8,ey+1,ink);
+  // 친화도 꾸밈 (st.lv가 없으면 내 세포 친화도)
+  const lv=st.lv!=null?st.lv:petLv(kindId);
+  if(lv>=3){ P(3,ey+2,'#F28AA0'); P(13,ey+2,'#F28AA0'); }
+  if(lv>=5){ const bx=lv>=8?13:12, c='#F28AA0'; P(bx-1,2,c); P(bx+1,2,c); P(bx-1,1,c); P(bx+1,3,c); P(bx,2,'#D9607A'); }
+  if(lv>=8){ const c='#F5C542'; [5,6,7,8,9].forEach(x=>P(x,2,c)); P(5,1,c); P(7,1,c); P(9,1,c); P(7,0,'#FFE37A'); }
+  if(lv>=10&&(st.frame||0)%2===0){ const c='#FFE37A'; [[1,1],[14,4],[1,12],[14,13]].forEach(([x,y])=>{ P(x,y,c); }); }
   if(!['flask','sperm','trophy','ice','camera','loupe','rainbow','pipette','conical','etube','cryo','glove','wellplate','petri','hemo','scope','tipbox','incub','labnote','bottle','ln2','centri','beaker','erlen'].includes(K.shape)){ const f=st.mode==='walk'?(st.frame||0)%2:0; P(5+f,15,K.d); P(10-f,15,K.d); }
 }
 function petItemSprite(type){
@@ -9030,7 +9041,7 @@ function petPop(a){
   const r=a.el.getBoundingClientRect(), m=document.createElement('div'); m.id='petPop'; m.className='pet-pop';
   m.innerHTML=`<b>${esc(petName(a.id))}</b>
     <button onclick="petPin('${a.id}')"><svg class="ic"><use href="#i-${a.pinned?'paw':'pin'}"/></svg>${a.pinned?'움직이기':'멈추기'}</button>
-    <button onclick="petFeed('${a.id}');petPopClose()"><svg class="ic"><use href="#i-cookie"/></svg>밥 주기</button>
+    <button onclick="petFeedAll();petPopClose()"><svg class="ic"><use href="#i-cookie"/></svg>모두 밥 주기</button>
     <button onclick="petPatMany('${a.id}');petPopClose()"><svg class="ic"><use href="#i-heart"/></svg>쓰다듬기</button>
     <button onclick="petPopClose();petWalk('${a.id}')"><svg class="ic"><use href="#i-moon"/></svg>쉬게 하기</button>
     <button onclick="petPopClose();openSettings('pet')"><svg class="ic"><use href="#i-sliders"/></svg>설정</button>`;
@@ -9044,7 +9055,8 @@ function petPin(id){ const a=PETS.find(p=>p.id===id); if(!a) return; a.pinned=!a
 function petPatMany(id){ const a=PETS.find(p=>p.id===id); if(!a) return; [0,250,500].forEach(t=>setTimeout(()=>petPat(a),t)); }
 function petPat(a){
   const o=petSt.owned[a.id]; if(!o) return;
-  o.hap=Math.min(100,(o.hap||60)+4); o.pats=(o.pats||0)+1; petSt.patsAll=(petSt.patsAll||0)+1; savePets(); if(petSt.patsAll%10===0) petGiftCheck();
+  const lv0=petLvOf(o.pats||0); o.hap=Math.min(100,(o.hap||60)+4); o.pats=(o.pats||0)+1; petSt.patsAll=(petSt.patsAll||0)+1; savePets(); if(petSt.patsAll%10===0) petGiftCheck();
+  const lv1=petLvOf(o.pats); if(lv1>lv0){ setTimeout(()=>{ petSay(a,`친해졌어! Lv.${lv1}`,3000); toast(`${petName(a.id)} 친화도 Lv.${lv1}${PET_LV_GIFT[lv1]?` · ${PET_LV_GIFT[lv1]} 생김`:''}`); },300); }
   a.mode='happy'; a.until=performance.now()+1400; a.jump=2;
   const h=document.createElement('i'); h.className='pet-heart'; h.innerHTML='<svg class="ic"><use href="#i-heart"/></svg>'; h.style.left=(a.x+16+Math.random()*12)+'px'; h.style.top=(a.y<40?a.y+40:a.y-10)+'px'; petLayer.appendChild(h); setTimeout(()=>h.remove(),1100);
   if(Math.random()<.2) petSay(a,petTalk('pat'));
@@ -9159,9 +9171,11 @@ function petPanelHTML(){
     const full=Math.max(0,Math.round(100-Math.min(100,(Date.now()-(o.fedTs||0))/PET_FULL_MS*100)));
     const walking=petSt.active.includes(id);
     det=`<div class="set-sec pet-det"><div class="pd-hd"><canvas id="petDetCv" width="48" height="48"></canvas><div><b>${esc(petName(id))}</b><small>${esc(K.name)} ${K.gift?'선물':petStars(K.r)} · 함께한 지 ${days}일${o.n>1?` · ${o.n}번 만남`:''}</small></div></div>
-      <div class="pm-bars"><label>기분 <span><i style="width:${o.hap||0}%"></i></span></label><label>배부름 <span><i style="width:${full}%"></i></span></label></div>
+      ${(()=>{ const pts=o.pats||0, l=petLvOf(pts), a0=PET_LV[l-1], a1=PET_LV[l]||a0, pc=l>=10?100:Math.round((pts-a0)/(a1-a0)*100), nx=Object.keys(PET_LV_GIFT).map(Number).find(k=>k>l);
+        return `<div class="pm-bars"><label>친화도 <b class="pm-lv">Lv.${l}</b><span><i style="width:${pc}%"></i></span></label><label>배부름 <span><i style="width:${full}%"></i></span></label></div>
+        <div class="pm-meta">${l>=10?'최고로 친해요!':`쓰다듬기 ${a1-pts}번 더 하면 Lv.${l+1}`}${nx?` · Lv.${nx}에 ${PET_LV_GIFT[nx]}`:''}</div>`; })()}
       <div class="pm-meta"><svg class="ic"><use href="#i-flower"/></svg> 받은 꽃 ${o.flowers||0}　<svg class="ic"><use href="#i-heart"/></svg> 쓰다듬기 ${o.pats||0}</div>
-      <div class="pm-btns"><button class="btn ${walking?'btn-out':'btn-pri'}" onclick="petWalk('${id}')"><svg class="ic"><use href="#i-paw"/></svg>${walking?'쉬게 하기':'산책 보내기'}</button><button class="btn btn-out" onclick="petFeed('${id}')"><svg class="ic"><use href="#i-cookie"/></svg>밥 주기</button><button class="btn btn-out" onclick="petRename('${id}')"><svg class="ic"><use href="#i-edit"/></svg>이름 짓기</button></div></div>`;
+      <div class="pm-btns"><button class="btn ${walking?'btn-out':'btn-pri'}" onclick="petWalk('${id}')"><svg class="ic"><use href="#i-paw"/></svg>${walking?'쉬게 하기':'산책 보내기'}</button><button class="btn btn-out" onclick="petFeedAll()"><svg class="ic"><use href="#i-cookie"/></svg>모두 밥 주기</button><button class="btn btn-out" onclick="petRename('${id}')"><svg class="ic"><use href="#i-edit"/></svg>이름 짓기</button></div></div>`;
   }
   const tg=`<div class="set-sec"><label class="set-row"><span><b>홈 화면에 세포 보이기</b></span><input type="checkbox" class="set-tg" ${petSt.hidden?'':'checked'} onchange="petHide()"></label></div>`;
   return draw+det+dex+tg;
@@ -9227,6 +9241,11 @@ function petWalk(id){
   else { if(petSt.active.length>=PET_MAX_WALK) petSt.active.shift(); petSt.active.push(id); }
   savePets(); petSync(); _petRefresh();
 }
+// 모두 밥 주기: 가진 세포 전부 한 번에 (배고픈 세포만 셈)
+function petFeedAll(){ const ids=Object.keys(petSt.owned).filter(id=>petKind(id)); let n=0;
+  ids.forEach(id=>{ const o=petSt.owned[id], wasFaint=petFainted(id), hungry=Date.now()-(o.fedTs||0)>PET_FULL_MS*0.2; if(hungry) n++; o.fedTs=Date.now();
+    const a=PETS.find(p=>p.id===id); if(a){ petSay(a,wasFaint?'살았다! 고마워…':'냠냠!',2200); a.mode='happy'; a.until=performance.now()+1500; } });
+  petSt.fedAll=(petSt.fedAll||0)+n; savePets(); petGiftCheck(); _petRefresh(); toast(`세포 ${ids.length}마리에게 밥을 줬어요`); }
 function petFeed(id){ const o=petSt.owned[id]; if(!o) return; const wasFaint=petFainted(id); o.fedTs=Date.now(); o.hap=Math.min(100,(o.hap||60)+6); petSt.fedAll=(petSt.fedAll||0)+1; savePets(); petGiftCheck(); _petRefresh(); const a=PETS.find(p=>p.id===id); if(a&&wasFaint){ petSay(a,'살았다! 고마워…',3000); a.mode='happy'; a.until=performance.now()+2000; a.jump=3; } else if(a){ petSay(a,'냠냠! 맛있다',2500); a.mode='happy'; a.until=performance.now()+1500; } }
 function petRename(id){ const v=prompt('세포 이름', petSt.owned[id].name||''); if(v===null) return; petSt.owned[id].name=v.trim().slice(0,12); savePets(); PETS.forEach(p=>{ if(p.id===id&&p.nm) p.nm.textContent=petName(id); }); _petRefresh(); }
 function petHide(){ petSt.hidden=!petSt.hidden; savePets(); petSync(); _petRefresh(); }
@@ -9267,7 +9286,7 @@ function petGacha(){
     if(++n>16){ clearInterval(t); drawPet(cv,pick.id,{frame:0,mode:'happy'});
       ov.querySelector('#pgName').textContent=`${pick.name}${isNew?'(이)가 나왔어요!':'를 또 만났어요'}`;
       if(isNew) setTimeout(petGiftCheck,2200);   // 도감 10종마다 숫자 친구
-      ov.querySelector('#pgSub').innerHTML=`${petStars(pick.r)}${isNew?' 도감에 새로 등록':' 기분이 좋아졌어요'}`;
+      ov.querySelector('#pgSub').innerHTML=`${petStars(pick.r)}${isNew?' 도감에 새로 등록':' 다시 만나서 반가워요'}`;
       if(!isNew){ const o=petSt.owned[pick.id]; o.hap=Math.min(100,(o.hap||60)+10); savePets(); }
       ov.querySelector('#pgBtns').style.visibility='visible'; } }, 90);
   ov.querySelector('#pgOk').onclick=()=>{ ov.remove(); _petSel=pick.id; petSync(); _petRefresh(); const a=PETS.find(p=>p.id===pick.id); if(a) petSay(a,'안녕! 잘 부탁해',3000); };
@@ -9358,7 +9377,7 @@ function plazaMe(){
   const wk=plazaWeek(), ls=logs.filter(l=>(l.date||'')>=wk);
   const gifts=PET_KINDS.filter(k=>k.gift&&petSt.owned[k.id]).map(k=>k.id);
   const rep=plazaRep();
-  return { nick:plazaNick().slice(0,12), rep, repName:plazaCellName(rep).slice(0,12), walk:petSt.active.slice(0,5),
+  return { nick:plazaNick().slice(0,12), rep, repName:plazaCellName(rep).slice(0,12), repLv:petLv(rep), walk:petSt.active.slice(0,5),
     dex:petDexCount(), gifts, flowers:petSt.flowersAll||0, msg:(()=>{ try{ return (localStorage.getItem('orgPlazaMsg')||'').slice(0,24); }catch(e){ return ''; } })(), wk, mc:ls.filter(l=>isMediaChange(l.action)).length, split:ls.filter(l=>/split/i.test(l.action||'')).length, ts:Date.now() };
 }
 let _plazaPubT=0;
@@ -9369,7 +9388,7 @@ function plazaPublish(force){
 }
 function plazaSetOff(off){ _plazaOff=off; try{ localStorage.setItem('orgPlazaOff',off?'1':'0'); }catch(e){}
   const u=mailUser(); if(off&&u&&fbDb) fbDb.collection('players').doc(u.uid).delete().catch(()=>{}); else plazaPublish(true); plazaMiniSync(); plazaPanelRefresh(); }
-function plazaSetNick(v){ try{ localStorage.setItem('orgNickPlaza',String(v||'').trim().slice(0,12)); }catch(e){} plazaPublish(true); }
+function plazaSetNick(v){ try{ localStorage.setItem('orgNickPlaza',String(v||'').trim().slice(0,12)); }catch(e){} plazaPublish(true); plazaMiniSync(); const l=document.getElementById('plazaList'); if(l&&_plaza) plazaRender(); }   // 바꾸면 풀밭 이름표 · 내 카드에 바로
 async function plazaFetch(){
   try{ const q=await fbDb.collection('players').limit(200).get(); _plaza=q.docs.map(d=>d.data()); _plazaErr='';
     try{ localStorage.setItem('orgPlazaCache',JSON.stringify({uid:mailUser().uid,list:_plaza})); }catch(e){} }   // 새로고침하면 이걸로 먼저 그림
@@ -9393,10 +9412,10 @@ function plazaRender(){
   box.innerHTML=`<div class="set-sec plz-goal"><h4>랩 협동 목표 · 이번 주 MC</h4><div class="plz-bar"><i style="width:${pct}%"></i></div><small>${mcAll} / ${LAB_GOAL} · ${_plaza.filter(p=>p.wk===wk).length}명이 함께${mcAll>=LAB_GOAL?' · 달성!':''}</small></div>
     <div class="set-sec"><h4>함께 쓰는 사람 <span class="mail-n">${others.length+1}</span></h4><div class="plz-list">${[mine].concat(others).map(p=>{ const isMe=p===mine;
       return `<div class="plz-card${isMe?' me':''}">
-      <canvas data-k="${esc(p.rep||'')}" width="48" height="48"></canvas>
+      <canvas data-k="${esc(p.rep||'')}" data-lv="${+p.repLv||0}" width="48" height="48"></canvas>
       <div class="plz-info"><b>${esc(p.repName?`${p.repName} (${p.nick||'세포 친구'})`:(p.nick||'세포 친구'))}${isMe?' <em class="plz-me">나</em>':''}</b><small>도감 ${p.dex||0}/${nDex} · 도장깨기 ${(p.gifts||[]).length}/${nGift} · 이번 주 MC ${p.wk===wk?p.mc||0:0}</small>${p.msg?`<span class="plz-msg">${esc(p.msg)}</span>`:''}</div>
       ${isMe?'':`<div class="plz-act"><button class="btn btn-out" onclick="plazaPickCell('${p.uid}')">${ic('gift')}세포</button></div>`}</div>`; }).join('')}</div>${others.length?'':'<p class="set-p">아직 다른 사람은 없어요.</p>'}</div>`;
-  box.querySelectorAll('canvas[data-k]').forEach(c=>{ if(petKind(c.dataset.k)) drawPet(c,c.dataset.k,{frame:0,mode:'idle'}); });
+  box.querySelectorAll('canvas[data-k]').forEach(c=>{ if(petKind(c.dataset.k)) drawPet(c,c.dataset.k,{frame:0,mode:'idle',lv:+c.dataset.lv||0}); });
 }
 function plazaHTML(){
   const u=mailUser();
@@ -9521,7 +9540,7 @@ function plazaDance(){ const mv=PM_MOVES[Math.floor(Math.random()*PM_MOVES.lengt
 function pmSetEnts(ppl){
   const keep=new Map(_pm.ents.map(e=>[e.uid,e]));
   _pm.ents=ppl.map(p=>{ const e=keep.get(p.uid)||{uid:p.uid,x:0,y:0,dir:1,off:document.createElement('canvas')};
-    e.rep=p.rep; e.lab=`${p.repName||(petKind(p.rep)||{}).name||''} (${p.nick||'?'})`; e.me=!!p.me; e.msg=String(p.msg||'').trim(); e.off.width=e.off.height=PET_N*PET_PX; return e; });
+    e.rep=p.rep; e.lab=`${p.repName||(petKind(p.rep)||{}).name||''} (${p.nick||'?'})`; e.me=!!p.me; e.lv=+p.repLv||0; e.msg=String(p.msg||'').trim(); e.off.width=e.off.height=PET_N*PET_PX; return e; });
 }
 function plazaMiniStop(){ if(_pm.t){ clearInterval(_pm.t); _pm.t=null; } }
 function plazaMiniTick(){ pmWith(_pmMini,pmTick); }
@@ -9567,7 +9586,7 @@ function pmTick(){
     e._mode=mode; e._jump=jump/q; });
   // 아래쪽(앞)에 있는 세포를 나중에 그림
   _pm.ents.slice().sort((a,b)=>a.y-b.y).forEach(e=>{
-    drawPet(e.off,e.rep,{frame:_pm.frame>>1,mode:e._mode,jump:e._jump});
+    drawPet(e.off,e.rep,{frame:_pm.frame>>1,mode:e._mode,jump:e._jump,lv:e.lv});
     const x=Math.round(e.x), y=Math.round(e.y);
     ctx.save(); if(e.dir<0){ ctx.translate(x+_pm.sp,y); ctx.scale(-1,1); ctx.drawImage(e.off,0,0,_pm.sp,_pm.sp); } else ctx.drawImage(e.off,x,y,_pm.sp,_pm.sp); ctx.restore();
     if(e._mode==='sleep'&&_pm.frame%10<6){ ctx.fillStyle='#7C8A9C'; ctx.font=`700 ${_pm.fs}px sans-serif`; ctx.fillText('z',x+_pm.sp-4*_pm.k,y+4*_pm.k); }
@@ -9857,7 +9876,7 @@ function renderMedia(){
   // 1) 보관함 + 계산기 (배지마다 한 칸)
   const cards=calc.map(c=>{
     const d=c.def, col=d.color||MD_COLORS[0];
-    const tubes=c.tubes.map(x=>{
+    const tubes=c.tubes.filter(x=>x.left>0.0001).map(x=>{   // 다 쓴 튜브(0 ml)는 안 보임 (계산에는 그대로 남아 쓴 양이 맞게)
       const exp=mdAddDays(x.t.made,MD_EXPIRE), dleft=mdDays(now,exp);
       const tag=x.expired?`<b class="md-bad">2주 지남</b>`:dleft<=3?`<b class="md-warn">${dleft<=0?'오늘까지':dleft+'일 남음'}</b>`:`<span>D+${x.age}</span>`;
       return `<button class="md-t${x.expired?' exp':''}${x.left<=0.0001?' empty':''}" onclick="mdTubeMenu('${x.t.id}',this)" title="${esc(d.name)} ${x.t.size} ml 튜브 · ${x.t.made} 만듦 · 눌러서 고치기">
