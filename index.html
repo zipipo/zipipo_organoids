@@ -4051,7 +4051,7 @@ function renderActChips(){
   if(def.variants && def.variants.length>1){
     const dflUp=isPassageUp(def.variants[0]), up=isPassageUp(cur), ck=dflUp?!up:up;
     vEl.style.display='flex';
-    vEl.innerHTML=`<label class="pk-chk"><input type="checkbox" ${ck?'checked':''} onchange="setPKeep(this.checked)"> ${dflUp?'P 올리지 않기':'P 올리기'}</label><small class="pk-now">${up?'P +1 · 바이알도 올라간 P로 적혀요':'P 그대로 · 바이알도 지금 P로 적혀요'}</small>`;
+    vEl.innerHTML=`<label class="pk-chk"><input type="checkbox" ${ck?'checked':''} onchange="setPKeep(this.checked)"> ${dflUp?'P 올리지 않기':'P 올리기'}</label>`;
   } else vEl.style.display='none';
 }
 function setPKeep(ck){
