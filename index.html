@@ -9737,16 +9737,35 @@ function pmDrawItem(ctx,id,x0,y0,u){
 // 방 꾸미기처럼: 가운데 분수 광장(돌바닥) · 뒤에 무지개 아치와 깃발, 분수 양옆 벤치 · 가로등, 왼쪽 나무, 오른쪽 현미경 · 탱크, 앞쪽 입구에 표지판 · 꽃밭 · 피크닉 매트
 const PLZ_SPOT={arch:[0.5,0.34], flag:[0.64,0.3], tree:[0.09,0.5], lamp:[0.69,0.64], fountain:[0.5,0.66], bench:[0.31,0.7], scope:[0.88,0.48], tank:[0.96,0.66],
   sign:[0.05,0.99], bed:[0.22,0.99], picnic:[0.78,0.99]};
+// 물품을 세포처럼 픽셀 그림으로: 16칸 그림을 한 칸 = 1점으로 그린 뒤 반투명 점은 버리고(각지게),
+// 바깥에 그 색을 어둡게 한 테두리를 둘러(세포 그림과 같은 방식) 캐시. 화면에는 정수 배율로 키워서 찍음
+const _plzSpr={};
+function plzDark(r,g,b){ return [Math.round(r*0.62),Math.round(g*0.6),Math.round(b*0.66)]; }
+function plzPixelize(draw,w,h){
+  const c=document.createElement('canvas'); c.width=w; c.height=h; const x=c.getContext('2d'); x.imageSmoothingEnabled=false; draw(x);
+  const im=x.getImageData(0,0,w,h), d=im.data, on=i=>d[i*4+3]>=128;
+  const out=x.createImageData(w,h), o=out.data;
+  for(let i=0;i<w*h;i++){ if(on(i)){ o[i*4]=d[i*4]; o[i*4+1]=d[i*4+1]; o[i*4+2]=d[i*4+2]; o[i*4+3]=255; } }
+  for(let y=0;y<h;y++) for(let xx=0;xx<w;xx++){ const i=y*w+xx; if(on(i)) continue;
+    const nb=[[1,0],[-1,0],[0,1],[0,-1]].map(([dx,dy])=>{ const X=xx+dx, Y=y+dy; return X>=0&&Y>=0&&X<w&&Y<h&&on(Y*w+X)?Y*w+X:-1; }).find(k=>k>=0);
+    if(nb!=null&&nb>=0){ const [r,g,b]=plzDark(d[nb*4],d[nb*4+1],d[nb*4+2]); o[i*4]=r; o[i*4+1]=g; o[i*4+2]=b; o[i*4+3]=255; } }
+  x.clearRect(0,0,w,h); x.putImageData(out,0,0); return c;
+}
+function plzSprite(id){ return _plzSpr[id]||(_plzSpr[id]=plzPixelize(x=>pmDrawItem(x,id,1,1,1),18,18)); }
+function plzFloor(){ return _plzSpr._floor||(_plzSpr._floor=plzPixelize(x=>{ x.fillStyle='#E9E0CC'; x.beginPath(); x.ellipse(32,10,30,8.5,0,0,Math.PI*2); x.fill();
+  x.fillStyle='#F3EDDF'; x.beginPath(); x.ellipse(32,9.2,27,6.8,0,0,Math.PI*2); x.fill();
+  x.fillStyle='#E3D9C2'; [[12,8],[22,12],[40,7],[50,11],[30,13],[18,6],[45,14]].forEach(([a,b])=>x.fillRect(a,b,2,1)); },64,20)); }
 function pmDrawLab(ctx,W,q){
   if(!_plaza) return;
   const t=plazaLabTot(), H=ctx.canvas.height/2, u=Math.max(1,q*(W<400?1.25:2.4)), top=18*q;
   // 분수가 생기면 그 아래 돌바닥 광장을 깔아 공간이 생긴 느낌
-  if(plazaItemOn(PLZ_ITEMS.find(x=>x.id==='fountain'),t)){ const [fx,fy]=PLZ_SPOT.fountain, cx=fx*W, cy=top+fy*(H-top)-4*u;
-    ctx.fillStyle='#EFE8D8'; ctx.beginPath(); ctx.ellipse(cx,cy,30*u,9*u,0,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle='#E4DBC6'; ctx.beginPath(); ctx.ellipse(cx,cy,30*u,9*u,0,0,Math.PI); ctx.fill(); ctx.fillStyle='#EFE8D8'; ctx.beginPath(); ctx.ellipse(cx,cy-0.8*u,29*u,8.2*u,0,0,Math.PI*2); ctx.fill(); }
+  const S=Math.max(1,Math.round(u)), R=v=>Math.round(v);   // 정수 배율 · 정수 자리 (픽셀이 흐려지지 않게)
+  ctx.imageSmoothingEnabled=false;
+  if(plazaItemOn(PLZ_ITEMS.find(x=>x.id==='fountain'),t)){ const [fx,fy]=PLZ_SPOT.fountain, f=plzFloor(); ctx.drawImage(f,R(fx*W-32*S),R(top+fy*(H-top)-14*S),64*S,20*S); }
   PLZ_ITEMS.filter(it=>plazaItemOn(it,t)).map(it=>{ const [fx,fy]=PLZ_SPOT[it.id]||[0.5,0.5];
       const by=Math.max(top+4*u, Math.min(H-2, top+fy*(H-top))); return {it, x:Math.max(1,Math.min(W-16*u-1, fx*W-8*u)), y:by-16*u}; })
-    .sort((a,b)=>a.y-b.y).forEach(o=>{ const uu=o.it.id==='arch'?u*1.6:u; pmDrawItem(ctx,o.it.id,o.x-(uu-u)*8,o.y-(uu-u)*16,uu); });   // 무지개는 뒤쪽 배경처럼 크게
+    .sort((a,b)=>a.y-b.y).forEach(o=>{ const ss=o.it.id==='arch'?S*2:S, sp=plzSprite(o.it.id);   // 무지개는 뒤쪽 배경처럼 2배
+      ctx.drawImage(sp, R(o.x+8*u-9*ss), R(o.y+16*u-17*ss), 18*ss, 18*ss); });
 }
 function plazaDecoHTML(){
   const t=plazaLabTot(), on=PLZ_ITEMS.filter(it=>plazaItemOn(it,t)).length;
@@ -9759,7 +9778,7 @@ function plazaDecoHTML(){
 }
 function plazaDecoDraw(root){
   (root||document).querySelectorAll('canvas[data-item]').forEach(c=>{ const x=c.getContext('2d'); x.clearRect(0,0,32,32); x.imageSmoothingEnabled=false;
-    const on=c.closest('.plz-it.on'); if(!on){ x.globalAlpha=.25; } pmDrawItem(x,c.dataset.item,0,0,2); x.globalAlpha=1; });
+    const on=c.closest('.plz-it.on'); if(!on){ x.globalAlpha=.25; } x.drawImage(plzSprite(c.dataset.item),-2,-2,36,36); x.globalAlpha=1; });
 }
 _plazaOff=false; try{ localStorage.removeItem('orgPlazaOff'); }catch(e){}   // 광장에는 늘 나옴 (유진: 「나 보이기」 끄기 없앰)
 const plazaWeek=()=>{ const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-((d.getDay()+6)%7)); return ymdLocal(d); };
