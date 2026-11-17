@@ -2679,10 +2679,15 @@ function stockVialP(lg){ if(!lg) return null; const b=parseP(lg.passage); const 
 // 같은 날 P를 올리는 기록이 둘 이상(예: Split 따로 + Stock (p+1) 따로)이면 P가 두 번 올라가 바이알 P가 2 차이 날 수 있음
 function stockPWarn(sc){ return logs.filter(x=>x.lineId===sc.lineId && x.date===sc.date && isPassageUp(x.action)).length>1 ? '같은 날 P가 두 번 올라간 기록이 있어요. 바이알 P를 확인해 주세요.' : ''; }
 function stockLogOf(sc){ return logs.find(x=>x.lineId===sc.lineId && x.date===sc.date && parseInt(x.stocks)>0) || logs.find(x=>x.lineId===sc.lineId && x.date===sc.date && /stock/i.test(x.action||'')) || null; }
+// 그 날 그 라인에 vial 수가 있는 기록이 더 없으면, 아직 LN2에 안 넣은 Stock 후처리 항목은 지움 (기록을 지우거나 날짜를 옮긴 경우)
+function stockCleanup(lineId,date){
+  if(logs.some(l=>l.lineId===lineId && l.date===date && parseInt(l.stocks)>0)) return;
+  stockChecks=stockChecks.filter(sc=>!(sc.lineId===lineId && sc.date===date && !sc.ln2Done && !sc.dbDone));
+}
 // 기록을 고쳐서 vial 수를 넣거나 바꾸면 Stock 후처리 목록도 맞춘다
 function stockSyncFromLog(lg){
   const n=parseInt(lg.stocks)||0, sc=stockChecks.find(x=>x.lineId===lg.lineId && x.date===lg.date);
-  if(sc){ if(n>0) sc.stocks=String(n); }
+  if(sc){ if(n>0) sc.stocks=String(n); else stockCleanup(lg.lineId, lg.date); }
   else if(n>0){ const l=lines.find(x=>x.id===lg.lineId); stockChecks.push({id:uid(),lineId:lg.lineId,lineLabel:l?lineTag(l):'',date:lg.date,stocks:String(n),ln2Done:false,dbDone:false}); }
 }
 const isMediaChange = a=>!!(a&&(a==='Media Change'||a==='Media Addition'));
@@ -4655,6 +4660,7 @@ function restoreTrash(tid){
     if(!line){ alert('해당 라인이 삭제되어 있어 복원할 수 없습니다. 라인을 먼저 복원하세요.'); return; }
     if(logs.some(l=>l.id===item.log.id)){ alert('이미 존재하는 기록입니다.'); return; }
     logs.push(item.log);
+    if(parseInt(item.log.stocks)>0) stockSyncFromLog(item.log);
     recalcLogsForLine(line.id);
   }
   trash.splice(idx,1);
@@ -4737,6 +4743,7 @@ function updateLog(){
     if(!eAction) return toast('직접 입력할 액션명을 입력하세요.',{warn:true});
   }
   const snap=takeSnap();
+  const oldDate=logs[idx].date;
   logs[idx].date      =document.getElementById('eDate').value;
   logs[idx].action    =eAction;
   logs[idx].passage   =parseP(document.getElementById('eP').value);
@@ -4747,6 +4754,7 @@ function updateLog(){
   { const dm=document.getElementById('eDomes').value; if(dm) logs[idx].domes=dm; else delete logs[idx].domes; }
   logs[idx].stocks    =document.getElementById('eStocks').value;
   { const v=document.getElementById('eStockP').value; if(v==='') delete logs[idx].stockPOff; else logs[idx].stockPOff=+v; }
+  if(oldDate!==logs[idx].date){ const sc=stockChecks.find(x=>x.lineId===logs[idx].lineId && x.date===oldDate); if(sc && !logs.some(l=>l!==logs[idx] && l.lineId===sc.lineId && l.date===oldDate && parseInt(l.stocks)>0)) sc.date=logs[idx].date; }   // 날짜를 옮기면 Stock 후처리도 같이
   stockSyncFromLog(logs[idx]);
   logs[idx].memo      =document.getElementById('eMemo').value;
 
@@ -4773,6 +4781,7 @@ function deleteLog(){
     label:`${line?lineTag(line):'(삭제된 라인)'} · ${lg.date} · ${lg.action}`,log:lg});
   saveTrash();
   logs=logs.filter(l=>l.id!==id);
+  if(parseInt(lg.stocks)>0) stockCleanup(lg.lineId, lg.date);   // Stock 기록을 지우면 넣을 바이알 목록에서도 빠짐
   if(line) recalcLogsForLine(line.id);   // Split 등을 지우면 이후 기록 P/D도 맞춰짐
   closeLogModal();updateUI();
 }
@@ -9605,16 +9614,21 @@ function pmDrawItem(ctx,id,x0,y0,u){
     case 'flag': R(2,0,1,16,'#8A94A6'); R(3,1,8,5,'#FFD27A'); R(5,2,3,1,'#F59E3B'); R(5,4,4,1,'#F59E3B'); R(1,15,3,1,'#8A94A6'); break;
   }
 }
+// 물품 자리: 풀밭 안 고정 위치 (x 0–1, 바닥선 y 0–1). 분수는 가운데 뒤, 벤치는 그 옆, 나무 · 탱크는 구석, 꽃밭 · 표지판은 앞쪽 입구
+const PLZ_SPOT={arch:[0.5,0.16], tree:[0.06,0.3], lamp:[0.36,0.36], fountain:[0.5,0.42], bench:[0.63,0.44], scope:[0.84,0.3], tank:[0.94,0.34],
+  sign:[0.04,0.97], bed:[0.2,0.95], picnic:[0.74,0.97], flag:[0.97,0.95]};
 function pmDrawLab(ctx,W,q){
   if(!_plaza) return;
-  const t=plazaLabTot(), N=PLZ_ITEMS.length, gap=(W-8)/N, u=Math.min(q, gap/17), y0=18*q-16*u;
-  PLZ_ITEMS.forEach((it,i)=>{ if(plazaItemOn(it,t)) pmDrawItem(ctx,it.id,4+i*gap+(gap-16*u)/2,y0,u); });
+  const t=plazaLabTot(), H=ctx.canvas.height/2, u=Math.max(1,q*(W<400?1:1.5)), top=18*q;
+  PLZ_ITEMS.filter(it=>plazaItemOn(it,t)).map(it=>{ const [fx,fy]=PLZ_SPOT[it.id]||[0.5,0.5];
+      const by=Math.max(top+4*u, Math.min(H-2, top+fy*(H-top))); return {it, x:Math.max(1,Math.min(W-16*u-1, fx*W-8*u)), y:by-16*u}; })
+    .sort((a,b)=>a.y-b.y).forEach(o=>{ const uu=o.it.id==='arch'?u*1.8:u; pmDrawItem(ctx,o.it.id,o.x-(uu-u)*8,o.y-(uu-u)*16,uu); });   // 무지개는 뒤쪽 배경처럼 크게
 }
 function plazaDecoHTML(){
   const t=plazaLabTot(), on=PLZ_ITEMS.filter(it=>plazaItemOn(it,t)).length;
   const next=PLZ_ITEMS.filter(it=>!it.week&&!plazaItemOn(it,t)).sort((a,b)=>(t[a.k]||0)/a.need<(t[b.k]||0)/b.need?1:-1)[0];
   return `<div class="set-sec plz-deco"><h4>광장 꾸미기 <span class="mail-n">${on}/${PLZ_ITEMS.length}</span></h4>
-    <p class="set-p">랩 모두의 누적 기록으로 물품이 하나씩 생겨요. 정해진 자리(풀밭 위쪽 줄)에 놓여요.${next?` 다음은 <b>${next.name}</b> (${next.unit} ${t[next.k]||0}/${next.need})`:''}</p>
+    <p class="set-p">랩 모두의 누적 기록으로 물품이 하나씩 생겨서 광장 풀밭의 정해진 자리에 놓여요.${next?` 다음은 <b>${next.name}</b> (${next.unit} ${t[next.k]||0}/${next.need})`:''}</p>
     <div class="plz-items">${PLZ_ITEMS.map(it=>{ const ok=plazaItemOn(it,t), cur=it.week?t.wk:(t[it.k]||0), need=it.week?LAB_GOAL:it.need;
       return `<div class="plz-it${ok?' on':''}" title="${esc(it.name)} · ${esc(it.unit)} ${cur}/${need}"><canvas data-item="${it.id}" width="32" height="32"></canvas><b>${esc(it.name)}</b><small>${ok?'놓였어요':`${esc(it.unit)} ${cur}/${need}`}</small></div>`; }).join('')}</div>
     <small class="set-p">모두 더한 기록 · MC ${t.mc} · Split ${t.split} · Stock vial ${t.stock} · 일한 날 ${t.days}</small></div>`;
