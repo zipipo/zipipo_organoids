@@ -739,7 +739,7 @@ label{font-size:.74rem;font-weight:550;color:var(--sub);}
 .seg{height:26px;border:none;background:none;border-radius:4px;padding:0 10px;font:inherit;font-size:.78rem;font-weight:550;color:var(--sub);cursor:pointer;transition:background .12s,color .12s,box-shadow .12s;}
 .seg:hover{color:var(--tx);}
 .seg.on{background:var(--sur);color:var(--tx);box-shadow:0 1px 2px rgba(0,0,0,.08),0 0 0 1px rgba(0,0,0,.03);}
-.act-var{margin-top:8px;} .pk-chk{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;font-weight:600;color:var(--sub,#475569);cursor:pointer;} .pk-chk input{width:auto;margin:0;}
+.act-var{margin-top:8px;} .pk-now{margin-left:10px;font-size:.74rem;color:var(--mut,#94A3B8);} .pk-chk{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;font-weight:600;color:var(--sub,#475569);cursor:pointer;} .pk-chk input{width:auto;margin:0;}
 #logActionCustom{margin-top:8px;}
 .act-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;}
 .act{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:1px;height:44px;padding:0 4px;
@@ -1973,7 +1973,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
             <div class="ef-f" data-f="plate"><label>Plate <span class="lbl-sub" id="plateHint"></span></label><select id="logPlate" onchange="onPlateSelectChange('logPlate','logPlateCustom')"></select>
               <input type="text" id="logPlateCustom" placeholder="Plate 종류" style="display:none;margin-top:6px;"></div>
             <div class="ef-f" data-f="wells"><label>Well <span class="lbl-sub" id="wellHint"></span><button type="button" class="dome-tg" id="logDomesTg" onclick="domeToggle('log')" title="한 well에 dome이 여러 개일 때만">+ dome</button></label><input type="number" id="logWells" min="0"><input type="number" id="logDomes" min="0" placeholder="dome 수 (전체)" style="display:none;margin-top:6px;"></div>
-            <div class="ef-f" data-f="stocks"><label>Stock vial</label><div class="stk-in"><input type="number" id="logStocks" min="0"><select id="logStockP" title="바이알에 적을 passage"><option value="">vial P 자동</option><option value="0">작업 전 P</option><option value="1">P+1</option></select></div></div>
+            <div class="ef-f" data-f="stocks"><label>Stock vial</label><input type="number" id="logStocks" min="0"></div>
             <div class="ef-f ef-memo" data-f="memo"><label>메모</label><textarea id="logMemo" rows="2"></textarea></div>
           </div>
           <button class="link-btn" id="showAllFields" onclick="toggleAllFields()">모든 칸 보기</button>
@@ -2069,7 +2069,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
           <div><label>Plate 종류</label><select id="ePlate" onchange="onPlateSelectChange('ePlate','ePlateCustom')"></select>
             <input type="text" id="ePlateCustom" placeholder="Plate 종류 입력" style="display:none;margin-top:6px;"></div>
           <div><label>Well 수 <button type="button" class="dome-tg" id="eDomesTg" onclick="domeToggle('e')" title="한 well에 dome이 여러 개일 때만">+ dome</button></label><input type="number" id="eWells"><input type="number" id="eDomes" min="0" placeholder="dome 수 (전체)" style="display:none;margin-top:6px;"></div>
-          <div><label>Stock (vial)</label><div class="stk-in"><input type="number" id="eStocks"><select id="eStockP" title="바이알에 적을 passage"><option value="">vial P 자동</option><option value="0">작업 전 P</option><option value="1">P+1</option></select></div></div>
+          <div><label>Stock (vial)</label><input type="number" id="eStocks"></div>
         </div>
         <div><label>메모</label><textarea id="eMemo" rows="3"></textarea></div>
       </div>
@@ -4024,10 +4024,10 @@ async function initBackup(){
 const ACTIONS=[
   {key:'Media Change',   fields:['memo']},
   {key:'Media Addition', fields:['memo']},
-  {key:'Split', variants:['Split','Split (passage 유지)'], sub:'P+1 · d0',  fields:['det','plate','wells','stocks','memo']},   // 나누면서 따로 stock하는 경우가 있어 vial 칸도
+  {key:'Split', variants:['Split','Split (passage 유지)'], sub:'d0',  fields:['det','plate','wells','stocks','memo']},   // 나누면서 따로 stock하는 경우가 있어 vial 칸도
   {key:'Reseeding',      sub:'d 누적',     fields:['det','plate','wells','memo']},
-  {key:'Stock',  variants:['Stock (p+1)','Stock (passage 유지)'], sub:'P+1',   fields:['stocks','det','plate','wells','memo']},   // Stock은 P+1이 기본
-  {key:'Pellet', variants:['Pellet (passage 유지)','Pellet (p+1)'], sub:'P 유지', fields:['det','plate','wells','memo']},
+  {key:'Stock',  variants:['Stock (p+1)','Stock (passage 유지)'],   fields:['stocks','det','plate','wells','memo']},   // Stock은 P+1이 기본
+  {key:'Pellet', variants:['Pellet (passage 유지)','Pellet (p+1)'], fields:['det','plate','wells','memo']},
   {key:'Observation',    fields:['memo']},
   {key:'Fixation',       fields:['wells','memo']},
   {key:'Harvest',        fields:['wells','memo']},
@@ -4051,7 +4051,7 @@ function renderActChips(){
   if(def.variants && def.variants.length>1){
     const dflUp=isPassageUp(def.variants[0]), up=isPassageUp(cur), ck=dflUp?!up:up;
     vEl.style.display='flex';
-    vEl.innerHTML=`<label class="pk-chk"><input type="checkbox" ${ck?'checked':''} onchange="setPKeep(this.checked)"> ${dflUp?'passage 유지 (P+0)':'passage 올리기 (P+1)'}</label>`;
+    vEl.innerHTML=`<label class="pk-chk"><input type="checkbox" ${ck?'checked':''} onchange="setPKeep(this.checked)"> ${dflUp?'P 올리지 않기':'P 올리기'}</label><small class="pk-now">${up?'P +1 · 바이알도 올라간 P로 적혀요':'P 그대로 · 바이알도 지금 P로 적혀요'}</small>`;
   } else vEl.style.display='none';
 }
 function setPKeep(ck){
@@ -4329,7 +4329,7 @@ function saveDailyLog(){
   const wells =document.getElementById('logWells').value;
   const domes =document.getElementById('logDomes').value;
   const stocks=document.getElementById('logStocks').value;
-  const stockP=document.getElementById('logStockP').value;
+  const stockP='';   // 바이알 P는 위 「P 올리지 않기」 체크를 따라감 (따로 고르는 칸은 뺌)
   const memo  =document.getElementById('logMemo').value;
   const dates =bulkDates.length>0?[...bulkDates]:[document.getElementById('logDate').value].filter(Boolean);
   if(!lineIds.length) return toast('기록할 라인을 먼저 선택하세요.',{warn:true});
@@ -4364,7 +4364,7 @@ function saveDailyLog(){
 
   bulkDates=[];renderBulkTags();
   bulkLines=[];
-  ['logDet','logWells','logStocks','logStockP','logMemo','logActionCustom','logDomes'].forEach(i=>document.getElementById(i).value='');
+  ['logDet','logWells','logStocks','logMemo','logActionCustom','logDomes'].forEach(i=>document.getElementById(i).value='');
   domeShow('log',false);
   resetLogPlate();
   setAction('Media Change');
@@ -4707,7 +4707,6 @@ function openLogModal(id){
   document.getElementById('eWells').value=lg.finalWells||'';
   document.getElementById('eDomes').value=lg.domes||''; domeShow('e',!!lg.domes);
   document.getElementById('eStocks').value=lg.stocks||'';
-  document.getElementById('eStockP').value=lg.stockPOff==null?'':String(lg.stockPOff);
   document.getElementById('eMemo').value =lg.memo||'';
   _eOrig={date:lg.date,action:lg.action,p:String(lg.passage),d:lg.dayInfo||'',pinned:!!(lg.pinP||lg.pinD),seed:isSeed(lg.action)};
   _eUnpin=false;
@@ -4756,7 +4755,7 @@ function updateLog(){
   logs[idx].finalWells=document.getElementById('eWells').value;
   { const dm=document.getElementById('eDomes').value; if(dm) logs[idx].domes=dm; else delete logs[idx].domes; }
   logs[idx].stocks    =document.getElementById('eStocks').value;
-  { const v=document.getElementById('eStockP').value; if(v==='') delete logs[idx].stockPOff; else logs[idx].stockPOff=+v; }
+  if(logs[idx].action!==_eOrig.action) delete logs[idx].stockPOff;   // 액션(P 올림 여부)을 바꾸면 바이알 P도 그걸 따라감
   if(oldDate!==logs[idx].date){ const sc=stockChecks.find(x=>x.lineId===logs[idx].lineId && x.date===oldDate); if(sc && !logs.some(l=>l!==logs[idx] && l.lineId===sc.lineId && l.date===oldDate && parseInt(l.stocks)>0)) sc.date=logs[idx].date; }   // 날짜를 옮기면 Stock 후처리도 같이
   stockSyncFromLog(logs[idx]);
   logs[idx].memo      =document.getElementById('eMemo').value;
@@ -9688,30 +9687,32 @@ const LAB_GOAL=60;    // 이번 주 랩 전체 MC 목표 (유진: 300은 많음 
 let _plaza=null, _plazaErr='', _plazaOff=false;
 // ── 광장 꾸미기: 모두 같이 쓰는 광장. 랩 전체 누적 기록(각자 광장 프로필의 tot를 더함)이 기준을 넘으면 물품이 정해진 자리에 생김
 //    따로 저장하지 않아서 누가 열어도 같은 광장. 자리는 물품마다 고정 (풀밭 위쪽 줄, 왼쪽부터)
+// 2026-11-17부터 센 기록만 (유진: 예전 기록으로 이미 다 깨면 재미없음). 문서 칸 이름도 tot → deco로 바꿔 예전에 올린 누적값은 안 씀
+const PLZ_START='2026-11-17';
 const PLZ_ITEMS=[
-  {id:'sign',     name:'랩 표지판',    k:'mc',    need:30,   unit:'MC'},
-  {id:'bench',    name:'벤치',         k:'mc',    need:100,  unit:'MC'},
-  {id:'bed',      name:'꽃밭',         k:'split', need:30,   unit:'Split'},
-  {id:'lamp',     name:'가로등',       k:'mc',    need:250,  unit:'MC'},
-  {id:'tree',     name:'나무',         k:'stock', need:40,   unit:'Stock vial'},
-  {id:'fountain', name:'분수',         k:'mc',    need:500,  unit:'MC'},
-  {id:'scope',    name:'현미경 조형',  k:'split', need:120,  unit:'Split'},
-  {id:'tank',     name:'LN2 탱크 조형', k:'stock', need:150,  unit:'Stock vial'},
-  {id:'picnic',   name:'피크닉 매트',  k:'days',  need:300,  unit:'일한 날(모두 더해서)'},
-  {id:'arch',     name:'무지개 아치',  k:'mc',    need:1500, unit:'MC'},
+  {id:'sign',     name:'랩 표지판',    k:'mc',    need:15,   unit:'MC'},
+  {id:'bench',    name:'벤치',         k:'mc',    need:40,   unit:'MC'},
+  {id:'bed',      name:'꽃밭',         k:'split', need:8,    unit:'Split'},
+  {id:'lamp',     name:'가로등',       k:'mc',    need:80,   unit:'MC'},
+  {id:'tree',     name:'나무',         k:'stock', need:10,   unit:'Stock vial'},
+  {id:'fountain', name:'분수',         k:'mc',    need:150,  unit:'MC'},
+  {id:'scope',    name:'현미경 조형',  k:'split', need:25,   unit:'Split'},
+  {id:'tank',     name:'LN2 탱크 조형', k:'stock', need:40,   unit:'Stock vial'},
+  {id:'picnic',   name:'피크닉 매트',  k:'days',  need:40,   unit:'일한 날(모두 더해서)'},
+  {id:'arch',     name:'무지개 아치',  k:'mc',    need:400,  unit:'MC'},
   {id:'flag',     name:'이번 주 목표 깃발', week:true, unit:`이번 주 MC ${LAB_GOAL}`},
 ];
 // 내 누적 기록 (광장 프로필에 같이 올림)
 function plazaMyTot(){
-  const ls=logs.filter(l=>!isSeed(l.action) && !/finish/i.test(l.action||''));
+  const ls=logs.filter(l=>(l.date||'')>=PLZ_START && !isSeed(l.action) && !/finish/i.test(l.action||''));
   return { mc:ls.filter(l=>isMediaChange(l.action)).length, split:ls.filter(l=>/split/i.test(l.action||'')).length,
-    stock:logs.reduce((a,l)=>a+(parseInt(l.stocks)||0),0), days:new Set(ls.map(l=>l.date)).size };
+    stock:ls.reduce((a,l)=>a+(parseInt(l.stocks)||0),0), days:new Set(ls.map(l=>l.date)).size, from:PLZ_START };
 }
 let _plzTotSrc=null, _plzTot=null;
 function plazaLabTot(){
   if(_plaza && _plzTotSrc===_plaza) return _plzTot;
   const t={mc:0,split:0,stock:0,days:0,wk:0}, wk=plazaWeek();
-  (_plaza||[]).forEach(p=>{ const o=p.tot||{}; ['mc','split','stock','days'].forEach(k=>t[k]+=+o[k]||0); if(p.wk===wk) t.wk+=+p.mc||0; });
+  (_plaza||[]).forEach(p=>{ const o=(p.deco&&p.deco.from===PLZ_START)?p.deco:{}; ['mc','split','stock','days'].forEach(k=>t[k]+=+o[k]||0); if(p.wk===wk) t.wk+=+p.mc||0; });
   _plzTotSrc=_plaza; _plzTot=t; return t;
 }
 const plazaItemOn=(it,t)=>it.week? t.wk>=LAB_GOAL : (t[it.k]||0)>=it.need;
@@ -9733,14 +9734,19 @@ function pmDrawItem(ctx,id,x0,y0,u){
   }
 }
 // 물품 자리: 풀밭 안 고정 위치 (x 0–1, 바닥선 y 0–1). 분수는 가운데 뒤, 벤치는 그 옆, 나무 · 탱크는 구석, 꽃밭 · 표지판은 앞쪽 입구
-const PLZ_SPOT={arch:[0.5,0.16], tree:[0.06,0.3], lamp:[0.36,0.36], fountain:[0.5,0.42], bench:[0.63,0.44], scope:[0.84,0.3], tank:[0.94,0.34],
-  sign:[0.04,0.97], bed:[0.2,0.95], picnic:[0.74,0.97], flag:[0.97,0.95]};
+// 방 꾸미기처럼: 가운데 분수 광장(돌바닥) · 뒤에 무지개 아치와 깃발, 분수 양옆 벤치 · 가로등, 왼쪽 나무, 오른쪽 현미경 · 탱크, 앞쪽 입구에 표지판 · 꽃밭 · 피크닉 매트
+const PLZ_SPOT={arch:[0.5,0.34], flag:[0.64,0.3], tree:[0.09,0.5], lamp:[0.69,0.64], fountain:[0.5,0.66], bench:[0.31,0.7], scope:[0.88,0.48], tank:[0.96,0.66],
+  sign:[0.05,0.99], bed:[0.22,0.99], picnic:[0.78,0.99]};
 function pmDrawLab(ctx,W,q){
   if(!_plaza) return;
-  const t=plazaLabTot(), H=ctx.canvas.height/2, u=Math.max(1,q*(W<400?1:1.5)), top=18*q;
+  const t=plazaLabTot(), H=ctx.canvas.height/2, u=Math.max(1,q*(W<400?1.25:2.4)), top=18*q;
+  // 분수가 생기면 그 아래 돌바닥 광장을 깔아 공간이 생긴 느낌
+  if(plazaItemOn(PLZ_ITEMS.find(x=>x.id==='fountain'),t)){ const [fx,fy]=PLZ_SPOT.fountain, cx=fx*W, cy=top+fy*(H-top)-4*u;
+    ctx.fillStyle='#EFE8D8'; ctx.beginPath(); ctx.ellipse(cx,cy,30*u,9*u,0,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#E4DBC6'; ctx.beginPath(); ctx.ellipse(cx,cy,30*u,9*u,0,0,Math.PI); ctx.fill(); ctx.fillStyle='#EFE8D8'; ctx.beginPath(); ctx.ellipse(cx,cy-0.8*u,29*u,8.2*u,0,0,Math.PI*2); ctx.fill(); }
   PLZ_ITEMS.filter(it=>plazaItemOn(it,t)).map(it=>{ const [fx,fy]=PLZ_SPOT[it.id]||[0.5,0.5];
       const by=Math.max(top+4*u, Math.min(H-2, top+fy*(H-top))); return {it, x:Math.max(1,Math.min(W-16*u-1, fx*W-8*u)), y:by-16*u}; })
-    .sort((a,b)=>a.y-b.y).forEach(o=>{ const uu=o.it.id==='arch'?u*1.8:u; pmDrawItem(ctx,o.it.id,o.x-(uu-u)*8,o.y-(uu-u)*16,uu); });   // 무지개는 뒤쪽 배경처럼 크게
+    .sort((a,b)=>a.y-b.y).forEach(o=>{ const uu=o.it.id==='arch'?u*1.6:u; pmDrawItem(ctx,o.it.id,o.x-(uu-u)*8,o.y-(uu-u)*16,uu); });   // 무지개는 뒤쪽 배경처럼 크게
 }
 function plazaDecoHTML(){
   const t=plazaLabTot(), on=PLZ_ITEMS.filter(it=>plazaItemOn(it,t)).length;
@@ -9749,7 +9755,7 @@ function plazaDecoHTML(){
     <p class="set-p">랩 모두의 누적 기록으로 물품이 하나씩 생겨서 광장 풀밭의 정해진 자리에 놓여요.${next?` 다음은 <b>${next.name}</b> (${next.unit} ${t[next.k]||0}/${next.need})`:''}</p>
     <div class="plz-items">${PLZ_ITEMS.map(it=>{ const ok=plazaItemOn(it,t), cur=it.week?t.wk:(t[it.k]||0), need=it.week?LAB_GOAL:it.need;
       return `<div class="plz-it${ok?' on':''}" title="${esc(it.name)} · ${esc(it.unit)} ${cur}/${need}"><canvas data-item="${it.id}" width="32" height="32"></canvas><b>${esc(it.name)}</b><small>${ok?'놓였어요':`${esc(it.unit)} ${cur}/${need}`}</small></div>`; }).join('')}</div>
-    <small class="set-p">모두 더한 기록 · MC ${t.mc} · Split ${t.split} · Stock vial ${t.stock} · 일한 날 ${t.days}</small></div>`;
+    <small class="set-p">11월 17일부터 모두 더한 기록 · MC ${t.mc} · Split ${t.split} · Stock vial ${t.stock} · 일한 날 ${t.days}</small></div>`;
 }
 function plazaDecoDraw(root){
   (root||document).querySelectorAll('canvas[data-item]').forEach(c=>{ const x=c.getContext('2d'); x.clearRect(0,0,32,32); x.imageSmoothingEnabled=false;
@@ -9767,7 +9773,7 @@ function plazaMe(){
   const gifts=PET_KINDS.filter(k=>k.gift&&petSt.owned[k.id]).map(k=>k.id);
   const rep=plazaRep();
   return { nick:plazaNick().slice(0,12), rep, repName:plazaCellName(rep).slice(0,12), repLv:petLv(rep), walk:petSt.active.slice(0,5),
-    tot:plazaMyTot(), dex:petDexCount(), gifts, flowers:petSt.flowersAll||0, msg:(()=>{ try{ return (localStorage.getItem('orgPlazaMsg')||'').slice(0,24); }catch(e){ return ''; } })(), wk, mc:ls.filter(l=>isMediaChange(l.action)).length, split:ls.filter(l=>/split/i.test(l.action||'')).length, ts:Date.now() };
+    deco:plazaMyTot(), dex:petDexCount(), gifts, flowers:petSt.flowersAll||0, msg:(()=>{ try{ return (localStorage.getItem('orgPlazaMsg')||'').slice(0,24); }catch(e){ return ''; } })(), wk, mc:ls.filter(l=>isMediaChange(l.action)).length, split:ls.filter(l=>/split/i.test(l.action||'')).length, ts:Date.now() };
 }
 let _plazaPubT=0;
 function plazaPublish(force){
@@ -10087,8 +10093,10 @@ setTimeout(async()=>{ if(!mailUser()||!fbDb) return; try{ const q=await fbDb.col
 //  새 기능을 올릴 때 NEWS의 id · date · items만 바꾸면 됨
 // ══════════════════════════════════════════
 const NEWS={id:'2026-11-17', date:'2026-11-17', days:5, items:[
+  ['<b>LN2 검색 요약</b>','검색하면 맨 위에 vial 수 · 환자 수 · 종류 · 사람 · passage별 개수. 종류를 여러 개 고르면(CAF + PF 등) 환자별로 짝 표, 다 있는 환자부터'],
+  ['<b>기록 입력 Stock</b>','칩은 이름만, P는 「P 올리지 않기」 체크 하나로. 바이알 P도 그걸 따라가요'],
   ['<b>현미경 사진 PPT</b>','설정 없이 실험마다 날짜 · 조건(well · 처리) · 배율을 사진 수에 맞춰 자동으로 행 · 열에 놓아 슬라이드를 꽉 채워요. 썸네일의 「한 장에 n행 − / +」로 다음 장 행을 당기거나 넘겨요'],
-  ['<b>광장 꾸미기</b>','랩 모두의 누적 기록(MC · Split · Stock vial · 일한 날)으로 표지판 · 벤치 · 꽃밭 · 가로등 · 나무 · 분수 · 현미경 · LN2 탱크 · 피크닉 매트 · 무지개 아치가 하나씩 생겨요. 이번 주 목표를 채우면 깃발. 설정 › 광장에서 다음 물품까지 얼마 남았는지 볼 수 있어요'],
+  ['<b>광장 꾸미기</b>','11월 17일부터 센 랩 모두의 기록(MC · Split · Stock vial · 일한 날)으로 표지판 · 벤치 · 꽃밭 · 가로등 · 나무 · 분수 · 현미경 · LN2 탱크 · 피크닉 매트 · 무지개 아치가 하나씩 생겨요. 이번 주 목표를 채우면 깃발. 설정 › 광장에서 다음 물품까지 얼마 남았는지 볼 수 있어요'],
   ['<b>LN2 해동 · Cell information</b>','박스에서 바이알을 고르면 이름이 같은 Cell information 줄이 떠서 사용날짜(used) · 위치 · 비고를 바로 고칠 수 있어요. 「해동 · 새 라인 등록」으로 빼면서 앱에 새 라인 칸까지 채워요'],
   ['<b>LN2 탱크 박스 고치기</b>','원래 있던 바이알도 끌어서 옮기기, 칸을 눌러 여러 개 고른 뒤 한꺼번에 옮기기, 「해동 · 빼기」, 글자 고치기, 되돌리기 (Ctrl+Z). 내려받으면 Cell information 위치 · 사용날짜도 같이 고쳐요'],
   ['<b>Split · Stock · Pellet</b>','이름은 그대로 두고 「passage 유지 (P+0)」 체크로 고르기 (Split · Stock 기본 +1). Stock 바이알 P도 이걸 따라가요'],
@@ -11697,6 +11705,7 @@ if(curTab==='ana'||curTab==='diary'||curTab==='media'||curTab==='fig') setTab(cu
   .st-ops{ margin:12px 0; font-size:12.5px; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:8px 12px; }
   .st-ops summary{ cursor:pointer; font-weight:700; } .st-ops ul{ margin:6px 0 0; padding-left:18px; } .st-ops li{ margin:2px 0; }
   .st-ops b{ font-size:11px; padding:1px 6px; border-radius:6px; margin-right:4px; } .t-thaw{ background:#FEE2E2; color:#B91C1C; } .t-move{ background:#E0E7FF; color:#4338CA; } .t-edit{ background:#FEF3C7; color:#92400E; }
+  .count-summary{ background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:10px 14px; margin:6px 0 12px; font-size:12.5px; } .cs-total{ font-size:14px; margin-bottom:6px; } .cs-row{ display:flex; flex-wrap:wrap; gap:5px; align-items:center; margin-top:4px; } .cs-lab{ width:58px; color:var(--sub); font-weight:700; }
   .st-mini{ font-size:11px; padding:1px 7px; border:1px solid #CBD5E1; border-radius:6px; background:#fff; cursor:pointer; margin-left:4px; }
   .st-ciwrap{ flex-basis:100%; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:8px 10px; font-size:12px; }
   .st-ci-t{ font-weight:700; margin-bottom:6px; } .st-ci-t small{ font-weight:400; color:var(--sub); }
@@ -11852,6 +11861,7 @@ if(curTab==='ana'||curTab==='diary'||curTab==='media'||curTab==='fig') setTab(cu
           <div class="meta-row">
             <div class="result-count" id="resultCount"></div>
           </div>
+          <div id="countSummary"></div>
           <div id="matchTable"></div>
           <div id="passageSummary" hidden></div>
           <div id="usageSummary" hidden></div>
@@ -12532,6 +12542,8 @@ function isTumorMargin(t){ return /tumor\s?margin/i.test(t); }
 // vial was actually plain PF. Excluded from every category for consistency.
 function isModified(t){ return /\bgfp\b|egfp/i.test(t); }
 
+// 매칭 표 열 이름: 예전 분류(cats)면 그 이름, 종류 칩(kinds)이면 칩 이름 그대로
+const mLab=c=>MATCH_CATEGORIES[c]?MATCH_CATEGORIES[c].label:c;
 const MATCH_CATEGORIES = {
   tumor:  { label:'Tumor-org',        sub:'종양 오가노이드',                 test:t=>{
     if(isAdjNormal(t)) return false;
@@ -12584,6 +12596,18 @@ function extractHCC(raw){
   return m ? 'HCC'+m[1] : null;
 }
 
+// 검색 결과 개수 요약을 맨 위에: 모두 몇 vial · 환자 몇 명 · 종류별 · 사람별 · passage별
+function renderCountSummary(list){
+  const el=document.getElementById('countSummary'); if(!el) return;
+  if(!list.length){ el.innerHTML=''; return; }
+  const cnt=(f)=>{ const m={}; list.forEach(e=>f(e).forEach(k=>{ if(k) m[k]=(m[k]||0)+1; })); return Object.entries(m).sort((a,b)=>b[1]-a[1]); };
+  const hccs=new Set(list.map(e=>extractHCC(e.raw)).filter(Boolean));
+  const kinds=cnt(e=>e.kinds?[...e.kinds]:[]), owners=cnt(e=>e.owners?[...e.owners]:[]);
+  const ps=cnt(e=>[extractPassage(e.raw)||'']).sort((a,b)=>parseInt(a[0].slice(1))-parseInt(b[0].slice(1)));
+  const row=(lab,arr,max)=>arr.length?`<div class="cs-row"><span class="cs-lab">${lab}</span>${arr.slice(0,max||20).map(([k,n])=>`<span class="ps-chip">${escHtml(k)} · ${n}</span>`).join('')}</div>`:'';
+  el.innerHTML=`<div class="count-summary"><div class="cs-total"><b>${list.length}</b> vial${hccs.size?` · HCC <b>${hccs.size}</b>명`:''}</div>
+    ${row('종류',kinds)}${row('사람',owners)}${ps.length>1?row('Passage',ps,25):''}</div>`;
+}
 function renderPassageSummary(gridList){
   const el = document.getElementById('passageSummary');
   if(!gridList.length){ el.innerHTML=''; return; }
@@ -12649,6 +12673,7 @@ function renderResults(query){
     document.getElementById('passageSummary').innerHTML = '';
     document.getElementById('usageSummary').innerHTML = '';
     countEl.textContent = `총 ${STATE.entries.length}건 · 검색어를 입력하거나 위에서 조건을 고르세요`;
+    renderCountSummary([]);
     box.innerHTML = `<div class="empty"><svg class="xi" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg> 셀 이름, HCC 번호, passage, 날짜, 박스 코드로 검색해보세요</div>`;
     return;
   }
@@ -12662,6 +12687,7 @@ function renderResults(query){
   }
 
   countEl.textContent = `${list.length}건`;
+  renderCountSummary(list);
   if(!list.length){
     box.innerHTML = `<div class="empty">일치하는 결과가 없습니다. 다른 검색어나 필터를 시도해보세요.</div>`;
     return;
@@ -12714,8 +12740,9 @@ document.getElementById('searchInput').addEventListener('input', e=>renderResult
 /* ============================================================
    5b. MATCHING  (매칭 콘솔 — pair categories by HCC number)
    ============================================================ */
-function computeMatchTable(cats){
+function computeMatchTable(cats, byKind){
   const wells = STATE.entries.filter(passesFacets);
+  const has=(w,c)=>byKind?!!(w.kinds&&w.kinds.has(c)):w.cats.has(c);
 
   const table = {}; // hcc -> { cat -> {count, passageCounts:Map(passageNum->vialCount), locations:Set} }
   wells.forEach(w=>{
@@ -12725,7 +12752,7 @@ function computeMatchTable(cats){
     const passageNum = passage ? parseInt(passage.slice(1),10) : null;
 
     cats.forEach(catId=>{
-      if(!w.cats.has(catId)) return;
+      if(!has(w,catId)) return;
       table[hcc] = table[hcc] || {};
       const cell = table[hcc][catId] = table[hcc][catId] || { count:0, passageCounts:new Map(), locations:new Set() };
       cell.count++;
@@ -12743,17 +12770,18 @@ function computeMatchTable(cats){
       cells,
       complete: cats.every(c => (cells[c]?.count||0)>0),
     }))
-    .sort((a,b)=> parseInt(a.hcc.replace('HCC',''),10) - parseInt(b.hcc.replace('HCC',''),10));
+    .sort((a,b)=> (cats.length>1?(b.complete-a.complete):0) || parseInt(a.hcc.replace('HCC',''),10) - parseInt(b.hcc.replace('HCC',''),10));   // 여러 종류를 골랐으면 짝이 다 있는 환자부터
 
   return rows;
 }
 
 function renderMatchingSection(){
   const el = document.getElementById('matchTable');
-  const cats = [...filterState.cats];
+  // 종류 칩(CAF · PF …)을 고르면 환자(HCC 번호)별로 종류마다 몇 개인지 짝 표로. 예전 분류 칩이 있으면 그걸로
+  const byKind=!filterState.cats.size, cats = byKind?[...filterState.kinds]:[...filterState.cats];
   if(!cats.length){ el.innerHTML=''; LAST_MATCH=null; return; }
 
-  const rows = computeMatchTable(cats);
+  const rows = computeMatchTable(cats, byKind);
   LAST_MATCH = rows.length ? { cats, rows } : null;
   if(!rows.length){
     el.innerHTML = `<div class="empty">조건에 맞는 HCC 번호가 없습니다.</div>`;
@@ -12773,7 +12801,7 @@ function renderMatchingSection(){
       <table class="match-table">
         <thead><tr>
           <th>HCC 번호</th>
-          ${cats.map(c=>`<th>${MATCH_CATEGORIES[c].label}</th>`).join('')}
+          ${cats.map(c=>`<th>${escHtml(mLab(c))}</th>`).join('')}
         </tr></thead>
         <tbody>
           ${rows.map(r=>`
@@ -12816,7 +12844,7 @@ function cellParts(cell){
   };
 }
 function matchTitle(m){
-  const labels = m.cats.map(c=>MATCH_CATEGORIES[c].label).join(' + ');
+  const labels = m.cats.map(mLab).join(' + ');
   const done = m.rows.filter(r=>r.complete).length;
   return m.cats.length>1
     ? `${labels} 매칭 HCC ${m.rows.length}건 중 ${done}건 전체 조합 보유`
@@ -12834,7 +12862,7 @@ function matchConditions(){
   return parts.join(' · ');
 }
 function matchFileBase(m){
-  return 'HCC_matching_' + m.cats.map(c=>MATCH_CATEGORIES[c].label.replace(/[^A-Za-z0-9-]+/g,'')).join('_') + '_' + yymmdd();
+  return 'HCC_matching_' + m.cats.map(c=>mLab(c).replace(/[^A-Za-z0-9-]+/g,'')).join('_') + '_' + yymmdd();
 }
 
 async function runExport(btn){
@@ -12880,7 +12908,7 @@ async function renderMatchPNG(m){
     <div style="font-size:19px;font-weight:800;letter-spacing:-0.01em;margin-bottom:6px;">${escHtml(matchTitle(m))}</div>
     <div style="font-size:12px;color:#454b53;margin-bottom:16px;">${escHtml(matchConditions())}</div>
     <table style="width:100%;border-collapse:collapse;font-size:13px;">
-      <thead><tr><th style="${th}">HCC 번호</th>${m.cats.map(c=>`<th style="${th}">${escHtml(MATCH_CATEGORIES[c].label)}</th>`).join('')}</tr></thead>
+      <thead><tr><th style="${th}">HCC 번호</th>${m.cats.map(c=>`<th style="${th}">${escHtml(mLab(c))}</th>`).join('')}</tr></thead>
       <tbody>${m.rows.map(r=>{
         const bg = r.complete ? 'background:#e7f5ea;' : '';
         return `<tr><td style="${td}${bg}font-weight:800;white-space:nowrap;">${r.hcc}${r.complete?' <span style="color:#3f7350">✓</span>':''}</td>${
@@ -12923,7 +12951,7 @@ async function exportMatchPPT(m){
     s.addText(String(matchConditions()).replace(/_/g,' '), {x:X, y:0.95, w:TW, h:0.35, fontFace:FONT, fontSize:11, color:'454B53', margin:0});
     const header = [
       {text:'HCC 번호', options:{bold:true, fill:headFill, color:'454B53'}},
-      ...m.cats.map(c=>({text:MATCH_CATEGORIES[c].label, options:{bold:true, fill:headFill, color:'454B53'}}))
+      ...m.cats.map(c=>({text:mLab(c), options:{bold:true, fill:headFill, color:'454B53'}}))
     ];
     const body = m.rows.slice(p*PER, (p+1)*PER).map(r=>{
       const fill = {color: r.complete ? 'E7F5EA' : 'FFFFFF'};
