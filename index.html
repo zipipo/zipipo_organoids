@@ -10225,9 +10225,11 @@ function mdCalc(){
 }
 
 // ── 튜브 그림 ──
+// 튜브 그림 크기는 실제 conical 두 가지뿐: 15 ml보다 크면 50 ml 튜브(40 ml만 담은 50 ml 튜브 등), 아니면 15 ml 튜브
+const mdCap=t=>(+t.size||50)>15?50:15;
 function mdTubeSVG(x,color){
-  const big=x.t.size==50, W=big?40:28, H=big?132:112, cap=big?14:12, cone=big?22:20, bodyTop=cap+2, bodyH=H-bodyTop-cone;
-  const frac=Math.max(0,Math.min(1,x.left/(x.t.size||50)));
+  const big=mdCap(x.t)===50, W=big?40:28, H=big?132:112, cap=big?14:12, cone=big?22:20, bodyTop=cap+2, bodyH=H-bodyTop-cone;
+  const frac=Math.max(0,Math.min(1,x.left/mdCap(x.t)));
   const tot=bodyH+cone, fillH=tot*frac, y0=H-fillH;
   const id='mdc'+x.t.id.replace(/[^a-z0-9]/gi,'');
   const shape=`M2 ${bodyTop} H${W-2} V${bodyTop+bodyH} L${W/2+3} ${H-1} Q${W/2} ${H+1} ${W/2-3} ${H-1} L2 ${bodyTop+bodyH} Z`;
@@ -10281,8 +10283,8 @@ function renderMedia(){
     const tubes=c.tubes.filter(x=>x.left>0.0001).map(x=>{   // 다 쓴 튜브(0 ml)는 안 보임 (계산에는 그대로 남아 쓴 양이 맞게)
       const exp=mdAddDays(x.t.made,MD_EXPIRE), dleft=mdDays(now,exp);
       const tag=x.expired?`<b class="md-bad">2주 지남</b>`:dleft<=3?`<b class="md-warn">${dleft<=0?'오늘까지':dleft+'일 남음'}</b>`:`<span>D+${x.age}</span>`;
-      return `<button class="md-t${x.expired?' exp':''}${x.left<=0.0001?' empty':''}" onclick="mdTubeMenu('${x.t.id}',this)" title="${esc(d.name)} ${x.t.size} ml 튜브 · ${x.t.made} 만듦 · 눌러서 고치기">
-        ${mdTubeSVG(x,col)}<b class="md-ml">${mdFmt(x.left)}<small>/${x.t.size} ml</small></b><span class="md-age">${tag}</span></button>`;
+      return `<button class="md-t${x.expired?' exp':''}${x.left<=0.0001?' empty':''}" onclick="mdTubeMenu('${x.t.id}',this)" title="${esc(d.name)} ${mdCap(x.t)} ml 튜브 · ${x.t.made} 만듦 · 눌러서 고치기">
+        ${mdTubeSVG(x,col)}<b class="md-ml">${mdFmt(x.left)}<small>/${mdCap(x.t)} ml</small></b><span class="md-age">${tag}</span></button>`;
     }).join('');
     const add=_mdAdd===d.id?`<div class="md-addf">
         <div class="seg-group md-sz"><button class="seg on" data-sz="50" onclick="mdSz(this)">50 ml</button><button class="seg" data-sz="15" onclick="mdSz(this)">15 ml</button></div>

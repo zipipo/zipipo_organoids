@@ -152,6 +152,8 @@ match /mailbox/{id} {
 
 ## 작업 기록
 
+- 2026-11-17(12): Media 튜브 그림: size가 50이 아니면(40 ml로 저장된 튜브 등) 15 ml 모양으로 작게 그려지던 것 → `mdCap`(15 ml보다 크면 50 ml conical)로 그림 크기 · 채움 비율 · 「/50 ml」 표시. 저장된 size 값은 그대로(유진: 40 ml 튜브가 왜 작냐).
+
 - 2026-11-17(11): 현미경 사진 PPT를 자동 꽉 채우기로(유진 제안 수락). `pptPlanAuto`가 `pptPlanNamed` 대신(예전 코드는 남김): 실험(제목)마다 날짜(date · P · d) · 조건(제목 자르기 조건 + well + extra) · 배율 세 축 중 2개 이상인 것을 행/열에 나눠 놓는 모든 경우 + 한 줄짜리는 여러 줄로 감기(`wrap`)를 따져 `pptAutoChoose`: 장 수 최소 → 사진 폭 최대(3cm 미만은 다른 배치가 없을 때만) → 날짜 · 배율은 열 쪽 우선. 실제로 사진 있는 조합만 행 · 열로, 2단이면 바깥은 묶음 줄(`colGroups`) · 행 묶음(`rowBreaks` + 「바깥\n안」). 장마다 행 수를 고르게. 「한 장에 n행 − / +」(`pptCuts['rows:'+실험]`, 배치는 그대로 두고 행 수만). 이름 끝만 다른 형제 실험(for-CM-test-CM/FM/MM)은 한 실험의 조건으로 묶음(끝을 뗀 이름이 따로 있으면 안 묶음: for-Neoantigen vs -2nd). `p.fill`이면 4열 폭 상한 없이 키우고 가로 가운데. 이름 해석: p 앞 「D3」을 day로 읽던 것(`pptStructAt`), A1 · D3 같은 plate 칸은 조건으로. UI에서 Data meeting 배치 · 열 개수 · 환자별 설정 · 마일스톤 · 제목 자르기 · 배치 고르기 · 한 줄에 n장 · well별/날짜별 묶기 · 다음 장 붙이기 뺌. 남긴 것: 검은 배경, 슬라이드 제목 넣기, Summary 장(환자 체크), 썸네일 눌러 고치기 · 되돌리기. 유진 사진 이름 목록(HCC18 IFNg · HCC27 CM-test · Assembloid 36칸 · HCC41 10 well · HCC37 PF)으로 확인.
 
 - 2026-11-17(10): Stock 이름을 엑셀 STAR_ID 모양에 맞춤(유진: for 뒷부분 빼고 그 앞까지만). 엑셀 최근 줄은 「HCC39 / Tumor-org A / p1 / 26.11.03」, HCC 환자 PHH-org는 「Adj(N) PHH-org」. `stockDetail`(세부명에서 for 이후 삭제) · `stockType`(HCC + PHH-org → Adj(N) PHH-org)로 LN2 넣을 바이알 이름 · 박스 칸 글자 · 오늘 작업 Stock 후처리 이름. Split P유지는 지금처럼 P · d 그대로(유진: d는 그날 것), 해동 새 라인은 d0부터(원래 그렇게 됨).
