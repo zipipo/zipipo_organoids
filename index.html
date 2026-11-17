@@ -1803,6 +1803,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
   <symbol id="i-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
   <symbol id="i-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
   <symbol id="i-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+  <symbol id="i-sort" viewBox="0 0 24 24"><path d="m3 16 4 4 4-4"/><path d="M7 20V4"/><path d="M11 4h10"/><path d="M11 8h7"/><path d="M11 12h4"/></symbol>
   <symbol id="i-music" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></symbol>
   <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></symbol>
   <symbol id="i-redo" viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></symbol>
@@ -5647,13 +5648,29 @@ function sbLoadImageFile(file){
 const SB_WORKER_SRC=`
 let utifOk=false; try{ importScripts('https://cdn.jsdelivr.net/npm/utif@3.1.0/UTIF.min.js'); utifOk=true; }catch(e){}
 function sc(src,w,h,m){ const k=Math.min(1,m/Math.max(w,h)); const c=new OffscreenCanvas(Math.max(1,Math.round(w*k)),Math.max(1,Math.round(h*k))); c.getContext('2d').drawImage(src,0,0,c.width,c.height); return c.transferToImageBitmap(); }
+function fastPrev(buf,d,sizes){
+  const T=k=>d['t'+k], w=T(256)&&T(256)[0], h=T(257)&&T(257)[0], cmp=T(259)?T(259)[0]:1, bps=T(258)?T(258)[0]:8, spp=T(277)?T(277)[0]:1, pc=T(284)?T(284)[0]:1, ph=T(262)?T(262)[0]:1, so=T(273), rps=T(278)?T(278)[0]:h;
+  if(!w||!h||cmp!==1||bps!==8||pc!==1||!so||![1,2].includes(ph)||!(spp===1||spp===3||spp===4)) return null;
+  const u8=new Uint8Array(buf), out=[];
+  for(const m of sizes){ const k=Math.min(1,m/Math.max(w,h)), W=Math.max(1,Math.round(w*k)), H=Math.max(1,Math.round(h*k)), px=new Uint8ClampedArray(W*H*4);
+    for(let y2=0;y2<H;y2++){ for(let x2=0;x2<W;x2++){ let r=0,g=0,b=0,n=0;
+      for(let dy=0;dy<2;dy++) for(let dx=0;dx<2;dx++){   // 2×2 점 평균 (잡티 줄이기)
+        const x=Math.min(w-1,Math.floor((x2+0.25+dx*0.5)/k)), y=Math.min(h-1,Math.floor((y2+0.25+dy*0.5)/k)), st=Math.floor(y/rps), o=so[st]+((y-st*rps)*w+x)*spp;
+        if(o+spp>u8.length) continue; if(spp===1){ const v=ph===0?255-u8[o]:u8[o]; r+=v; g+=v; b+=v; } else { r+=u8[o]; g+=u8[o+1]; b+=u8[o+2]; } n++; }
+      const i=(y2*W+x2)*4; if(n){ px[i]=r/n; px[i+1]=g/n; px[i+2]=b/n; } px[i+3]=255; } }
+    const c=new OffscreenCanvas(W,H); c.getContext('2d').putImageData(new ImageData(px,W,H),0,0); out.push(c.transferToImageBitmap()); }
+  return {w,h,out};
+}
 onmessage=async e=>{ const {id,file,tiff,full,sizes,enc}=e.data;
   try{
     if(enc){ const c=new OffscreenCanvas(enc.width,enc.height); c.getContext('2d').drawImage(enc,0,0); enc.close(); postMessage({id,blob:await c.convertToBlob({type:'image/png'})}); return; }
     let src,w,h;
     if(tiff){
       if(!utifOk) throw new Error('TIFF 디코더를 못 불러왔어요(인터넷 필요)');
-      const buf=await file.arrayBuffer(); const ifds=UTIF.decode(buf); UTIF.decodeImage(buf,ifds[0]);
+      const buf=await file.arrayBuffer(); const ifds=UTIF.decode(buf);
+      // 빠른 길: 압축 없는 8bit TIFF(현미경 사진 대부분)는 미리보기에 필요한 점만 바로 읽음 (전체 해독 · 큰 캔버스 없이)
+      if(!full){ const q=fastPrev(buf,ifds[0],sizes); if(q){ postMessage({id,w:q.w,h:q.h,bmps:q.out},q.out); return; } }
+      UTIF.decodeImage(buf,ifds[0]);
       const px=UTIF.toRGBA8(ifds[0]); w=ifds[0].width; h=ifds[0].height;
       let rgba=new Uint8ClampedArray(px.buffer,px.byteOffset,w*h*4);
       if(full){ if(rgba.byteOffset||rgba.buffer.byteLength!==rgba.length) rgba=rgba.slice(); postMessage({id,w,h,rgba:rgba.buffer},[rgba.buffer]); return; }
@@ -5830,6 +5847,12 @@ function sbRemove(i){
   sbFiles.splice(i,1);
   renderSbarList();
 }
+// 이름순 정렬: 날짜 묶음은 그대로 두고 그 안에서 파일 이름 번호순 (라인 · 배율 등 사진마다 고른 건 사진에 붙어 같이 움직임)
+function sbSortByName(){ if(sbFiles.length<2) return; const d0=document.getElementById('sbDate').value;
+  const eff=f=>f.date||d0, order=[...new Set(sbFiles.map(eff))];
+  sbFiles=sbFiles.map((f,i)=>({f,i})).sort((a,b)=>order.indexOf(eff(a.f))-order.indexOf(eff(b.f))||sbNatCmp(a.f.fname,b.f.fname)||a.i-b.i).map(x=>x.f);
+  sbFiles.forEach((f,i)=>{ delete f.dateBreak; if(i&&eff(sbFiles[i-1])!==eff(f)) f.dateBreak=true; });
+  renderSbarList(); toast('파일 이름 번호순으로 다시 놓았어요'); }
 function sbClearAll(){ if(sbFiles.length && confirm('추가한 사진 '+sbFiles.length+'장을 모두 지울까요?')){ sbFiles=[]; renderSbarList(); } }
 function sbWbMode(f){
   if(f.wbMode) return f.wbMode;
@@ -6033,6 +6056,7 @@ function renderSbarList(){
   }
   const barOn = (document.getElementById('sbAddBar')||{}).checked!==false;
   const head=`<div class="sb-listhd"><span>추가된 사진 <b>${sbFiles.length}</b>장</span>
+    ${sbFiles.length>1?`<button class="tbl-btn" title="빼고 다시 넣은 사진이 맨 뒤로 갔을 때: 날짜 묶음 안에서 파일 이름 번호순으로 (IMG_0041 → IMG_0060)" onclick="sbSortByName()">${ic('sort','ic-sm')}이름순 정렬</button>`:''}
     <button class="tbl-btn" title="사진을 추가/삭제하거나 순서를 다시 골랐을 때, 여기를 눌러야 순서가 다시 채워집니다" onclick="sbApplyOrder()">촬영 순서 적용하기${shotLog.length?` (${shotLog.length})`:''}</button>
     <span class="wb-all">색 보정 <button class="tbl-btn" onclick="sbWbAll(true)">전체 선택</button><button class="tbl-btn" onclick="sbWbAll(false)">전체 해제</button></span>
     <button class="sb-clear" onclick="sbClearAll()">전체 삭제</button></div>`;
