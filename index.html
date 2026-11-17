@@ -9887,6 +9887,7 @@ setTimeout(async()=>{ if(!mailUser()||!fbDb) return; try{ const q=await fbDb.col
 //  새 기능을 올릴 때 NEWS의 id · date · items만 바꾸면 됨
 // ══════════════════════════════════════════
 const NEWS={id:'2026-11-17', date:'2026-11-17', days:5, items:[
+  ['<b>LN2 해동 · Cell information</b>','박스에서 바이알을 고르면 이름이 같은 Cell information 줄이 떠서 사용날짜(used) · 위치 · 비고를 바로 고칠 수 있어요. 「해동 · 새 라인 등록」으로 빼면서 앱에 새 라인 칸까지 채워요'],
   ['<b>LN2 탱크 박스 고치기</b>','원래 있던 바이알도 끌어서 옮기기, 칸을 눌러 여러 개 고른 뒤 한꺼번에 옮기기, 「해동 · 빼기」, 글자 고치기, 되돌리기 (Ctrl+Z). 내려받으면 Cell information 위치 · 사용날짜도 같이 고쳐요'],
   ['<b>Split · Stock · Pellet</b>','이름은 그대로 두고 「passage 유지 (P+0)」 체크로 고르기 (Split · Stock 기본 +1). Stock 바이알 P도 이걸 따라가요'],
   ['<b>세포</b>','「모두 밥 주기」로 한 번에. 기분 대신 친화도 Lv.1–10 (쓰다듬을수록), Lv.3 볼 하트 · Lv.5 리본 · Lv.8 왕관 · Lv.10 반짝반짝'],
@@ -11492,6 +11493,14 @@ if(curTab==='ana'||curTab==='diary'||curTab==='media'||curTab==='fig') setTab(cu
   .st-ops{ margin:12px 0; font-size:12.5px; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:8px 12px; }
   .st-ops summary{ cursor:pointer; font-weight:700; } .st-ops ul{ margin:6px 0 0; padding-left:18px; } .st-ops li{ margin:2px 0; }
   .st-ops b{ font-size:11px; padding:1px 6px; border-radius:6px; margin-right:4px; } .t-thaw{ background:#FEE2E2; color:#B91C1C; } .t-move{ background:#E0E7FF; color:#4338CA; } .t-edit{ background:#FEF3C7; color:#92400E; }
+  .st-mini{ font-size:11px; padding:1px 7px; border:1px solid #CBD5E1; border-radius:6px; background:#fff; cursor:pointer; margin-left:4px; }
+  .st-ciwrap{ flex-basis:100%; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:8px 10px; font-size:12px; }
+  .st-ci-t{ font-weight:700; margin-bottom:6px; } .st-ci-t small{ font-weight:400; color:var(--sub); }
+  .ci-l{ padding:6px 0; border-top:1px solid #E2E8F0; } .ci-l:first-of-type{ border-top:0; }
+  .ci-l-hd{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; } .ci-l-hd select{ font-size:11.5px; max-width:100%; }
+  .ci-l-sub{ color:var(--sub); font-size:11px; margin:3px 0 5px; }
+  .ci-l-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:6px; } .ci-l-grid label{ display:flex; flex-direction:column; gap:2px; } .ci-l-grid span{ font-size:11px; color:var(--sub); }
+  .ci-l-grid textarea{ font:inherit; font-size:12px; padding:5px 7px; border:1px solid #d5d9df; border-radius:7px; resize:vertical; }
   .st-miss{ color:#B91C1C; font-style:normal; font-size:11px; } .st-ci{ margin-top:6px; color:var(--sub); }
   .sc.new{ background:var(--vc); color:#1f2328; font-weight:700; cursor:pointer; box-shadow:0 0 0 2px #fff,0 0 0 4px var(--vc); animation:popIn .3s; }
   .sc.new em{ position:absolute; top:0; right:4px; font-style:normal; font-size:10px; opacity:0; } .sc.new:hover em{ opacity:.7; }
@@ -11930,7 +11939,7 @@ function parseCellInfo(ws){
     if(any) rows.push(rec);
   }
   const ci=h=>{ const i=headers.findIndex(x=>x.replace(/\s+/g,'')===h); return i<0?null:range.s.c+i; };
-  rows.cols={use:ci('사용날짜'), loc:ci('위치')};
+  rows.cols={use:ci('사용날짜'), loc:ci('위치'), info:ci('Information'), note:ci('비고')};
   return rows;
 }
 
@@ -13069,8 +13078,8 @@ function stCell(b,r,c){
 }
 function stPosOf(b,r,c){ return {sheet:b.sheet, code:b.box_code, title:b.title, rowIdx:r, col:c, rowLabel:b.rowLabels[r], r:b.rowRows[r], c:b.c0+c-1, where:`${boxLabel(b.box_code)} ${b.rowLabels[r]}-${c}`}; }
 function stWhere(k){ const q=stSplit(k), b=stBoxBy(q.sheet,q.code); return b?`${boxLabel(b.box_code)} ${b.rowLabels[q.r]}-${q.c}`:k; }
-function stSnap(){ return JSON.stringify({ed:ST.ed, placed:ST.placed, sel:[...ST.sel2]}); }
-function stRestore(j){ const o=JSON.parse(j); ST.ed=o.ed; ST.placed=o.placed; ST.sel2=new Set(o.sel); }
+function stSnap(){ return JSON.stringify({ed:ST.ed, placed:ST.placed, sel:[...ST.sel2], ciEd:ST.ciEd||{}, ciLink:ST.ciLink||{}}); }
+function stRestore(j){ const o=JSON.parse(j); ST.ed=o.ed; ST.placed=o.placed; ST.sel2=new Set(o.sel); ST.ciEd=o.ciEd||{}; ST.ciLink=o.ciLink||{}; }
 function stPush(){ ST.hist.push(stSnap()); if(ST.hist.length>100) ST.hist.shift(); ST.fut=[]; }
 function stUndo(){ if(!ST.hist.length) return; ST.fut.push(stSnap()); stRestore(ST.hist.pop()); renderStockPanel(); }
 function stRedo(){ if(!ST.fut.length) return; ST.hist.push(stSnap()); stRestore(ST.fut.pop()); renderStockPanel(); }
@@ -13116,6 +13125,7 @@ function stThawSel(){
     if(x.kind==='edit'&&x.e.thaw){ alert(stWhere(x.k)+' 자리는 이미 해동한 칸이라, 옮겨 온 바이알은 다른 칸으로 옮긴 뒤 빼 주세요.'); return; }
     ST.ed[x.k]={text:'', from:null, thaw:{text:x.text, origin:x.kind==='orig'?x.k:x.e.from, date:stToday()}};
   });
+  ST.ciShow=cells.filter(x=>x.kind!=='new').map(x=>x.k);   // 방금 해동한 바이알의 Cell information 줄을 계속 띄워 둠 (used 기록 고치기)
   ST.sel2.clear(); stNorm(); renderStockPanel();
 }
 function stEditSel(text){
@@ -13137,7 +13147,7 @@ function stOps(){
   });
   return ops.sort((a,b)=>(a.type==='thaw'?0:1)-(b.type==='thaw'?0:1));   // 해동 먼저 적어야 위치 칸이 맞게 바뀜
 }
-function stChangeCount(){ return ST.placed.length + stOps().length; }
+function stChangeCount(){ return ST.placed.length + stOps().length + Object.keys(ST.ciEd||{}).length; }
 
 /* Cell information의 「위치」 칸에서 박스 · 칸을 읽어 그 줄을 찾는다 (Orange-LINE3-C … H-3, H-4 (2 vial)) */
 function stCiLocIndex(){
@@ -13162,6 +13172,7 @@ function stCiLocIndex(){
 function stBoxLoc(b){ return tankLineText(b.sheet)+'-'+String(b.box_code).split('-').pop(); }
 function stCiRowFor(k, text){
   const q=stSplit(k), b=stBoxBy(q.sheet,q.code); if(!b) return null;
+  if(ST.ciLink && ST.ciLink[k]!=null){ const lr=(STATE.cellInfo||[]).find(r=>r.__r===ST.ciLink[k]); if(lr) return lr; }
   const idx=stCiLocIndex(), cand=idx[stBoxLoc(b)+'|'+b.rowLabels[q.r]+'-'+q.c]||[];
   if(cand.length===1) return cand[0];
   // 칸 번호가 없거나 여러 줄이면: 같은 박스를 적은 줄 중 STAR_ID 글자가 바이알 글자와 가장 많이 겹치는 줄 (같으면 최근 줄)
@@ -13227,21 +13238,23 @@ function stToolHTML(){
     <button type="button" class="btn st-ic" id="stUndo" ${ST.hist.length?'':'disabled'} title="되돌리기 (Ctrl+Z)">↶</button><button type="button" class="btn st-ic" id="stRedo" ${ST.fut.length?'':'disabled'} title="다시 (Ctrl+Y)">↷</button>
     ${n?`<span class="st-seln">고른 칸 <b>${n}</b>개</span>
       <button type="button" class="btn" id="stThaw">해동 · 빼기</button>
+      <button type="button" class="btn" id="stThawLine">해동 · 새 라인 등록</button>
       <button type="button" class="btn" id="stSelClr">고르기 풀기</button>
       <small class="st-tip">다른 박스로 옮기려면 그 박스를 열고 빈 칸을 누르세요</small>`:`<small class="st-tip">칸을 눌러 고르면 해동 · 글자 고치기 · 여러 칸 옮기기를 할 수 있어요</small>`}
     ${one?`<div class="st-edtxt"><span>${escHtml(stWhere(one.k))} 글자</span><textarea id="stEdTxt" rows="3">${escHtml(one.text)}</textarea></div>`:''}
+    ${n?stCiPanelHTML(cells):(ST.ciShow&&ST.ciShow.length?stCiPanelHTML(ST.ciShow.filter(k=>ST.ed[k]&&ST.ed[k].thaw).map(k=>({k, kind:'thawed', text:ST.ed[k].thaw.text, origin:ST.ed[k].thaw.origin}))):'')}
   </div>`;
 }
 function stOpsHTML(){
-  const ops=stOps(); if(!ops.length) return '';
+  const ops=stOps(), nci=Object.keys(ST.ciEd||{}).length; if(!ops.length && !nci) return nci?'':'';
   const ci=stCiPatches(), missSet=new Set(ci.miss.map(o=>o.type+o.k));
   const row=op=>{ const first=escHtml(String(op.text).split('\n')[0]);
     const m=op.type!=='edit'&&missSet.has(op.type+op.k)?' <em class="st-miss" title="Cell information에서 이 칸을 적은 줄을 못 찾았어요. 엑셀에서 직접 고쳐 주세요.">cell information 줄 못 찾음</em>':'';
-    if(op.type==='thaw') return `<li><b class="t-thaw">해동</b> ${escHtml(stWhere(op.origin))} ${first}${m}</li>`;
+    if(op.type==='thaw') return `<li><b class="t-thaw">해동</b> ${escHtml(stWhere(op.origin))} ${first}${m} <button type="button" class="st-mini st-newline" data-k="${escHtml(op.k)}">새 라인 등록</button></li>`;
     if(op.type==='move') return `<li><b class="t-move">이동</b> ${escHtml(stWhere(op.origin))} → ${escHtml(stWhere(op.k))} ${first}${op.changed?' (글자 고침)':''}${m}</li>`;
     return `<li><b class="t-edit">글자</b> ${escHtml(stWhere(op.k))} → ${first}</li>`; };
-  return `<details class="st-ops" open><summary>원래 바이알 바뀐 칸 ${ops.length}개 · 내려받을 때 엑셀에 적혀요</summary><ul>${ops.map(row).join('')}</ul>
-    ${(n=>n?`<div class="st-ci">Cell information ${n}줄의 위치 · 사용날짜도 같이 고쳐요</div>`:'')(ci.rows.filter(P=>P.loc!==String(P.rec['위치']||'')||P.use!==String(P.rec['사용날짜']||'')).length)}</details>`;
+  return `<details class="st-ops" open><summary>바뀐 칸 ${ops.length}개${nci?` · Cell information ${nci}줄`:''} · 내려받을 때 엑셀에 적혀요</summary><ul>${ops.map(row).join('')}</ul>
+    ${nci?`<div class="st-ci">Cell information 직접 고친 줄 ${nci}개</div>`:''}${(n=>n?`<div class="st-ci">Cell information ${n}줄의 위치 · 사용날짜도 같이 고쳐요</div>`:'')(ci.rows.filter(P=>P.loc!==String(P.rec['위치']||'')||P.use!==String(P.rec['사용날짜']||'')).length)}</details>`;
 }
 function stToolEvents(el){
   const q=id=>el.querySelector('#'+id);
@@ -13250,6 +13263,11 @@ function stToolEvents(el){
   if(q('stThaw')) q('stThaw').onclick=stThawSel;
   if(q('stSelClr')) q('stSelClr').onclick=()=>{ ST.sel2.clear(); renderStockPanel(); };
   if(q('stEdTxt')) q('stEdTxt').onchange=e=>stEditSel(e.target.value);
+  if(q('stThawLine')) q('stThawLine').onclick=()=>{ const cells=stSelCells(); if(!cells.length) return; const before=Object.keys(ST.ed).length; stThawSel(); if(stSelCells().length) return;
+    const x=cells.find(c=>c.kind!=='new')||cells[0]; stOpenLine(x.text, x.k, cells.length); };
+  el.querySelectorAll('.st-newline').forEach(bn=>bn.onclick=()=>{ const e=ST.ed[bn.dataset.k]; if(e&&e.thaw) stOpenLine(e.thaw.text, e.thaw.origin, 1); });
+  el.querySelectorAll('.ci-pick').forEach(sl=>sl.onchange=()=>{ stPush(); ST.ciLink=ST.ciLink||{}; if(sl.value==='') delete ST.ciLink[sl.dataset.k]; else ST.ciLink[sl.dataset.k]=+sl.value; renderStockPanel(); });
+  el.querySelectorAll('.ci-ed').forEach(t=>t.onchange=()=>{ stPush(); ST.ciEd=ST.ciEd||{}; const r=+t.dataset.r; (ST.ciEd[r]=ST.ciEd[r]||{})[t.dataset.f]=t.value; renderStockPanel(); });
 }
 // 박스 칸 끌기: 찬 칸에서 끌면 옮기기(고른 칸이면 고른 것 전부), 빈 칸에서 끌면 네모로 고르기, 그냥 누르면 고르기 켜고 끄기
 function stGridEvents(el, b){
@@ -13318,6 +13336,43 @@ document.addEventListener('keydown',e=>{
   else if((e.ctrlKey||e.metaKey) && (k==='y' || (k==='z'&&e.shiftKey))){ e.preventDefault(); stRedo(); }
   else if(k==='escape' && ST.sel2.size){ ST.sel2.clear(); renderStockPanel(); }
 });
+
+/* ---- 고른 바이알의 Cell information 줄: 이름으로 찾아 띄우고 바로 고치기 (내려받을 때 엑셀에) ---- */
+const CI_F=[['use','사용날짜'],['loc','위치'],['info','Information'],['note','비고']];
+const ciHead={use:'사용날짜', loc:'위치', info:'Information', note:'비고'};
+function stCiCands(text){
+  const nz=t=>String(t||'').toLowerCase().replace(/\s+/g,'');
+  const f=nz(String(text||'').split('\n')[0]); if(!f) return [];
+  return (STATE.cellInfo||[]).filter(r=>nz(String(r['STAR_ID (Cell name)']||'').split('\n')[0])===f).slice(-8).reverse();
+}
+// 해동 · 이동으로 자동으로 바뀔 값 + 직접 고친 값을 합친 최종 값
+function stCiFinal(rec){
+  const P=stCiPatches().rows.find(x=>x.rec===rec), ed=(ST.ciEd||{})[rec.__r]||{}, o={};
+  CI_F.forEach(([f,h])=>{ const orig=String(rec[h]??''); const auto=P?(f==='use'?P.use:f==='loc'?P.loc:orig):orig; o[f]=ed[f]!=null?ed[f]:auto; });
+  return o;
+}
+function stCiPanelHTML(cells){
+  const seen=new Set();
+  const blocks=cells.filter(x=>x.kind!=='new').map(x=>{
+    const origin=x.origin||(x.kind==='orig'?x.k:x.e.from), rec=stCiRowFor(origin, x.text), cands=stCiCands(x.text);
+    const key=origin+'@'+(rec?rec.__r:'none'); if(seen.has(key)) return ''; seen.add(key);
+    const opts=`<option value="">${rec?'자동으로 찾은 줄':'줄 고르기 (이름이 같은 줄)'}</option>`+cands.map(r=>`<option value="${r.__r}" ${ST.ciLink&&ST.ciLink[origin]===r.__r?'selected':''}>${r.__r+1}행 · ${escHtml(String(r['STAR_ID (Cell name)']||'').replace(/\n/g,' ')).slice(0,60)}</option>`).join('');
+    const head=`<div class="ci-l-hd"><b>${escHtml(stWhere(x.k))}</b> ${escHtml(String(x.text).split('\n')[0])} ${cands.length||rec?`<select class="ci-pick" data-k="${escHtml(origin)}">${opts}</select>`:'<em class="st-miss">이름이 같은 Cell information 줄이 없어요</em>'}</div>`;
+    if(!rec) return `<div class="ci-l">${head}</div>`;
+    const fin=stCiFinal(rec);
+    return `<div class="ci-l">${head}<div class="ci-l-sub">${rec.__r+1}행 · ${escHtml(String(rec['STAR_ID (Cell name)']||'').replace(/\n/g,' '))}</div>
+      <div class="ci-l-grid">${CI_F.map(([f,h])=>`<label><span>${h}</span><textarea class="ci-ed" data-r="${rec.__r}" data-f="${f}" rows="2">${escHtml(fin[f])}</textarea></label>`).join('')}</div></div>`;
+  }).join('');
+  return blocks?`<div class="st-ciwrap"><div class="st-ci-t">Cell information <small>고치면 내려받을 때 엑셀에 같이 적혀요 (used 기록 등)</small></div>${blocks}</div>`:'';
+}
+function stCiEditCount(){ return Object.keys(ST.ciEd||{}).length; }
+// 해동한 바이알로 앱에 새 라인 칸 채우기 (passage · 환자번호는 vial 글자에서)
+function stOpenLine(text, k, n){
+  const q=stSplit(k), b=stBoxBy(q.sheet,q.code);
+  const where=b?`${boxLabel(b.box_code)} ${b.rowLabels[q.r]}-${q.c}`:'';
+  try{ parent.cclLn2.thaw({lines:String(text).split('\n'), where}); }catch(err){ alert('앱과 연결이 안 돼요. 새로고침 후 다시 해 주세요.'); return; }
+  if(n>1) setTimeout(()=>{ try{ parent.toast(`${n}개 중 첫 바이알로 새 라인 칸을 채웠어요. 엑셀 내려받기는 LN2 탭으로 돌아와서 해 주세요.`); }catch(err){} },1600);
+}
 
 function stGroups(){
   const m={};
@@ -13456,6 +13511,8 @@ async function buildPatched(){
       if(cols.loc!=null && P.loc!==String(P.rec['위치']||'')) xml=setCellInXml(xml, P.rec.__r, cols.loc, P.loc);
       if(cols.use!=null && P.use!==String(P.rec['사용날짜']||'')) xml=setCellInXml(xml, P.rec.__r, cols.use, P.use);
     });
+    // 직접 고친 칸 (해동 · 이동으로 자동으로 바뀐 값보다 나중에, 그 값을 덮어씀)
+    Object.entries(ST.ciEd||{}).forEach(([r,ed])=>Object.entries(ed).forEach(([f,v])=>{ if(cols[f]!=null) xml=setCellInXml(xml, +r, cols[f], v); }));
     const rows=[...xml.matchAll(/<row r="(\d+)"([^>]*?)(?:\/>|>([\s\S]*?)<\/row>)/g)];
     const last=rows[rows.length-1]; let rn=last?+last[1]:1;
     const rowAttr=(last?last[2]:'').replace(/\s*spans="[^"]*"/,'');
@@ -13485,7 +13542,7 @@ async function stDownload(){
     downloadBlob(new Blob([out],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}), name);
     const used=[...new Map(ST.placed.filter(p=>!p.src.custom).map(p=>[p.src.logId,p.src])).values()];
     used.forEach(s=>{ try{ parent.cclLn2.markDone(s.lineId, s.date); }catch(err){} });
-    ST.placed=[]; ST.forms={}; ST.custom=[]; ST.ed={}; ST.sel2=new Set(); ST.hist=[]; ST.fut=[];
+    ST.placed=[]; ST.forms={}; ST.custom=[]; ST.ed={}; ST.sel2=new Set(); ST.hist=[]; ST.fut=[]; ST.ciEd={}; ST.ciLink={};
     processBuffer(out, name);
     document.querySelector('.tab[data-tab="stock"]').click();
     alert(`${name} 내려받았어요.\n앱의 Stock 후처리에서 LN2 이동 · DB 업데이트도 체크했어요.`);
