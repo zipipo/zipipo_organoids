@@ -152,6 +152,15 @@ match /mailbox/{id} {
 
 ## 작업 기록
 
+- 2026-11-17(5): 잔오류 + LN2 박스 고치기 + passage 체크.
+  ① LN2 탭에서 새로고침하면 빈 화면: 첫 `setTab('ln2')`가 `<template id="ln2Tpl">`(스크립트 뒤쪽)보다 먼저 불려 null 오류 → 그 오류가 첫 스크립트까지 멈추게 했음. `openLn2`가 템플릿이 없으면 DOMContentLoaded 뒤에 띄움.
+  ② 창 여러 개: 창마다 데이터를 메모리에 따로 들고 있어 뒤에 저장한 창이 덮어쓸 수 있었음. `storage` 이벤트(`LS_SYNC` 키)로 다른 창이 바꾸면 0.4초 뒤 `lsPullOtherTab` → `applySyncData`, 가려진 창은 다시 볼 때. (file:// 에선 storage 이벤트가 안 와서 테스트는 http 주소로)
+  ③ 사진 저장이 가끔 안 되던 것: 확인 창을 띄운 뒤에 폴더 권한을 물어서, 확인 창을 오래 보면 사용자 동작이 만료돼 권한 요청이 조용히 실패 → 아무것도 안 하고 끝. 폴더부터 받고(`sbGetDir`) 확인 창. 실패면 「한 번 더 눌러 주세요」(`_sbDirErr`).
+  ④ 기록 액션 이름: 저장 값은 그대로(Split / Split (passage 유지) / Stock (p+1) / Stock (passage 유지) / Pellet …), 화면 칩은 Split · Stock · Pellet 하나씩 + 「passage 유지 (P+0)」 체크(`setPKeep`, Pellet은 「passage 올리기 (P+1)」). 목록에는 `actLabel`로 기본이면 이름만, 아니면 「Stock · P유지」. `isPassageUp`은 '유지'가 들어가면 false(Split (passage 유지) 때문). Reseeding은 그대로. Split 기록에도 Stock vial 칸.
+  ⑤ Stock 바이알 P: 기록 P는 작업 직전 P라서 LN2 · Stock 후처리에 한 단계 낮게 뜨던 것 → `stockVialP(lg)` = P + (P를 올리는 액션이면 1). 기록 창 Stock vial 옆 「vial P 자동 / 작업 전 P / P+1」(`lg.stockPOff`)로 직접 고를 수 있음. 같은 날 P 올리는 기록이 둘 이상이면(`stockPWarn`) 「P 확인」 표시. 기록을 고쳐 vial 수를 넣으면 `stockSyncFromLog`로 Stock 후처리 목록도 생김. 앱 Stock 기록이 바뀌면 열린 LN2 창 다시 그림(`ln2Notify`).
+  ⑥ LN2 Stock 넣기 박스: 원래 바이알도 끌어서 옮기기(잡은 칸이 놓은 칸으로), 칸 눌러 여러 개 고르기 · 빈 칸에서 끌면 네모로 고르기 → 같은 모양 그대로 옮기기, 다른 박스로는 고른 뒤 그 박스 빈 칸 누르기, 「해동 · 빼기」, 한 칸 고르면 글자 고치기, 되돌리기/다시(Ctrl+Z/Y, `ST.hist`). 상태는 `ST.ed[시트|박스|행|열]={text,from,thaw}`, 내려받을 때 원본 XML 칸을 통째로 옮겨 서식 유지, 빈 칸은 박스의 빈 칸 서식으로. Cell information은 「위치」의 칸 번호(B-7, B-8)나 박스 + STAR_ID 글자(거의 같아야)로 줄을 찾아 위치에서 칸 빼기/바꾸기 · (n vial) 다시 세기, 사용날짜에 「HG 1 vial B-7 (26.11.17)\n: 1 vial 남음」(앞 내용 있으면 \n-\n 뒤에). 못 찾으면 목록에 「cell information 줄 못 찾음」.
+  ⑦ 파일 이름에 붙은 「 (1)」 지움. 한결쌤 파일로 ver_471 · 날짜 · 이니셜 바뀌는 것, 바이알 연동되는 것 확인(Stock 기록에 vial 수가 있어야 뜸). J열(사용날짜) 문제는 재현 못 함 → 유진에게 어떻게 이상한지 물어봄.
+
 - 2026-11-17(4): ① 새 라인 창 프로젝트 칸 안내 글에 유진 프로젝트 이름(「Neoantigen, 이원화 교수님 Project 6」)이 박혀 모두에게 보이던 것 → 일반 문구로. ② 프로젝트 관리 창(`#projMgr`, 배양 라인 탭 폴더 아이콘): 만들기 · 이름 바꾸기(그 프로젝트 라인 전부) · 지우기(라인은 「프로젝트 없음」). 미리 만든 프로젝트는 `orgProjects` → 계정 `prefs.projects`로 동기화, 사람마다 따로. `projectsAll` = 저장 목록 + 내 라인 프로젝트. ③ 새 기능 알림창 자동으로 안 띄움(유진, 당분간). 설정 왼쪽 아래 「새로 생긴 기능」으로만. NEWS 내용은 계속 고쳐 둠.
 
 - 2026-11-17(3): 날짜를 행으로 바꾸면 왼쪽만 차서(유진), 「다음 장 붙이기」 뒤 기본을 well별 묶음으로(`pptEdSwapGroup`): 위 묶음 줄 = well, 그 아래 열 = 날짜(두 줄: 날짜 / P · d), 행 = 배율 → 같은 well 시간 변화가 옆으로, 같은 배율은 한 줄, 가로를 꽉 채움. 툴바 버튼은 「well별로 묶기 ↔ 날짜별로 묶기」 하나(`e.byWell`). `pptEdDatesToRows`는 코드만 남김(버튼 없음).
