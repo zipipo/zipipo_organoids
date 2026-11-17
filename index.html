@@ -7317,6 +7317,22 @@ function pptEdDatesToRows(e){
   let gi=-1; keep.forEach((i,n)=>{ const g=Math.floor(i/R); if(g!==gi){ gi=g; e.rowBreaks[n]=n>0; if(!brk[i]){ const G=gs[g], mag=K(rows[i]); e.rowLabels[n]=Array.isArray(G.lab)?G.lab.concat([{text:'\n'+mag,options:{}}]):K(G.lab)+'\n'+mag; } } });
   e.colLabels=cols; e.colG=cols.map(()=>null); e.caps=null; e.bands=null; e.wrap=0; pptEdGroups(e); return true;
 }
+// 묶음 바꾸기: 열 = (위 묶음 줄, 열 이름) 짝을 서로 바꿈 → 날짜별(날짜 줄 아래 well) ↔ well별(well 줄 아래 날짜)
+// well별이면 같은 well의 시간 변화가 옆으로 이어지고, 같은 배율은 같은 행 (가로를 꽉 채움)
+function pptEdSwapGroup(e){
+  const gs=pptDateGroupsOf(e); if(gs.length<2) return false;
+  const K=t=>pptPlain(t).trim(), gOf=j=>gs.find(g=>j>=g.c0&&j<g.c1), n=e.colLabels.length;
+  const items=[...Array(n).keys()].map(j=>({j,G:gOf(j),L:e.colLabels[j]}));
+  const Ls=[]; items.forEach(x=>{ if(!Ls.some(l=>K(l)===K(x.L))) Ls.push(x.L); });
+  const order=[]; Ls.forEach(l=>gs.forEach(g=>items.forEach(x=>{ if(x.G===g&&K(x.L)===K(l)) order.push(x); })));
+  const stamp='s'+Date.now(), gid={}; Ls.forEach((l,i)=>gid[K(l)]=stamp+'_'+i);
+  e.colLabels=order.map(x=>x.G?(Array.isArray(x.G.lab)&&!e.byWell?pptRunsLines(x.G.lab):x.G.lab):'');   // well별일 때 날짜 열 이름은 두 줄 (날짜 / P · d)
+  e.colG=order.map(x=>({id:gid[K(x.L)],lab:Array.isArray(x.L)?x.L.map(r=>r.text==='\n'?Object.assign({},r,{text:'  '}):r):x.L}));   // 묶음 줄은 한 줄로 되돌림
+  e.cells=e.cells.map(row=>order.map(x=>row[x.j]));
+  if(e.caps) e.caps=e.caps.map(row=>order.map(x=>row[x.j]));
+  e.bands=null; e.wrap=0; pptEdGroups(e); e.byWell=!e.byWell; return true;
+}
+function pptEdSwap(){ pptEdDo(e=>{ if(!pptEdSwapGroup(e)) toast('묶을 날짜가 하나뿐이에요',{warn:true}); }); }
 function pptEdToRows(){ pptEdDo(e=>{ if(!pptEdDatesToRows(e)) toast('날짜가 하나뿐이라 바꿀 게 없어요',{warn:true}); }); }
 function pptNextOf(p){ const i=pptLastPages.indexOf(p), q=pptLastPages[i+1]; return q&&q.kind==='matrix'&&p.kind==='matrix'&&q.exp&&q.exp===p.exp&&!q.summary?q:null; }
 function pptEdMerge(){
@@ -7335,7 +7351,7 @@ function pptEdMerge(){
         rl.forEach((k,r)=>{ const qr=f.rowLabels.findIndex(x=>K(x)===k); e.cells[r].push(qr>=0?f.cells[qr][j]:null); if(e.caps) e.caps[r].push(qr>=0&&f.caps?f.caps[qr][j]:''); }); });
     }
     e.bands=null; f.cells=f.cells.map(r=>r.map(()=>null)); pptEdGroups(e);
-    pptEdDatesToRows(e);   // 날짜가 여럿이 되면 날짜를 행으로 (같은 well을 위아래로 비교)
+    if(!e.byWell) pptEdSwapGroup(e);   // 날짜가 여럿이 되면 well별로 묶음 (같은 well의 날짜 변화가 옆으로, 같은 배율은 한 줄)
   });
   toast('다음 장을 이 장에 붙였어요 (되돌리기 Ctrl+Z)');
 }
@@ -7649,7 +7665,7 @@ function pptLayRender(fromHist){
 
         <label class="pl-ck"><input type="checkbox"${p.noTitle?'':' checked'} onchange="pptEdTitle(this.checked)">제목</label>
         ${p.kind==='matrix'?`<label class="pl-ck">한 줄에 <select onchange="pptEdWrap(+this.value)"><option value="0"${p.wrapSet>0?'':' selected'}>전부 (${p.colLabels.length}장)</option>${[2,3,4,5,6,7,8,9,10].filter(n=>n<p.colLabels.length).map(n=>`<option value="${n}"${p.wrapSet===n?' selected':''}>${n}장</option>`).join('')}</select></label>
-          ${pptDateGroupsOf(p).length>1?`<button class="btn btn-out" onclick="pptEdToRows()" title="같은 well을 위아래로 비교">날짜를 행으로</button>`:''}
+          ${pptDateGroupsOf(p).length>1?`<button class="btn btn-out" onclick="pptEdSwap()" title="위 묶음 줄을 날짜 ↔ well로 바꾸기">${p.byWell?'날짜별로 묶기':'well별로 묶기'}</button>`:''}
           ${pptNextOf(p)?`<button class="btn btn-out pl-merge" onclick="pptEdMerge()" title="같은 실험 다음 장(${pages.indexOf(pptNextOf(p))+1}번)을 이 장에 합치기">${ic('plus','ic-sm')}다음 장 붙이기</button>`:''}`:''}
         ${p.edited?`<button class="link-btn" onclick="pptEdReset()">처음 배치로</button>`:''}
         ${pptHistBtns()}</div>
@@ -9779,7 +9795,7 @@ setTimeout(async()=>{ if(!mailUser()||!fbDb) return; try{ const q=await fbDb.col
 // ══════════════════════════════════════════
 const NEWS={id:'2026-11-17', date:'2026-11-17', days:5, items:[
   ['<b>세포</b>','「모두 밥 주기」로 한 번에. 기분 대신 친화도 Lv.1–10 (쓰다듬을수록), Lv.3 볼 하트 · Lv.5 리본 · Lv.8 왕관 · Lv.10 반짝반짝'],
-  ['<b>PPT 슬라이드 고치기</b>','「다음 장 붙이기」로 같은 실험 다음 장을 이 장에 합치기 (날짜는 행, well은 열로 맞춰 같은 well을 위아래로 비교), 「날짜를 행으로」 버튼'],
+  ['<b>PPT 슬라이드 고치기</b>','「다음 장 붙이기」로 같은 실험 다음 장을 이 장에 합치기 (well마다 날짜를 옆으로 이어서 같은 well 변화를 비교, 같은 배율은 한 줄), 「well별로 묶기 ↔ 날짜별로 묶기」'],
   ['<b>배양 라인</b>','종류 / 프로젝트로 묶어 보기, 라인 옆 칩으로 프로젝트 정하기'],
   ['<b>사진 이름 · 스케일바</b>','「이름순 정렬」, 큰 TIFF 불러오기가 빨라졌어요'],
   ['<b>다같이 춤추기</b>','광장을 크게 열고 「다같이 춤추기」를 누르면 모두 가운데로 모여 둥글게 서서 같은 춤(좌우 흔들기 · 점프 · 빙글 돌기 · 웨이브 중 하나)을 같은 박자로 추고, 다시 제자리로 돌아가요'],
