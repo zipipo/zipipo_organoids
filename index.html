@@ -555,6 +555,7 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.92em;bac
 .search input{border:none!important;box-shadow:none!important;padding:0;height:30px;width:200px;background:transparent;font-size:.82rem;}
 .filter-hint{font-size:.76rem;color:var(--sub);}
 .tl-tools{display:none;gap:2px;}
+.tl-proj{display:inline-flex;align-items:center;gap:3px;border:1px dashed var(--bd);background:transparent;border-radius:99px;font:inherit;font-size:.68rem;color:var(--mut);padding:1px 8px;cursor:pointer;font-weight:500;} .tl-proj.on{border-style:solid;color:var(--sub);background:var(--sur);} .tl-proj:hover{color:var(--tx);border-color:var(--tx);}
 body[data-tab="tl"] .search,body[data-tab="arch"] .search{display:flex;}
 body[data-tab="tl"] .tl-tools{display:flex;}
 body[data-tab="today"] .filter-hint{display:none;}
@@ -1910,6 +1911,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
           <button class="seg" data-f="done" onclick="setLineFilter('done')">완료 <em id="fnD"></em></button>
           <button class="seg" data-f="all" onclick="setLineFilter('all')">전체</button>
         </span>
+        <span class="seg-group" id="tlBy"><button class="seg" data-b="type" onclick="setBoardBy('type')">종류</button><button class="seg" data-b="project" onclick="setBoardBy('project')">프로젝트</button></span>
         <button class="btn btn-icon" onclick="expandAllTL()" title="전체 펼치기"><svg class="ic" viewBox="0 0 24 24"><path d="m7 15 5 5 5-5M7 9l5-5 5 5"/></svg></button>
         <button class="btn btn-icon" onclick="collapseAllTL()" title="전체 접기"><svg class="ic" viewBox="0 0 24 24"><path d="m7 20 5-5 5 5M7 4l5 5 5-5"/></svg></button>
         <button class="btn btn-pri" onclick="openLineModal()"><svg class="ic"><use href="#i-plus"/></svg>새 라인</button>
@@ -3665,17 +3667,22 @@ function renderTimelines(containerId,showDone){
 
   // 사전식(가나다/숫자) 정렬: 종류(대시보드 순서) → 환자ID, 겹치면 (최초 seeding) 날짜순
   filtered.sort((a,b)=> typeCmp(a,b) || lineFirstDate(a).localeCompare(lineFirstDate(b)));
+  document.querySelectorAll('#tlBy .seg').forEach(b=>b.classList.toggle('on',b.dataset.b===(_boardBy==='project'?'project':'type')));
 
   if(showDone){ renderArchiveGrid(el, filtered); return; }
 
-  const typeN={}, typeW={}; filtered.forEach(l=>{typeN[l.type]=(typeN[l.type]||0)+1; typeW[l.type]=(typeW[l.type]||0)+(parseInt(latestWell(l))||0);});
+  // 묶음: 종류별(기본) 또는 프로젝트별 (오늘 작업 배양 현황의 「종류 / 프로젝트」와 같은 설정). 프로젝트 없는 라인은 맨 뒤 「프로젝트 없음」
+  const byProj=_boardBy==='project', gk=l=>byProj?(l.project||''):l.type;
+  if(byProj) filtered.sort((a,b)=>((a.project?0:1)-(b.project?0:1))||(a.project||'').localeCompare(b.project||'',undefined,{numeric:true})||typeCmp(a,b));
+  const typeN={}, typeW={}; filtered.forEach(l=>{const k=gk(l); typeN[k]=(typeN[k]||0)+1; typeW[k]=(typeW[k]||0)+(parseInt(latestWell(l))||0);});
   let curType=null;
   filtered.forEach(line=>{
     const c=getC(line.type,line.isCompleted);
-    // 종류가 바뀌는 지점마다 종류 머리 줄 (오늘 작업의 배양 현황과 같은 모양, 색 바꾸기 버튼 포함)
-    if(line.type!==curType){
-      curType=line.type;
-      el.innerHTML+=`<div class="type-hd" style="${toneVars(c)}"><span class="type-chip">${esc(line.type||'(종류 없음)')}</span><em>라인 ${typeN[line.type]}개 · 총 ${typeW[line.type]} well</em>
+    // 묶음이 바뀌는 지점마다 머리 줄 (오늘 작업의 배양 현황과 같은 모양)
+    if(gk(line)!==curType){
+      curType=gk(line);
+      el.innerHTML+=byProj?`<div class="type-hd" style="${toneVars(projColor(curType))}"><span class="type-chip">${esc(curType||'프로젝트 없음')}</span><em>라인 ${typeN[curType]}개 · 총 ${typeW[curType]} well</em></div>`
+        :`<div class="type-hd" style="${toneVars(c)}"><span class="type-chip">${esc(line.type||'(종류 없음)')}</span><em>라인 ${typeN[line.type]}개 · 총 ${typeW[line.type]} well</em>
         <button class="bd-color" onclick="openColorModal('${jsEsc(line.type)}')" title="이 종류 색 바꾸기">${ic('palette')}</button></div>`;
     }
     const curPlate=latestPlate(line);
@@ -3695,6 +3702,7 @@ function renderTimelines(containerId,showDone){
           ${lineFromChip(line)}
           <span class="tl-pd"><b>P${line.passage}</b> ${calcDayStr(line)}${(w=>w?`<span class="pd-w">${w} well</span>`:'')(parseInt(latestWell(line))||0)}</span>
           ${curPlate?`<span class="tl-plate">${esc(curPlate)}</span>`:''}
+          <button class="tl-proj${line.project?' on':''}" onclick="event.stopPropagation();setLineProject('${line.id}')" title="이 라인 프로젝트 정하기">${ic('folder','ic-sm')}${esc(line.project||'프로젝트')}</button>
         </div>
         <div class="tl-act" onclick="event.stopPropagation()">
           <button class="btn btn-ghost" onclick="startLogForLine('${line.id}')">${ic('plus')}기록</button>
@@ -4310,7 +4318,11 @@ const PROJ_PAL=[{bg:'#E8F1FD',bd:'#9DBFEA',tx:'#2F5E99'},{bg:'#FDEDEF',bd:'#EBA5
 function projColor(p){ const c=p?(()=>{ let h=0; for(const ch of p) h=(h*31+ch.charCodeAt(0))|0; return PROJ_PAL[Math.abs(h)%PROJ_PAL.length]; })():{bg:'#F3F4F6',bd:'#D1D5DB',tx:'#6B7280'};
   return {bg:c.bd, tx:c.tx, bd:c.bd, hbg:c.bg, ht:c.tx}; }   // 종류 색과 같은 모양으로
 let _boardBy='type'; try{ _boardBy=localStorage.getItem('orgBoardBy')||'type'; }catch(e){}
-function setBoardBy(v){ _boardBy=v; try{ localStorage.setItem('orgBoardBy',v); }catch(e){} renderDash(); }
+function setBoardBy(v){ _boardBy=v; try{ localStorage.setItem('orgBoardBy',v); }catch(e){} renderDash(); renderTimelines('activeTL',false); }   // 오늘 작업 배양 현황 · 배양 라인 같은 설정
+// 라인 하나 프로젝트 정하기 (배양 라인 머리의 프로젝트 칩)
+function setLineProject(id){ const l=lineById(id); if(!l) return;
+  const v=prompt(`${lineTag(l)}의 프로젝트 (비우면 없음)\n있는 프로젝트: ${projectsAll().join(', ')||'-'}`, l.project||''); if(v===null) return;
+  l.project=v.trim(); updateUI(); toast(v.trim()?`프로젝트 「${v.trim()}」`:'프로젝트를 뺐어요'); }
 function selectProject(p){
   const ids=lines.filter(l=>!l.isCompleted&&(l.project||'')===p).map(l=>l.id);
   const allOn=ids.every(id=>bulkLines.includes(id));
