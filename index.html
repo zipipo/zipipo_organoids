@@ -11850,7 +11850,9 @@ function parseBigLine(ws, sheetName, diagnostics){
         });
       }
       // trailing blank letter rows add nothing
-      while(rowLabels.length && !wells.some(w=>w.rowIdx===rowLabels.length-1) && rowLabels.length>10){ rowLabels.pop(); rowRows.pop(); }
+      // 9칸짜리 박스(9×9)는 A–I까지. 엑셀에 빈 「J」 글자만 남아 있으면(4-A처럼) 빈 J행이 생겨 바이알을 넣을 수 있었음 → 비어 있으면 뺌
+      const maxRows = Math.max(9, c1-c0+1);
+      while(rowLabels.length && !wells.some(w=>w.rowIdx===rowLabels.length-1) && rowLabels.length>maxRows){ rowLabels.pop(); rowRows.pop(); }
 
       const derivedCode = codePrefix + deriveCode(lineNum, famIdx, slotIdx);
       const codeSource = boxCode ? 'explicit' : 'derived';

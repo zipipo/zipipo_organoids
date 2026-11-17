@@ -152,6 +152,8 @@ match /mailbox/{id} {
 
 ## 작업 기록
 
+- 2026-11-17(6): 한결쌤 「J열」 = 박스의 J행. Black-LINE 4 HG 4-A 아래(시트 13행)에 빈 「J」 글자만 남아 있어 9×9 박스가 A–J 10행으로 읽히고, Stock 넣기에서 없는 J행에 바이알을 넣을 수 있었음. `parseBigLine` 끝에서 빈 끝 행을 max(9, 열 수)까지 잘라냄(예전엔 10행 넘을 때만).
+
 - 2026-11-17(5): 잔오류 + LN2 박스 고치기 + passage 체크.
   ① LN2 탭에서 새로고침하면 빈 화면: 첫 `setTab('ln2')`가 `<template id="ln2Tpl">`(스크립트 뒤쪽)보다 먼저 불려 null 오류 → 그 오류가 첫 스크립트까지 멈추게 했음. `openLn2`가 템플릿이 없으면 DOMContentLoaded 뒤에 띄움.
   ② 창 여러 개: 창마다 데이터를 메모리에 따로 들고 있어 뒤에 저장한 창이 덮어쓸 수 있었음. `storage` 이벤트(`LS_SYNC` 키)로 다른 창이 바꾸면 0.4초 뒤 `lsPullOtherTab` → `applySyncData`, 가려진 창은 다시 볼 때. (file:// 에선 storage 이벤트가 안 와서 테스트는 http 주소로)
