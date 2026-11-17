@@ -286,6 +286,7 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
 .pl-edbar .pl-ck{white-space:nowrap;}
 .pl-hist{display:inline-flex;gap:2px;margin-left:auto;padding:2px;border:1px solid var(--bd);border-radius:9px;background:var(--sur);}
 .pl-hb{width:32px;height:28px;border:none;background:none;border-radius:7px;display:grid;place-items:center;cursor:pointer;color:var(--tx);} .pl-hb:hover:not(:disabled){background:var(--hov);} .pl-hb:disabled{color:var(--mut);opacity:.45;cursor:default;} .pl-hb .ic{width:17px;height:17px;}
+.pl-merge{color:#2563EB;border-color:#BFD3FE;background:#EFF4FF;font-weight:700;}
 .pl-other{border-style:solid;background:var(--sur2);} .pl-ono{font-weight:700;color:var(--tx);margin-left:6px;}
 .pl-tray{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px;padding:6px 8px;border:1px dashed var(--bd);border-radius:8px;min-height:46px;font-size:.74rem;color:var(--sub);}
 .pl-tray img{height:44px;border-radius:3px;cursor:grab;border:1px solid var(--bd);}
@@ -7210,6 +7211,11 @@ function pptPlanAll(){
     else q.cells=q.cells.filter(c=>live.has(c.f));
     return p.key===pptEdKey?q:pptTrim(q);
   }).filter(p=>p.key===pptEdKey||pptPageFiles(p).length);
+  // 고친 장(합치기 등)은 제목 앞 날짜 범위도 지금 사진으로 다시 (제목을 직접 고쳤으면 dr이 비어 있어 그대로)
+  pages.forEach(p=>{ if(p.edited&&p.dr){ const ds=[...new Set(pptPageFiles(p).map(f=>pptParse(f.name).date).filter(Boolean))].sort(); if(ds.length) p.dr=ds.length===1?md(ds[0]):md(ds[0])+' – '+md(ds[ds.length-1]); } });
+  // 장을 합쳐 실험의 장 수가 줄었으면 제목의 (1/2) 번호도 다시 (직접 고친 제목은 그대로)
+  const byExp={}; pages.forEach(p=>{ if(p.exp&&/\s{2}\(\d+\/\d+\)$/.test(p.title||'')) (byExp[p.exp]=byExp[p.exp]||[]).push(p); });
+  Object.values(byExp).forEach(ps=>ps.forEach((p,i)=>{ const base=p.title.replace(/\s{2}\(\d+\/\d+\)$/,''); p.title=base+(ps.length>1?`  (${i+1}/${ps.length})`:''); }));
   pptPlaceOverlays(pages);
   return {pages,dark,model};
 }
@@ -7291,6 +7297,28 @@ function pptEdAdd(what){ pptEdDo(e=>{ if(!e.colLabels) return;
   else { e.rowLabels.push(''); e.rowBreaks.push(false); e.cells.push(e.colLabels.map(()=>null)); if(e.caps) e.caps.push(e.colLabels.map(()=>'')); } }); }
 // 한 줄에 몇 장: 0 = 자동(원래 배치), -1 = 한 줄에 전부, n = n장마다 줄바꿈 (날짜별 줄 나눔은 버림)
 function pptEdWrap(n){ pptEdDo(e=>{ if(!n){ delete e.wrap; delete e.bands; delete e.wrapSet; } else { e.wrap=n<0?0:n; e.bands=null; e.wrapSet=n; } }); }
+// 다음 장 붙이기: 같은 실험의 바로 다음 장을 이 장에 합침 (그 장은 비어서 없어짐)
+// 두 장의 열(조건 · well)이 같으면 아래로 이어 붙이고(행 추가), 다르면 옆으로 이어 붙임(열 추가). 같은 이름의 행 · 열은 맞춰서
+function pptNextOf(p){ const i=pptLastPages.indexOf(p), q=pptLastPages[i+1]; return q&&q.kind==='matrix'&&p.kind==='matrix'&&q.exp&&q.exp===p.exp&&!q.summary?q:null; }
+function pptEdMerge(){
+  const p=pptEdPage(), q=p&&pptNextOf(p); if(!q) return;
+  pptEdDo(e=>{
+    const f=pptEdStart(q), K=t=>pptPlain(t).trim(), CK=(E,j)=>(E.colG&&E.colG[j]?pptPlain(E.colG[j].lab)+'|':'')+K(E.colLabels[j]), cl=e.colLabels.map((_,j)=>CK(e,j)), ql=f.colLabels.map((_,j)=>CK(f,j));   // 열 비교는 날짜 줄까지 같이
+    const sameCols=ql.length&&ql.every(k=>cl.includes(k));
+    if(sameCols){   // 아래로: q의 행을 이 장 열 순서에 맞춰 붙임
+      f.rowLabels.forEach((rl,r)=>{ e.rowLabels.push(rl); e.rowBreaks.push(true); e.cells.push(cl.map(k=>{ const j=ql.indexOf(k); return j>=0?f.cells[r][j]:null; }));
+        if(e.caps) e.caps.push(cl.map(k=>{ const j=ql.indexOf(k); return j>=0&&f.caps?f.caps[r][j]:''; })); });
+    } else {        // 옆으로: 행 이름을 맞추고 q의 열을 뒤에 붙임
+      const rl=e.rowLabels.map(K), stamp='m'+Date.now();
+      f.rowLabels.forEach((t,r)=>{ if(!rl.includes(K(t))){ rl.push(K(t)); e.rowLabels.push(t); e.rowBreaks.push(!!(f.rowBreaks||[])[r]); e.cells.push(e.colLabels.map(()=>null)); if(e.caps) e.caps.push(e.colLabels.map(()=>'')); } });
+      f.colLabels.forEach((t,j)=>{ e.colLabels.push(t); const g=f.colG&&f.colG[j], L=e.colG[e.colG.length-1];
+        e.colG.push(g?(L&&pptPlain(L.lab)===pptPlain(g.lab)?L:{id:stamp+'_'+g.id,lab:g.lab}):null);   // 같은 날짜가 두 장에 걸쳐 있었으면 날짜 줄 하나로
+        rl.forEach((k,r)=>{ const qr=f.rowLabels.findIndex(x=>K(x)===k); e.cells[r].push(qr>=0?f.cells[qr][j]:null); if(e.caps) e.caps[r].push(qr>=0&&f.caps?f.caps[qr][j]:''); }); });
+    }
+    e.bands=null; f.cells=f.cells.map(r=>r.map(()=>null)); pptEdGroups(e);
+  });
+  toast('다음 장을 이 장에 붙였어요 (되돌리기 Ctrl+Z)');
+}
 function pptEdTitle(on){ pptEdDo(e=>{ e.noTitle=!on; }); }
 function pptEdReset(){ delete pptEdits[pptEdKey]; pptEdSel=null; pptLayRender(); }
 function pptEdClose(){ pptEdKey=null; pptEdSel=null; pptLayRender(); }
@@ -7601,14 +7629,12 @@ function pptLayRender(fromHist){
 
         <label class="pl-ck"><input type="checkbox"${p.noTitle?'':' checked'} onchange="pptEdTitle(this.checked)">제목</label>
         ${p.kind==='matrix'?`<label class="pl-ck">한 줄에 <select onchange="pptEdWrap(+this.value)"><option value="0"${p.wrapSet>0?'':' selected'}>전부 (${p.colLabels.length}장)</option>${[2,3,4,5,6,7,8,9,10].filter(n=>n<p.colLabels.length).map(n=>`<option value="${n}"${p.wrapSet===n?' selected':''}>${n}장</option>`).join('')}</select></label>
-          <button class="btn btn-out" onclick="pptEdAdd('col')">+ 열</button><button class="btn btn-out" onclick="pptEdAdd('row')">+ 행</button>`:''}
+          ${pptNextOf(p)?`<button class="btn btn-out pl-merge" onclick="pptEdMerge()" title="같은 실험 다음 장(${pages.indexOf(pptNextOf(p))+1}번)을 이 장에 합치기">${ic('plus','ic-sm')}다음 장 붙이기</button>`:''}`:''}
         ${p.edited?`<button class="link-btn" onclick="pptEdReset()">처음 배치로</button>`:''}
         ${pptHistBtns()}</div>
       ${pptExpChipsHtml(p,pages)}
-      <div class="pl-hint">사진을 끌어 다른 칸에 놓으면 옮겨지고, 사진 위에 놓으면 서로 바뀌어요 (Shift를 누른 채 놓으면 한 칸에 나란히). 열 이름 · 날짜 줄 · 행 이름을 끌면 통째로 옮겨져요. 글자는 눌러서 고치고, 가리키면 나오는 ×로 뺍니다.</div>
+      <div class="pl-hint">사진 · 열 이름 · 행 이름은 끌어서 옮기기 · 글자는 눌러서 고치기 · 빼려면 ×</div>
       <div class="pl-th ed" data-key="${esc(p.key)}">${D.html()}</div>
-      ${(()=>{ const os=pages.map((q,qi)=>[q,qi]).filter(([q])=>q!==p&&q.exp&&q.exp===p.exp&&!q.summary);
-        return os.length&&p.kind==='matrix'?`<div class="pl-tray pl-other"><span>같은 실험 다른 장 · 끌어 넣으면 이 장으로 옮겨져요 (+ 열로 빈 칸 만들고)</span>${os.map(([q,qi])=>`<span class="pl-ono">${qi+1}번</span>`+pptPageFiles(q).slice(0,40).map(f=>`<img src="${f.thumb}" draggable="true" data-id="${f.id}" data-from="${esc(q.key)}" title="${qi+1}번 슬라이드 · ${esc(f.name)}" alt="">`).join('')).join('')}</div>`:''; })()}
       <div class="pl-tray z" data-k="tray"><span>안 넣은 사진 <b>${tray.length}</b>장${tray.length?' — 끌어서 칸에 넣기':' · 뺄 사진은 여기로 끌어도 돼요'}</span>${tray.slice(0,80).map(f=>`<img src="${f.thumb}" draggable="true" data-id="${f.id}" title="${esc(f.name)}" alt="">`).join('')}${tray.length>80?`<span>외 ${tray.length-80}장</span>`:''}</div>
     </div>`;
     const ed=canCut(p)?`<button class="pl-cutbtn${pptCutEd===p.src?' on':''}${p.cut?' cut':''}" data-src="${esc(p.src)}" title="이 슬라이드 제목을 어디까지 쓸지 고르기">${p.cut?'✄ 자름':'✄ 제목 자르기'}</button>`:'';
@@ -9730,7 +9756,11 @@ setTimeout(async()=>{ if(!mailUser()||!fbDb) return; try{ const q=await fbDb.col
 //  업데이트 안내: 올린 날부터 5일 동안 열 때마다 보여줌 (「다시 보지 않기」 체크하면 이 버전은 끝)
 //  새 기능을 올릴 때 NEWS의 id · date · items만 바꾸면 됨
 // ══════════════════════════════════════════
-const NEWS={id:'2026-11-16b', date:'2026-11-16', days:5, items:[
+const NEWS={id:'2026-11-17', date:'2026-11-17', days:5, items:[
+  ['<b>세포</b>','「모두 밥 주기」로 한 번에. 기분 대신 친화도 Lv.1–10 (쓰다듬을수록), Lv.3 볼 하트 · Lv.5 리본 · Lv.8 왕관 · Lv.10 반짝반짝'],
+  ['<b>PPT 슬라이드 고치기</b>','「다음 장 붙이기」로 같은 실험 다음 장을 이 장에 합치기'],
+  ['<b>배양 라인</b>','종류 / 프로젝트로 묶어 보기, 라인 옆 칩으로 프로젝트 정하기'],
+  ['<b>사진 이름 · 스케일바</b>','「이름순 정렬」, 큰 TIFF 불러오기가 빨라졌어요'],
   ['<b>다같이 춤추기</b>','광장을 크게 열고 「다같이 춤추기」를 누르면 모두 가운데로 모여 둥글게 서서 같은 춤(좌우 흔들기 · 점프 · 빙글 돌기 · 웨이브 중 하나)을 같은 박자로 추고, 다시 제자리로 돌아가요'],
   ['<b>광장 자리</b>','작은 광장 · 큰 광장 · 다른 사람 화면에서 세포가 같은 자리에서 같이 움직여요'],
   ['<b>광장</b>','왼쪽 아래 인큐베이터 위 풀밭에서 다 같이 돌아다녀요. 설정 › 광장에서 대표 세포 고르기, 랩 목표는 이번 주 MC 60회'],
