@@ -2678,6 +2678,8 @@ const isPassageUp = a=>{ if(!a) return false; const l=a.toLowerCase(); if(l.incl
 function stockVialP(lg){ if(!lg) return null; const b=parseP(lg.passage); const off=lg.stockPOff!=null?+lg.stockPOff:(isPassageUp(lg.action)?1:0); return b+off; }
 // 같은 날 P를 올리는 기록이 둘 이상(예: Split 따로 + Stock (p+1) 따로)이면 P가 두 번 올라가 바이알 P가 2 차이 날 수 있음
 function stockPWarn(sc){ return logs.filter(x=>x.lineId===sc.lineId && x.date===sc.date && isPassageUp(x.action)).length>1 ? '같은 날 P가 두 번 올라간 기록이 있어요. 바이알 P를 확인해 주세요.' : ''; }
+function stockDetail(d){ return String(d||'').replace(/(^|[\s_-])for([\s_-].*)?$/i,'').replace(/[_]+/g,' ').replace(/\s+/g,' ').trim(); }
+function stockType(pid,t){ t=String(t||''); return /^HCC/i.test(pid||'') && /^PHH-org$/i.test(t) ? 'Adj(N) PHH-org' : t; }
 function stockLogOf(sc){ return logs.find(x=>x.lineId===sc.lineId && x.date===sc.date && parseInt(x.stocks)>0) || logs.find(x=>x.lineId===sc.lineId && x.date===sc.date && /stock/i.test(x.action||'')) || null; }
 // 그 날 그 라인에 vial 수가 있는 기록이 더 없으면, 아직 LN2에 안 넣은 Stock 후처리 항목은 지움 (기록을 지우거나 날짜를 옮긴 경우)
 function stockCleanup(lineId,date){
@@ -3612,7 +3614,7 @@ function renderStockBanner(){
   const pend=stockChecks.filter(sc=>!(sc.ln2Done && sc.dbDone));   // LN2·DB 둘 다 체크하면 사라짐
   if(!pend.length){el.innerHTML='';return;}
   const items=pend.map(sc=>`<div class="sc-row">
-    <span class="sc-name">${esc(sc.lineLabel)}</span><span class="sc-sub">${sc.date.slice(5).replace('-','.')}${(()=>{ const p=stockVialP(stockLogOf(sc)); return p!=null?' · p'+p:''; })()} · ${sc.stocks} vial${stockPWarn(sc)?` <b class="sc-warn" title="${esc(stockPWarn(sc))}">P 확인</b>`:''}</span>
+    <span class="sc-name">${esc((()=>{ const l=lines.find(x=>x.id===sc.lineId); if(!l) return sc.lineLabel; const d=stockDetail(l.detail); return l.patientId+'_'+stockType(l.patientId,l.type)+(d?' '+d:''); })())}</span><span class="sc-sub">${sc.date.slice(5).replace('-','.')}${(()=>{ const p=stockVialP(stockLogOf(sc)); return p!=null?' · p'+p:''; })()} · ${sc.stocks} vial${stockPWarn(sc)?` <b class="sc-warn" title="${esc(stockPWarn(sc))}">P 확인</b>`:''}</span>
     <label class="sc-chk ${sc.ln2Done?'done':''}"><input type="checkbox" ${sc.ln2Done?'checked':''} onclick="toggleSC('${sc.id}','ln2')">LN2 이동</label>
     <label class="sc-chk ${sc.dbDone?'done':''}"><input type="checkbox" ${sc.dbDone?'checked':''} onclick="toggleSC('${sc.id}','db')">DB 업데이트</label>
   </div>`).join('');
@@ -8422,8 +8424,9 @@ window.cclLn2={
     return stockChecks.filter(sc=>parseInt(sc.stocks)>0).map(sc=>{
       const l=lines.find(x=>x.id===sc.lineId)||{};
       const lg0=stockLogOf(sc), lg=lg0||{};
-      // Stock 이름에는 샘플 세부명(for CM test 같은 seeding용 메모)은 빼고 환자번호_종류만. LN2 탱크에서 고칠 수 있음
-      return {logId:lg.id||('sc_'+sc.id), lineId:sc.lineId, name:l.patientId?(l.patientId+'_'+l.type):(sc.lineLabel||'(삭제된 라인)'), patientId:l.patientId||'', type:l.type||'', detail:l.detail||'',
+      // Stock 이름: 엑셀 STAR_ID 모양(HCC39 / Tumor-org A / p1 / 26.11.03)에 맞춰 세부명은 「for …」 앞까지만, HCC 환자 PHH-org는 Adj(N) PHH-org
+      const det=stockDetail(l.detail), typ=stockType(l.patientId,l.type);
+      return {logId:lg.id||('sc_'+sc.id), lineId:sc.lineId, name:l.patientId?[l.patientId,typ+(det?' '+det:'')].join('_'):(sc.lineLabel||'(삭제된 라인)'), patientId:l.patientId||'', type:typ+(det?' '+det:''), detail:det,
         date:sc.date, passage:lg0?stockVialP(lg0):(l.passage!=null?l.passage:''), vials:parseInt(sc.stocks)||0, memo:lg.memo||'', plate:lg.plate||'', wells:lg.finalWells||'',
         ln2Done:!!sc.ln2Done, dbDone:!!sc.dbDone, checkId:sc.id, pWarn:stockPWarn(sc)};
     }).sort((a,b)=>(a.ln2Done-b.ln2Done)||String(b.date).localeCompare(String(a.date)));
