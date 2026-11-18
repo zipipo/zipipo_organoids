@@ -204,7 +204,6 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
 
 /* ═══ PPT 배치 팝업 ═══ */
 .ppt-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:10px;padding:8px 10px;border:1px solid var(--bd);border-radius:8px;font-size:.78rem;color:var(--sub);}
-.ppt-bar .pl-ck{display:inline-flex;align-items:center;gap:5px;margin-left:auto;white-space:nowrap;cursor:pointer;} .ppt-bar .pl-ck input{width:14px;height:14px;margin:0;}
 .ppt-bar .btn{height:28px;font-size:.76rem;}
 .pl-hint{font-size:.74rem;color:var(--mut);margin-bottom:8px;}
 .pl-zones{display:grid;gap:6px;margin-bottom:10px;}
@@ -6662,7 +6661,6 @@ function renderPptBar(){
   const how=model.recs.length?(pptLay.custom?' · 직접 배치':' · 추천 배치'):'';
   const nCut=new Set(pages.map(p=>p.cut).filter(Boolean)).size;
   el.innerHTML=`<div class="ppt-bar"><span>슬라이드 <b>${pages.length}</b>장${how}${nCut?` · 제목 자르기 ${nCut}개 적용`:''}${dark?' · 검은 배경':''}</span>
-    <label class="pl-ck" title="파일 이름에서 띄어쓰기 대신 들어간 - 를 슬라이드 제목에서는 띄어쓰기로 (Tumor-org 같은 종류 이름은 그대로)"><input type="checkbox"${pptDashSp()?' checked':''} onchange="pptSetDashSp(this.checked)">제목 - → 띄어쓰기</label>
     <button class="btn btn-out" onclick="openPptLay()"><svg class="ic"><use href="#i-sliders"/></svg>레이아웃 수정 · 미리보기</button></div>`;
 }
 
@@ -7473,15 +7471,12 @@ function pptPlanAll(){
   // 장을 합쳐 실험의 장 수가 줄었으면 제목의 (1/2) 번호도 다시 (직접 고친 제목은 그대로)
   const byExp={}; pages.forEach(p=>{ if(p.exp&&/\s{2}\(\d+\/\d+\)$/.test(p.title||'')) (byExp[p.exp]=byExp[p.exp]||[]).push(p); });
   Object.values(byExp).forEach(ps=>ps.forEach((p,i)=>{ const base=p.title.replace(/\s{2}\(\d+\/\d+\)$/,''); p.title=base+(ps.length>1?`  (${i+1}/${ps.length})`:''); }));
-  // 제목의 - 를 띄어쓰기로 (파일 이름에 띄어쓰기를 못 넣어 - 로 바뀐 것: for-CM-test → for CM test). 직접 고친 제목은 그대로
-  if(pptDashSp()) pages.forEach(p=>{ if(p.title&&!(p.edited&&!p.dr)) p.title=pptUndash(p.title); });
+  // 제목의 - 는 전부 띄어쓰기로 (파일 이름에 띄어쓰기를 못 넣어 - 로 바뀐 것: for-CM-test → for CM test). 직접 고친 제목은 그대로
+  pages.forEach(p=>{ if(p.title&&!(p.edited&&!p.dr)) p.title=pptUndash(p.title); });
   pptPlaceOverlays(pages);
   return {pages,dark,model};
 }
-// 저장·동기화: pptCuts['dash:*']=1 이면 켬. Tumor-org · PHH-org · Tumor-CAF 같은 종류 이름의 - 는 남김
-const pptDashSp=()=>pptCuts['dash:*']===1;
-function pptSetDashSp(on){ if(on) pptCuts['dash:*']=1; else delete pptCuts['dash:*']; savePptCuts(); renderPptBar(); if(document.getElementById('pptLayModal').classList.contains('open')) pptLayRender(); }
-function pptUndash(t){ return String(t).replace(/(\S)-(?=\S)(?!(?:org|Org|ORG|CAF|caf)\b)/g,'$1 ').replace(/ {3,}/g,'  '); }
+function pptUndash(t){ return String(t).replace(/(\S)-(?=\S)/g,'$1 ').replace(/ {3,}/g,'  '); }
 function pptPageFiles(p){
   if(p.kind==='matrix') return p.cells.flat(2).filter(Boolean);
   return p.cells.map(c=>c.f);
@@ -7912,7 +7907,7 @@ function pptLayRender(fromHist){
   }
   // 열 개수: 규칙 이름(날짜 열) · 제목 자르기(조건 열) · 기타 사진 행×열 배치에 모두 적용
   if(pages.some(p=>p.kind!=='flow')){
-    h+=`<div class="pl-opts"><label class="pl-ck"><input type="checkbox"${pptCuts['title:*']!==0?' checked':''} onchange="pptSetTitleAll(this.checked)">슬라이드 제목 넣기</label><label class="pl-ck"><input type="checkbox"${pptDashSp()?' checked':''} onchange="pptSetDashSp(this.checked)">제목 - → 띄어쓰기</label></div>${pptSumHtml()}`;
+    h+=`<div class="pl-opts"><label class="pl-ck"><input type="checkbox"${pptCuts['title:*']!==0?' checked':''} onchange="pptSetTitleAll(this.checked)">슬라이드 제목 넣기</label></div>${pptSumHtml()}`;
   }
   const notes=[];
   if(model.dropped) notes.push(`겹치는 사진 ${model.dropped}장 뺌`);
@@ -12320,11 +12315,13 @@ function buildEntries(cellInfo){
 /* ---- 사람 · 종류 · 날짜 (조건 검색용) ---- */
 // 사람: 박스 제목의 이니셜(YW, HG & YJ, …_YJ) → 없으면 시트 이름의 이니셜(LINE 1 YW). vial 글자에 이니셜이 있으면 더함.
 // 이니셜 목록은 시트 이름 + cell information 「stock한 사람」의 두 글자 대문자에서 모음.
+function _kTumor(t){ return /tumor/i.test(t) && !isTumorMargin(t); }
 const KIND_RULES = [
   ['Tumor-org', t=>MATCH_CATEGORIES.tumor.test(t)],
-  ['PHH-org', t=>/phh[\s-]?org/i.test(t)],
-  ['Hep-org', t=>/hep[\s-]?org|hepatocyte[\s-]?org/i.test(t)],
-  ['Chol-org', t=>/chol[\s-]?org|cholangio/i.test(t)],
+  // 유진 규칙: 이름에 Tumor가 있으면 무조건 Tumor-org (「HCC27 tumor | PHH-org」도 Tumor). Tumor margin(조직)은 예외
+  ['PHH-org', t=>/phh[\s-]?org/i.test(t) && !_kTumor(t)],
+  ['Hep-org', t=>/hep[\s-]?org|hepatocyte[\s-]?org/i.test(t) && !_kTumor(t)],
+  ['Chol-org', t=>/chol[\s-]?org|cholangio/i.test(t) && !_kTumor(t)],
   ['CAF', t=>/(^|[^a-z])caf(?=$|[^a-z]|p\d)/i.test(t)],
   ['PF', t=>MATCH_CATEGORIES.pf.test(t) || /\bpf\b/i.test(t)],
   ['Fibroblast', t=>/fibro|mese[nc]{1,2}h?y/i.test(t) && !/caf|\bpf\b/i.test(t)],
