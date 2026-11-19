@@ -9211,6 +9211,12 @@ const PET_KINDS=[
   {id:'poopgod', name:'응가 대마왕', shape:'poopgod', c:'#B98A64',d:'#7A5638',a:'#C8A2F0',r:0,gift:'poop1000'},
   {id:'bouquet', name:'꽃다발',      shape:'bouquet', c:'#FFF1F4',d:'#E7A6B6',a:'#F7A8C0',r:0,gift:'flower100'},
   {id:'fairy',   name:'꽃 요정',     shape:'fairy',   c:'#FFF6D6',d:'#D9B26A',a:'#CDE9FF',r:0,gift:'flower300'},
+  // 방문 선물 (2026-11-19부터 셈)
+  {id:'stamp',   name:'출석 도장',   shape:'stamp',   c:'#FFD3DC',d:'#D9849A',a:'#E0607E',r:0,gift:'visit7'},
+  {id:'regular', name:'단골손님',    shape:'regular', c:'#FFF1C2',d:'#D6B45E',a:'#F7A8B8',r:0,gift:'visit30'},
+  {id:'oldtimer',name:'터줏대감',    shape:'oldtimer',c:'#E8D3B4',d:'#A9875E',a:'#7FBF66',r:0,gift:'visit100'},
+  {id:'keypal',  name:'문 열쇠',     shape:'keypal',  c:'#FFE07A',d:'#C9962E',a:'#FFF3B0',r:0,gift:'open100'},
+  {id:'doorpal', name:'대문',        shape:'doorpal', c:'#F3D2B4',d:'#B98A64',a:'#FFE37A',r:0,gift:'open500'},
   {id:'n10',name:'10',shape:'num10',c:'#BFE3F7',d:'#6FA6C9',a:'#FFFFFF',r:0,gift:'dex10'},
   {id:'n20',name:'20',shape:'num20',c:'#C9F0D5',d:'#6DB88A',a:'#FFFFFF',r:0,gift:'dex20'},
   {id:'n30',name:'30',shape:'num30',c:'#FFE1A8',d:'#D9A24E',a:'#FFFFFF',r:0,gift:'dex30'},
@@ -9307,6 +9313,11 @@ function petGrid(shape, frame){
     case 'snow':   [0,1,2,3,4,5].forEach(i=>{ const t=i*Math.PI/3; line(8,9,8+7*Math.cos(t),9+7*Math.sin(t),'a'); }); ell(8,9,4.8,4.4,'b'); break;
     case 'ice':    rect(3,3,12,13,'b'); rect(3,3,12,3,'a'); rect(4,4,5,6,'a'); set(11,12,'a'); break;
     case 'seed':   ell(8,9.6,5,5.8,'b'); line(8,3.6,8,2,'a'); ell(9.8,1.6,1.8,1,'a'); break;
+    case 'stamp':  rect(4,1,11,5,'a'); rect(6,0,9,0,'a'); ell(8,10,6.4,4.6,'b'); rect(1,14,14,14,'a'); break;
+    case 'regular':ell(8,9.6,5.8,5.2,'b'); rect(2,3,13,4,'a'); rect(4,1,11,2,'a'); set(12,1,'a'); set(13,0,'a'); break;
+    case 'oldtimer':ell(8,9.6,5.8,5.2,'b'); rect(5,14,6,15,'a'); rect(4,2,11,3,'a'); rect(3,4,12,4,'a'); set(14,6,'a'); line(14,6,14,14,'a'); break;
+    case 'keypal': ell(8,8.6,5.6,5.2,'b'); ell(8,8.6,1.4,1.2,'b'); rect(7,13,9,15,'a'); rect(10,14,11,14,'a'); rect(10,15,11,15,'a'); set(8,2,'a'); break;
+    case 'doorpal':rect(3,1,12,14,'b'); rect(3,1,12,1,'a'); rect(2,14,13,14,'a'); set(11,10,'a'); rect(5,3,10,5,'a'); break;
     case 'loupe':  ell(7,7.6,6,6,'b'); line(11,12,15,16,'a'); line(12,12,15,15,'a'); ell(4.6,4.8,1.4,1.2,'a'); break;
     case 'camera': rect(1,5,14,13,'b'); rect(5,3,9,4,'a'); set(12,6,'a'); rect(2,12,13,13,'a'); break;
     case 'prof':   ell(8,9.8,5.8,5,'b'); for(let y=0;y<=7;y++) for(let x=0;x<PET_N;x++){ const dx=(x+.5-8)/6.8, dy=(y+.5-6.2)/4.2; if(dx*dx+dy*dy<=1) g[y][x]='a'; } set(2,8,'a'); set(14,8,'a'); [4,6,9,11].forEach(x=>set(x,8,'a')); break;   // 숱 많은 까만 앞머리, 둥근 얼굴
@@ -9380,7 +9391,7 @@ function drawPet(cv, kindId, st){
   if(lv>=5){ const bx=lv>=8?13:12, c='#F28AA0'; P(bx-1,2,c); P(bx+1,2,c); P(bx-1,1,c); P(bx+1,3,c); P(bx,2,'#D9607A'); }
   if(lv>=8){ const c='#F5C542'; [5,6,7,8,9].forEach(x=>P(x,2,c)); P(5,1,c); P(7,1,c); P(9,1,c); P(7,0,'#FFE37A'); }
   if(lv>=10&&(st.frame||0)%2===0){ const c='#FFE37A'; [[1,1],[14,4],[1,12],[14,13]].forEach(([x,y])=>{ P(x,y,c); }); }
-  if(!['phage','tardi','antibody','pcrtube','gel','vortex','hood','dome','parafilm','coffee','flask','sperm','trophy','ice','camera','loupe','rainbow','pipette','conical','etube','cryo','glove','wellplate','petri','hemo','scope','tipbox','incub','labnote','bottle','ln2','centri','beaker','erlen'].includes(K.shape)){ const f=st.mode==='walk'?(st.frame||0)%2:0; P(5+f,15,K.d); P(10-f,15,K.d); }
+  if(!['stamp','doorpal','phage','tardi','antibody','pcrtube','gel','vortex','hood','dome','parafilm','coffee','flask','sperm','trophy','ice','camera','loupe','rainbow','pipette','conical','etube','cryo','glove','wellplate','petri','hemo','scope','tipbox','incub','labnote','bottle','ln2','centri','beaker','erlen'].includes(K.shape)){ const f=st.mode==='walk'?(st.frame||0)%2:0; P(5+f,15,K.d); P(10-f,15,K.d); }
 }
 function petItemSprite(type){
   const cv=document.createElement('canvas'); cv.width=7*PET_PX; cv.height=8*PET_PX;
@@ -9407,7 +9418,7 @@ if(!petSt){
 function savePets(){ try{ localStorage.setItem('orgPets', JSON.stringify(petSt)); }catch(e){} if(typeof cloudPushDebounced==='function') cloudPushDebounced(); }
 // 계정 동기화: 위치 · 기분 · 응가 시각처럼 기기마다 다른 값은 빼고, 펫마다 키를 따로 둬서 합칠 때 덜 부딪히게
 const PET_SYNC_F=['n','name','born','fedTs','flowers','pats','poops','lastPoop'];
-window._petsOut=()=>{ const o={active:petSt.active.slice(), lastDraw:petSt.lastDraw||'', hidden:!!petSt.hidden, giftStart:petSt.giftStart||'', labDone:petSt.labDone||'', cleaned:petSt.cleaned||0, flowersAll:petSt.flowersAll||0, patsAll:petSt.patsAll||0, fedAll:petSt.fedAll||0};
+window._petsOut=()=>{ const o={active:petSt.active.slice(), lastDraw:petSt.lastDraw||'', hidden:!!petSt.hidden, giftStart:petSt.giftStart||'', labDone:petSt.labDone||'', cleaned:petSt.cleaned||0, flowersAll:petSt.flowersAll||0, patsAll:petSt.patsAll||0, fedAll:petSt.fedAll||0, visitOpens:petSt.visitOpens||0, visitDays:petSt.visitDays||0, visitLast:petSt.visitLast||''};
   Object.entries(petSt.owned).forEach(([id,v])=>{ const x={}; PET_SYNC_F.forEach(f=>{ if(v[f]!=null) x[f]=v[f]; }); o['o:'+id]=x; });
   return o; };
 window._petsIn=p=>{
@@ -9424,6 +9435,9 @@ window._petsIn=p=>{
   if(p.flowersAll!=null) petSt.flowersAll=Math.max(petSt.flowersAll||0,p.flowersAll);
   if(p.patsAll!=null) petSt.patsAll=Math.max(petSt.patsAll||0,p.patsAll);
   if(p.fedAll!=null) petSt.fedAll=Math.max(petSt.fedAll||0,p.fedAll);
+  if(p.visitOpens!=null) petSt.visitOpens=Math.max(petSt.visitOpens||0,p.visitOpens);
+  if(p.visitDays!=null) petSt.visitDays=Math.max(petSt.visitDays||0,p.visitDays);
+  if(p.visitLast&&p.visitLast>(petSt.visitLast||'')) petSt.visitLast=p.visitLast;
   try{ localStorage.setItem('orgPets', JSON.stringify(petSt)); }catch(e){}
   try{ petSync(); _petRefresh(); }catch(e){}
 };
@@ -9660,6 +9674,11 @@ const GIFT_RULES={
   poop300:{need:300, have:()=>petSt.cleaned||0, lab:'응가', why:'응가 300개를 치웠어요'},
   poop1000:{need:1000, have:()=>petSt.cleaned||0, lab:'응가', why:'응가 1000개를 치웠어요'},
   flower100:{need:100, have:()=>petSt.flowersAll||0, lab:'꽃', why:'꽃 100송이를 받았어요'},
+  visit7:{need:7, have:()=>petSt.visitDays||0, lab:'방문', unit:'일', why:'7일 동안 놀러 왔어요'},
+  visit30:{need:30, have:()=>petSt.visitDays||0, lab:'방문', unit:'일', why:'30일 동안 놀러 왔어요'},
+  visit100:{need:100, have:()=>petSt.visitDays||0, lab:'방문', unit:'일', why:'100일 동안 놀러 왔어요'},
+  open100:{need:100, have:()=>petSt.visitOpens||0, lab:'열어 본 횟수', unit:'번', why:'앱을 100번 열었어요'},
+  open500:{need:500, have:()=>petSt.visitOpens||0, lab:'열어 본 횟수', unit:'번', why:'앱을 500번 열었어요'},
   flower300:{need:300, have:()=>petSt.flowersAll||0, lab:'꽃', why:'꽃 300송이를 받았어요'},
   pats200:{need:200, have:()=>petSt.patsAll||0, lab:'쓰다듬기', why:'200번 쓰다듬어 줬어요'},
   fed200:{need:200, have:()=>petSt.fedAll||0, lab:'밥', why:'밥을 200번 줬어요'},
@@ -9756,6 +9775,11 @@ function petGacha(){
   ov.querySelector('#pgOk').onclick=()=>{ ov.remove(); _petSel=pick.id; petSync(); _petRefresh(); const a=PETS.find(p=>p.id===pick.id); if(a) petSay(a,'안녕! 잘 부탁해',3000); };
 }
 petMount();
+// 방문 세기 (2026-11-19부터): 앱을 연 횟수(visitOpens) · 연 날 수(visitDays). 켜 둔 채 30분 넘게 다른 데 있다 돌아와도 한 번 더 셈. 계정 동기화
+function petVisit(){ const d=petTodayKey(); petSt.visitOpens=(petSt.visitOpens||0)+1; if(petSt.visitLast!==d){ petSt.visitDays=(petSt.visitDays||0)+1; petSt.visitLast=d; }
+  savePets(); try{ petSync(); }catch(e){} setTimeout(()=>{ try{ petGiftCheck(); }catch(e){} },1500); }
+petVisit();
+let _petAway=0; document.addEventListener('visibilitychange',()=>{ if(document.hidden) _petAway=Date.now(); else if(_petAway&&Date.now()-_petAway>30*60000){ _petAway=0; petVisit(); } });
 
 // ══════════════════════════════════════════
 //  설정 창 (Claude 설정처럼 왼쪽 탭): 모양 · 글씨체 · 홈 화면 · 펫 · LN2
@@ -9839,25 +9863,25 @@ const PLZ_ITEMS=[
   {id:'bench',    name:'벤치',         k:'mc',    need:40,   unit:'MC'},
   {id:'bed',      name:'꽃밭',         k:'split', need:8,    unit:'Split'},
   {id:'tree',     name:'나무',         k:'stock', need:10,   unit:'Stock vial'},
-  {id:'shroom',   name:'버섯 무리',    k:'days',  need:15,   unit:'일한 날(모두 더해서)'},
+  {id:'shroom',   name:'버섯 무리',    k:'days',  need:15,   unit:'일한 날'},
   {id:'path',     name:'돌길',         k:'mc',    need:60,   unit:'MC'},
   {id:'mailbox',  name:'우체통',       k:'split', need:15,   unit:'Split'},
   {id:'pine',     name:'소나무',       k:'stock', need:20,   unit:'Stock vial'},
   {id:'lamp',     name:'가로등',       k:'mc',    need:80,   unit:'MC'},
   {id:'scope',    name:'현미경 조형',  k:'split', need:25,   unit:'Split'},
-  {id:'notice',   name:'게시판',       k:'days',  need:25,   unit:'일한 날(모두 더해서)'},
+  {id:'notice',   name:'게시판',       k:'days',  need:25,   unit:'일한 날'},
   {id:'stream',   name:'시냇물',       k:'mc',    need:120,  unit:'MC'},
   {id:'bush',     name:'덤불',         k:'stock', need:30,   unit:'Stock vial'},
   {id:'fountain', name:'분수',         k:'mc',    need:150,  unit:'MC'},
   {id:'hutch',    name:'토끼집',       k:'split', need:40,   unit:'Split'},
   {id:'tank',     name:'LN2 탱크 조형', k:'stock', need:40,   unit:'Stock vial'},
-  {id:'picnic',   name:'피크닉 매트',  k:'days',  need:40,   unit:'일한 날(모두 더해서)'},
+  {id:'picnic',   name:'피크닉 매트',  k:'days',  need:40,   unit:'일한 날'},
   {id:'bridge',   name:'나무 다리',    k:'mc',    need:200,  unit:'MC'},
   {id:'bench2',   name:'벤치 하나 더', k:'mc',    need:250,  unit:'MC'},
   {id:'pond',     name:'연못',         k:'mc',    need:300,  unit:'MC'},
   {id:'well',     name:'우물',         k:'split', need:60,   unit:'Split'},
   {id:'apple',    name:'사과나무',     k:'stock', need:60,   unit:'Stock vial'},
-  {id:'stall',    name:'레모네이드 가게', k:'days', need:60,  unit:'일한 날(모두 더해서)'},
+  {id:'stall',    name:'레모네이드 가게', k:'days', need:60,  unit:'일한 날'},
   {id:'lamp2',    name:'가로등 하나 더', k:'mc',  need:350,  unit:'MC'},
   {id:'arch',     name:'무지개 아치',  k:'mc',    need:400,  unit:'MC'},
   {id:'sandbox',  name:'모래놀이터',   k:'split', need:80,   unit:'Split'},
@@ -9865,28 +9889,30 @@ const PLZ_ITEMS=[
   {id:'swing',    name:'그네',         k:'mc',    need:500,  unit:'MC'},
   {id:'tent',     name:'텐트',         k:'split', need:120,  unit:'Split'},
   {id:'telescope',name:'망원경',       k:'stock', need:120,  unit:'Stock vial'},
-  {id:'lights',   name:'반짝 전구줄',  k:'days',  need:90,   unit:'일한 날(모두 더해서)'},
+  {id:'lights',   name:'반짝 전구줄',  k:'days',  need:90,   unit:'일한 날'},
   {id:'windmill', name:'풍차',         k:'mc',    need:700,  unit:'MC'},
   {id:'cherry',   name:'벚꽃나무',     k:'mc',    need:900,  unit:'MC'},
   {id:'gazebo',   name:'정자',         k:'split', need:180,  unit:'Split'},
   {id:'balloon',  name:'열기구',       k:'mc',    need:1200, unit:'MC'},
+  {id:'welcome',  name:'환영 매트',    k:'visit', need:20,   unit:'방문'},
+  {id:'clock',    name:'시계탑',       k:'visit', need:100,  unit:'방문'},
   {id:'flag',     name:'이번 주 목표 깃발', week:true, unit:`이번 주 MC ${LAB_GOAL}`},
 ];
 // 큰 물품(2배로 그림) · 같은 그림 쓰는 것 · 바닥에 깔리는 것(시냇물 · 돌길 · 연못 · 전구줄은 따로 그림)
-const PLZ_BIG={arch:2,windmill:2,cherry:2};
+const PLZ_BIG={arch:2,windmill:2,cherry:2,clock:2};
 const PLZ_ALIAS={lamp2:'lamp',bench2:'bench'};
 const PLZ_GROUND={stream:1,path:1,pond:1,lights:1};
 // 내 누적 기록 (광장 프로필에 같이 올림)
 function plazaMyTot(){
   const ls=logs.filter(l=>(l.date||'')>=PLZ_START && !isSeed(l.action) && !/finish/i.test(l.action||''));
   return { mc:ls.filter(l=>isMediaChange(l.action)).length, split:ls.filter(l=>/split/i.test(l.action||'')).length,
-    stock:ls.reduce((a,l)=>a+(parseInt(l.stocks)||0),0), days:new Set(ls.map(l=>l.date)).size, from:PLZ_START };
+    stock:ls.reduce((a,l)=>a+(parseInt(l.stocks)||0),0), days:new Set(ls.map(l=>l.date)).size, visit:petSt.visitDays||0, from:PLZ_START };
 }
 let _plzTotSrc=null, _plzTot=null;
 function plazaLabTot(){
   if(_plaza && _plzTotSrc===_plaza) return _plzTot;
-  const t={mc:0,split:0,stock:0,days:0,wk:0}, wk=plazaWeek();
-  (_plaza||[]).forEach(p=>{ const o=(p.deco&&p.deco.from===PLZ_START)?p.deco:{}; ['mc','split','stock','days'].forEach(k=>t[k]+=+o[k]||0); if(p.wk===wk) t.wk+=+p.mc||0; });
+  const t={mc:0,split:0,stock:0,days:0,visit:0,wk:0}, wk=plazaWeek();
+  (_plaza||[]).forEach(p=>{ const o=(p.deco&&p.deco.from===PLZ_START)?p.deco:{}; ['mc','split','stock','days','visit'].forEach(k=>t[k]+=+o[k]||0); if(p.wk===wk) t.wk+=+p.mc||0; });
   _plzTotSrc=_plaza; _plzTot=t; return t;
 }
 const plazaItemOn=(it,t)=>it.week? t.wk>=LAB_GOAL : (t[it.k]||0)>=it.need;
@@ -9910,6 +9936,8 @@ function pmDrawItem(ctx,id,x0,y0,u){
     case 'path': [[1,11],[6,7],[10,3],[11,12]].forEach(([x,y])=>{ R(x,y,5,3,'#E3D9C2'); R(x+1,y,3,2,'#F3EDDF'); }); break;
     case 'pond': R(1,6,14,8,'#A9D8F0'); R(3,5,10,1,'#A9D8F0'); R(3,14,10,1,'#A9D8F0'); R(4,8,5,3,'#C8E8F7'); R(9,10,4,2,'#7FBF66'); R(10,9,1,1,'#F7A8C0'); break;
     case 'lights': R(0,4,2,1,'#8A94A6'); R(2,5,3,1,'#8A94A6'); R(5,6,6,1,'#8A94A6'); R(11,5,3,1,'#8A94A6'); R(14,4,2,1,'#8A94A6'); [[1,5,'#F7A8B8'],[4,6,'#FFD27A'],[7,7,'#9ED8F0'],[10,7,'#B9E4A5'],[13,6,'#C9B5F2']].forEach(([x,y,c])=>R(x,y,2,2,c)); break;
+    case 'welcome': R(1,11,14,5,'#F7B8C8'); R(2,12,12,3,'#FFF1F4'); R(4,13,1,1,'#E0607E'); R(6,13,4,1,'#E0607E'); R(11,13,1,1,'#E0607E'); break;
+    case 'clock': R(5,4,6,12,'#F3E3C3'); R(4,3,8,1,'#C99A6B'); R(6,0,4,3,'#E07B7B'); R(7,0,2,1,'#FFD27A'); R(6,5,4,4,'#FFFFFF'); R(7,6,1,2,'#5B4A4A'); R(8,7,1,1,'#5B4A4A'); R(7,12,2,4,'#A47C5B'); R(4,15,8,1,'#C99A6B'); break;
     case 'shroom': [[2,9,'#F7A3A3'],[8,6,'#F9D08C'],[11,10,'#F7A3A3']].forEach(([x,y,c],i)=>{ const w=i===1?6:5; R(x+1,y+3,w-2,16-y-3,'#FFF3DE'); R(x,y,w,3,c); R(x+1,y-1,w-2,1,c); R(x+1,y,1,1,'#FFFFFF'); R(x+w-2,y+1,1,1,'#FFFFFF'); }); R(0,15,16,1,'#A9D18E'); break;
     case 'mailbox': R(7,8,2,8,'#A47C5B'); R(3,2,10,7,'#F28C8C'); R(3,2,10,1,'#F7A8A8'); R(4,5,6,1,'#C96A6A'); R(12,3,2,4,'#FFD27A'); R(12,3,1,1,'#C99A2E'); break;
     case 'pine': R(7,12,2,4,'#A47C5B'); R(6,1,4,3,'#7FBF8A'); R(4,4,8,3,'#7FBF8A'); R(3,7,10,3,'#6FB37E'); R(2,10,12,3,'#6FB37E'); R(7,0,2,1,'#FFE37A'); R(5,5,1,1,'#B8E0BC'); R(4,8,1,1,'#B8E0BC'); break;
@@ -9935,10 +9963,11 @@ function pmDrawItem(ctx,id,x0,y0,u){
 //  가운데: 분수 광장 + 양옆 가로등 · 벤치, 앞 입구에서 분수까지 돌길
 //  오른쪽: 위에서 아래로 굽이치는 시냇물 + 나무 다리, 건너편엔 랩 코너(현미경 · LN2 탱크)와 캠핑(텐트 · 모닥불), 아래 연못
 //  왼쪽: 나무 · 사과나무 · 덤불 정원, 그네 · 모래놀이터 · 정자, 앞쪽 입구에 표지판 · 꽃밭 · 우체통 · 토끼집
-const PLZ_SPOT={windmill:[0.07,0.3], pine:[0.17,0.24], arch:[0.47,0.3], flag:[0.33,0.22], cherry:[0.64,0.3], telescope:[0.9,0.24], balloon:[0.4,0.1],
-  tree:[0.05,0.52], apple:[0.16,0.46], bush:[0.26,0.38], well:[0.27,0.52], gazebo:[0.12,0.74], swing:[0.25,0.7], sandbox:[0.29,0.86],
+const PLZ_SPOT={windmill:[0.07,0.3], pine:[0.17,0.24], arch:[0.47,0.3], flag:[0.22,0.22], cherry:[0.64,0.3], telescope:[0.9,0.24], balloon:[0.4,0.1],
+  tree:[0.05,0.52], apple:[0.16,0.46], bush:[0.2,0.37], well:[0.27,0.52], gazebo:[0.12,0.74], swing:[0.25,0.7], sandbox:[0.29,0.86],
   fountain:[0.47,0.64], lamp:[0.35,0.55], lamp2:[0.59,0.55], bench:[0.36,0.76], bench2:[0.58,0.77], notice:[0.62,0.47], stall:[0.62,0.93],
   scope:[0.86,0.42], tank:[0.96,0.5], tent:[0.94,0.76], campfire:[0.85,0.72], picnic:[0.86,0.99], hutch:[0.43,0.97],
+  welcome:[0.53,1.0], clock:[0.3,0.33],
   sign:[0.04,0.99], bed:[0.14,0.99], mailbox:[0.25,0.99], shroom:[0.36,0.38], bridge:[0.735,0.62]};
 // 시냇물: 위에서 들어와 오른쪽으로 굽이쳐 아래로 (다리 자리를 지나감)
 const PLZ_STREAM=[[0.7,-0.05],[0.73,0.15],[0.69,0.35],[0.73,0.55],[0.74,0.68],[0.7,0.85],[0.73,1.05]];
@@ -9978,7 +10007,7 @@ function plzGround(ctx,W,H,top,S,t){
     for(let i=0;i<=10;i++){ const g=i/10, x=x0+(x1-x0)*g, y=y0+Math.sin(g*Math.PI)*8*S+S; blk(x,y+S,2*S,2*S,(i+tw)%4===0?'#FFFFFF':cs[i%5]); } }
 }
 // 랩 기록이 쌓일수록 끝없이 늘어나는 작은 장식(꽃 · 버섯 · 돌 · 클로버): MC 10번 · Split 2번 · Stock vial 2개 · 일한 날 1일마다 하나
-const plzGrowN=t=>Math.floor((t.mc||0)/10)+Math.floor((t.split||0)/2)+Math.floor((t.stock||0)/2)+(t.days||0);
+const plzGrowN=t=>Math.floor((t.mc||0)/10)+Math.floor((t.split||0)/2)+Math.floor((t.stock||0)/2)+(t.days||0)+Math.floor((t.visit||0)/2);
 function plzGrow(ctx,W,H,top,S,t){
   const n=Math.min(220,plzGrowN(t)), q=v=>Math.round(v/S)*S, R=(x,y,w,h,c)=>{ ctx.fillStyle=c; ctx.fillRect(q(x)+w*0,q(y),w*S,h*S); };
   const spots=Object.entries(PLZ_SPOT).filter(([id])=>{ const it=PLZ_ITEMS.find(x=>x.id===id); return it&&plazaItemOn(it,t); }).map(([,v])=>v);
@@ -10013,13 +10042,10 @@ function plazaDecoHTML(){
   const ratio=it=>it.week?(t.wk/LAB_GOAL):(t[it.k]||0)/it.need;
   const card=it=>{ const ok=plazaItemOn(it,t), cur=it.week?t.wk:(t[it.k]||0), need=it.week?LAB_GOAL:it.need;
     return `<div class="plz-it${ok?' on':''}" title="${esc(it.name)} · ${esc(it.unit)} ${cur}/${need}"><canvas data-item="${it.id}" width="32" height="32"></canvas><b>${esc(it.name)}</b><small>${ok?(it.week?`이번 주 MC ${need} 채움`:`${esc(it.unit)} ${need} 달성`):`${esc(it.unit)} ${cur}/${need}`}</small></div>`; };
-  const next=todo.slice().sort((a,b)=>ratio(b)-ratio(a)).slice(0,6), gn=plzGrowN(t), toMc=10-((t.mc||0)%10);
+  const next=todo.slice().sort((a,b)=>ratio(b)-ratio(a)).slice(0,6);
   return `<div class="set-sec plz-deco"><h4>광장 꾸미기 <span class="mail-n">${done.length}/${PLZ_ITEMS.length}</span></h4>
-    <p class="set-p">랩 모두의 누적 기록으로 물품이 하나씩 생겨서 광장의 정해진 자리에 놓여요. 가까운 목표부터 보여요.</p>
     <div class="plz-items">${next.map(card).join('')}</div>
-    <p class="set-p">풀밭 장식 <b>${gn}</b>개 · MC 10번, Split 2번, Stock vial 2개, 일한 날 하루마다 꽃 · 버섯 · 돌이 하나씩 늘어요 (다음 꽃까지 MC ${toMc}번)</p>
-    ${done.length?`<details class="plz-box"><summary>보관함 · 놓인 물품 ${done.length}개</summary><div class="plz-items">${done.map(card).join('')}</div></details>`:''}
-    <small class="set-p">11월 17일부터 모두 더한 기록 · MC ${t.mc} · Split ${t.split} · Stock vial ${t.stock} · 일한 날 ${t.days}</small></div>`;
+    ${done.length?`<details class="plz-box"><summary>보관함 ${done.length}</summary><div class="plz-items">${done.map(card).join('')}</div></details>`:''}</div>`;
 }
 function plazaDecoDraw(root){
   (root||document).querySelectorAll('canvas[data-item]').forEach(c=>{ const x=c.getContext('2d'); x.clearRect(0,0,32,32); x.imageSmoothingEnabled=false;
