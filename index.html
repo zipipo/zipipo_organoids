@@ -9993,17 +9993,35 @@ function plzSprite(id){ id=PLZ_ALIAS[id]||id; return _plzSpr[id]||(_plzSpr[id]=p
 function plzFloor(){ return _plzSpr._floor||(_plzSpr._floor=plzPixelize(x=>{ x.fillStyle='#E9E0CC'; x.beginPath(); x.ellipse(32,10,30,8.5,0,0,Math.PI*2); x.fill();
   x.fillStyle='#F3EDDF'; x.beginPath(); x.ellipse(32,9.2,27,6.8,0,0,Math.PI*2); x.fill();
   x.fillStyle='#E3D9C2'; [[12,8],[22,12],[40,7],[50,11],[30,13],[18,6],[45,14]].forEach(([a,b])=>x.fillRect(a,b,2,1)); },64,20)); }
+// 바탕: 연한 체크무늬 잔디 + 위쪽 숲 가장자리(둥근 나무 꼭대기 줄)로 「한 장소」처럼 테두리
+function plzBase(ctx,W,H,k){
+  const T=Math.max(8,Math.round(14*k)); ctx.fillStyle='#DCEFC8'; ctx.fillRect(0,0,W,H); ctx.fillStyle='#D5EBBF';
+  for(let y=0;y<H;y+=T) for(let x=((y/T)%2)*T;x<W;x+=T*2) ctx.fillRect(x,y,T,T);
+  const S=Math.max(1,Math.round(k*1.6)), top=18*k;
+  ctx.fillStyle='#A9D394'; ctx.fillRect(0,0,W,top*0.55);
+  for(let x=-S*4,i=0;x<W+S*8;x+=S*9,i++){ const r=S*(5+(i%3)), cy=top*0.55+(i%2?-S:S*0.5);
+    for(let dy=-r;dy<=r;dy+=S){ const hw=Math.round(Math.sqrt(r*r-dy*dy)/S)*S; ctx.fillStyle=dy<-r*0.4?'#BFE0AA':'#A9D394'; ctx.fillRect(x-hw,cy+dy,hw*2,S); } }
+  ctx.fillStyle='#93C47E'; for(let x=0;x<W;x+=S*3) ctx.fillRect(x,top*0.55+S*6+((x/S/3)%2)*S,S*2,S);
+}
+// 흙길: 입구 → 분수 광장 → 다리 → 캠프, 광장 → 왼쪽 정원 (항상 깔려 있어서 처음부터 자리 잡힌 마을처럼)
+const PLZ_PATHS=[[[0.48,1.08],[0.47,0.86],[0.47,0.7]],[[0.6,0.66],[0.68,0.64],[0.735,0.63],[0.8,0.66],[0.86,0.76]],[[0.36,0.66],[0.25,0.71],[0.15,0.8]],[[0.47,0.56],[0.47,0.42],[0.47,0.33]]];
+function plzPathPts(W,H,top){ const out=[]; PLZ_PATHS.forEach(P=>{ for(let i=0;i+1<P.length;i++){ const [x0,y0]=P[i],[x1,y1]=P[i+1]; const n=Math.ceil(Math.hypot((x1-x0)*W,(y1-y0)*(H-top))/3);
+  for(let j=0;j<=n;j++){ const g=j/n; out.push([(x0+(x1-x0)*g)*W, top+(y0+(y1-y0)*g)*(H-top)]); } } }); return out; }
 // 바닥에 깔리는 것: 칸(S) 단위 네모로 찍어서 픽셀 느낌
 function plzGround(ctx,W,H,top,S,t){
   const on=id=>plazaItemOn(PLZ_ITEMS.find(x=>x.id===id),t), Y=fy=>top+fy*(H-top), q=v=>Math.round(v/S)*S;
   const blk=(cx,cy,w,h,c)=>{ ctx.fillStyle=c; ctx.fillRect(q(cx-w/2),q(cy-h/2),q(w)||S,q(h)||S); };
+  const pts=plzPathPts(W,H,top), stony=on('path');
+  [['#E2CFA8',9*S],['#EEDDBA',7*S]].forEach(([c,w])=>pts.forEach(([x,y])=>blk(x,y,w,w*0.7,c)));
+  { const cx=PLZ_SPOT.fountain[0]*W, cy=top+(PLZ_SPOT.fountain[1]-0.03)*(H-top), rx=Math.min(W*0.15,62*S/1.6), ry=rx*0.3;   // 광장 자리 흙마당 (분수가 생기면 돌바닥이 덮음)
+    [['#E2CFA8',0],['#EEDDBA',S]].forEach(([c,d])=>{ for(let y=-ry+d;y<=ry-d;y+=S){ const hw=(rx-d)*Math.sqrt(Math.max(0,1-(y/(ry-d))**2)); blk(cx,cy+y,hw*2,S,c); } }); }
+  if(stony) pts.forEach(([x,y],i)=>{ if(i%5===0) blk(x+((i%3)-1)*2*S,y,3*S,2*S,'#F8F1E2'); });
   if(on('pond')){ const cx=0.9*W, cy=Y(0.9); [[34,13,'#8FC4E0'],[31,11,'#A9D8F0'],[22,7,'#C8E8F7']].forEach(([rx,ry,c])=>{ for(let y=-ry;y<=ry;y+=1) { const hw=rx*Math.sqrt(1-(y/ry)**2); blk(cx,cy+y*S/1.5,hw*2*S/1.5,S,c); } });
     [[-14,-3],[10,2],[-2,4]].forEach(([dx,dy],i)=>{ blk(cx+dx*S/1.5,cy+dy*S/1.5,4*S,2*S,'#7FBF66'); if(i===0) blk(cx+dx*S/1.5+S,cy+dy*S/1.5-S,S,S,'#F7A8C0'); }); }
   if(on('stream')){ const w=10*S, step=S;
     [['#8FC4E0',w+2*S],['#A9D8F0',w],['#C8E8F7',w*0.45]].forEach(([c,ww])=>{ for(let y=q(top-S*2);y<=H;y+=step){ const fy=(y-top)/(H-top), x=plzStreamAt(fy)*W+(c==='#C8E8F7'?-2*S:0); blk(x,y,ww,step*1.6,c); } });
     const ph=Math.floor(Date.now()/500);   // 반짝이는 물결
     for(let i=0;i<9;i++){ const fy=((i*0.11+ph*0.013)%1), x=plzStreamAt(fy)*W+((i%3)-1)*3*S; blk(x,Y(fy),2*S,S,'#FFFFFF'); } }
-  if(on('path')){ const fx=PLZ_SPOT.fountain[0]; for(let i=0;i<6;i++){ const fy=1.02-i*0.06, x=fx*W+(i%2?3:-3)*S; blk(x,Y(fy),7*S,3*S,'#E3D9C2'); blk(x,Y(fy)-S/2,5*S,2*S,'#F3EDDF'); } }
   if(on('lights')){ const x0=0.3*W, x1=0.66*W, y0=Y(0.06); ctx.fillStyle='#8A94A6';
     for(let x=x0;x<=x1;x+=S){ const g=(x-x0)/(x1-x0); ctx.fillRect(q(x),q(y0+Math.sin(g*Math.PI)*8*S),S,S); }
     const cs=['#F7A8B8','#FFD27A','#9ED8F0','#B9E4A5','#C9B5F2'], tw=Math.floor(Date.now()/600);
@@ -10015,9 +10033,11 @@ function plzGrow(ctx,W,H,top,S,t){
   const n=Math.min(70,Math.round(plzGrowN(t)*0.5)), q=v=>Math.round(v/S)*S, R=(x,y,w,h,c)=>{ ctx.fillStyle=c; ctx.fillRect(q(x)+w*0,q(y),w*S,h*S); };
   const spots=Object.entries(PLZ_SPOT).filter(([id])=>{ const it=PLZ_ITEMS.find(x=>x.id===id); return it&&plazaItemOn(it,t); }).map(([,v])=>v);
   const cols=['#F7B8C8','#FFE0A0','#FFFFFF','#F7B8C8','#FFFFFF'];
+  const PP=plzPathPts(W,H,top).filter((_,i)=>i%4===0), anchors=PP.map(([x,y])=>[x/W,(y-top)/(H-top)]).concat(spots);   // 길가 · 물품 발치에 모여 피게
   for(let i=0;i<n;i++){ let fx,fy,ok=false;
-    for(let tr=0;tr<8&&!ok;tr++){ fx=0.02+0.96*pmRand('grow',i,tr,'x'); fy=0.05+0.95*pmRand('grow',i,tr,'y');
-      ok=Math.abs(fx-plzStreamAt(fy))>0.06 && !spots.some(([sx,sy])=>Math.abs(sx-fx)<0.06&&sy-fy<0.16&&sy-fy>-0.03) && Math.hypot((fx-0.47)*1.6,fy-0.66)>0.16; }
+    for(let tr=0;tr<8&&!ok;tr++){ const A=anchors[Math.floor(pmRand('grow',i,tr,'a')*anchors.length)]||[0.5,0.5], side=pmRand('grow',i,tr,'s')<0.5?-1:1;
+      fx=A[0]+side*(0.035+0.03*pmRand('grow',i,tr,'x')); fy=A[1]+(pmRand('grow',i,tr,'y')-0.3)*0.05;
+      ok=fx>0.01&&fx<0.99&&fy>0.04&&fy<1&&Math.abs(fx-plzStreamAt(fy))>0.06 && !spots.some(([sx,sy])=>Math.abs(sx-fx)<0.03&&sy-fy<0.1&&sy-fy>-0.01) && !PP.some(([x,y])=>Math.abs(x-fx*W)<6*S&&Math.abs(y-(top+fy*(H-top)))<4*S); }
     if(!ok) continue;
     const x=fx*W, y=top+fy*(H-top), k=i%5, c=cols[i%cols.length];
     if(k<2){ R(x,y,1,2,'#7DB86C'); R(x-S,y-S,3,1,c); R(x,y-2*S,1,3,c); R(x,y-S,1,1,'#FFE37A'); if(k===1){ R(x+3*S,y+S,1,2,'#7DB86C'); R(x+2*S,y,3,1,cols[(i+2)%5]); R(x+3*S,y-S,1,3,cols[(i+2)%5]); R(x+3*S,y,1,1,'#FFE37A'); } }
@@ -10038,6 +10058,7 @@ function pmDrawLab(ctx,W,q){
   PLZ_ITEMS.filter(it=>!PLZ_GROUND[it.id]&&plazaItemOn(it,t)).map(it=>{ const [fx,fy]=PLZ_SPOT[it.id]||[0.5,0.5];
       const by=Math.max(top+4*u, Math.min(H-2, top+fy*(H-top))); return {it, x:Math.max(1,Math.min(W-16*u-1, fx*W-8*u)), y:by-16*u}; })
     .sort((a,b)=>a.y-b.y).forEach(o=>{ const ss=s1*(PLZ_BIG[o.it.id]||1), sp=plzSprite(o.it.id);
+      if(o.it.id!=='balloon'&&o.it.id!=='arch'){ ctx.fillStyle='rgba(120,160,95,.28)'; ctx.beginPath(); ctx.ellipse(R(o.x+8*u),R(o.y+16*u),7*ss,2*ss,0,0,Math.PI*2); ctx.fill(); }   // 그림자
       ctx.drawImage(sp, R(o.x+8*u-9*ss), R(o.y+16*u-17*ss), 18*ss, 18*ss); });
 }
 function plazaDecoHTML(){
@@ -10242,9 +10263,9 @@ function pmTick(){
   ctx.setTransform(2,0,0,2,0,0); ctx.imageSmoothingEnabled=false;
   // 풀밭: 연두 바탕 + 풀 · 작은 꽃 (한 번 정해 둠)
   if(!_pm.deco){ _pm.deco=[]; const d=pmDay(); for(let i=0;i<60;i++) _pm.deco.push({x:pmRand(d,i,'dx')*W,y:22*_pm.k+pmRand(d,i,'dy')*(H-24*_pm.k),k:pmRand(d,i,'dk')<0.18?'f':'g',c:['#F7A8B8','#FFD27A','#B9A2E8','#FFFFFF'][i%4]}); }   // 풀 · 꽃 자리도 화면마다 같게 (크기만 비례)
-  ctx.fillStyle='#DDEFC9'; ctx.fillRect(0,0,W,H); ctx.fillStyle='#CFE7B6'; ctx.fillRect(0,0,W,18*_pm.k);
+  plzBase(ctx,W,H,_pm.k);
   pmDrawLab(ctx,W,_pm.k);   // 광장 꾸미기 물품 (풀밭 위쪽 줄 고정 자리)
-  _pm.deco.forEach(d=>{ if(d.k==='g'){ ctx.fillStyle='#A9D18E'; const q=_pm.k; ctx.fillRect(d.x,d.y,1.5*q,4*q); ctx.fillRect(d.x+2*q,d.y+q,1.5*q,3*q); } else { ctx.fillStyle=d.c; const q=_pm.k; ctx.fillRect(d.x,d.y,3*q,3*q); ctx.fillStyle='#FFE37A'; ctx.fillRect(d.x+q,d.y+q,q,q); } });
+  _pm.deco.forEach((d,i)=>{ if(i%3) return; if(d.k==='g'){ ctx.fillStyle='#A9D18E'; const q=_pm.k; ctx.fillRect(d.x,d.y,1.5*q,4*q); ctx.fillRect(d.x+2*q,d.y+q,1.5*q,3*q); } else { ctx.fillStyle=d.c; const q=_pm.k; ctx.fillRect(d.x,d.y,3*q,3*q); ctx.fillStyle='#FFE37A'; ctx.fillRect(d.x+q,d.y+q,q,q); } });
   // 세계 좌표(0–1) → 이 화면 px. 짝꿍 따라가는 쪽은 리더 옆에. 춤추는 동안은 춤 시작 때 자리에서
   const now=Date.now(), dn=_pmDance&&now<_pmDance.until?_pmDance:null; if(_pmDance&&!dn) _pmDance=null;
   const ents=_pm.ents, top=20*_pm.k+_pm.fs*2.2, X0=4, XW=W-_pm.sp*1.9-8, YH=H-_pm.sp-top-_pm.fs-6;
