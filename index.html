@@ -1442,6 +1442,7 @@ body.pet-on[data-tab="today"] #petLayer{display:block;}
 .side-plaza{margin-top:auto;padding:10px 8px 0;} .side-plaza+.side-incu{margin-top:0;padding-top:8px;}
 .pm-box{border:1px solid #BFDDA5;border-radius:12px;overflow:hidden;background:#DDEFC9;cursor:pointer;} .pm-hd{display:flex;justify-content:space-between;align-items:center;padding:4px 8px;font-size:.7rem;color:#46663A;background:#CFE7B6;} .pm-hd b{font-weight:800;}
 .pm-box canvas{display:block;image-rendering:pixelated;}
+.dex-why{display:block;font-size:.6rem;color:var(--mut);line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
 .plz-box{margin:6px 0 8px;} .plz-box summary{cursor:pointer;font-size:.8rem;font-weight:700;color:var(--sub);padding:4px 0;} .plz-box .plz-items{margin-top:6px;}
 .plz-reps{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 10px;} .plz-rep{display:flex;flex-direction:column;align-items:center;gap:2px;border:1px solid var(--bd2);background:var(--sur);border-radius:10px;padding:4px 6px;cursor:pointer;font:inherit;font-size:.66rem;color:var(--sub);}
 .plz-rep.on{border-color:#2563EB;box-shadow:0 0 0 2px #BFD3FE;color:var(--tx);} .plz-card.me{background:#EFF4FF;} .plz-me{font-style:normal;font-size:.62rem;background:#2563EB;color:#fff;border-radius:4px;padding:0 4px;margin-left:4px;}
@@ -9635,7 +9636,7 @@ function petPanelHTML(){
                : `<div class="dex unk"><i>?</i><span>&nbsp;</span></div>`; }).join('')}</div>
       <h4 class="dex-hd" style="margin-top:14px;">도장깨기</h4><div class="pet-dex">${PET_KINDS.filter(k=>k.gift&&(k.gift!=='lab'||plazaOn())).map(k=>{ const o=petSt.owned[k.id];
         const G=petGiftRule(k.gift); let hv=0; try{ hv=G.have(); }catch(e){} const hint=`${G.lab} ${Math.min(G.need,hv)}/${G.need}${G.unit||''}`;
-        return o ? `<button class="dex${_petSel===k.id?' on':''}${petSt.active.includes(k.id)?' walk':''}" onclick="_petSel='${k.id}';renderSettings('pet')"><canvas data-k="${k.id}" width="48" height="48"></canvas><span>${esc(petName(k.id))}</span></button>`
+        return o ? `<button class="dex${_petSel===k.id?' on':''}${petSt.active.includes(k.id)?' walk':''}" onclick="_petSel='${k.id}';renderSettings('pet')"><canvas data-k="${k.id}" width="48" height="48"></canvas><span>${esc(petName(k.id))}</span><small class="dex-why">${esc(G.lab)} ${G.need}${esc(G.unit||'')}</small></button>`
                  : `<div class="dex unk"><i>?</i><span>${hint}</span></div>`; }).join('')}</div>
 </div>`;
   let det='';
