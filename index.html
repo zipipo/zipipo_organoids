@@ -9859,50 +9859,56 @@ let _plaza=null, _plazaErr='', _plazaOff=false;
 //    따로 저장하지 않아서 누가 열어도 같은 광장. 자리는 물품마다 고정 (풀밭 위쪽 줄, 왼쪽부터)
 // 2026-11-17부터 센 기록만 (유진: 예전 기록으로 이미 다 깨면 재미없음). 문서 칸 이름도 tot → deco로 바꿔 예전에 올린 누적값은 안 씀
 const PLZ_START='2026-11-17';
+// ── 광장 = 장미 정원 (2026-11-20, 유진: 동숲 사진처럼 한 가지 분위기로) ──
+// 색은 이 팔레트만 씀: 짙은 초록 잔디 · 숲, 먼지 낀 분홍 꽃, 크림 돌, 따뜻한 나무, 연분홍 데크
+const PZ={grass:'#86B06E',grass2:'#7FA968',tick:'#9CC484',treeD:'#4E7A4B',tree:'#5F8F57',treeL:'#78A86B',treeX:'#93BF80',
+  wood:'#C58C68',woodD:'#9C6A50',woodL:'#DDAE8C',stone:'#EFE8E3',stoneD:'#D7CCC6',rose:'#EE8FA5',roseD:'#D46E88',pinkL:'#F6C9D3',pinkX:'#FBE3E8',
+  cream:'#FFF6EA',creamD:'#EADBC8',deck:'#E9BDB8',deckD:'#D7A3A0',cliff:'#C7826A',cliffD:'#A8654F',water:'#A6D3E8',waterD:'#86BCD8',waterL:'#CBE7F3',
+  glow:'#FFE3A6',blue:'#9EC3DF',leaf:'#6E9E5E'};
 const PLZ_ITEMS=[
-  {id:'sign',     name:'랩 표지판',    k:'mc',    need:15,   unit:'MC'},
+  {id:'sign',     name:'나무 팻말',    k:'mc',    need:15,   unit:'MC'},
   {id:'bench',    name:'벤치',         k:'mc',    need:40,   unit:'MC'},
-  {id:'bed',      name:'꽃밭',         k:'split', need:8,    unit:'Split'},
-  {id:'tree',     name:'나무',         k:'stock', need:10,   unit:'Stock vial'},
+  {id:'bed',      name:'장미 화단',    k:'split', need:8,    unit:'Split'},
+  {id:'tree',     name:'큰 나무',      k:'stock', need:10,   unit:'Stock vial'},
   {id:'shroom',   name:'버섯 무리',    k:'days',  need:15,   unit:'일한 날'},
-  {id:'path',     name:'돌길',         k:'mc',    need:60,   unit:'MC'},
+  {id:'path',     name:'꽃 타일',      k:'mc',    need:60,   unit:'MC'},
   {id:'mailbox',  name:'우체통',       k:'split', need:15,   unit:'Split'},
-  {id:'pine',     name:'소나무',       k:'stock', need:20,   unit:'Stock vial'},
+  {id:'pine',     name:'둥근 덤불',    k:'stock', need:20,   unit:'Stock vial'},
   {id:'lamp',     name:'가로등',       k:'mc',    need:80,   unit:'MC'},
-  {id:'slide',    name:'미끄럼틀',     k:'split', need:25,   unit:'Split'},
+  {id:'slide',    name:'통나무 울타리', k:'split', need:25,  unit:'Split'},
   {id:'notice',   name:'게시판',       k:'days',  need:25,   unit:'일한 날'},
   {id:'stream',   name:'시냇물',       k:'mc',    need:120,  unit:'MC'},
-  {id:'bush',     name:'덤불',         k:'stock', need:30,   unit:'Stock vial'},
+  {id:'bush',     name:'장미 덤불',    k:'stock', need:30,   unit:'Stock vial'},
   {id:'fountain', name:'분수',         k:'mc',    need:150,  unit:'MC'},
-  {id:'hutch',    name:'토끼집',       k:'split', need:40,   unit:'Split'},
-  {id:'sunflowers',name:'해바라기 밭', k:'stock', need:40,   unit:'Stock vial'},
+  {id:'hutch',    name:'그루터기 화분', k:'split', need:40,  unit:'Split'},
+  {id:'sunflowers',name:'튤립',        k:'stock', need:40,   unit:'Stock vial'},
   {id:'picnic',   name:'피크닉 매트',  k:'days',  need:40,   unit:'일한 날'},
   {id:'bridge',   name:'나무 다리',    k:'mc',    need:200,  unit:'MC'},
   {id:'bench2',   name:'벤치 하나 더', k:'mc',    need:250,  unit:'MC'},
   {id:'pond',     name:'연못',         k:'mc',    need:300,  unit:'MC'},
   {id:'well',     name:'우물',         k:'split', need:60,   unit:'Split'},
-  {id:'apple',    name:'사과나무',     k:'stock', need:60,   unit:'Stock vial'},
-  {id:'stall',    name:'레모네이드 가게', k:'days', need:60,  unit:'일한 날'},
+  {id:'apple',    name:'꽃나무',       k:'stock', need:60,   unit:'Stock vial'},
+  {id:'stall',    name:'꽃 노점',      k:'days',  need:60,   unit:'일한 날'},
   {id:'lamp2',    name:'가로등 하나 더', k:'mc',  need:350,  unit:'MC'},
-  {id:'arch',     name:'무지개 아치',  k:'mc',    need:400,  unit:'MC'},
-  {id:'sandbox',  name:'모래놀이터',   k:'split', need:80,   unit:'Split'},
-  {id:'campfire', name:'모닥불',       k:'stock', need:80,   unit:'Stock vial'},
+  {id:'arch',     name:'장미 아치',    k:'mc',    need:400,  unit:'MC'},
+  {id:'sandbox',  name:'촛대',         k:'split', need:80,   unit:'Split'},
+  {id:'campfire', name:'새장 랜턴',    k:'stock', need:80,   unit:'Stock vial'},
   {id:'swing',    name:'그네',         k:'mc',    need:500,  unit:'MC'},
-  {id:'tent',     name:'텐트',         k:'split', need:120,  unit:'Split'},
-  {id:'telescope',name:'망원경',       k:'stock', need:120,  unit:'Stock vial'},
+  {id:'tent',     name:'파라솔 테이블', k:'split', need:120, unit:'Split'},
+  {id:'telescope',name:'백합 화분',    k:'stock', need:120,  unit:'Stock vial'},
   {id:'lights',   name:'반짝 전구줄',  k:'days',  need:90,   unit:'일한 날'},
-  {id:'windmill', name:'풍차',         k:'mc',    need:700,  unit:'MC'},
+  {id:'windmill', name:'나무 데크',    k:'mc',    need:700,  unit:'MC'},
   {id:'cherry',   name:'벚꽃나무',     k:'mc',    need:900,  unit:'MC'},
-  {id:'gazebo',   name:'정자',         k:'split', need:180,  unit:'Split'},
-  {id:'balloon',  name:'열기구',       k:'mc',    need:1200, unit:'MC'},
+  {id:'gazebo',   name:'퍼걸러',       k:'split', need:180,  unit:'Split'},
+  {id:'balloon',  name:'꽃집',         k:'mc',    need:1200, unit:'MC'},
   {id:'welcome',  name:'환영 매트',    k:'visit', need:20,   unit:'방문'},
-  {id:'clock',    name:'시계탑',       k:'visit', need:100,  unit:'방문'},
+  {id:'clock',    name:'정원 대문',    k:'visit', need:100,  unit:'방문'},
   {id:'flag',     name:'이번 주 목표 깃발', week:true, unit:`이번 주 MC ${LAB_GOAL}`},
 ];
-// 큰 물품(2배로 그림) · 같은 그림 쓰는 것 · 바닥에 깔리는 것(시냇물 · 돌길 · 연못 · 전구줄은 따로 그림)
-const PLZ_BIG={arch:2,windmill:2,cherry:2,clock:2,gazebo:2,fountain:2,tree:2};
+// 32칸으로 크게 그리는 것(나무 · 아치 · 꽃집 등), 같은 그림, 바닥에 깔리는 것
+const PLZ_SZ={tree:32,cherry:32,arch:32,balloon:32,gazebo:32,fountain:32};
 const PLZ_ALIAS={lamp2:'lamp',bench2:'bench'};
-const PLZ_GROUND={stream:1,path:1,pond:1,lights:1};
+const PLZ_GROUND={stream:1,path:1,pond:1,lights:1,windmill:1};
 // 내 누적 기록 (광장 프로필에 같이 올림)
 function plazaMyTot(){
   const ls=logs.filter(l=>(l.date||'')>=PLZ_START && !isSeed(l.action) && !/finish/i.test(l.action||''));
@@ -9917,64 +9923,6 @@ function plazaLabTot(){
   _plzTotSrc=_plaza; _plzTot=t; return t;
 }
 const plazaItemOn=(it,t)=>it.week? t.wk>=LAB_GOAL : (t[it.k]||0)>=it.need;
-// 물품 그리기 (16×16 칸 기준, u = 한 칸 크기)
-function pmDrawItem(ctx,id,x0,y0,u){
-  const R=(x,y,w,h,c)=>{ ctx.fillStyle=c; ctx.fillRect(x0+x*u,y0+y*u,w*u,h*u); };
-  switch(id){
-    case 'sign': R(7,7,2,9,'#C9A27E'); R(1,2,14,6,'#F3E3C3'); R(1,2,14,1,'#E2CDA4'); R(3,4,10,1,'#9C7B5B'); R(4,6,8,1,'#C9A27E'); break;
-    case 'bench': R(0,7,16,2,'#D9B48A'); R(0,11,16,2,'#D9B48A'); R(1,9,1,2,'#9C7B5B'); R(14,9,1,2,'#9C7B5B'); R(1,13,1,3,'#9C7B5B'); R(14,13,1,3,'#9C7B5B'); break;
-    case 'bed': R(0,12,16,4,'#C9A07E'); [[1,'#F7A8B8'],[4,'#FFD27A'],[7,'#C9B5F2'],[10,'#F7A8B8'],[13,'#FFFFFF']].forEach(([x,c],i)=>{ R(x+1,9-(i%2),1,4,'#8CC274'); R(x,7-(i%2),3,3,c); R(x+1,8-(i%2),1,1,'#FFE37A'); }); break;
-    case 'lamp': R(7,3,2,13,'#B98A64'); R(5,14,6,2,'#B98A64'); R(4,0,8,4,'#C99A6B'); R(5,1,6,2,'#FFF1B8'); break;
-    case 'tree': R(6,10,4,6,'#A47C5B'); R(2,1,12,10,'#9FD08A'); R(1,3,14,6,'#9FD08A'); R(4,2,4,3,'#B8DEA6'); break;
-    case 'fountain': R(0,11,16,5,'#BFD8EE'); R(0,10,16,2,'#A9C4DE'); R(7,4,2,7,'#D7ECFA'); R(5,2,6,2,'#D7ECFA'); R(3,4,2,1,'#D7ECFA'); R(11,4,2,1,'#D7ECFA'); R(2,12,12,2,'#D7ECFA'); break;
-    case 'scope': R(2,14,12,2,'#8A94A6'); R(9,5,3,9,'#8A94A6'); R(3,10,8,1,'#6B7A90'); R(4,2,4,7,'#6B7A90'); R(5,0,2,2,'#4B5563'); R(5,9,2,1,'#4B5563'); break;
-    case 'tank': R(2,4,12,12,'#DDE6EE'); R(4,1,8,3,'#8B9AAA'); R(2,9,12,2,'#BFD8EE'); R(3,5,1,9,'#EEF3F7'); break;
-    case 'picnic': for(let i=0;i<8;i++) R(i*2,12,2,4,i%2?'#FFFFFF':'#F7B8C8'); R(10,8,5,4,'#D9B48A'); R(11,7,3,1,'#9C7B5B'); R(2,10,3,2,'#F7A8B8'); break;
-    case 'arch': ['#F7A8B8','#FFD27A','#B9E4A5','#A9CFF5','#C9B5F2'].forEach((c,i)=>{ ctx.strokeStyle=c; ctx.lineWidth=u*1.4; ctx.beginPath(); ctx.arc(x0+8*u,y0+16*u,(8-i*1.3)*u,Math.PI,0); ctx.stroke(); }); break;
-    case 'flag': R(2,0,1,16,'#B98A64'); R(3,1,8,5,'#FFD27A'); R(5,2,3,1,'#F59E3B'); R(5,4,4,1,'#F59E3B'); R(1,15,3,1,'#B98A64'); break;
-    case 'bridge': R(0,7,16,5,'#D9B48A'); for(let x=0;x<16;x+=3) R(x,7,1,5,'#C49A6B'); R(0,4,16,1,'#A47C5B'); R(1,4,1,4,'#A47C5B'); R(7,4,1,4,'#A47C5B'); R(14,4,1,4,'#A47C5B'); R(0,12,16,1,'#A47C5B'); break;
-    case 'stream': R(0,4,16,8,'#A9D8F0'); R(0,4,16,1,'#8FC4E0'); R(0,11,16,1,'#8FC4E0'); R(3,6,3,1,'#FFFFFF'); R(9,9,4,1,'#FFFFFF'); R(6,7,6,1,'#C8E8F7'); break;
-    case 'path': [[1,11],[6,7],[10,3],[11,12]].forEach(([x,y])=>{ R(x,y,5,3,'#E3D9C2'); R(x+1,y,3,2,'#F3EDDF'); }); break;
-    case 'pond': R(1,6,14,8,'#A9D8F0'); R(3,5,10,1,'#A9D8F0'); R(3,14,10,1,'#A9D8F0'); R(4,8,5,3,'#C8E8F7'); R(9,10,4,2,'#7FBF66'); R(10,9,1,1,'#F7A8C0'); break;
-    case 'lights': R(0,4,2,1,'#8A94A6'); R(2,5,3,1,'#8A94A6'); R(5,6,6,1,'#8A94A6'); R(11,5,3,1,'#8A94A6'); R(14,4,2,1,'#8A94A6'); [[1,5,'#F7A8B8'],[4,6,'#FFD27A'],[7,7,'#9ED8F0'],[10,7,'#B9E4A5'],[13,6,'#C9B5F2']].forEach(([x,y,c])=>R(x,y,2,2,c)); break;
-    case 'welcome': R(1,11,14,5,'#F7B8C8'); R(2,12,12,3,'#FFF1F4'); R(4,13,1,1,'#E0607E'); R(6,13,4,1,'#E0607E'); R(11,13,1,1,'#E0607E'); break;
-    case 'clock': R(5,4,6,12,'#F3E3C3'); R(4,3,8,1,'#C99A6B'); R(6,0,4,3,'#EBA3A3'); R(7,0,2,1,'#FFD27A'); R(6,5,4,4,'#FFFFFF'); R(7,6,1,2,'#5B4A4A'); R(8,7,1,1,'#5B4A4A'); R(7,12,2,4,'#A47C5B'); R(4,15,8,1,'#C99A6B'); break;
-    case 'slide': R(1,4,2,12,'#9ED8F0'); R(4,4,2,12,'#9ED8F0'); R(1,6,5,1,'#CFE7F8'); R(1,9,5,1,'#CFE7F8'); R(1,12,5,1,'#CFE7F8'); R(0,3,7,2,'#F7A8B8'); for(let i=0;i<10;i++) R(6+i,4+i,2,2,'#FFD27A'); R(14,14,2,2,'#FFD27A'); break;
-    case 'sunflowers': [[1,6],[6,3],[11,5]].forEach(([x,y],i)=>{ R(x+2,y+4,1,16-y-4,'#7DB86C'); R(x,y,5,5,'#FFD45E'); R(x+1,y+1,3,3,'#A47C5B'); R(x+3,y+7,2,1,'#8CC67A'); }); R(0,15,16,1,'#8CC67A'); break;
-    case 'shroom': [[2,9,'#F7A3A3'],[8,6,'#F9D08C'],[11,10,'#F7A3A3']].forEach(([x,y,c],i)=>{ const w=i===1?6:5; R(x+1,y+3,w-2,16-y-3,'#FFF3DE'); R(x,y,w,3,c); R(x+1,y-1,w-2,1,c); R(x+1,y,1,1,'#FFFFFF'); R(x+w-2,y+1,1,1,'#FFFFFF'); }); R(0,15,16,1,'#A9D18E'); break;
-    case 'mailbox': R(7,8,2,8,'#A47C5B'); R(3,2,10,7,'#F7B8C8'); R(3,2,10,1,'#FBD0DA'); R(4,5,6,1,'#D98A9C'); R(12,3,2,4,'#FFD27A'); R(12,3,1,1,'#C99A2E'); break;
-    case 'pine': R(7,12,2,4,'#A47C5B'); R(6,1,4,3,'#7FBF8A'); R(4,4,8,3,'#7FBF8A'); R(3,7,10,3,'#6FB37E'); R(2,10,12,3,'#6FB37E'); R(7,0,2,1,'#FFE37A'); R(5,5,1,1,'#B8E0BC'); R(4,8,1,1,'#B8E0BC'); break;
-    case 'notice': R(2,13,2,3,'#A47C5B'); R(12,13,2,3,'#A47C5B'); R(1,3,14,10,'#C99A6B'); R(2,4,12,8,'#F3E3C3'); R(3,5,4,3,'#FFFFFF'); R(8,5,5,2,'#F7C9D4'); R(8,8,5,3,'#CFE7F8'); R(4,9,3,2,'#FFE9A8'); R(4,5,1,1,'#EBA3A3'); break;
-    case 'bush': R(1,7,14,8,'#8CC67A'); R(3,4,10,4,'#9ED48C'); R(2,6,4,3,'#9ED48C'); R(4,6,1,1,'#F7A8B8'); R(9,5,1,1,'#FFFFFF'); R(12,9,1,1,'#F7A8B8'); R(6,11,1,1,'#FFFFFF'); R(1,14,14,1,'#7DB86C'); break;
-    case 'hutch': R(2,7,12,9,'#F3D9B1'); R(1,5,14,3,'#EBA3A3'); R(3,3,10,2,'#EBA3A3'); R(6,10,4,6,'#8E6A4C'); R(7,10,2,1,'#6E5038'); R(3,9,2,2,'#CFE7F8'); R(11,9,2,2,'#CFE7F8'); R(12,12,2,4,'#FFFFFF'); R(12,10,1,2,'#FFFFFF'); R(13,10,1,2,'#FFFFFF'); break;
-    case 'well': R(2,9,12,7,'#E3D9C2'); R(2,9,12,1,'#F3EDDF'); [4,8,12].forEach(x=>R(x,11,1,1,'#C9BA9C')); R(3,10,10,1,'#7FB2D9'); R(3,2,1,7,'#A47C5B'); R(12,2,1,7,'#A47C5B'); R(1,1,14,2,'#D98A8A'); R(7,4,2,3,'#8E6A4C'); break;
-    case 'apple': R(6,10,4,6,'#A47C5B'); R(2,1,12,10,'#8FCB7A'); R(1,3,14,6,'#8FCB7A'); R(4,2,4,2,'#A9D894'); [[3,4],[9,3],[11,7],[5,7],[8,9]].forEach(([x,y])=>{ R(x,y,2,2,'#F27B7B'); }); R(11,15,2,1,'#F27B7B'); break;
-    case 'stall': R(2,8,12,8,'#FFF3D6'); R(1,6,14,2,'#F3E3C3'); for(let i=0;i<7;i++) R(1+i*2,2,2,4,i%2?'#FFFFFF':'#FFD45E'); R(1,1,14,1,'#E8B93A'); R(4,10,2,3,'#FFE37A'); R(4,9,2,1,'#FFFFFF'); R(9,10,3,3,'#F9C1D2'); R(2,15,12,1,'#D9C3A0'); break;
-    case 'sandbox': R(0,8,16,8,'#C99A6B'); R(1,9,14,6,'#F6E3B4'); R(3,11,4,2,'#EED29A'); R(10,10,3,3,'#9ED8F0'); R(11,8,1,2,'#9ED8F0'); R(6,9,2,2,'#F7A8B8'); break;
-    case 'campfire': R(3,13,10,2,'#A47C5B'); R(5,12,6,1,'#8E6A4C'); R(6,7,4,5,'#F7A440'); R(7,4,2,3,'#FFD27A'); R(5,9,1,3,'#F59E3B'); R(10,8,1,4,'#F59E3B'); R(7,9,2,3,'#FFE37A'); [[1,14],[14,14],[2,12],[13,12]].forEach(([x,y])=>R(x,y,2,2,'#D9CDB8')); break;
-    case 'swing': R(1,1,14,2,'#C99A6B'); R(1,1,2,15,'#C99A6B'); R(13,1,2,15,'#C99A6B'); R(5,3,1,8,'#D9C3A0'); R(10,3,1,8,'#D9C3A0'); R(4,11,8,2,'#F7A8B8'); break;
-    case 'tent': R(7,1,2,2,'#C99A6B'); for(let y=3;y<16;y++){ const hw=Math.round((y-2)*0.6); R(8-hw,y,hw*2,1,y%3===0?'#FFE9A8':'#9ED8F0'); } R(7,9,2,7,'#5B6B80'); break;
-    case 'telescope': R(7,9,2,5,'#B98A64'); R(4,14,3,2,'#B98A64'); R(9,14,3,2,'#B98A64'); R(2,4,10,4,'#CFE7F8'); R(12,3,3,6,'#9ED8F0'); R(1,5,1,2,'#9ED8F0'); R(4,4,8,1,'#E6F3FB'); break;
-    case 'windmill': R(5,8,6,8,'#F3E3C3'); R(4,7,8,1,'#C99A6B'); R(6,6,4,1,'#C99A6B'); R(7,12,2,4,'#A47C5B'); R(6,9,2,2,'#CFE7F8'); R(7,4,2,2,'#8E6A4C'); R(8,0,1,5,'#FFFFFF'); R(9,4,6,1,'#FFFFFF'); R(2,5,6,1,'#FFFFFF'); R(7,5,1,5,'#FFFFFF'); R(9,0,2,4,'#F7C9D4'); R(10,5,4,2,'#F7C9D4'); R(1,3,5,2,'#F7C9D4'); R(5,6,2,4,'#F7C9D4'); break;
-    case 'cherry': R(7,10,2,6,'#A47C5B'); R(5,12,2,1,'#A47C5B'); R(2,2,12,8,'#F9C6D4'); R(1,4,14,5,'#F9C6D4'); R(4,1,8,2,'#FBD7E1'); [[3,3],[9,2],[12,5],[5,7],[9,7],[2,6]].forEach(([x,y])=>R(x,y,1,1,'#FFFFFF')); R(3,15,1,1,'#F9C6D4'); R(12,14,1,1,'#F9C6D4'); break;
-    case 'gazebo': R(1,4,14,2,'#EBA3A3'); R(3,2,10,2,'#EBA3A3'); R(6,0,4,2,'#EBA3A3'); R(7,0,2,1,'#FFD27A'); R(2,6,1,9,'#FFFFFF'); R(13,6,1,9,'#FFFFFF'); R(7,6,2,9,'#FFFFFF'); R(1,14,14,2,'#D9C3A0'); R(3,11,10,1,'#F3E3C3'); break;
-    case 'balloon': R(4,0,8,2,'#F9C1D2'); R(2,2,12,6,'#F9C1D2'); R(3,8,10,2,'#F9C1D2'); R(5,10,6,1,'#F9C1D2'); R(6,0,4,11,'#FFF3B0'); R(5,11,1,2,'#A47C5B'); R(10,11,1,2,'#A47C5B'); R(5,13,6,3,'#D9B48A'); break;
-  }
-}
-// 물품 자리 (x 0–1, 바닥선 y 0–1): 섬 꾸미기처럼 구역을 나눔
-//  뒤쪽: 풍차 · 소나무 숲(왼쪽 위), 무지개 아치 · 전구줄(가운데 뒤), 벚꽃나무 · 망원경(오른쪽 위)
-//  가운데: 분수 광장 + 양옆 가로등 · 벤치, 앞 입구에서 분수까지 돌길
-//  오른쪽: 위에서 아래로 굽이치는 시냇물 + 나무 다리, 건너편엔 랩 코너(현미경 · LN2 탱크)와 캠핑(텐트 · 모닥불), 아래 연못
-//  왼쪽: 나무 · 사과나무 · 덤불 정원, 그네 · 모래놀이터 · 정자, 앞쪽 입구에 표지판 · 꽃밭 · 우체통 · 토끼집
-const PLZ_SPOT={windmill:[0.07,0.3], pine:[0.17,0.24], arch:[0.47,0.3], flag:[0.22,0.22], cherry:[0.64,0.3], telescope:[0.9,0.24], balloon:[0.4,0.1],
-  tree:[0.06,0.55], apple:[0.21,0.4], bush:[0.15,0.42], well:[0.27,0.52], gazebo:[0.12,0.74], swing:[0.25,0.7], sandbox:[0.29,0.86],
-  fountain:[0.47,0.64], lamp:[0.35,0.55], lamp2:[0.59,0.55], bench:[0.36,0.76], bench2:[0.58,0.77], notice:[0.62,0.47], stall:[0.62,0.93],
-  slide:[0.83,0.44], sunflowers:[0.93,0.52], tent:[0.94,0.76], campfire:[0.85,0.72], picnic:[0.86,0.99], hutch:[0.43,0.97],
-  welcome:[0.53,1.0], clock:[0.3,0.33],
-  sign:[0.04,0.99], bed:[0.14,0.99], mailbox:[0.25,0.99], shroom:[0.36,0.38], bridge:[0.735,0.62]};
-// 시냇물: 위에서 들어와 오른쪽으로 굽이쳐 아래로 (다리 자리를 지나감)
-const PLZ_STREAM=[[0.7,-0.05],[0.73,0.15],[0.69,0.35],[0.73,0.55],[0.74,0.68],[0.7,0.85],[0.73,1.05]];
-function plzStreamAt(fy){ const P=PLZ_STREAM; for(let i=0;i+1<P.length;i++){ const [x0,y0]=P[i],[x1,y1]=P[i+1]; if(fy>=y0&&fy<=y1){ const g=(fy-y0)/(y1-y0), e=g*g*(3-2*g); return x0+(x1-x0)*e; } } return P[P.length-1][0]; }
 // 물품을 세포처럼 픽셀 그림으로: 16칸 그림을 한 칸 = 1점으로 그린 뒤 반투명 점은 버리고(각지게),
 // 바깥에 그 색을 어둡게 한 테두리를 둘러(세포 그림과 같은 방식) 캐시. 화면에는 정수 배율로 키워서 찍음
 const _plzSpr={};
@@ -9989,77 +9937,136 @@ function plzPixelize(draw,w,h){
     if(nb!=null&&nb>=0){ const [r,g,b]=plzDark(d[nb*4],d[nb*4+1],d[nb*4+2]); o[i*4]=r; o[i*4+1]=g; o[i*4+2]=b; o[i*4+3]=255; } }
   x.clearRect(0,0,w,h); x.putImageData(out,0,0); return c;
 }
-function plzSprite(id){ id=PLZ_ALIAS[id]||id; return _plzSpr[id]||(_plzSpr[id]=plzPixelize(x=>pmDrawItem(x,id,1,1,1),18,18)); }
-function plzFloor(){ return _plzSpr._floor||(_plzSpr._floor=plzPixelize(x=>{ x.fillStyle='#E9E0CC'; x.beginPath(); x.ellipse(32,10,30,8.5,0,0,Math.PI*2); x.fill();
-  x.fillStyle='#F3EDDF'; x.beginPath(); x.ellipse(32,9.2,27,6.8,0,0,Math.PI*2); x.fill();
-  x.fillStyle='#E3D9C2'; [[12,8],[22,12],[40,7],[50,11],[30,13],[18,6],[45,14]].forEach(([a,b])=>x.fillRect(a,b,2,1)); },64,20)); }
-// 바탕: 연한 체크무늬 잔디 + 위쪽 숲 가장자리(둥근 나무 꼭대기 줄)로 「한 장소」처럼 테두리
+// 물품 그림 (16칸, 큰 것은 32칸). 모두 PZ 팔레트만
+function plzArt(ctx,id){
+  const P=PZ, R=(x,y,w,h,c)=>{ ctx.fillStyle=c; ctx.fillRect(1+x,1+y,w,h); };
+  const C=(cx,cy,r,c)=>{ for(let y=Math.floor(cy-r);y<=cy+r;y++) for(let x=Math.floor(cx-r);x<=cx+r;x++) if((x+.5-cx)**2+(y+.5-cy)**2<=r*r) R(x,y,1,1,c); };
+  const rose=(x,y,c)=>{ R(x,y,3,3,c||P.rose); R(x+1,y+1,1,1,P.roseD); R(x,y,1,1,P.pinkL); };
+  const leaves=(x,y)=>{ R(x,y,1,1,P.leaf); R(x+2,y,1,1,P.leaf); };
+  switch(id){
+    case 'sign': R(7,9,2,7,P.wood); R(1,2,14,8,P.woodL); R(1,9,14,1,P.woodD); R(3,4,10,1,P.woodD); R(4,6,8,1,P.woodD); rose(12,0); break;
+    case 'bench': R(2,3,1,9,P.woodD); R(13,3,1,9,P.woodD); R(1,4,14,2,P.cream); R(1,7,14,1,P.cream); R(0,9,16,2,P.cream); R(0,11,16,1,P.creamD); R(1,12,2,4,P.woodD); R(13,12,2,4,P.woodD); break;
+    case 'bed': R(0,12,16,4,P.woodD); R(0,12,16,1,P.wood); [1,5,9,13].forEach((x,i)=>{ R(x+1,8+(i%2),1,4,P.leaf); leaves(x,10); rose(x,6+(i%2),i%2?P.pinkL:P.rose); }); break;
+    case 'shroom': [[1,8,P.rose],[7,5,P.pinkL],[11,9,P.rose]].forEach(([x,y,c],i)=>{ const w=i===1?6:5; R(x+1,y+3,w-2,16-y-3,P.cream); R(x,y,w,3,c); R(x+1,y-1,w-2,1,c); R(x+1,y,1,1,P.pinkX); R(x+w-2,y+1,1,1,P.pinkX); }); break;
+    case 'mailbox': R(7,8,2,8,P.wood); R(3,2,10,7,P.cream); R(3,2,10,2,P.creamD); R(4,6,6,1,P.creamD); R(12,1,1,5,P.woodD); R(12,1,3,2,P.rose); break;
+    case 'pine': C(8,9,6.4,P.tree); C(6,7,3.6,P.treeL); C(5,6,1.6,P.treeX); R(3,14,10,2,P.treeD); break;
+    case 'lamp': R(7,5,2,10,P.stone); R(5,14,6,2,P.stoneD); R(5,1,6,5,P.stone); R(6,2,4,3,P.glow); R(6,0,4,1,P.stoneD); R(7,-1,2,1,P.stoneD); R(4,5,8,1,P.stoneD); break;
+    case 'slide': [0,4,8,12].forEach((x,i)=>{ const h=9+(i%2); R(x,16-h,3,h,P.wood); R(x,16-h,3,1,P.woodL); R(x+1,16-h+3,1,1,P.woodD); }); R(0,9,16,1,P.woodD); break;
+    case 'notice': R(2,12,2,4,P.wood); R(12,12,2,4,P.wood); R(1,2,14,10,P.wood); R(2,3,12,8,P.creamD); R(3,4,4,4,P.cream); R(8,4,5,2,P.pinkL); R(8,7,5,3,P.cream); R(4,9,3,1,P.rose); break;
+    case 'bush': C(8,10,6.6,P.tree); C(6,8,3,P.treeL); [[3,7],[8,5],[11,9],[6,11],[12,6]].forEach(([x,y],i)=>{ R(x,y,2,2,i%2?P.pinkL:P.rose); }); break;
+    case 'hutch': R(3,10,10,6,P.creamD); R(3,9,10,2,P.stoneD); R(5,9,6,1,P.woodL); R(5,4,6,5,P.stone); R(5,4,6,1,P.stoneD); rose(4,1); rose(9,1,P.pinkL); R(7,2,2,2,P.leaf); break;
+    case 'sunflowers': [[1,5],[5,3],[9,5],[13,4]].forEach(([x,y],i)=>{ R(x+1,y+4,1,16-y-4,P.leaf); R(x,y,3,4,i%2?P.rose:P.roseD); R(x,y-1,1,1,i%2?P.rose:P.roseD); R(x+2,y-1,1,1,i%2?P.rose:P.roseD); R(x+2,y+7,2,1,P.leaf); }); break;
+    case 'picnic': for(let i=0;i<8;i++) for(let j=0;j<2;j++) R(i*2,11+j*2,2,2,(i+j)%2?P.cream:P.pinkL); R(10,7,5,4,P.wood); R(11,6,3,1,P.woodD); R(2,9,3,2,P.rose); break;
+    case 'bridge': R(0,7,16,5,P.wood); for(let x=0;x<16;x+=3) R(x,7,1,5,P.woodD); R(0,4,16,1,P.woodD); R(1,4,1,4,P.woodD); R(7,4,1,4,P.woodD); R(14,4,1,4,P.woodD); break;
+    case 'well': R(2,9,12,7,P.stone); R(2,9,12,1,P.cream); [4,8,12].forEach(x=>R(x,12,1,1,P.stoneD)); R(3,10,10,1,P.water); R(3,3,1,6,P.wood); R(12,3,1,6,P.wood); R(1,1,14,3,P.rose); R(2,0,12,1,P.roseD); break;
+    case 'apple': R(7,11,2,5,P.wood); C(8,6.5,6,P.pinkL); C(6,5,3,P.pinkX); [[4,7],[10,4],[11,8],[6,3]].forEach(([x,y])=>R(x,y,1,1,P.rose)); break;
+    case 'stall': R(2,8,12,8,P.cream); for(let i=0;i<7;i++) R(1+i*2,3,2,4,i%2?P.cream:P.rose); R(1,7,14,1,P.roseD); R(1,2,14,1,P.roseD); R(2,9,12,2,P.wood); rose(3,11); rose(7,11,P.pinkL); rose(11,11); break;
+    case 'sandbox': [[3,P.rose],[11,P.pinkL]].forEach(([x,c])=>{ R(x,12,4,1,P.stone); R(x+1,6,2,10,P.stone); R(x,6,4,1,P.stoneD); R(x+1,1,2,5,c); R(x+1,-1,2,2,P.glow); }); break;
+    case 'campfire': R(7,9,2,7,P.woodD); R(5,15,6,1,P.woodD); R(4,2,8,7,P.roseD); R(5,3,6,5,P.glow); R(6,3,1,5,P.roseD); R(9,3,1,5,P.roseD); R(6,1,4,1,P.roseD); R(7,0,2,1,P.roseD); break;
+    case 'swing': R(1,1,14,2,P.wood); R(1,1,2,15,P.wood); R(13,1,2,15,P.wood); R(5,3,1,8,P.creamD); R(10,3,1,8,P.creamD); R(4,11,8,2,P.pinkL); break;
+    case 'tent': R(0,4,16,2,P.pinkL); R(2,2,12,2,P.pinkL); R(5,1,6,1,P.pinkL); [1,5,9,13].forEach(x=>R(x,4,2,2,P.cream)); R(7,0,2,1,P.roseD); R(7,6,2,6,P.woodD); R(3,11,10,2,P.cream); R(4,13,1,3,P.woodD); R(11,13,1,3,P.woodD); break;
+    case 'telescope': R(3,9,10,7,P.stone); R(2,9,12,1,P.cream); R(4,15,8,1,P.stoneD); [[4,5],[8,3],[11,6]].forEach(([x,y],i)=>{ R(x+1,y+2,1,9-y-2,P.leaf); R(x,y,3,3,i===1?P.cream:P.pinkL); R(x+1,y+1,1,1,P.rose); }); break;
+    case 'welcome': R(1,11,14,5,P.rose); R(2,12,12,3,P.pinkX); R(4,13,8,1,P.roseD); break;
+    case 'clock': R(0,2,2,14,P.wood); R(14,2,2,14,P.wood); R(0,1,16,2,P.woodD); [3,6,9,12].forEach(x=>R(x,6,1,10,P.woodL)); R(2,8,12,1,P.wood); R(2,13,12,1,P.wood); rose(1,-1); rose(6,0,P.pinkL); rose(12,-1); break;
+    case 'flag': R(2,0,1,16,P.woodD); R(3,1,9,5,P.pinkL); R(3,1,9,1,P.rose); R(6,3,3,1,P.roseD); break;
+    case 'stream': R(0,4,16,8,P.water); R(0,4,16,1,P.waterD); R(0,11,16,1,P.waterD); R(3,6,3,1,P.waterL); R(9,9,4,1,P.waterL); break;
+    case 'path': [[1,10],[9,10],[5,3]].forEach(([x,y])=>{ R(x,y,6,5,P.pinkL); R(x+2,y+1,2,3,P.pinkX); R(x+1,y+2,4,1,P.pinkX); }); break;
+    case 'pond': R(1,6,14,8,P.water); R(3,5,10,1,P.water); R(3,14,10,1,P.water); R(4,8,5,2,P.waterL); R(9,10,4,2,P.leaf); R(10,9,1,1,P.rose); break;
+    case 'lights': R(0,4,16,1,P.woodD); [[1,5,P.glow],[5,6,P.pinkL],[9,6,P.glow],[13,5,P.pinkL]].forEach(([x,y,c])=>R(x,y,2,2,c)); break;
+    case 'windmill': R(0,6,16,9,P.deck); for(let y=8;y<15;y+=3) R(0,y,16,1,P.deckD); [2,7,12].forEach(x=>R(x,3,2,4,P.wood)); R(0,4,16,1,P.wood); break;
+    // ── 32칸 ──
+    case 'tree': R(14,22,4,10,P.woodD); R(12,30,8,2,P.woodD); C(16,13,11,P.treeD); C(10,15,7,P.tree); C(22,15,7,P.tree); C(16,9,8,P.tree); C(12,8,4.5,P.treeL); C(20,11,4,P.treeL); C(11,7,2,P.treeX); C(18,6,2,P.treeX); break;
+    case 'cherry': R(14,21,4,11,P.woodD); R(11,24,4,2,P.woodD); C(16,12,11,P.roseD); C(10,14,7,P.rose); C(22,14,7,P.rose); C(16,8,8,P.rose); C(12,8,4.5,P.pinkL); C(21,11,4,P.pinkL); C(11,6,2,P.pinkX); C(19,5,2,P.pinkX); break;
+    case 'arch': R(3,8,3,24,P.cream); R(26,8,3,24,P.cream); for(let x=3;x<=28;x++){ const y=Math.round(9-Math.sin((x-3)/25*Math.PI)*7); R(x,y,1,3,P.cream); }
+      for(let x=6;x<26;x++){ const y=Math.round(11-Math.sin((x-3)/25*Math.PI)*7); R(x,y,1,2+Math.round(Math.sin((x-6)/20*Math.PI)*4),P.blue); }
+      R(5,10,2,20,P.blue); R(25,10,2,20,P.blue); R(2,30,5,2,P.creamD); R(25,30,5,2,P.creamD);
+      [[2,6],[7,2],[13,0],[19,0],[24,2],[28,6],[1,12],[28,12]].forEach(([x,y],i)=>{ R(x,y,3,3,i%2?P.pinkL:P.rose); R(x+1,y+1,1,1,P.roseD); R(x+3,y+1,1,1,P.leaf); }); break;
+    case 'fountain': for(let y=0;y<9;y++){ const hw=Math.round(14*Math.sqrt(1-((y-4)/5)**2)); R(16-hw,22+y,hw*2,1,y<2?P.cream:P.stone); } R(4,24,24,4,P.water); R(6,25,8,1,P.waterL);
+      R(14,10,4,13,P.stone); R(9,12,14,3,P.stone); R(10,12,12,1,P.cream); R(11,13,10,1,P.water); R(15,3,2,7,P.waterL); R(13,4,1,2,P.waterL); R(18,4,1,2,P.waterL); R(15,1,2,2,P.cream); break;
+    case 'gazebo': R(1,4,30,3,P.wood); R(1,4,30,1,P.woodL); for(let x=2;x<30;x+=4) R(x,2,2,3,P.woodD); [3,27].forEach(x=>R(x,7,3,25,P.cream)); R(14,7,3,25,P.cream);
+      for(let x=1;x<31;x+=2){ R(x,7+((x/2)%3),2,2,(x/2)%2?P.leaf:P.tree); } [[2,9],[9,8],[20,9],[26,8],[4,15],[27,17]].forEach(([x,y],i)=>R(x,y,2,2,i%2?P.pinkL:P.rose)); R(0,30,32,2,P.creamD); break;
+    case 'balloon': R(3,12,26,18,'#E4A49A'); R(3,12,26,1,'#D08E86'); for(let y=2;y<12;y++){ const hw=Math.round(4+ (y-2)*1.35); R(16-hw,y,hw*2,1,y%3===0?'#8A7380':'#9C8592'); }
+      R(6,14,9,7,P.glow); R(6,17,9,1,P.woodL); R(10,14,1,7,P.woodL); R(19,18,6,12,P.woodD); R(20,19,4,4,P.glow); R(23,24,1,1,P.glow);
+      for(let i=0;i<7;i++) R(4+i*4,21,4,3,i%2?P.cream:P.leaf); R(4,24,24,1,P.tree); R(2,30,28,2,P.stoneD); R(9,6,14,3,P.cream); R(11,7,10,1,P.rose); break;
+  }
+}
+// 자리 (x 0–1, 바닥선 y 0–1). 뒤: 나무 데크 위 꽃집 · 장미 아치 · 가로등 · 촛대 · 랜턴, 가운데: 돌 원형 광장 + 분수 + 벤치,
+// 왼쪽: 큰 나무 · 장미 화단 · 퍼걸러 · 그네, 오른쪽: 시냇물 건너 벚꽃나무 · 튤립 · 파라솔 · 피크닉 · 연못, 앞: 입구 대문 · 환영 매트
+const PLZ_SPOT={balloon:[0.48,0.36], arch:[0.48,0.5], lamp:[0.35,0.47], lamp2:[0.61,0.47], sandbox:[0.4,0.38], campfire:[0.57,0.38], stall:[0.25,0.36],
+  slide:[0.3,0.5], pine:[0.65,0.5], lights:[0,0], flag:[0.62,0.26], apple:[0.17,0.27],
+  tree:[0.07,0.52], shroom:[0.15,0.56], bed:[0.23,0.6], notice:[0.33,0.62], well:[0.05,0.68], bush:[0.07,0.8], gazebo:[0.22,0.88], swing:[0.34,0.97],
+  fountain:[0.48,0.75], bench:[0.37,0.8], bench2:[0.6,0.83], hutch:[0.63,0.63],
+  cherry:[0.89,0.42], sunflowers:[0.82,0.58], telescope:[0.96,0.6], tent:[0.92,0.76], picnic:[0.82,0.8], bridge:[0.74,0.69],
+  sign:[0.6,0.99], mailbox:[0.16,0.97], clock:[0.48,1.0], welcome:[0.48,0.91]};
+const PLZ_STREAM=[[0.7,-0.05],[0.73,0.15],[0.69,0.35],[0.73,0.55],[0.74,0.69],[0.7,0.85],[0.73,1.05]];
+function plzStreamAt(fy){ const P=PLZ_STREAM; for(let i=0;i+1<P.length;i++){ const [x0,y0]=P[i],[x1,y1]=P[i+1]; if(fy>=y0&&fy<=y1){ const g=(fy-y0)/(y1-y0), e=g*g*(3-2*g); return x0+(x1-x0)*e; } } return P[P.length-1][0]; }
+// 돌 원형 광장 (사진처럼 둥글게 깐 돌): [x, y, 반지름(가로, 바닥 칸)]
+const PLZ_CIRCLES=[[0.48,0.73,15],[0.27,0.74,8],[0.62,0.93,7]];
+// 디딤돌 길: 입구 → 광장 → 아치, 광장 → 왼쪽 원 → 퍼걸러, 광장 → 다리 → 피크닉
+const PLZ_PATHS=[[[0.48,1.06],[0.48,0.83]],[[0.48,0.63],[0.48,0.52]],[[0.38,0.75],[0.33,0.75]],[[0.21,0.77],[0.2,0.85]],[[0.59,0.72],[0.67,0.7],[0.74,0.69],[0.8,0.73],[0.83,0.78]]];
+function plzPathPts(W,H,top,step){ const out=[]; PLZ_PATHS.forEach(P=>{ for(let i=0;i+1<P.length;i++){ const [x0,y0]=P[i],[x1,y1]=P[i+1]; const n=Math.max(1,Math.ceil(Math.hypot((x1-x0)*W,(y1-y0)*(H-top))/(step||3)));
+  for(let j=(i?1:0);j<=n;j++){ const g=j/n; out.push([(x0+(x1-x0)*g)*W, top+(y0+(y1-y0)*g)*(H-top)]); } } }); return out; }
+function plzSprite(id){ id=PLZ_ALIAS[id]||id; const n=PLZ_SZ[id]||16; return _plzSpr[id]||(_plzSpr[id]=plzPixelize(x=>plzArt(x,id),n+2,n+2)); }
+// 바탕: 짙은 초록 잔디 + 잔디 결, 위쪽 · 양옆은 빽빽한 숲으로 감싸고, 앞쪽은 흙 절벽 (섬 한 귀퉁이처럼)
 function plzBase(ctx,W,H,k){
-  const T=Math.max(8,Math.round(14*k)); ctx.fillStyle='#DCEFC8'; ctx.fillRect(0,0,W,H); ctx.fillStyle='#D5EBBF';
-  for(let y=0;y<H;y+=T) for(let x=((y/T)%2)*T;x<W;x+=T*2) ctx.fillRect(x,y,T,T);
-  const S=Math.max(1,Math.round(k*1.6)), top=18*k;
-  ctx.fillStyle='#A9D394'; ctx.fillRect(0,0,W,top*0.55);
-  for(let x=-S*4,i=0;x<W+S*8;x+=S*9,i++){ const r=S*(5+(i%3)), cy=top*0.55+(i%2?-S:S*0.5);
-    for(let dy=-r;dy<=r;dy+=S){ const hw=Math.round(Math.sqrt(r*r-dy*dy)/S)*S; ctx.fillStyle=dy<-r*0.4?'#BFE0AA':'#A9D394'; ctx.fillRect(x-hw,cy+dy,hw*2,S); } }
-  ctx.fillStyle='#93C47E'; for(let x=0;x<W;x+=S*3) ctx.fillRect(x,top*0.55+S*6+((x/S/3)%2)*S,S*2,S);
+  const P=PZ, S=Math.max(1,Math.round(k*1.6)), top=18*k, q=v=>Math.round(v/S)*S, F=(x,y,w,h,c)=>{ ctx.fillStyle=c; ctx.fillRect(q(x),q(y),Math.max(S,q(w)),Math.max(S,q(h))); };
+  const C=(cx,cy,r,c)=>{ for(let y=-r;y<=r;y+=S){ const hw=Math.sqrt(Math.max(0,r*r-y*y)); F(cx-hw,cy+y,hw*2,S,c); } };
+  ctx.fillStyle=P.grass; ctx.fillRect(0,0,W,H);
+  for(let i=0;i<220;i++){ const x=pmRand('tk',i,'x')*W, y=top+pmRand('tk',i,'y')*(H-top); F(x,y,S,S,i%3?P.tick:P.grass2); F(x+S,y+S,S,S,i%3?P.grass2:P.tick); }
+  // 숲 가장자리: 뒤쪽은 큰 나무 덩어리 세 겹, 양옆은 아래로 조금 내려옴
+  const blob=(x,y,r)=>{ C(x,y,r,P.treeD); C(x-r*0.25,y-r*0.2,r*0.72,P.tree); C(x-r*0.4,y-r*0.38,r*0.36,P.treeL); };
+  for(let i=0;i*S*14<W+S*14;i++){ const x=i*S*14+(i%2)*S*5, r=S*(8+(i%3)*2); blob(x,top*0.35+(i%2)*S*3,r); }
+  for(let i=0;i<4;i++){ blob(S*3,top+S*(10+i*14),S*(9-i)); blob(W-S*3,top+S*(8+i*14),S*(9-i)); }
+  // 앞쪽 흙 절벽
+  const ch=Math.max(S*3,Math.round(6*k)); F(0,H-ch,W,ch,P.cliff); for(let x=0;x<W;x+=S*7) F(x,H-ch+S,S,ch-S,P.cliffD); F(0,H-ch,W,S,P.grass2);
 }
-// 흙길: 입구 → 분수 광장 → 다리 → 캠프, 광장 → 왼쪽 정원 (항상 깔려 있어서 처음부터 자리 잡힌 마을처럼)
-const PLZ_PATHS=[[[0.48,1.08],[0.47,0.86],[0.47,0.7]],[[0.6,0.66],[0.68,0.64],[0.735,0.63],[0.8,0.66],[0.86,0.76]],[[0.36,0.66],[0.25,0.71],[0.15,0.8]],[[0.47,0.56],[0.47,0.42],[0.47,0.33]]];
-function plzPathPts(W,H,top){ const out=[]; PLZ_PATHS.forEach(P=>{ for(let i=0;i+1<P.length;i++){ const [x0,y0]=P[i],[x1,y1]=P[i+1]; const n=Math.ceil(Math.hypot((x1-x0)*W,(y1-y0)*(H-top))/3);
-  for(let j=0;j<=n;j++){ const g=j/n; out.push([(x0+(x1-x0)*g)*W, top+(y0+(y1-y0)*g)*(H-top)]); } } }); return out; }
-// 바닥에 깔리는 것: 칸(S) 단위 네모로 찍어서 픽셀 느낌
 function plzGround(ctx,W,H,top,S,t){
-  const on=id=>plazaItemOn(PLZ_ITEMS.find(x=>x.id===id),t), Y=fy=>top+fy*(H-top), q=v=>Math.round(v/S)*S;
-  const blk=(cx,cy,w,h,c)=>{ ctx.fillStyle=c; ctx.fillRect(q(cx-w/2),q(cy-h/2),q(w)||S,q(h)||S); };
-  const pts=plzPathPts(W,H,top), stony=on('path');
-  [['#E2CFA8',9*S],['#EEDDBA',7*S]].forEach(([c,w])=>pts.forEach(([x,y])=>blk(x,y,w,w*0.7,c)));
-  { const cx=PLZ_SPOT.fountain[0]*W, cy=top+(PLZ_SPOT.fountain[1]-0.03)*(H-top), rx=Math.min(W*0.15,62*S/1.6), ry=rx*0.3;   // 광장 자리 흙마당 (분수가 생기면 돌바닥이 덮음)
-    [['#E2CFA8',0],['#EEDDBA',S]].forEach(([c,d])=>{ for(let y=-ry+d;y<=ry-d;y+=S){ const hw=(rx-d)*Math.sqrt(Math.max(0,1-(y/(ry-d))**2)); blk(cx,cy+y,hw*2,S,c); } }); }
-  if(stony) pts.forEach(([x,y],i)=>{ if(i%5===0) blk(x+((i%3)-1)*2*S,y,3*S,2*S,'#F8F1E2'); });
-  if(on('pond')){ const cx=0.9*W, cy=Y(0.9); [[34,13,'#8FC4E0'],[31,11,'#A9D8F0'],[22,7,'#C8E8F7']].forEach(([rx,ry,c])=>{ for(let y=-ry;y<=ry;y+=1) { const hw=rx*Math.sqrt(1-(y/ry)**2); blk(cx,cy+y*S/1.5,hw*2*S/1.5,S,c); } });
-    [[-14,-3],[10,2],[-2,4]].forEach(([dx,dy],i)=>{ blk(cx+dx*S/1.5,cy+dy*S/1.5,4*S,2*S,'#7FBF66'); if(i===0) blk(cx+dx*S/1.5+S,cy+dy*S/1.5-S,S,S,'#F7A8C0'); }); }
-  if(on('stream')){ const w=10*S, step=S;
-    [['#8FC4E0',w+2*S],['#A9D8F0',w],['#C8E8F7',w*0.45]].forEach(([c,ww])=>{ for(let y=q(top-S*2);y<=H;y+=step){ const fy=(y-top)/(H-top), x=plzStreamAt(fy)*W+(c==='#C8E8F7'?-2*S:0); blk(x,y,ww,step*1.6,c); } });
-    const ph=Math.floor(Date.now()/500);   // 반짝이는 물결
-    for(let i=0;i<9;i++){ const fy=((i*0.11+ph*0.013)%1), x=plzStreamAt(fy)*W+((i%3)-1)*3*S; blk(x,Y(fy),2*S,S,'#FFFFFF'); } }
-  if(on('lights')){ const x0=0.3*W, x1=0.66*W, y0=Y(0.06); ctx.fillStyle='#8A94A6';
-    for(let x=x0;x<=x1;x+=S){ const g=(x-x0)/(x1-x0); ctx.fillRect(q(x),q(y0+Math.sin(g*Math.PI)*8*S),S,S); }
-    const cs=['#F7A8B8','#FFD27A','#9ED8F0','#B9E4A5','#C9B5F2'], tw=Math.floor(Date.now()/600);
-    for(let i=0;i<=10;i++){ const g=i/10, x=x0+(x1-x0)*g, y=y0+Math.sin(g*Math.PI)*8*S+S; blk(x,y+S,2*S,2*S,(i+tw)%4===0?'#FFFFFF':cs[i%5]); } }
+  const P=PZ, on=id=>plazaItemOn(PLZ_ITEMS.find(x=>x.id===id),t), Y=fy=>top+fy*(H-top), q=v=>Math.round(v/S)*S;
+  const blk=(cx,cy,w,h,c)=>{ ctx.fillStyle=c; ctx.fillRect(q(cx-w/2),q(cy-h/2),Math.max(S,q(w)),Math.max(S,q(h))); };
+  const ell=(cx,cy,rx,ry,c)=>{ for(let y=-ry;y<=ry;y+=S){ const hw=rx*Math.sqrt(Math.max(0,1-(y/ry)**2)); blk(cx,cy+y,hw*2,S,c); } };
+  // 나무 데크 (뒤쪽 가운데)
+  if(on('windmill')){ const x0=0.27*W, x1=0.69*W, y0=Y(0.24), y1=Y(0.5); blk((x0+x1)/2,(y0+y1)/2,x1-x0,y1-y0,P.deck); for(let y=y0+S*2;y<y1;y+=S*3) blk((x0+x1)/2,y,x1-x0,S,P.deckD); blk((x0+x1)/2,y1,x1-x0,S*2,P.woodD); }
+  if(on('pond')){ const cx=0.93*W, cy=Y(0.93); ell(cx,cy,S*20,S*7,P.waterD); ell(cx,cy,S*18,S*5.6,P.water); ell(cx-S*4,cy-S*1,S*8,S*2,P.waterL); blk(cx+S*6,cy+S*2,S*4,S*2,P.leaf); blk(cx+S*7,cy+S,S,S,P.rose); }
+  if(on('stream')){ const w=10*S; [[P.waterD,w+2*S,0],[P.water,w,0],[P.waterL,w*0.35,-2*S]].forEach(([c,ww,dx])=>{ for(let y=q(top-S*2);y<=H;y+=S){ const fy=(y-top)/(H-top); blk(plzStreamAt(fy)*W+dx,y,ww,S*1.6,c); } });
+    const ph=Math.floor(Date.now()/500); for(let i=0;i<9;i++){ const fy=((i*0.11+ph*0.013)%1); blk(plzStreamAt(fy)*W+((i%3)-1)*3*S,Y(fy),2*S,S,'#FFFFFF'); } }
+  // 돌 원형 광장: 가운데 원판 + 돌 고리 두 겹 (늘 깔려 있음)
+  PLZ_CIRCLES.forEach(([fx,fy,r])=>{ const cx=fx*W, cy=Y(fy), rx=r*S, ry=rx*0.42;
+    ell(cx,cy,rx+S,ry+S*0.6,P.stoneD); ell(cx,cy,rx,ry,P.stone);
+    for(let ring=0;ring<2;ring++){ const rr=rx*(0.82-ring*0.32), n=Math.max(8,Math.round(rr/S*1.2)); for(let i=0;i<n;i++){ const a=i/n*Math.PI*2; blk(cx+Math.cos(a)*rr,cy+Math.sin(a)*rr*0.42,S,S,P.stoneD); } }
+    ell(cx,cy,rx*0.16,rx*0.07,P.creamD); });
+  // 꽃 타일: 원형 광장 둘레에 분홍 타일
+  if(on('path')) [[0.36,0.66],[0.6,0.66],[0.33,0.86],[0.58,0.98],[0.16,0.7]].forEach(([fx,fy])=>{ const cx=fx*W, cy=Y(fy); blk(cx,cy,S*7,S*4,P.pinkL); blk(cx,cy,S*3,S*2,P.pinkX); });
+  // 디딤돌
+  plzPathPts(W,H,top,S*6).forEach(([x,y],i)=>{ blk(x+((i%2)?S:-S),y,S*5,S*2.4,P.stoneD); blk(x+((i%2)?S:-S),y-S*0.4,S*4,S*1.6,P.stone); });
+  if(on('lights')){ const x0=0.3*W, x1=0.66*W, y0=Y(0.06); for(let x=x0;x<=x1;x+=S){ const g=(x-x0)/(x1-x0); blk(x,y0+Math.sin(g*Math.PI)*6*S,S,S,P.woodD); }
+    const tw=Math.floor(Date.now()/600); for(let i=0;i<=10;i++){ const g=i/10; blk(x0+(x1-x0)*g,y0+Math.sin(g*Math.PI)*6*S+S*1.5,S*2,S*2,(i+tw)%3?P.glow:P.pinkX); } }
 }
-// 랩 기록이 쌓일수록 끝없이 늘어나는 작은 장식(꽃 · 버섯 · 돌 · 클로버): MC 10번 · Split 2번 · Stock vial 2개 · 일한 날 1일마다 하나
+// 랩 기록이 쌓일수록 늘어나는 꽃잎 · 장미 송이 (길가 · 물품 발치에 모여서)
 const plzGrowN=t=>Math.floor((t.mc||0)/10)+Math.floor((t.split||0)/2)+Math.floor((t.stock||0)/2)+(t.days||0)+Math.floor((t.visit||0)/2);
 function plzGrow(ctx,W,H,top,S,t){
-  const n=Math.min(70,Math.round(plzGrowN(t)*0.5)), q=v=>Math.round(v/S)*S, R=(x,y,w,h,c)=>{ ctx.fillStyle=c; ctx.fillRect(q(x)+w*0,q(y),w*S,h*S); };
-  const spots=Object.entries(PLZ_SPOT).filter(([id])=>{ const it=PLZ_ITEMS.find(x=>x.id===id); return it&&plazaItemOn(it,t); }).map(([,v])=>v);
-  const cols=['#F7B8C8','#FFE0A0','#FFFFFF','#F7B8C8','#FFFFFF'];
-  const PP=plzPathPts(W,H,top).filter((_,i)=>i%4===0), anchors=PP.map(([x,y])=>[x/W,(y-top)/(H-top)]).concat(spots);   // 길가 · 물품 발치에 모여 피게
-  for(let i=0;i<n;i++){ let fx,fy,ok=false;
-    for(let tr=0;tr<8&&!ok;tr++){ const A=anchors[Math.floor(pmRand('grow',i,tr,'a')*anchors.length)]||[0.5,0.5], side=pmRand('grow',i,tr,'s')<0.5?-1:1;
-      fx=A[0]+side*(0.035+0.03*pmRand('grow',i,tr,'x')); fy=A[1]+(pmRand('grow',i,tr,'y')-0.3)*0.05;
-      ok=fx>0.01&&fx<0.99&&fy>0.04&&fy<1&&Math.abs(fx-plzStreamAt(fy))>0.06 && !spots.some(([sx,sy])=>Math.abs(sx-fx)<0.03&&sy-fy<0.1&&sy-fy>-0.01) && !PP.some(([x,y])=>Math.abs(x-fx*W)<6*S&&Math.abs(y-(top+fy*(H-top)))<4*S); }
-    if(!ok) continue;
-    const x=fx*W, y=top+fy*(H-top), k=i%5, c=cols[i%cols.length];
-    if(k<2){ R(x,y,1,2,'#7DB86C'); R(x-S,y-S,3,1,c); R(x,y-2*S,1,3,c); R(x,y-S,1,1,'#FFE37A'); if(k===1){ R(x+3*S,y+S,1,2,'#7DB86C'); R(x+2*S,y,3,1,cols[(i+2)%5]); R(x+3*S,y-S,1,3,cols[(i+2)%5]); R(x+3*S,y,1,1,'#FFE37A'); } }
-    else if(k===2){ R(x,y,1,2,'#FFF3DE'); R(x-S,y-S,3,1,i%2?'#F7A3A3':'#F9D08C'); R(x,y-2*S,1,1,i%2?'#F7A3A3':'#F9D08C'); }
-    else { R(x,y,1,2,'#7DB86C'); R(x-S,y-S,3,1,c); R(x,y-2*S,1,3,c); R(x,y-S,1,1,'#FFE37A'); }
+  const P=PZ, n=Math.min(90,Math.round(plzGrowN(t)*0.6)), q=v=>Math.round(v/S)*S, R=(x,y,w,h,c)=>{ ctx.fillStyle=c; ctx.fillRect(q(x),q(y),w*S,h*S); };
+  const spots=Object.entries(PLZ_SPOT).filter(([id])=>{ const it=PLZ_ITEMS.find(x=>x.id===id); return it&&!PLZ_GROUND[id]&&plazaItemOn(it,t); }).map(([,v])=>v);
+  const anchors=PLZ_CIRCLES.map(([x,y])=>[x,y]).concat(spots);
+  for(let i=0;i<n;i++){ const A=anchors[Math.floor(pmRand('gr',i,'a')*anchors.length)]||[0.5,0.5], a=pmRand('gr',i,'t')*Math.PI*2, d=0.04+0.05*pmRand('gr',i,'d');
+    const fx=A[0]+Math.cos(a)*d, fy=A[1]+Math.sin(a)*d*1.2+0.02; if(fx<0.03||fx>0.97||fy<0.08||fy>0.97||Math.abs(fx-plzStreamAt(fy))<0.05) continue;
+    const x=fx*W, y=top+fy*(H-top);
+    if(i%3===0){ R(x,y,1,1,P.leaf); R(x-S,y-S,1,1,P.leaf); R(x,y-2*S,2,2,i%2?P.rose:P.pinkL); R(x+S,y-S,1,1,P.roseD); }   // 장미 송이
+    else R(x,y,1,1,i%2?P.pinkL:P.pinkX);   // 흩날린 꽃잎
   }
 }
 function pmDrawLab(ctx,W,q){
-  if(!_plaza) return;
-  const t=plazaLabTot(), H=ctx.canvas.height/2, u=Math.max(1,q*(W<400?1.25:2.4)), top=18*q;
-  const S=Math.max(1,Math.round(u)), R=v=>Math.round(v);   // 바닥(시냇물 · 돌길) 칸
-  const s1=Math.max(1,Math.round(u*0.62));   // 물품 한 칸: 작게 그려서 사이사이 풀밭이 보이게 (유진: 정신없음)
+  const H=ctx.canvas.height/2, top=18*q;
+  if(!_plaza){ return; }
+  const t=plazaLabTot(), u=Math.max(1,q*(W<400?1.25:2.4));
+  const S=Math.max(1,Math.round(u)), R=v=>Math.round(v), s1=Math.max(1,Math.round(u*0.62));
   ctx.imageSmoothingEnabled=false;
   plzGround(ctx,W,H,top,S,t);
-  // 분수가 생기면 그 아래 돌바닥 광장을 깔아 공간이 생긴 느낌
-  if(plazaItemOn(PLZ_ITEMS.find(x=>x.id==='fountain'),t)){ const [fx,fy]=PLZ_SPOT.fountain, f=plzFloor(), fs=s1*2; ctx.drawImage(f,R(fx*W-32*fs),R(top+fy*(H-top)-14*fs),64*fs,20*fs); }
   plzGrow(ctx,W,H,top,S,t);
-  PLZ_ITEMS.filter(it=>!PLZ_GROUND[it.id]&&plazaItemOn(it,t)).map(it=>{ const [fx,fy]=PLZ_SPOT[it.id]||[0.5,0.5];
-      const by=Math.max(top+4*u, Math.min(H-2, top+fy*(H-top))); return {it, x:Math.max(1,Math.min(W-16*u-1, fx*W-8*u)), y:by-16*u}; })
-    .sort((a,b)=>a.y-b.y).forEach(o=>{ const ss=s1*(PLZ_BIG[o.it.id]||1), sp=plzSprite(o.it.id);
-      if(o.it.id!=='balloon'&&o.it.id!=='arch'){ ctx.fillStyle='rgba(120,160,95,.28)'; ctx.beginPath(); ctx.ellipse(R(o.x+8*u),R(o.y+16*u),7*ss,2*ss,0,0,Math.PI*2); ctx.fill(); }   // 그림자
-      ctx.drawImage(sp, R(o.x+8*u-9*ss), R(o.y+16*u-17*ss), 18*ss, 18*ss); });
+  PLZ_ITEMS.filter(it=>!PLZ_GROUND[it.id]&&plazaItemOn(it,t)).map(it=>{ const [fx,fy]=PLZ_SPOT[it.id]||[0.5,0.5], n=PLZ_SZ[it.id]||16;
+      const by=Math.max(top+4*u, Math.min(H-2, top+fy*(H-top))), hw=(n/2+1)*s1; return {it, n, cx:Math.max(hw,Math.min(W-hw,fx*W)), by}; })
+    .sort((a,b)=>a.by-b.by).forEach(o=>{ const sp=plzSprite(o.it.id), w=(o.n+2)*s1;
+      ctx.fillStyle='rgba(60,90,50,.22)'; ctx.beginPath(); ctx.ellipse(R(o.cx),R(o.by),o.n*0.42*s1,o.n*0.11*s1,0,0,Math.PI*2); ctx.fill();   // 그림자
+      ctx.drawImage(sp, R(o.cx-w/2), R(o.by-w+s1), w, w); });
 }
 function plazaDecoHTML(){
   const t=plazaLabTot(), done=PLZ_ITEMS.filter(it=>plazaItemOn(it,t)), todo=PLZ_ITEMS.filter(it=>!plazaItemOn(it,t));
@@ -10265,7 +10272,6 @@ function pmTick(){
   if(!_pm.deco){ _pm.deco=[]; const d=pmDay(); for(let i=0;i<60;i++) _pm.deco.push({x:pmRand(d,i,'dx')*W,y:22*_pm.k+pmRand(d,i,'dy')*(H-24*_pm.k),k:pmRand(d,i,'dk')<0.18?'f':'g',c:['#F7A8B8','#FFD27A','#B9A2E8','#FFFFFF'][i%4]}); }   // 풀 · 꽃 자리도 화면마다 같게 (크기만 비례)
   plzBase(ctx,W,H,_pm.k);
   pmDrawLab(ctx,W,_pm.k);   // 광장 꾸미기 물품 (풀밭 위쪽 줄 고정 자리)
-  _pm.deco.forEach((d,i)=>{ if(i%3) return; if(d.k==='g'){ ctx.fillStyle='#A9D18E'; const q=_pm.k; ctx.fillRect(d.x,d.y,1.5*q,4*q); ctx.fillRect(d.x+2*q,d.y+q,1.5*q,3*q); } else { ctx.fillStyle=d.c; const q=_pm.k; ctx.fillRect(d.x,d.y,3*q,3*q); ctx.fillStyle='#FFE37A'; ctx.fillRect(d.x+q,d.y+q,q,q); } });
   // 세계 좌표(0–1) → 이 화면 px. 짝꿍 따라가는 쪽은 리더 옆에. 춤추는 동안은 춤 시작 때 자리에서
   const now=Date.now(), dn=_pmDance&&now<_pmDance.until?_pmDance:null; if(_pmDance&&!dn) _pmDance=null;
   const ents=_pm.ents, top=20*_pm.k+_pm.fs*2.2, X0=4, XW=W-_pm.sp*1.9-8, YH=H-_pm.sp-top-_pm.fs-6;
