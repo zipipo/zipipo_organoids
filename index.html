@@ -836,7 +836,7 @@ td{vertical-align:middle;}
 .toast.in{opacity:1;transform:none;}
 .toast.out{opacity:0;transform:translateY(4px);}
 .toast.warn{box-shadow:0 10px 30px rgba(40,40,80,.14),inset 3px 0 0 #E27370;}
-.toast button{background:var(--psoft);color:var(--pri);border:none;border-radius:5px;padding:5px 10px;font:inherit;font-size:.76rem;font-weight:650;cursor:pointer;}
+.toast button{background:var(--psoft);color:var(--pri);border:none;border-radius:5px;padding:5px 10px;font:inherit;font-size:.76rem;font-weight:650;cursor:pointer;white-space:nowrap;flex:none;}
 .toast button:hover{background:#F8F0C4;}
 
 
@@ -1354,7 +1354,7 @@ html:is([data-fgroup="hand"],[data-fgroup="cute"]) *{font-synthesis:none;}
 .pet-nm.below{transform:translate(-50%,0);}
 body[data-theme="dark"] .pet-nm{background:rgba(30,30,35,.7);}
 .plz-items{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:6px;margin:6px 0;} .plz-it{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;border:1px solid var(--bd);border-radius:10px;text-align:center;opacity:.75;} .plz-it.on{opacity:1;background:#F3F9EE;border-color:#CFE7B6;} .plz-it canvas{width:32px;height:32px;image-rendering:pixelated;} .plz-it b{font-size:.72rem;} .plz-it small{font-size:.66rem;color:var(--sub);}
-.plz-goal small{color:var(--sub);font-size:.72rem;} .plz-bar{height:10px;border-radius:999px;background:var(--hov);overflow:hidden;margin:4px 0;} .plz-bar i{display:block;height:100%;background:var(--pri);border-radius:999px;}
+.plz-goal small{color:var(--sub);font-size:.72rem;} .lm-row{margin:8px 0 10px;} .lm-hd{display:flex;align-items:center;gap:6px;font-size:.8rem;} .lm-hd b{flex:1;font-weight:700;} .lm-hd span{color:var(--sub);font-size:.72rem;white-space:nowrap;} .lm-row.ok .lm-hd span{color:var(--pri);font-weight:700;} .lm-row .plz-bar{margin:3px 0 1px;} .lm-cat{font-style:normal;font-size:.64rem;font-weight:700;padding:1px 6px;border-radius:999px;background:var(--hov);color:var(--sub);} .lm-wk{font-weight:400;margin-left:6px;} .lm-foot{display:block;margin-top:2px;line-height:1.5;} .plz-bar{height:10px;border-radius:999px;background:var(--hov);overflow:hidden;margin:4px 0;} .plz-bar i{display:block;height:100%;background:var(--pri);border-radius:999px;}
 .plz-list{display:flex;flex-direction:column;gap:6px;} .plz-card{display:flex;align-items:center;gap:10px;border:1px solid var(--bd);border-radius:12px;padding:6px 10px;background:var(--sur);}
 .plz-card canvas{width:40px;height:40px;image-rendering:pixelated;flex:none;} .plz-info{flex:1;min-width:0;} .plz-info b{display:block;font-size:.84rem;} .plz-info small{color:var(--sub);font-size:.7rem;}
 .plz-msg{display:table;margin-top:3px;font-size:.72rem;color:var(--tx);background:var(--psoft);border-radius:8px;padding:1px 8px;}
@@ -1772,6 +1772,18 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
   *,*::before,*::after{animation:none!important;transition:none!important;}
 }
 
+/* 촬영 순서 중간 고치기 */
+.sb-shift{display:flex;flex-direction:column;gap:3px;flex:none;align-self:center;margin-right:4px;}
+.sb-shift button{border:1px solid var(--bd,#E2E8F0);background:var(--card,#fff);color:var(--sub);border-radius:6px;height:24px;padding:0 7px;font-size:.68rem;cursor:pointer;white-space:nowrap;}
+.sb-shift button:hover{color:var(--pri);border-color:var(--pri);}
+.sl-mode{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;padding:8px 10px;margin-bottom:8px;border-radius:10px;background:var(--hov);font-size:.78rem;}
+.sl-mode b{color:var(--pri);} .sl-mode small{color:var(--sub);font-size:.7rem;flex:1 1 100%;}
+.sl-mags,.sl-mbtn{display:flex;gap:6px;} .sl-mbtn .btn{height:32px;padding:0 14px;} .sl-mags .tbl-btn.on{background:#EEF2FF;color:#4338CA;border-color:#C7D2FE;font-weight:700;}
+.sl-no{flex:none;min-width:18px;color:var(--sub);font-weight:700;font-size:.7rem;}
+.sl-row.editing{background:#EEF2FF;}
+.sl-tools{display:flex;gap:3px;flex:none;} .sl-tools button{border:1px solid var(--bd,#E2E8F0);background:var(--card,#fff);color:var(--sub);border-radius:5px;height:24px;padding:0 6px;font-size:.68rem;cursor:pointer;}
+.sl-tools button:disabled{opacity:.35;cursor:default;} .sl-tools button:not(:disabled):hover{color:var(--pri);border-color:var(--pri);}
+.sl-insmark{font-size:.72rem;font-weight:700;color:var(--pri);padding:3px 8px;border-top:2px dashed var(--pri);}
 /* 촬영 순서 특이사항 태그 */
 .sl-note-tag{display:inline-flex;align-items:center;}
 .sl-note-x{border:none;background:none;color:var(--mut,#94A3B8);cursor:pointer;font-size:.8rem;padding:0 3px;line-height:1;}
@@ -3218,6 +3230,7 @@ function renderDash(){
 //  촬영 순서 기록 (Shot Log)
 // ══════════════════════════════════════════
 function openShotLogModal(){
+  slModeOff();
   slRenderLineOptions();
   slRenderRecent();
   slRenderRecentNotes();
@@ -3316,7 +3329,7 @@ function slAdd(mag){
   if(!lineId) return alert('라인을 먼저 선택하세요.');
   const note=document.getElementById('slNote').value.trim();
   if(!slCheckNote(note)) return;
-  shotLog.push({lineId, mag, note, ts:Date.now()});
+  slPut([{lineId, mag, note, ts:Date.now()}]);
   document.getElementById('slNote').value='';
   _slTouchRecent(lineId);
   _slTouchRecentNote(note);
@@ -3328,16 +3341,16 @@ function slAddSet(){
   const note=document.getElementById('slNote').value.trim();
   if(!slCheckNote(note)) return;
   const ts=Date.now();
-  ALL_MAGS.forEach(m=>shotLog.push({lineId, mag:m, note, ts}));
+  slPut(ALL_MAGS.map(m=>({lineId, mag:m, note, ts})));
   document.getElementById('slNote').value='';
   _slTouchRecent(lineId);
   _slTouchRecentNote(note);
   saveShotLog(); renderShotLog(); slRenderRecent(); slRenderLineOptions();
 }
-function slRemove(i){ shotLog.splice(i,1); saveShotLog(); renderShotLog(); slRenderLineOptions(); }
+function slRemove(i){ slModeOff(); shotLog.splice(i,1); saveShotLog(); renderShotLog(); slRenderLineOptions(); }
 // 여러 인덱스(같은 줄에 묶인 컷들)를 한번에 지울 때, 인덱스가 앞에서부터 밀리지 않도록 큰 인덱스부터 제거
-function slRemoveGroup(idxs){ [...idxs].sort((a,b)=>b-a).forEach(i=>shotLog.splice(i,1)); saveShotLog(); renderShotLog(); slRenderLineOptions(); }
-function slClear(){ if(shotLog.length && confirm('기록 '+shotLog.length+'개를 모두 지울까요?')){ shotLog=[]; saveShotLog(); renderShotLog(); slRenderLineOptions(); } }
+function slRemoveGroup(idxs){ slModeOff(); [...idxs].sort((a,b)=>b-a).forEach(i=>shotLog.splice(i,1)); saveShotLog(); renderShotLog(); slRenderLineOptions(); }
+function slClear(){ if(shotLog.length && confirm('기록 '+shotLog.length+'개를 모두 지울까요?')){ slModeOff(); shotLog=[]; saveShotLog(); renderShotLog(); slRenderLineOptions(); } }
 
 // ── 촬영 순서 세트(재사용 템플릿) ──────────────────────────
 // 촬영 순서는 날짜마다 달라지지만, 자주 반복되는 순서(요일별 루틴 등)는
@@ -3528,10 +3541,10 @@ syncShotDraft();
 
 // 연속으로 같은 라인에 기록된 항목은 한 줄로 묶어서 보여줌 (세트로 넣었든 개별로 이어 넣었든 동일하게 묶임)
 // 단, 같은 라인 안에서 이미 나온 배율(예: 4x)이 특이사항을 달고 다시 나오면 — 같은 라인의 다른 샘플로 보고 새 세트로 끊는다
-function renderShotLog(){
-  const el=document.getElementById('slList');
-  if(!el) return;
-  if(!shotLog.length){ el.innerHTML='<div class="hint" style="padding:8px 2px;">없음</div>'; return; }
+// ── 중간 고치기 (2026-11-22, 유진: 찍다가 중간 것을 못 고치고 끼워 넣지도 못함) ──
+// _slIns: 이 자리(shotLog 인덱스) 앞에 차례로 끼워 넣음, -1 = 맨 끝. _slEdit: 고치는 줄 번호(-1 = 없음)
+let _slIns=-1, _slEdit=-1, _slEditMags=new Set();
+function slGroups(){
   const groups=[];
   shotLog.forEach((s,i)=>{
     const last=groups[groups.length-1];
@@ -3539,7 +3552,63 @@ function renderShotLog(){
     if(last && last.lineId===s.lineId && !dupMagWithNote && (last.items[0].date||'')===(s.date||'')) last.items.push({...s, idx:i});
     else groups.push({lineId:s.lineId, items:[{...s, idx:i}]});
   });
-  el.innerHTML=groups.map(g=>{
+  return groups;
+}
+function slPut(items){
+  if(_slIns>=0 && _slIns<shotLog.length){
+    const nb=shotLog[_slIns]||shotLog[_slIns-1]; if(nb&&nb.date) items.forEach(x=>x.date=nb.date);   // 불러온 순서 사이에 넣으면 그 날짜로
+    shotLog.splice(_slIns,0,...items); _slIns+=items.length;
+  } else { _slIns=-1; shotLog.push(...items); }
+}
+function slModeOff(){ _slIns=-1; _slEdit=-1; _slEditMags=new Set(); slRenderMode(); }
+function slRenderMode(){
+  const el=document.getElementById('slMode'), add=document.getElementById('slAddBox'); if(!el) return;
+  if(add) add.style.display=_slEdit>=0?'none':'';
+  if(_slEdit>=0){
+    el.innerHTML=`<div class="sl-mode edit"><b>${_slEdit+1}번째 줄 고치는 중</b><small>아래에서 라인 · 특이사항을 바꾸고 배율을 고른 뒤 저장</small>
+      <div class="sl-mags">${ALL_MAGS.map(m=>`<button type="button" class="tbl-btn${_slEditMags.has(m)?' on':''}" onclick="slEditMag('${m}')">${m}</button>`).join('')}</div>
+      <div class="sl-mbtn"><button class="btn btn-pri" onclick="slEditSave()">저장</button><button class="btn btn-out" onclick="slModeOff();renderShotLog()">취소</button></div></div>`;
+  } else if(_slIns>=0){
+    const gi=slGroups().findIndex(g=>g.items[0].idx===_slIns);
+    el.innerHTML=`<div class="sl-mode ins"><b>${gi>=0?`${gi+1}번째 줄 앞에`:'중간에'} 끼워 넣는 중</b><small>위 버튼으로 넣으면 이 자리에 차례로 들어가요</small><button class="tbl-btn" onclick="slModeOff();renderShotLog()">맨 끝에 넣기로</button></div>`;
+  } else el.innerHTML='';
+}
+function slInsAt(gi){ const g=slGroups()[gi]; if(!g) return; _slEdit=-1; _slIns=g.items[0].idx; slRenderMode(); renderShotLog(); document.getElementById('slLine').focus(); }
+function slEditStart(gi){
+  const g=slGroups()[gi]; if(!g) return;
+  _slIns=-1; _slEdit=gi; _slEditMags=new Set(g.items.map(it=>it.mag));
+  document.getElementById('slLine').value=g.lineId; document.getElementById('slNote').value=g.items.find(it=>it.note)?.note||'';
+  slRenderRecent(); slRenderWellChips(); slRenderMode(); renderShotLog();
+}
+function slEditMag(m){ if(_slEditMags.has(m)) _slEditMags.delete(m); else _slEditMags.add(m); slRenderMode(); }
+function slEditSave(){
+  const g=slGroups()[_slEdit]; if(!g) return slModeOff();
+  const lineId=document.getElementById('slLine').value, note=document.getElementById('slNote').value.trim();
+  if(!lineId) return alert('라인을 고르세요.');
+  if(!_slEditMags.size) return alert('배율을 하나 이상 고르세요. 줄을 지우려면 오른쪽 ×를 누르세요.');
+  if(!slCheckNote(note)) return;
+  const first=g.items[0], before=shotLog.slice(), _slEdit0=_slEdit;
+  const items=ALL_MAGS.filter(m=>_slEditMags.has(m)).map(m=>{ const o=g.items.find(it=>it.mag===m); const x={lineId, mag:m, note, ts:(o||first).ts}; if(first.date) x.date=first.date; return x; });
+  shotLog.splice(first.idx, g.items.length, ...items);
+  document.getElementById('slNote').value='';
+  _slTouchRecent(lineId); _slTouchRecentNote(note);
+  slModeOff(); saveShotLog(); renderShotLog(); slRenderRecent(); slRenderLineOptions();
+  toast(`${_slEdit0+1}번째 줄을 고쳤어요`,{undo:()=>{ shotLog=before; saveShotLog(); renderShotLog(); slRenderLineOptions(); }});
+}
+// 줄 통째로 위 · 아래로
+function slMoveGroup(gi,dir){
+  const gs=slGroups(), j=gi+dir; if(!gs[gi]||!gs[j]) return;
+  [gs[gi],gs[j]]=[gs[j],gs[gi]];
+  shotLog=gs.flatMap(g=>g.items.map(({idx,...x})=>x));
+  slModeOff(); saveShotLog(); renderShotLog();
+}
+function renderShotLog(){
+  const el=document.getElementById('slList');
+  if(!el) return;
+  if(!shotLog.length){ el.innerHTML='<div class="hint" style="padding:8px 2px;">없음</div>'; return; }
+  const groups=slGroups();
+  const insMark=`<div class="sl-insmark">▸ 여기에 끼워 넣는 중</div>`;
+  el.innerHTML=groups.map((g,gi)=>{
     const label=esc(sampleLabel(g.lineId));
     const first=g.items[0], d=new Date(first.ts);
     const today=ymdLocal(new Date())===ymdLocal(d);
@@ -3548,13 +3617,16 @@ function renderShotLog(){
     const dateTag=first.date?`<span style="font-size:.66rem;background:var(--hov);color:var(--sub);padding:1px 6px;border-radius:8px;font-weight:700;margin-right:4px;">${dateKo(first.date)}</span>`:'';
     const magsHtml=g.items.map(it=>`<span class="mc-tag" style="background:var(--hov);color:var(--tx);cursor:pointer;border-radius:4px;" title="클릭해서 이 컷만 삭제" onclick="slRemove(${it.idx})">${it.mag} ×</span>`).join(' ');
     const groupIdxs=g.items.map(it=>it.idx).join(',');
-    return `<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-bottom:1px solid #F1F5F9;font-size:.78rem;flex-wrap:wrap;">
+    return `${_slIns===first.idx?insMark:''}<div class="sl-row${_slEdit===gi?' editing':''}" style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-bottom:1px solid #F1F5F9;font-size:.78rem;flex-wrap:wrap;">
+      <span class="sl-no">${gi+1}</span>
       <span style="color:#94A3B8;min-width:64px;">${timeStr}</span>
       <span style="flex:1;font-weight:600;">${dateTag}${esc(label)}${note?' · '+esc(note):''}</span>
       <span style="display:flex;gap:4px;flex-wrap:wrap;">${magsHtml}</span>
+      <span class="sl-tools"><button type="button" title="한 칸 위로" ${gi?'':'disabled'} onclick="slMoveGroup(${gi},-1)">↑</button><button type="button" title="한 칸 아래로" ${gi<groups.length-1?'':'disabled'} onclick="slMoveGroup(${gi},1)">↓</button><button type="button" title="이 줄 고치기 (라인 · 특이사항 · 배율)" onclick="slEditStart(${gi})">고치기</button><button type="button" title="이 줄 앞에 새 줄 끼워 넣기" onclick="slInsAt(${gi})">앞에 넣기</button></span>
       <button type="button" title="이 줄(순서 중간 포함) 전체 삭제" onclick="slRemoveGroup([${groupIdxs}])" style="flex:none;background:#FEE2E2;color:#DC2626;border:none;border-radius:5px;width:24px;height:24px;font-size:.9rem;font-weight:700;cursor:pointer;">×</button>
     </div>`;
   }).join('');
+  slRenderMode();
 }
 
 // 사진을 넣기 전이든 후든, 순서를 몇 번을 다시 골랐든 상관없이 — 이 버튼 하나로
@@ -5488,7 +5560,7 @@ function toast(msg,opt){
   el.innerHTML=`<span>${esc(msg)}</span>`;
   if(opt.undo){
     const b=document.createElement('button'); b.textContent='되돌리기';
-    b.onclick=()=>{ restoreSnap(opt.undo); hide(); toast('되돌렸어요'); };
+    b.onclick=()=>{ if(typeof opt.undo==='function') opt.undo(); else restoreSnap(opt.undo); hide(); toast('되돌렸어요'); };
     el.appendChild(b);
   }
   wrap.appendChild(el);
@@ -6093,6 +6165,28 @@ function sbMergeUp(start,end){
   for(let i=start;i<=end;i++){ sbFiles[i].date=prev; delete sbFiles[i].dateBreak; }
   renderSbarList();
 }
+// ── 순서 채운 뒤 중간 고치기 (2026-11-22) ──
+// 끼우기: 이 사진은 순서에 없던 컷 → 이 사진부터 아래 사진들의 라인 · 배율 · 특이사항을 한 칸씩 아래로, 이 사진은 비움
+// 빼기:   순서에 있는데 안 찍은 컷 → 이 사진의 순서를 빼고 아래 것을 한 칸씩 위로
+// 같은 날짜 묶음 안에서만 움직임. 사진 파일 · 날짜 · 색 보정은 그대로
+const SB_ORD_F=['lineId','mag','note'];
+function sbShift(i,dir){
+  const g=sbDateGroups().find(x=>i>=x.start&&i<=x.end); if(!g) return;
+  const snap=sbFiles.map(f=>SB_ORD_F.map(k=>f[k]));
+  const cp=(to,from)=>SB_ORD_F.forEach(k=>{ sbFiles[to][k]=sbFiles[from][k]; });
+  let lost='';
+  if(dir>0){
+    const L=sbFiles[g.end]; if(L.lineId&&g.end>i) lost=`${sampleLabel(L.lineId)} ${L.mag}`;
+    for(let k=g.end;k>i;k--) cp(k,k-1);
+    sbFiles[i].lineId=''; sbFiles[i].note='';
+  } else {
+    for(let k=i;k<g.end;k++) cp(k,k+1);
+    sbFiles[g.end].lineId=''; sbFiles[g.end].note='';
+  }
+  renderSbarList();
+  toast(dir>0?`${i-g.start+1}번째 사진에 빈 칸을 끼웠어요${lost?` · 맨 끝 「${lost}」는 밀려서 빠짐`:''}`:`${i-g.start+1}번째 순서를 빼고 위로 당겼어요`,
+    {undo:()=>{ snap.forEach((v,j)=>{ if(sbFiles[j]) SB_ORD_F.forEach((k,n)=>sbFiles[j][k]=v[n]); }); renderSbarList(); }});
+}
 function sbRemove(i){
   // 사진을 지워도 순서를 자동으로 다시 채우지 않는다 — 뒤로 밀린 사진들을 앞당기고 싶으면
   // "촬영 순서 적용하기" 버튼을 직접 눌러야 한다
@@ -6371,6 +6465,7 @@ function renderSbarList(){
         </div>
         <div class="sb-prev" id="sbprev${i}">${esc(preview)}</div>
       </div>
+      ${sbFiles.some(x=>x.lineId)?`<div class="sb-shift"><button title="이 사진은 순서에 없던 컷: 이 사진부터 아래 순서를 한 칸씩 내리고 이 사진은 비워요 (직접 고르기)" onclick="sbShift(${i},1)">↓ 끼우기</button><button title="순서에 있는데 안 찍은 컷: 이 사진의 순서를 빼고 아래 순서를 한 칸씩 올려요" onclick="sbShift(${i},-1)">↑ 빼기</button></div>`:''}
       <button class="sb-x" title="제거" onclick="sbRemove(${i})">×</button>
     </div>`;
   }).join('');
@@ -9300,6 +9395,13 @@ const PET_KINDS=[
   {id:'loupe',   name:'돋보기',   shape:'loupe',   c:'#E6F2FB',d:'#8FB0CC',a:'#C49A6C',r:0,gift:'shot10'},
   {id:'camera',  name:'카메라',   shape:'camera',  c:'#F3D2DA',d:'#C98B9B',a:'#7E8AA6',r:0,gift:'shot100'},
   {id:'labpal',  name:'랩 마스코트', shape:'labpal', c:'#FFFFFF',d:'#8FA0B8',a:'#7FB7E8',r:0,gift:'lab'},
+  // 랩 미션 선물 (2026-11-22): 랩이 같이 깬 미션 수 3 · 6 · 10 · 15 · 25개, 한 주 미션 3개 모두
+  {id:'pipfairy', name:'피펫 요정',    shape:'pipfairy', c:'#E3F6EE',d:'#7FBFA6',a:'#9CCFF0',r:0,gift:'lab3'},
+  {id:'erlenpal', name:'삼각 플라스크', shape:'erlen',   c:'#F3ECFF',d:'#A893CF',a:'#F7A8C0',r:0,gift:'lab6'},
+  {id:'dishpal',  name:'페트리 접시',  shape:'dish',     c:'#FFF8E6',d:'#CDB27A',a:'#F2B85E',r:0,gift:'lab10'},
+  {id:'trio',     name:'다같이 셋',    shape:'trio',     c:'#FFE4EC',d:'#D98BA3',a:'#FFD24D',r:0,gift:'lab15'},
+  {id:'guardian', name:'랩 수호신',    shape:'guardian', c:'#FFFFFF',d:'#9FB2CC',a:'#FFE07A',r:0,gift:'lab25'},
+  {id:'allclear', name:'올클리어 왕관', shape:'crown',   c:'#E8F4FF',d:'#88A9CC',a:'#FFD24D',r:0,gift:'laball'},
   {id:'flowerpal',name:'꽃송이',  shape:'flowerpal',c:'#FFE88A',d:'#D9A94A',a:'#F9B4C8',r:0,gift:'flower'},
   // 다음 단계 선물 (2026-11-19): 응가 300 · 1000개, 꽃 100 · 300송이, 도감 80 · 90종
   {id:'poopgold',name:'황금 응가',   shape:'poopking',c:'#FFD86B',d:'#C9962E',a:'#FFF3B0',r:0,gift:'poop300'},
@@ -9395,6 +9497,12 @@ function petGrid(shape, frame){
     case 'bouquet':[[5,4],[11,4],[8,2.6]].forEach(([x,y])=>ell(x,y,2.6,2.4,'a')); for(let y=6;y<=14;y++){ const hw=6.6-(y-6)*.55; rect(Math.round(8-hw),y,Math.round(7.6+hw),y,'b'); } rect(6,13,10,13,'a'); break;
     case 'fairy':  ell(2.8,7,2.6,3.8,'a'); ell(13.2,7,2.6,3.8,'a'); ell(8,10,5,4.8,'b'); [4,6,8,10,12].forEach((x,i)=>set(x,4+(i%2),'a')); break;
     case 'flowerpal': [[8,3.2],[13,6.6],[11.4,12.6],[4.6,12.6],[3,6.6]].forEach(([x,y])=>ell(x,y,3,3,'a')); ell(8,8.8,4.8,4.4,'b'); break;
+    case 'pipfairy': ell(8,10,5,4.4,'b'); rect(7,0,8,0,'a'); rect(6,1,9,1,'a'); rect(7,2,8,5,'a'); ell(2.2,8+w*.4,2,3,'a'); ell(13.8,8+w*.4,2,3,'a'); break;
+    case 'erlen':  rect(6,1,9,4,'b'); rect(5,1,10,1,'a'); for(let y=5;y<=14;y++){ const hw=2+(y-5)*0.62; rect(Math.round(8-hw),y,Math.round(7+hw),y,y>=12?'a':'b'); } set(5+w,13,'b'); set(10-w,12,'b'); break;
+    case 'dish':   ell(8,10,7.4,4.6,'b'); rect(2,5,13,5,'a'); rect(1,6,14,6,'a'); [[3,12],[13,12],[5,14],[11,14],[2,9],[14,9]].forEach(([x,y],i)=>{ if((i+w)%3) set(x,y,'a'); }); break;
+    case 'trio':   ell(2.6,11.4,2.6,2.6,'b'); ell(13.4,11.4,2.6,2.6,'b'); ell(8,10,4.8,4.4,'b'); set(2,11,'a'); set(14,11,'a'); set(8,2,'a'); rect(7,3,9,4,'a'); rect(6,5,10,5,'a'); set(2,8-w,'a'); set(14,7+w,'a'); break;
+    case 'guardian': ell(8,10,5.4,4.8,'b'); rect(5,1,10,1,'a'); set(4,2,'a'); set(11,2,'a'); ell(1.8,9-w*.5,2,3.4,'a'); ell(14.2,9-w*.5,2,3.4,'a'); break;
+    case 'crown':  ell(8,10.4,5.8,4.8,'b'); rect(4,3,11,5,'a'); [[4,2],[4,1],[8,2],[8,1],[11,2],[11,1]].forEach(([x,y])=>set(x,y,'a')); set(w?14:1,w?3:5,'a'); break;
     case 'labpal': ell(8,10,6,5,'b'); rect(3,1,13,4,'a'); rect(5,5,11,5,'a'); set(13,5,'a'); set(13,6,'a'); rect(2,12,4,13,'a'); rect(12,12,14,13,'a'); break;
     case 'heart':  ell(5.4,6.6,3.8,3.6,'b'); ell(10.6,6.6,3.8,3.6,'b'); for(let y=7;y<=14;y++){ const hw=7.2-(y-7)*1.0; if(hw>0) rect(Math.round(8-hw),y,Math.round(7+hw),y,'b'); } ell(5,5.6,1.2,1,'a'); break;
     case 'onigiri':for(let y=2;y<=14;y++){ const hw=Math.min(6.8,.8+(y-2)*.62); rect(Math.round(8-hw),y,Math.round(7.6+hw),y,'b'); } rect(5,12,10,14,'a'); break;
@@ -9513,7 +9621,7 @@ if(!petSt){
 function savePets(){ try{ localStorage.setItem('orgPets', JSON.stringify(petSt)); }catch(e){} if(typeof cloudPushDebounced==='function') cloudPushDebounced(); }
 // 계정 동기화: 위치 · 기분 · 응가 시각처럼 기기마다 다른 값은 빼고, 펫마다 키를 따로 둬서 합칠 때 덜 부딪히게
 const PET_SYNC_F=['n','name','born','fedTs','flowers','pats','poops','lastPoop'];
-window._petsOut=()=>{ const o={active:petSt.active.slice(), lastDraw:petSt.lastDraw||'', hidden:!!petSt.hidden, giftStart:petSt.giftStart||'', labDone:petSt.labDone||'', cleaned:petSt.cleaned||0, flowersAll:petSt.flowersAll||0, patsAll:petSt.patsAll||0, fedAll:petSt.fedAll||0, visitOpens:petSt.visitOpens||0, visitDays:petSt.visitDays||0, visitLast:petSt.visitLast||''};
+window._petsOut=()=>{ const o={active:petSt.active.slice(), lastDraw:petSt.lastDraw||'', hidden:!!petSt.hidden, giftStart:petSt.giftStart||'', labDone:petSt.labDone||'', labWins:(petSt.labWins||[]).slice(-120), wkc:petSt.wkc||{}, cleaned:petSt.cleaned||0, flowersAll:petSt.flowersAll||0, patsAll:petSt.patsAll||0, fedAll:petSt.fedAll||0, visitOpens:petSt.visitOpens||0, visitDays:petSt.visitDays||0, visitLast:petSt.visitLast||''};
   Object.entries(petSt.owned).forEach(([id,v])=>{ const x={}; PET_SYNC_F.forEach(f=>{ if(v[f]!=null) x[f]=v[f]; }); o['o:'+id]=x; });
   return o; };
 window._petsIn=p=>{
@@ -9526,6 +9634,8 @@ window._petsIn=p=>{
   if(p.hidden!=null) petSt.hidden=!!p.hidden;
   if(p.giftStart&&p.giftStart!==petSt.giftStart){ if(!petSt.giftStart||p.giftStart>petSt.giftStart){ petSt.giftStart=p.giftStart; petSt.cleaned=p.cleaned||0; petSt.flowersAll=p.flowersAll||0; petSt.patsAll=p.patsAll||0; petSt.fedAll=p.fedAll||0; } }
   if(p.labDone) petSt.labDone=p.labDone;
+  if(Array.isArray(p.labWins)) labWinsAdd(p.labWins);
+  if(p.wkc&&p.wkc.wk){ const a=petSt.wkc||{}; if(!a.wk||p.wkc.wk>a.wk) petSt.wkc=Object.assign({},p.wkc); else if(p.wkc.wk===a.wk) Object.keys(p.wkc).forEach(k=>{ if(k!=='wk') a[k]=Math.max(+a[k]||0,+p.wkc[k]||0); }); }
   if(p.cleaned!=null) petSt.cleaned=Math.max(petSt.cleaned||0,p.cleaned);
   if(p.flowersAll!=null) petSt.flowersAll=Math.max(petSt.flowersAll||0,p.flowersAll);
   if(p.patsAll!=null) petSt.patsAll=Math.max(petSt.patsAll||0,p.patsAll);
@@ -9624,7 +9734,7 @@ function petPin(id){ const a=PETS.find(p=>p.id===id); if(!a) return; a.pinned=!a
 function petPatMany(id){ const a=PETS.find(p=>p.id===id); if(!a) return; [0,250,500].forEach(t=>setTimeout(()=>petPat(a),t)); }
 function petPat(a){
   const o=petSt.owned[a.id]; if(!o) return;
-  const lv0=petLvOf(o.pats||0); o.hap=Math.min(100,(o.hap||60)+4); o.pats=(o.pats||0)+1; petSt.patsAll=(petSt.patsAll||0)+1; savePets(); if(petSt.patsAll%10===0) petGiftCheck();
+  const lv0=petLvOf(o.pats||0); o.hap=Math.min(100,(o.hap||60)+4); o.pats=(o.pats||0)+1; petSt.patsAll=(petSt.patsAll||0)+1; petWkAdd('pat'); savePets(); if(petSt.patsAll%10===0) petGiftCheck();
   const lv1=petLvOf(o.pats); if(lv1>lv0){ setTimeout(()=>{ petSay(a,`친해졌어! Lv.${lv1}`,3000); toast(`${petName(a.id)} 친화도 Lv.${lv1}${PET_LV_GIFT[lv1]?` · ${PET_LV_GIFT[lv1]} 생김`:''}`); },300); }
   a.mode='happy'; a.until=performance.now()+1400; a.jump=2;
   const h=document.createElement('i'); h.className='pet-heart'; h.innerHTML='<svg class="ic"><use href="#i-heart"/></svg>'; h.style.left=(a.x+16+Math.random()*12)+'px'; h.style.top=(a.y<40?a.y+40:a.y-10)+'px'; petLayer.appendChild(h); setTimeout(()=>h.remove(),1100);
@@ -9658,7 +9768,7 @@ function petPoopTick(a){
 function petPoopEl(a){
   const {W,H}=petDims(), it=document.createElement('button'); it.className='pet-item poop'; it.dataset.pet=a.id; it.appendChild(petItemSprite('poop'));
   it.style.left=Math.round(20+Math.random()*Math.max(10,W-20))+'px'; it.style.top=(H+28)+'px'; it.title='눌러서 치우기';
-  it.onclick=()=>{ const o=petSt.owned[a.id]; if(o){ o.poops=Math.max(0,(o.poops||0)-1); o.hap=Math.min(100,(o.hap||60)+3); petSt.cleaned=(petSt.cleaned||0)+1; savePets(); petSay(a,petTalk('thanks')); petGiftCheck(); }
+  it.onclick=()=>{ const o=petSt.owned[a.id]; if(o){ o.poops=Math.max(0,(o.poops||0)-1); o.hap=Math.min(100,(o.hap||60)+3); petSt.cleaned=(petSt.cleaned||0)+1; petWkAdd('poop'); savePets(); petSay(a,petTalk('thanks')); petGiftCheck(); }
     it.classList.add('bye'); setTimeout(()=>it.remove(),300); };
   petLayer.appendChild(it);
 }
@@ -9728,7 +9838,7 @@ function petPanelHTML(){
   const dex=`<div class="set-sec"><h4 class="dex-hd">도감 <span class="mail-n">${petDexCount()} / ${PET_KINDS.filter(k=>!k.gift).length}</span>${own.length?`<span class="dex-all"><button class="link-btn" onclick="petWalkAll(true)">모두 산책</button><button class="link-btn" onclick="petWalkAll(false)">모두 쉬기</button></span>`:''}</h4><div class="pet-dex">${PET_KINDS.filter(k=>!k.gift).map(k=>{ const o=petSt.owned[k.id];
       return o ? `<button class="dex${_petSel===k.id?' on':''}${petSt.active.includes(k.id)?' walk':''}" onclick="_petSel='${k.id}';renderSettings('pet')" title="${esc(petName(k.id))}"><canvas data-k="${k.id}" width="48" height="48"></canvas><span>${esc(petName(k.id))}</span></button>`
                : `<div class="dex unk"><i>?</i><span>&nbsp;</span></div>`; }).join('')}</div>
-      <h4 class="dex-hd" style="margin-top:14px;">도장깨기</h4><div class="pet-dex">${PET_KINDS.filter(k=>k.gift&&(k.gift!=='lab'||plazaOn())).map(k=>{ const o=petSt.owned[k.id];
+      <h4 class="dex-hd" style="margin-top:14px;">도장깨기</h4><div class="pet-dex">${PET_KINDS.filter(k=>k.gift&&(!/^lab/.test(k.gift)||plazaOn())).map(k=>{ const o=petSt.owned[k.id];
         const G=petGiftRule(k.gift); let hv=0; try{ hv=G.have(); }catch(e){} const hint=`${G.lab} ${Math.min(G.need,hv)}/${G.need}${G.unit||''}`;
         return o ? `<button class="dex${_petSel===k.id?' on':''}${petSt.active.includes(k.id)?' walk':''}" onclick="_petSel='${k.id}';renderSettings('pet')"><canvas data-k="${k.id}" width="48" height="48"></canvas><span>${esc(petName(k.id))}</span><small class="dex-why">${esc(G.lab)} ${G.need}${esc(G.unit||'')}</small></button>`
                  : `<div class="dex unk"><i>?</i><span>${hint}</span></div>`; }).join('')}</div>
@@ -9788,7 +9898,13 @@ const GIFT_RULES={
   ln2_10:{need:10, have:()=>stockChecks.filter(c=>c.ln2Done&&(c.date||'')>=_gs()).length, lab:'LN2 넣기', unit:'번', why:'LN2에 10번 넣었어요'},
   newline10:{need:10, have:()=>_logsSince().filter(l=>isSeed(l.action)).length, lab:'새 라인', unit:'개', why:'라인을 10개 만들었어요'},
   shot10:{need:10, have:_shotsSince, lab:'현미경 사진', unit:'장', why:'현미경 사진 10장을 찍었어요'},
-  lab:{need:1, have:()=>petSt.labDone?1:0, lab:'랩 협동', unit:'', why:'랩 모두가 이번 주 목표를 채웠어요'},
+  lab:{need:1, have:()=>labWinN(), lab:'랩 미션', unit:'개', why:'랩이 같이 미션을 깼어요'},
+  lab3:{need:3, have:()=>labWinN(), lab:'랩 미션', unit:'개', why:'랩 미션 3개를 같이 깼어요'},
+  lab6:{need:6, have:()=>labWinN(), lab:'랩 미션', unit:'개', why:'랩 미션 6개를 같이 깼어요'},
+  lab10:{need:10, have:()=>labWinN(), lab:'랩 미션', unit:'개', why:'랩 미션 10개를 같이 깼어요'},
+  lab15:{need:15, have:()=>labWinN(), lab:'랩 미션', unit:'개', why:'랩 미션 15개를 같이 깼어요'},
+  lab25:{need:25, have:()=>labWinN(), lab:'랩 미션', unit:'개', why:'랩 미션 25개를 같이 깼어요'},
+  laball:{need:1, have:()=>labAllWeeks(), lab:'한 주 미션 3개 모두', unit:'번', why:'한 주 미션 3개를 모두 깼어요'},
   shot100:{need:100, have:_shotsSince, lab:'현미경 사진', unit:'장', why:'현미경 사진 100장을 찍었어요'},
 };
 // 2026-11-08: 예전 기록으로 선물이 한꺼번에 와서, 오늘부터 다시 세기 (도감 숫자 친구는 그대로 둠)
@@ -9823,8 +9939,8 @@ function petWalk(id){
 function petFeedAll(){ const ids=Object.keys(petSt.owned).filter(id=>petKind(id)); let n=0;
   ids.forEach(id=>{ const o=petSt.owned[id], wasFaint=petFainted(id), hungry=Date.now()-(o.fedTs||0)>PET_FULL_MS*0.2; if(hungry) n++; o.fedTs=Date.now();
     const a=PETS.find(p=>p.id===id); if(a){ petSay(a,wasFaint?'살았다! 고마워…':'냠냠!',2200); a.mode='happy'; a.until=performance.now()+1500; } });
-  petSt.fedAll=(petSt.fedAll||0)+n; savePets(); petGiftCheck(); _petRefresh(); toast(`세포 ${ids.length}마리에게 밥을 줬어요`); }
-function petFeed(id){ const o=petSt.owned[id]; if(!o) return; const wasFaint=petFainted(id); o.fedTs=Date.now(); o.hap=Math.min(100,(o.hap||60)+6); petSt.fedAll=(petSt.fedAll||0)+1; savePets(); petGiftCheck(); _petRefresh(); const a=PETS.find(p=>p.id===id); if(a&&wasFaint){ petSay(a,'살았다! 고마워…',3000); a.mode='happy'; a.until=performance.now()+2000; a.jump=3; } else if(a){ petSay(a,'냠냠! 맛있다',2500); a.mode='happy'; a.until=performance.now()+1500; } }
+  petSt.fedAll=(petSt.fedAll||0)+n; petWkAdd('feed',n); savePets(); petGiftCheck(); _petRefresh(); toast(`세포 ${ids.length}마리에게 밥을 줬어요`); }
+function petFeed(id){ const o=petSt.owned[id]; if(!o) return; const wasFaint=petFainted(id); o.fedTs=Date.now(); o.hap=Math.min(100,(o.hap||60)+6); petSt.fedAll=(petSt.fedAll||0)+1; petWkAdd('feed'); savePets(); petGiftCheck(); _petRefresh(); const a=PETS.find(p=>p.id===id); if(a&&wasFaint){ petSay(a,'살았다! 고마워…',3000); a.mode='happy'; a.until=performance.now()+2000; a.jump=3; } else if(a){ petSay(a,'냠냠! 맛있다',2500); a.mode='happy'; a.until=performance.now()+1500; } }
 function petRename(id){ const v=prompt('세포 이름', petSt.owned[id].name||''); if(v===null) return; petSt.owned[id].name=v.trim().slice(0,12); savePets(); PETS.forEach(p=>{ if(p.id===id&&p.nm) p.nm.textContent=petName(id); }); _petRefresh(); }
 function petHide(){ petSt.hidden=!petSt.hidden; savePets(); petSync(); _petRefresh(); }
 function petPick(){
@@ -9871,7 +9987,19 @@ function petGacha(){
 }
 petMount();
 // 방문 세기 (2026-11-19부터): 앱을 연 횟수(visitOpens) · 연 날 수(visitDays). 켜 둔 채 30분 넘게 다른 데 있다 돌아와도 한 번 더 셈. 계정 동기화
-function petVisit(){ const d=petTodayKey(); petSt.visitOpens=(petSt.visitOpens||0)+1; if(petSt.visitLast!==d){ petSt.visitDays=(petSt.visitDays||0)+1; petSt.visitLast=d; }
+// ── 이번 주(월요일부터) 놀이 횟수: 랩 미션용. 주가 바뀌면 0부터 ──
+function petWeekKey(){ const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-((d.getDay()+6)%7)); return ymdLocal(d); }
+function petWk(){ const wk=petWeekKey(); if(!petSt.wkc||petSt.wkc.wk!==wk) petSt.wkc={wk}; return petSt.wkc; }
+function petWkAdd(k,n){ const c=petWk(); c[k]=(c[k]||0)+(n==null?1:n); }
+// 랩이 같이 깬 미션 「주:미션」 목록. 광장에서 모두의 목록을 합쳐서 가짐 (그 주에 앱을 안 열었어도 받음)
+function labWinsAdd(arr){ const a=petSt.labWins||(petSt.labWins=[]); let n=0;
+  if(petSt.labDone&&!a.some(x=>x.startsWith(petSt.labDone+':'))){ a.push(petSt.labDone+':mc'); n++; }   // 예전 「이번 주 MC」 달성
+  (arr||[]).forEach(x=>{ if(typeof x==='string'&&/^\d{4}-\d\d-\d\d:\w+$/.test(x)&&!a.includes(x)){ a.push(x); n++; } });
+  if(n) a.sort(); return n; }
+function labWinN(){ labWinsAdd([]); return (petSt.labWins||[]).length; }
+function labAllWeeks(){ const by={}; (petSt.labWins||[]).forEach(x=>{ const [w,id]=x.split(':'); (by[w]=by[w]||new Set()).add(id); });
+  return Object.entries(by).filter(([w,ids])=>{ try{ return labMissionsOf(w).every(m=>ids.has(m.id)); }catch(e){ return false; } }).length; }
+function petVisit(){ const d=petTodayKey(); petSt.visitOpens=(petSt.visitOpens||0)+1; if(petSt.visitLast!==d){ petSt.visitDays=(petSt.visitDays||0)+1; petSt.visitLast=d; petWkAdd('visit'); }
   savePets(); try{ petSync(); }catch(e){} setTimeout(()=>{ try{ petGiftCheck(); }catch(e){} },1500); }
 petVisit();
 let _petAway=0; document.addEventListener('visibilitychange',()=>{ if(document.hidden) _petAway=Date.now(); else if(_petAway&&Date.now()-_petAway>30*60000){ _petAway=0; petVisit(); } });
@@ -9948,6 +10076,53 @@ setIncu(incuOn());
 const PLAZA_OPEN='2026-11-15';
 const plazaOn=()=>ymdLocal(new Date())>=PLAZA_OPEN;
 const LAB_GOAL=150;   // 이번 주 랩 전체 MC 목표 (유진: 60은 수요일에 거의 다 참 → 150)
+// ── 랩 미션 (2026-11-22, 유진: MC 하나 깨고 마스코트 하나로 끝나서 심심) ──
+// 매주 월요일 「일 · 함께 · 놀이」에서 하나씩, 3개. 주 번호로 정해서 누가 열어도 같은 미션
+// sum: 그 주 광장 프로필 값을 모두 더함 / cnt: 조건 맞는 사람 수. 목표(need)는 여기서만 고치면 됨
+const LAB_MISSIONS=[
+  {id:'mc',    cat:'일',   name:'다같이 Media Change', unit:'MC',    need:LAB_GOAL, sum:'mc'},
+  {id:'split', cat:'일',   name:'Split 릴레이',        unit:'Split', need:20,  sum:'split'},
+  {id:'stock', cat:'일',   name:'Stock 쌓기',          unit:'vial',  need:30,  sum:'stock'},
+  {id:'seed',  cat:'일',   name:'새 라인 심기',        unit:'라인',  need:4,   sum:'seed'},
+  {id:'shot',  cat:'일',   name:'현미경 사진 모으기',  unit:'장',    need:80,  sum:'shot'},
+  {id:'crew',  cat:'함께', name:'모두 출석',           unit:'명',    need:5,   cnt:p=>(p.n!=null?p.n:(p.mc||0)+(p.split||0))>0, how:'이번 주 기록한 사람'},
+  {id:'steady',cat:'함께', name:'꾸준히 3일',          unit:'명',    need:3,   cnt:p=>(p.days||0)>=3, how:'3일 넘게 기록한 사람'},
+  {id:'days',  cat:'함께', name:'랩 출근 도장',        unit:'일',    need:20,  sum:'days', how:'모두의 기록한 날 합'},
+  {id:'gift',  cat:'함께', name:'세포 나눔',           unit:'번',    need:4,   sum:'gift', how:'광장에서 세포 선물'},
+  {id:'poop',  cat:'놀이', name:'응가 대청소',         unit:'개',    need:100, sum:'poop'},
+  {id:'pat',   cat:'놀이', name:'쓰다듬기 릴레이',     unit:'번',    need:150, sum:'pat'},
+  {id:'feed',  cat:'놀이', name:'밥 당번',             unit:'번',    need:80,  sum:'feed'},
+  {id:'visit', cat:'놀이', name:'매일 들르기',         unit:'일',    need:25,  sum:'visit', how:'모두의 들른 날 합'},
+];
+// 2026-01-05 기준 주 번호. 2026-11-16 주(45)는 원래 하던 MC 150이 나오게 맞춤
+function labMissionsOf(wk){
+  const n=Math.round((new Date(wk+'T00:00:00')-new Date('2026-01-05T00:00:00'))/6048e5), by=c=>LAB_MISSIONS.filter(m=>m.cat===c);
+  const W=by('일'), T=by('함께'), F=by('놀이');
+  return [W[((n%W.length)+W.length)%W.length], T[(((n*3+1)%T.length)+T.length)%T.length], F[(((n*3+2)%F.length)+F.length)%F.length]];
+}
+// 이번 주 광장 사람들 (내 것은 지금 값으로)
+function plazaWeekPeople(wk){ const me=mailUser(), mine=me?Object.assign({uid:me.uid},plazaMe()):null;
+  return (_plaza||[]).filter(p=>!mine||p.uid!==mine.uid).concat(mine?[mine]:[]).filter(p=>p.wk===wk); }
+function labMissionVal(m,ppl){ return m.cnt? ppl.filter(m.cnt).length : ppl.reduce((a,p)=>a+(+p[m.sum]||0),0); }
+// 광장을 불러올 때마다: 모두의 달성 목록을 합치고, 이번 주 새로 깬 미션을 더함 → 선물 확인
+function labCheckWins(){
+  if(!_plaza) return;
+  let n=0; _plaza.forEach(p=>{ if(Array.isArray(p.labWins)) n+=labWinsAdd(p.labWins); });
+  const wk=plazaWeek(), ppl=plazaWeekPeople(wk);
+  labMissionsOf(wk).forEach(m=>{ if(labMissionVal(m,ppl)>=m.need) n+=labWinsAdd([wk+':'+m.id]); });
+  if(n){ _plzTotSrc=null; savePets(); petGiftCheck(); plazaPublish(true); }
+}
+function labMissionHTML(){
+  const wk=plazaWeek(), ppl=plazaWeekPeople(wk), ms=labMissionsOf(wk), won=labWinN();
+  const rows=ms.map(m=>{ const v=labMissionVal(m,ppl), ok=v>=m.need, pct=Math.min(100,Math.round(v/m.need*100));
+    return `<div class="lm-row${ok?' ok':''}"><div class="lm-hd"><em class="lm-cat">${m.cat}</em><b>${esc(m.name)}</b><span>${ok?'달성!':`${v} / ${m.need} ${esc(m.unit)}`}</span></div>
+      <div class="plz-bar"><i style="width:${pct}%"></i></div>${m.how?`<small>${esc(m.how)}</small>`:''}</div>`; }).join('');
+  const nDone=ms.filter(m=>labMissionVal(m,ppl)>=m.need).length;
+  const next=PET_KINDS.filter(k=>/^lab\d*$/.test(k.gift||'')&&!petSt.owned[k.id]).map(k=>({k,R:petGiftRule(k.gift)})).sort((a,b)=>a.R.need-b.R.need)[0];
+  const d=new Date(wk+'T00:00:00'); d.setDate(d.getDate()+6);
+  return `<div class="set-sec plz-goal"><h4>이번 주 랩 미션 <span class="mail-n">${nDone}/3</span><small class="lm-wk">~ ${d.getMonth()+1}/${d.getDate()} · ${ppl.length}명이 함께</small></h4>${rows}
+    <small class="lm-foot">지금까지 같이 깬 미션 <b>${won}</b>개${next?` · 다음 선물 「${esc(next.k.name)}」 ${next.R.need}개`:''}${labAllWeeks()?` · 올클리어 ${labAllWeeks()}번`:' · 3개 모두 깨면 「올클리어 왕관」'}</small></div>`;
+}
 let _plaza=null, _plazaErr='', _plazaOff=false;
 // ── 광장 꾸미기: 모두 같이 쓰는 광장. 랩 전체 누적 기록(각자 광장 프로필의 tot를 더함)이 기준을 넘으면 물품이 정해진 자리에 생김
 //    따로 저장하지 않아서 누가 열어도 같은 광장. 자리는 물품마다 고정 (풀밭 위쪽 줄, 왼쪽부터)
@@ -9997,7 +10172,10 @@ const PLZ_ITEMS=[
   {id:'balloon',  name:'꽃집',         k:'mc',    need:1200, unit:'MC'},
   {id:'welcome',  name:'환영 매트',    k:'visit', need:20,   unit:'방문'},
   {id:'clock',    name:'정원 대문',    k:'visit', need:100,  unit:'방문'},
-  {id:'flag',     name:'이번 주 목표 깃발', week:true, unit:`이번 주 MC ${LAB_GOAL}`},
+  {id:'flag',     name:'이번 주 미션 깃발', week:true, unit:'이번 주 미션'},
+  {id:'garland',  name:'깃발 가랜드',  k:'lab',   need:3,    unit:'랩 미션'},
+  {id:'statue',   name:'마스코트 동상', k:'lab',  need:8,    unit:'랩 미션'},
+  {id:'bell',     name:'협동 종',      k:'lab',   need:15,   unit:'랩 미션'},
 ];
 // 32칸으로 크게 그리는 것(나무 · 아치 · 꽃집 등), 같은 그림, 바닥에 깔리는 것
 const PLZ_SZ={tree:32,cherry:32,arch:32,balloon:32,gazebo:32,fountain:32};
@@ -10014,9 +10192,10 @@ function plazaLabTot(){
   if(_plaza && _plzTotSrc===_plaza) return _plzTot;
   const t={mc:0,split:0,stock:0,days:0,visit:0,wk:0}, wk=plazaWeek();
   (_plaza||[]).forEach(p=>{ const o=(p.deco&&p.deco.from===PLZ_START)?p.deco:{}; ['mc','split','stock','days','visit'].forEach(k=>t[k]+=+o[k]||0); if(p.wk===wk) t.wk+=+p.mc||0; });
+  try{ t.lab=labWinN(); const w=plazaWeek(); t.wkWon=(petSt.labWins||[]).filter(x=>x.startsWith(w+':')).length; }catch(e){ t.lab=0; t.wkWon=0; }
   _plzTotSrc=_plaza; _plzTot=t; return t;
 }
-const plazaItemOn=(it,t)=>it.week? t.wk>=LAB_GOAL : (t[it.k]||0)>=it.need;
+const plazaItemOn=(it,t)=>it.week? t.wkWon>=1 : (t[it.k]||0)>=it.need;
 // 물품을 세포처럼 픽셀 그림으로: 16칸 그림을 한 칸 = 1점으로 그린 뒤 반투명 점은 버리고(각지게),
 // 바깥에 그 색을 어둡게 한 테두리를 둘러(세포 그림과 같은 방식) 캐시. 화면에는 정수 배율로 키워서 찍음
 const _plzSpr={};
@@ -10062,6 +10241,9 @@ function plzArt(ctx,id){
     case 'telescope': R(3,9,10,7,P.stone); R(2,9,12,1,P.cream); R(4,15,8,1,P.stoneD); [[4,5],[8,3],[11,6]].forEach(([x,y],i)=>{ R(x+1,y+2,1,9-y-2,P.leaf); R(x,y,3,3,i===1?P.cream:P.pinkL); R(x+1,y+1,1,1,P.rose); }); break;
     case 'welcome': R(1,11,14,5,P.rose); R(2,12,12,3,P.pinkX); R(4,13,8,1,P.roseD); break;
     case 'clock': R(0,2,2,14,P.wood); R(14,2,2,14,P.wood); R(0,1,16,2,P.woodD); [3,6,9,12].forEach(x=>R(x,6,1,10,P.woodL)); R(2,8,12,1,P.wood); R(2,13,12,1,P.wood); rose(1,-1); rose(6,0,P.pinkL); rose(12,-1); break;
+    case 'garland': R(0,2,1,14,P.woodD); R(15,2,1,14,P.woodD); for(let x=1;x<15;x++){ const y=3+Math.round(Math.sin((x-1)/13*Math.PI)*3); R(x,y,1,1,P.woodD); if(x%3===1){ R(x,y+1,2,2,[P.rose,P.glow,P.blue,P.pinkL][(x/3|0)%4]); R(x,y+3,1,1,[P.rose,P.glow,P.blue,P.pinkL][(x/3|0)%4]); } } break;
+    case 'statue': R(3,12,10,4,P.stoneD); R(2,11,12,1,P.stone); R(4,13,8,1,P.stone); C(8,7,4.6,P.cream); R(4,2,8,2,P.blue); R(5,4,6,1,P.blue); R(6,6,1,1,P.woodD); R(9,6,1,1,P.woodD); R(5,8,1,1,P.pinkL); R(10,8,1,1,P.pinkL); break;
+    case 'bell': R(2,0,12,2,P.wood); R(2,0,1,16,P.woodD); R(13,0,1,16,P.woodD); R(7,2,2,1,P.woodD); R(5,3,6,1,P.glow); R(4,4,8,5,P.glow); R(3,9,10,1,'#E8C46A'); R(7,10,2,1,'#C9A04A'); R(5,5,1,3,P.cream); R(1,14,14,2,P.stone); break;
     case 'flag': R(2,0,1,16,P.woodD); R(3,1,9,5,P.pinkL); R(3,1,9,1,P.rose); R(6,3,3,1,P.roseD); break;
     case 'stream': R(0,4,16,8,P.water); R(0,4,16,1,P.waterD); R(0,11,16,1,P.waterD); R(3,6,3,1,P.waterL); R(9,9,4,1,P.waterL); break;
     case 'path': [[1,10],[9,10],[5,3]].forEach(([x,y])=>{ R(x,y,6,5,P.pinkL); R(x+2,y+1,2,3,P.pinkX); R(x+1,y+2,4,1,P.pinkX); }); break;
@@ -10086,7 +10268,7 @@ function plzArt(ctx,id){
 }
 // 자리 (x 0–1, 바닥선 y 0–1). 뒤: 나무 데크 위 꽃집 · 장미 아치 · 가로등 · 촛대 · 랜턴, 가운데: 돌 원형 광장 + 분수 + 벤치,
 // 왼쪽: 큰 나무 · 장미 화단 · 퍼걸러 · 그네, 오른쪽: 시냇물 건너 벚꽃나무 · 튤립 · 파라솔 · 피크닉 · 연못, 앞: 입구 대문 · 환영 매트
-const PLZ_SPOT={balloon:[0.48,0.36], arch:[0.48,0.5], lamp:[0.35,0.47], lamp2:[0.61,0.47], sandbox:[0.4,0.38], campfire:[0.57,0.38], stall:[0.25,0.36],
+const PLZ_SPOT={garland:[0.82,0.3], statue:[0.13,0.42], bell:[0.9,0.94], balloon:[0.48,0.36], arch:[0.48,0.5], lamp:[0.35,0.47], lamp2:[0.61,0.47], sandbox:[0.4,0.38], campfire:[0.57,0.38], stall:[0.25,0.36],
   slide:[0.3,0.5], pine:[0.65,0.5], lights:[0,0], flag:[0.62,0.26], apple:[0.17,0.27],
   tree:[0.07,0.52], shroom:[0.15,0.56], bed:[0.23,0.6], notice:[0.33,0.62], well:[0.05,0.68], bush:[0.07,0.8], gazebo:[0.22,0.88], swing:[0.34,0.97],
   fountain:[0.48,0.75], bench:[0.37,0.8], bench2:[0.6,0.83], hutch:[0.63,0.63],
@@ -10164,9 +10346,9 @@ function pmDrawLab(ctx,W,q){
 }
 function plazaDecoHTML(){
   const t=plazaLabTot(), done=PLZ_ITEMS.filter(it=>plazaItemOn(it,t)), todo=PLZ_ITEMS.filter(it=>!plazaItemOn(it,t));
-  const ratio=it=>it.week?(t.wk/LAB_GOAL):(t[it.k]||0)/it.need;
-  const card=it=>{ const ok=plazaItemOn(it,t), cur=it.week?t.wk:(t[it.k]||0), need=it.week?LAB_GOAL:it.need;
-    return `<div class="plz-it${ok?' on':''}" title="${esc(it.name)} · ${esc(it.unit)} ${cur}/${need}"><canvas data-item="${it.id}" width="32" height="32"></canvas><b>${esc(it.name)}</b><small>${ok?(it.week?`이번 주 MC ${need} 채움`:`${esc(it.unit)} ${need} 달성`):`${esc(it.unit)} ${cur}/${need}`}</small></div>`; };
+  const ratio=it=>it.week?(t.wkWon?1:0.5):(t[it.k]||0)/it.need;
+  const card=it=>{ const ok=plazaItemOn(it,t), cur=it.week?t.wkWon:(t[it.k]||0), need=it.week?1:it.need;
+    return `<div class="plz-it${ok?' on':''}" title="${esc(it.name)} · ${esc(it.unit)} ${cur}/${need}"><canvas data-item="${it.id}" width="32" height="32"></canvas><b>${esc(it.name)}</b><small>${ok?(it.week?'이번 주 미션 달성':`${esc(it.unit)} ${need} 달성`):(it.week?'이번 주 미션 하나 깨기':`${esc(it.unit)} ${cur}/${need}`)}</small></div>`; };
   const next=todo.slice().sort((a,b)=>ratio(b)-ratio(a)).slice(0,6);
   return `<div class="set-sec plz-deco"><h4>광장 꾸미기 <span class="mail-n">${done.length}/${PLZ_ITEMS.length}</span></h4>
     <div class="plz-items">${next.map(card).join('')}</div>
@@ -10184,11 +10366,14 @@ const plazaCellName=id=>{ const o=petSt.owned[id], k=petKind(id); return (o&&o.n
 function plazaSetRep(id){ try{ localStorage.setItem('orgPlazaRep',id); }catch(e){} plazaPublish(true); plazaMiniSync(); plazaPanelRefresh(); toast(`${plazaCellName(id)}를 광장 대표로 보냈어요`); }
 function plazaNick(){ try{ return localStorage.getItem('orgNickPlaza')||cclLn2.getInitials()||'세포 친구'; }catch(e){ return '세포 친구'; } }
 function plazaMe(){
-  const wk=plazaWeek(), ls=logs.filter(l=>(l.date||'')>=wk);
+  const wk=plazaWeek(), ls=logs.filter(l=>(l.date||'')>=wk), wc=petWk();
   const gifts=PET_KINDS.filter(k=>k.gift&&petSt.owned[k.id]).map(k=>k.id);
   const rep=plazaRep();
   return { nick:plazaNick().slice(0,12), rep, repName:plazaCellName(rep).slice(0,12), repLv:petLv(rep), walk:petSt.active.slice(0,5),
-    deco:plazaMyTot(), dex:petDexCount(), gifts, flowers:petSt.flowersAll||0, msg:(()=>{ try{ return (localStorage.getItem('orgPlazaMsg')||'').slice(0,24); }catch(e){ return ''; } })(), wk, mc:ls.filter(l=>isMediaChange(l.action)).length, split:ls.filter(l=>/split/i.test(l.action||'')).length, ts:Date.now() };
+    deco:plazaMyTot(), dex:petDexCount(), gifts, flowers:petSt.flowersAll||0, msg:(()=>{ try{ return (localStorage.getItem('orgPlazaMsg')||'').slice(0,24); }catch(e){ return ''; } })(), wk, mc:ls.filter(l=>isMediaChange(l.action)).length, split:ls.filter(l=>/split/i.test(l.action||'')).length,
+    n:ls.length, stock:ls.reduce((a,l)=>a+(parseInt(l.stocks)||0),0), seed:ls.filter(l=>isSeed(l.action)).length, days:new Set(ls.map(l=>l.date)).size,
+    shot:(()=>{ const t0=new Date(wk+'T00:00:00').getTime(); return shotSets.filter(x=>(x.createdTs||x.updatedTs||0)>=t0).reduce((a,x)=>a+((x.items||[]).length),0)+shotLog.filter(x=>(x.ts||0)>=t0).length; })(),
+    poop:wc.poop||0, pat:wc.pat||0, feed:wc.feed||0, gift:wc.gift||0, visit:wc.visit||0, labWins:(petSt.labWins||[]).slice(-80), ts:Date.now() };
 }
 let _plazaPubT=0;
 function plazaPublish(force){
@@ -10201,7 +10386,7 @@ function plazaSetOff(off){ _plazaOff=off; try{ localStorage.setItem('orgPlazaOff
 function plazaSetNick(v){ try{ localStorage.setItem('orgNickPlaza',String(v||'').trim().slice(0,12)); }catch(e){} plazaPublish(true); plazaMiniSync(); const l=document.getElementById('plazaList'); if(l&&_plaza) plazaRender(); }   // 바꾸면 풀밭 이름표 · 내 카드에 바로
 async function plazaFetch(){
   try{ const q=await fbDb.collection('players').limit(200).get(); _plaza=q.docs.map(d=>d.data()); _plazaErr='';
-    try{ localStorage.setItem('orgPlazaCache',JSON.stringify({uid:mailUser().uid,list:_plaza})); }catch(e){} }   // 새로고침하면 이걸로 먼저 그림
+    try{ localStorage.setItem('orgPlazaCache',JSON.stringify({uid:mailUser().uid,list:_plaza})); }catch(e){} try{ labCheckWins(); }catch(e){} }   // 새로고침하면 이걸로 먼저 그림
   catch(e){ _plaza=null; _plazaErr=/permission/i.test(e.code||e.message||'')?'아직 광장이 열리지 않았어요 (관리자 설정 필요).':'불러오지 못했어요.'; }
   plazaMiniSync();
 }
@@ -10215,11 +10400,10 @@ function plazaRender(){
   const box=document.getElementById('plazaList'); if(!box) return;
   if(!_plaza){ box.innerHTML=`<p class="set-p">${_plazaErr||'불러오는 중…'}</p>`; return; }
   const me=mailUser(), wk=plazaWeek();
-  const mcAll=_plaza.filter(p=>p.wk===wk).reduce((a,p)=>a+(p.mc||0),0), pct=Math.min(100,Math.round(mcAll/LAB_GOAL*100));
-  if(mcAll>=LAB_GOAL&&!petSt.labDone){ petSt.labDone=wk; savePets(); petGiftCheck(); }
+  labCheckWins();
   const others=_plaza.filter(p=>p.uid!==(me&&me.uid)).sort((a,b)=>(b.ts||0)-(a.ts||0)), mine=Object.assign({uid:me&&me.uid},plazaMe());
   const nGift=PET_KINDS.filter(k=>k.gift).length, nDex=PET_KINDS.filter(k=>!k.gift).length;
-  box.innerHTML=`<div class="set-sec plz-goal"><h4>랩 협동 목표 · 이번 주 MC</h4><div class="plz-bar"><i style="width:${pct}%"></i></div><small>${mcAll} / ${LAB_GOAL} · ${_plaza.filter(p=>p.wk===wk).length}명이 함께${mcAll>=LAB_GOAL?' · 달성!':''}</small></div>
+  box.innerHTML=`${labMissionHTML()}
     ${plazaDecoHTML()}
     <div class="set-sec"><h4>함께 쓰는 사람 <span class="mail-n">${others.length+1}</span></h4><div class="plz-list">${[mine].concat(others).map(p=>{ const isMe=p===mine;
       return `<div class="plz-card${isMe?' me':''}">
@@ -10248,7 +10432,7 @@ async function plazaSend(to,kind,cellId){
   if(kind==='cell'){ const o=petSt.owned[cellId]; if(!o||(o.n||1)<2) return toast('겹친 세포(2마리 이상)만 보낼 수 있어요',{warn:true}); }
   try{
     await fbDb.collection('presents').add({from:u.uid, fromNick:plazaNick(), to, kind, cellId:cellId||'', ts:Date.now(), claimed:false});
-    if(kind==='flower') st.flower++; else { st.cell++; petSt.owned[cellId].n=(petSt.owned[cellId].n||2)-1; }
+    if(kind==='flower') st.flower++; else { st.cell++; petSt.owned[cellId].n=(petSt.owned[cellId].n||2)-1; petWkAdd('gift'); }
     savePets(); closePlazaPick(); toast(kind==='flower'?'꽃을 보냈어요':`${petKind(cellId).name}를 보냈어요`);
   }catch(e){ toast(/permission/i.test(e.code||e.message||'')?'아직 광장이 열리지 않았어요':'보내지 못했어요',{warn:true}); }
 }
@@ -10539,7 +10723,10 @@ setTimeout(async()=>{ if(!mailUser()||!fbDb) return; try{ const q=await fbDb.col
 //  업데이트 안내: 올린 날부터 5일 동안 열 때마다 보여줌 (「다시 보지 않기」 체크하면 이 버전은 끝)
 //  새 기능을 올릴 때 NEWS의 id · date · items만 바꾸면 됨
 // ══════════════════════════════════════════
-const NEWS={id:'2026-11-17', date:'2026-11-17', days:5, items:[
+const NEWS={id:'2026-11-22', date:'2026-11-22', days:5, items:[
+  ['<b>랩 미션</b>','매주 월요일 미션 3개가 바뀌어요(일 · 함께 · 놀이 하나씩: MC · Split · Stock · 새 라인 · 사진 / 출석 · 꾸준히 · 세포 나눔 / 응가 · 쓰다듬기 · 밥 · 들르기). 같이 깬 미션 수로 피펫 요정 · 삼각 플라스크 · 페트리 접시 · 다같이 셋 · 랩 수호신, 한 주 3개 모두 깨면 올클리어 왕관. 광장에는 깃발 가랜드 · 마스코트 동상 · 협동 종'],
+  ['<b>촬영 순서 중간 고치기</b>','줄마다 「고치기」(라인 · 특이사항 · 배율), 「앞에 넣기」(그 자리에 차례로 끼워 넣기), ↑ ↓로 줄 옮기기'],
+  ['<b>사진 이름 · 스케일바</b>','순서를 채운 뒤 사진마다 「↓ 끼우기」(순서에 없던 컷: 아래 순서를 한 칸씩 내림) · 「↑ 빼기」(안 찍은 컷: 아래 순서를 한 칸씩 올림), 되돌리기 가능'],
   ['<b>LN2 검색 요약</b>','검색하면 맨 위에 vial 수 · 환자 수 · 종류 · 사람 · passage별 개수. 종류를 여러 개 고르면(CAF + PF 등) 환자별로 짝 표, 다 있는 환자부터'],
   ['<b>기록 입력 Stock</b>','칩은 이름만, P는 「P 올리지 않기」 체크 하나로. 바이알 P도 그걸 따라가요'],
   ['<b>현미경 사진 PPT</b>','설정 없이 실험마다 날짜 · 조건(well · 처리) · 배율을 사진 수에 맞춰 자동으로 행 · 열에 놓아 슬라이드를 꽉 채워요. 썸네일의 「한 장에 n행 − / +」로 다음 장 행을 당기거나 넘겨요'],
@@ -11795,13 +11982,14 @@ if(curTab==='ana'||curTab==='diary'||curTab==='media'||curTab==='fig') setTab(cu
     <h2>촬영 순서</h2>
     <div class="mscroll">
       <div id="slRecent" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;"></div>
+      <div id="slMode"></div>
       <select id="slLine" style="height:38px;margin-bottom:8px;" onchange="slRenderRecent()"></select>
-      <button class="btn btn-pri" style="width:100%;height:40px;margin-bottom:8px;" onclick="slAddSet()"><svg class="ic"><use href="#i-scope"/></svg>4x·10x·20x 세트 한번에 추가</button>
+      <div id="slAddBox"><button class="btn btn-pri" style="width:100%;height:40px;margin-bottom:8px;" onclick="slAddSet()"><svg class="ic"><use href="#i-scope"/></svg>4x·10x·20x 세트 한번에 추가</button>
       <div style="display:flex;gap:8px;margin-bottom:10px;">
         <button class="btn btn-out" style="flex:1;" onclick="slAdd('4x')">+4x</button>
         <button class="btn btn-out" style="flex:1;" onclick="slAdd('10x')">+10x</button>
         <button class="btn btn-out" style="flex:1;" onclick="slAdd('20x')">+20x</button>
-      </div>
+      </div></div>
       <div id="slWellChips" style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;"></div>
       <div id="slRecentNotes" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px;max-height:132px;overflow-y:auto;"></div>
       <input id="slNote" placeholder="특이사항 (다음 1건에만)" style="margin-bottom:10px;" oninput="slRenderWellChips()">
