@@ -4627,9 +4627,18 @@ function projRename(p){ const v=(prompt('새 이름',p)||'').trim(); if(!v||v===
 function projDelete(p){ const k=lines.filter(l=>l.project===p).length; if(!confirm(`「${p}」 프로젝트를 지울까요?${k?`\n라인 ${k}개는 「프로젝트 없음」이 돼요 (라인과 기록은 그대로).`:''}`)) return;
   lines.forEach(l=>{ if(l.project===p) l.project=''; }); projSave(projSaved().filter(x=>x!==p)); projMgrRender(); updateUI(); }
 function projListFill(){ const d=document.getElementById('projList'); if(d) d.innerHTML=projectsAll().map(p=>`<option value="${esc(p)}">`).join(''); }
-const PROJ_PAL=[{bg:'#E8F1FD',bd:'#9DBFEA',tx:'#2F5E99'},{bg:'#FDEDEF',bd:'#EBA5B0',tx:'#9B3A4B'},{bg:'#EAF7EE',bd:'#9DD3AE',tx:'#2F7A48'},{bg:'#FFF4DE',bd:'#EFC77D',tx:'#8A5A12'},{bg:'#F2ECFC',bd:'#BFA8EC',tx:'#5B3E9C'},{bg:'#E6F6F6',bd:'#8FD0CF',tx:'#246F6E'},{bg:'#FCEFE6',bd:'#EDB491',tx:'#8E4A22'}];
-function projColor(p){ const c=p?(()=>{ let h=0; for(const ch of p) h=(h*31+ch.charCodeAt(0))|0; return PROJ_PAL[Math.abs(h)%PROJ_PAL.length]; })():{bg:'#F3F4F6',bd:'#D1D5DB',tx:'#6B7280'};
-  return {bg:c.bd, tx:c.tx, bd:c.bd, hbg:c.bg, ht:c.tx}; }   // 종류 색과 같은 모양으로
+// 프로젝트 색 (2026-11-22, 유진: 칙칙함): 예전엔 테두리용 중간 톤을 칩 바탕으로 써서 탁했음 → 종류 색과 같은 파스텔 12색(AUTO_PAL)
+// 이름으로 자리를 정하고, 다른 프로젝트와 겹치면 다음 빈 색으로 (이름순으로 정해서 기기마다 같음)
+let _pjColKey='', _pjColMap={};
+function projColor(p){
+  if(!p) return {bg:'#E5E7EB',tx:'#4B5563',bd:'#D1D5DB',hbg:'#F3F4F6',ht:'#4B5563'};
+  let all=[]; try{ all=projectsAll(); }catch(e){} if(!all.includes(p)) all=all.concat([p]);
+  const key=all.slice().sort().join('\u0001');
+  if(key!==_pjColKey){ _pjColKey=key; _pjColMap={}; const used=new Set(), N=AUTO_PAL.length;
+    all.slice().sort().forEach(q=>{ let h=0; for(const ch of q) h=(h*31+ch.charCodeAt(0))|0; let i=Math.abs(h)%N;
+      for(let k=0;k<N&&used.has(i);k++) i=(i+1)%N; used.add(i); _pjColMap[q]=PAL[AUTO_PAL[i]]; }); }
+  return _pjColMap[p]||PAL[AUTO_PAL[0]];
+}
 let _boardBy='type'; try{ _boardBy=localStorage.getItem('orgBoardBy')||'type'; }catch(e){}
 function setBoardBy(v){ _boardBy=v; try{ localStorage.setItem('orgBoardBy',v); }catch(e){} renderDash(); renderTimelines('activeTL',false); }   // 오늘 작업 배양 현황 · 배양 라인 같은 설정
 // 라인 하나 프로젝트 정하기 (배양 라인 머리의 프로젝트 칩)
