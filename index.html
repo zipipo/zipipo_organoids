@@ -1773,16 +1773,12 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
 }
 
 /* 촬영 순서 중간 고치기 */
-.sb-shift{display:flex;flex-direction:column;gap:3px;flex:none;align-self:center;margin-right:4px;}
-.sb-shift button{border:1px solid var(--bd,#E2E8F0);background:var(--card,#fff);color:var(--sub);border-radius:6px;height:24px;padding:0 7px;font-size:.68rem;cursor:pointer;white-space:nowrap;}
-.sb-shift button:hover{color:var(--pri);border-color:var(--pri);}
 .sl-mode{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;padding:8px 10px;margin-bottom:8px;border-radius:10px;background:var(--hov);font-size:.78rem;}
 .sl-mode b{color:var(--pri);} .sl-mode small{color:var(--sub);font-size:.7rem;flex:1 1 100%;}
 .sl-mags,.sl-mbtn{display:flex;gap:6px;} .sl-mbtn .btn{height:32px;padding:0 14px;} .sl-mags .tbl-btn.on{background:#EEF2FF;color:#4338CA;border-color:#C7D2FE;font-weight:700;}
 .sl-no{flex:none;min-width:18px;color:var(--sub);font-weight:700;font-size:.7rem;}
 .sl-row.editing{background:#EEF2FF;}
-.sl-tools{display:flex;gap:3px;flex:none;} .sl-tools button{border:1px solid var(--bd,#E2E8F0);background:var(--card,#fff);color:var(--sub);border-radius:5px;height:24px;padding:0 6px;font-size:.68rem;cursor:pointer;}
-.sl-tools button:disabled{opacity:.35;cursor:default;} .sl-tools button:not(:disabled):hover{color:var(--pri);border-color:var(--pri);}
+.sl-lab{cursor:pointer;} .sl-lab:hover{color:var(--pri);} .sl-mbtn{flex-wrap:wrap;} .sl-mv{padding:0 10px!important;}
 .sl-insmark{font-size:.72rem;font-weight:700;color:var(--pri);padding:3px 8px;border-top:2px dashed var(--pri);}
 /* 촬영 순서 특이사항 태그 */
 .sl-note-tag{display:inline-flex;align-items:center;}
@@ -3565,9 +3561,9 @@ function slRenderMode(){
   const el=document.getElementById('slMode'), add=document.getElementById('slAddBox'); if(!el) return;
   if(add) add.style.display=_slEdit>=0?'none':'';
   if(_slEdit>=0){
-    el.innerHTML=`<div class="sl-mode edit"><b>${_slEdit+1}번째 줄 고치는 중</b><small>아래에서 라인 · 특이사항을 바꾸고 배율을 고른 뒤 저장</small>
+    el.innerHTML=`<div class="sl-mode edit"><b>${_slEdit+1}번째 줄</b><small>라인 · 특이사항 · 배율을 바꾸고 저장, 또는 이 줄 앞에 새 줄 넣기 · 옮기기</small>
       <div class="sl-mags">${ALL_MAGS.map(m=>`<button type="button" class="tbl-btn${_slEditMags.has(m)?' on':''}" onclick="slEditMag('${m}')">${m}</button>`).join('')}</div>
-      <div class="sl-mbtn"><button class="btn btn-pri" onclick="slEditSave()">저장</button><button class="btn btn-out" onclick="slModeOff();renderShotLog()">취소</button></div></div>`;
+      <div class="sl-mbtn"><button class="btn btn-pri" onclick="slEditSave()">저장</button><button class="btn btn-out" onclick="slInsAt(_slEdit)">이 앞에 넣기</button><button class="btn btn-out sl-mv" title="위로" onclick="slMoveGroup(_slEdit,-1)">↑</button><button class="btn btn-out sl-mv" title="아래로" onclick="slMoveGroup(_slEdit,1)">↓</button><button class="btn btn-ghost" onclick="slModeOff();renderShotLog()">닫기</button></div></div>`;
   } else if(_slIns>=0){
     const gi=slGroups().findIndex(g=>g.items[0].idx===_slIns);
     el.innerHTML=`<div class="sl-mode ins"><b>${gi>=0?`${gi+1}번째 줄 앞에`:'중간에'} 끼워 넣는 중</b><small>위 버튼으로 넣으면 이 자리에 차례로 들어가요</small><button class="tbl-btn" onclick="slModeOff();renderShotLog()">맨 끝에 넣기로</button></div>`;
@@ -3600,7 +3596,7 @@ function slMoveGroup(gi,dir){
   const gs=slGroups(), j=gi+dir; if(!gs[gi]||!gs[j]) return;
   [gs[gi],gs[j]]=[gs[j],gs[gi]];
   shotLog=gs.flatMap(g=>g.items.map(({idx,...x})=>x));
-  slModeOff(); saveShotLog(); renderShotLog();
+  _slIns=-1; _slEdit=slGroups().findIndex(g=>g.items[0].ts===gs[j].items[0].ts&&g.lineId===gs[j].lineId); saveShotLog(); renderShotLog();
 }
 function renderShotLog(){
   const el=document.getElementById('slList');
@@ -3620,9 +3616,8 @@ function renderShotLog(){
     return `${_slIns===first.idx?insMark:''}<div class="sl-row${_slEdit===gi?' editing':''}" style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-bottom:1px solid #F1F5F9;font-size:.78rem;flex-wrap:wrap;">
       <span class="sl-no">${gi+1}</span>
       <span style="color:#94A3B8;min-width:64px;">${timeStr}</span>
-      <span style="flex:1;font-weight:600;">${dateTag}${esc(label)}${note?' · '+esc(note):''}</span>
+      <span class="sl-lab" style="flex:1;font-weight:600;" title="눌러서 고치기 · 옮기기 · 앞에 넣기" onclick="slEditStart(${gi})">${dateTag}${esc(label)}${note?' · '+esc(note):''}</span>
       <span style="display:flex;gap:4px;flex-wrap:wrap;">${magsHtml}</span>
-      <span class="sl-tools"><button type="button" title="한 칸 위로" ${gi?'':'disabled'} onclick="slMoveGroup(${gi},-1)">↑</button><button type="button" title="한 칸 아래로" ${gi<groups.length-1?'':'disabled'} onclick="slMoveGroup(${gi},1)">↓</button><button type="button" title="이 줄 고치기 (라인 · 특이사항 · 배율)" onclick="slEditStart(${gi})">고치기</button><button type="button" title="이 줄 앞에 새 줄 끼워 넣기" onclick="slInsAt(${gi})">앞에 넣기</button></span>
       <button type="button" title="이 줄(순서 중간 포함) 전체 삭제" onclick="slRemoveGroup([${groupIdxs}])" style="flex:none;background:#FEE2E2;color:#DC2626;border:none;border-radius:5px;width:24px;height:24px;font-size:.9rem;font-weight:700;cursor:pointer;">×</button>
     </div>`;
   }).join('');
@@ -6101,6 +6096,7 @@ async function handleSbarFiles(fileList){
 function sbAutoMagOn(){ const el=document.getElementById('sbAutoMag'); return el?el.checked:true; }
 function sbSet(i,k,v){
   if(!sbFiles[i]) return;
+  if(k==='lineId'&&(v==='__push'||v==='__pull')) return sbShift(i, v==='__push'?1:-1);
   sbFiles[i][k]=v;
   if(k==='lineId' && v && sbAutoMagOn()){
     // 같은 샘플의 4x/10x/20x를 이어서 올린 경우: 바로 아래 미지정 사진들에 같은 라인 + 다음 배율을 자동으로 채움
@@ -6429,7 +6425,8 @@ function renderSbarList(){
       return `<option value="${esc(l.id)}" ${l.id===f.lineId?'selected':''}${style}>[${esc(lineTag(l))}]${l.isCompleted?' (완료)':''}${tag}</option>`;
     });
     const _fsOpts=fsOptGroupHTML(id=>(lineUsage[id]||0)-(id===f.lineId?1:0), f.lineId);
-    const lineOpts=`<option value="" ${!f.lineId?'selected':''}>라인 선택…</option>`+_fsOpts+(_opts||(_fsOpts?'':'<option value="" disabled>선택 가능한 라인 없음</option>'));
+    const shiftOpts=sbFiles.some(x=>x.lineId)?`<optgroup label="순서 고치기"><option value="__push">↓ 여기 빈 칸 끼우기 (아래 순서 한 칸씩 내림)</option><option value="__pull">↑ 이 순서 빼기 (아래 순서 한 칸씩 올림)</option></optgroup>`:'';
+    const lineOpts=`<option value="" ${!f.lineId?'selected':''}>라인 선택…</option>`+shiftOpts+_fsOpts+(_opts||(_fsOpts?'':'<option value="" disabled>선택 가능한 라인 없음</option>'));
     const magOpts=ALL_MAGS.map(m=>`<option value="${m}" ${m===f.mag?'selected':''}>${m}</option>`).join('');
     const line=sbLine(f.lineId);
     let preview=`보정만 → color-matched 폴더/${wbOutName(f.fname)}`, barInfo='';
@@ -6465,7 +6462,6 @@ function renderSbarList(){
         </div>
         <div class="sb-prev" id="sbprev${i}">${esc(preview)}</div>
       </div>
-      ${sbFiles.some(x=>x.lineId)?`<div class="sb-shift"><button title="이 사진은 순서에 없던 컷: 이 사진부터 아래 순서를 한 칸씩 내리고 이 사진은 비워요 (직접 고르기)" onclick="sbShift(${i},1)">↓ 끼우기</button><button title="순서에 있는데 안 찍은 컷: 이 사진의 순서를 빼고 아래 순서를 한 칸씩 올려요" onclick="sbShift(${i},-1)">↑ 빼기</button></div>`:''}
       <button class="sb-x" title="제거" onclick="sbRemove(${i})">×</button>
     </div>`;
   }).join('');
@@ -10725,8 +10721,8 @@ setTimeout(async()=>{ if(!mailUser()||!fbDb) return; try{ const q=await fbDb.col
 // ══════════════════════════════════════════
 const NEWS={id:'2026-11-22', date:'2026-11-22', days:5, items:[
   ['<b>랩 미션</b>','매주 월요일 미션 3개가 바뀌어요(일 · 함께 · 놀이 하나씩: MC · Split · Stock · 새 라인 · 사진 / 출석 · 꾸준히 · 세포 나눔 / 응가 · 쓰다듬기 · 밥 · 들르기). 같이 깬 미션 수로 피펫 요정 · 삼각 플라스크 · 페트리 접시 · 다같이 셋 · 랩 수호신, 한 주 3개 모두 깨면 올클리어 왕관. 광장에는 깃발 가랜드 · 마스코트 동상 · 협동 종'],
-  ['<b>촬영 순서 중간 고치기</b>','줄마다 「고치기」(라인 · 특이사항 · 배율), 「앞에 넣기」(그 자리에 차례로 끼워 넣기), ↑ ↓로 줄 옮기기'],
-  ['<b>사진 이름 · 스케일바</b>','순서를 채운 뒤 사진마다 「↓ 끼우기」(순서에 없던 컷: 아래 순서를 한 칸씩 내림) · 「↑ 빼기」(안 찍은 컷: 아래 순서를 한 칸씩 올림), 되돌리기 가능'],
+  ['<b>촬영 순서 중간 고치기</b>','줄 이름을 누르면 라인 · 특이사항 · 배율 고치기, 이 앞에 넣기, ↑ ↓ 옮기기'],
+  ['<b>사진 이름 · 스케일바</b>','라인 고르기 칸 맨 위 「순서 고치기」: 빈 칸 끼우기(순서에 없던 컷) · 이 순서 빼기(안 찍은 컷), 되돌리기 가능'],
   ['<b>LN2 검색 요약</b>','검색하면 맨 위에 vial 수 · 환자 수 · 종류 · 사람 · passage별 개수. 종류를 여러 개 고르면(CAF + PF 등) 환자별로 짝 표, 다 있는 환자부터'],
   ['<b>기록 입력 Stock</b>','칩은 이름만, P는 「P 올리지 않기」 체크 하나로. 바이알 P도 그걸 따라가요'],
   ['<b>현미경 사진 PPT</b>','설정 없이 실험마다 날짜 · 조건(well · 처리) · 배율을 사진 수에 맞춰 자동으로 행 · 열에 놓아 슬라이드를 꽉 채워요. 썸네일의 「한 장에 n행 − / +」로 다음 장 행을 당기거나 넘겨요'],
