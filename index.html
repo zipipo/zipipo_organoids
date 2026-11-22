@@ -2393,7 +2393,8 @@ const syncClone = d => JSON.parse(JSON.stringify(d));
 // 펫은 Google 계정에 같이 저장 (펫 코드가 뒤에 있어서 window._petsOut / _petsIn으로 이어 줌)
 function localSync(){ return syncClone(pickSync({lines,logs,stockChecks,trash,plans,shotSets,shotNotes:_slRecentNotes,freeSamples,mediaDefs,mediaTubes,figures,exps,tlCollapsed,typeColors,pptCuts,pets:window._petsOut?window._petsOut():{}, prefs:_prefsOut()})); }
 // 이니셜처럼 기기마다 다시 입력하기 귀찮은 설정은 계정에 같이 저장
-function _prefsOut(){ const o={}; try{ const v=localStorage.getItem('orgInitials'); if(v) o.ini=v; const fz=localStorage.getItem('orgFontSize'); if(fz) o.size=fz; const ft=localStorage.getItem('orgFont'); if(ft&&ft!=='pretendard') o.font=ft; const ml=localStorage.getItem('orgMyLine'); if(ml) o.myLine=ml; const pj=localStorage.getItem('orgProjects'); if(pj&&pj!=='[]') o.projects=pj; }catch(e){} return o; }
+function _prefsOut(){ const o={}; try{ const v=localStorage.getItem('orgInitials'); if(v) o.ini=v; const fz=localStorage.getItem('orgFontSize'); if(fz) o.size=fz; const ft=localStorage.getItem('orgFont'); if(ft&&ft!=='pretendard') o.font=ft; const ml=localStorage.getItem('orgMyLine'); if(ml) o.myLine=ml; const pj=localStorage.getItem('orgProjects'); if(pj&&pj!=='[]') o.projects=pj;
+  [['pmsg','orgPlazaMsg'],['pnick','orgNickPlaza'],['prep','orgPlazaRep']].forEach(([k,ls])=>{ const x=localStorage.getItem(ls); if(x!=null) o[k]=x; }); }catch(e){} return o; }
 const syncHas = d => d.lines.length>0 || d.logs.length>0 || d.freeSamples.length>0;
 
 function loadCloudBase(uid){
@@ -2618,6 +2619,9 @@ function applySyncData(d){
     if(d.prefs&&d.prefs.font&&d.prefs.font!==document.documentElement.dataset.font) try{ setFont(d.prefs.font); }catch(e){}
     if(d.prefs&&d.prefs.myLine) try{ localStorage.setItem('orgMyLine',d.prefs.myLine); }catch(e){}
     if(d.prefs&&d.prefs.projects) try{ localStorage.setItem('orgProjects',d.prefs.projects); }catch(e){}
+    // 광장 별명 · 한 줄 상태 · 대표 세포: 폰 · 노트북이 같은 값 (예전엔 기기마다 따로라 나중에 연 쪽 값으로 뒤집힘)
+    if(d.prefs) try{ let ch=false; [['pmsg','orgPlazaMsg'],['pnick','orgNickPlaza'],['prep','orgPlazaRep']].forEach(([k,ls])=>{ const v=d.prefs[k]; if(typeof v==='string'&&localStorage.getItem(ls)!==v){ localStorage.setItem(ls,v); ch=true; } });
+      if(ch) setTimeout(()=>{ try{ plazaPublish(true); plazaMiniSync(); _plazaFormSync(); }catch(e){} },0); }catch(e){}
     updateUI();   // 안에서 saveData()가 lines/logs/stockChecks를 저장한다
   } finally { cloudApplying=false; }
 }
@@ -10359,7 +10363,7 @@ const plazaWeek=()=>{ const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDa
 // 광장 대표 세포: 직접 고른 것(orgPlazaRep) → 산책 중 첫 번째 → 가진 것 첫 번째
 function plazaRep(){ let r=''; try{ r=localStorage.getItem('orgPlazaRep')||''; }catch(e){} if(r&&petSt.owned[r]) return r; return petSt.active[0]||Object.keys(petSt.owned)[0]||''; }
 const plazaCellName=id=>{ const o=petSt.owned[id], k=petKind(id); return (o&&o.name)||(k&&k.name)||''; };
-function plazaSetRep(id){ try{ localStorage.setItem('orgPlazaRep',id); }catch(e){} plazaPublish(true); plazaMiniSync(); plazaPanelRefresh(); toast(`${plazaCellName(id)}를 광장 대표로 보냈어요`); }
+function plazaSetRep(id){ try{ localStorage.setItem('orgPlazaRep',id); }catch(e){} cloudPushDebounced(); plazaPublish(true); plazaMiniSync(); plazaPanelRefresh(); toast(`${plazaCellName(id)}를 광장 대표로 보냈어요`); }
 function plazaNick(){ try{ return localStorage.getItem('orgNickPlaza')||cclLn2.getInitials()||'세포 친구'; }catch(e){ return '세포 친구'; } }
 function plazaMe(){
   const wk=plazaWeek(), ls=logs.filter(l=>(l.date||'')>=wk), wc=petWk();
@@ -10379,7 +10383,13 @@ function plazaPublish(force){
 }
 function plazaSetOff(off){ _plazaOff=off; try{ localStorage.setItem('orgPlazaOff',off?'1':'0'); }catch(e){}
   const u=mailUser(); if(off&&u&&fbDb) fbDb.collection('players').doc(u.uid).delete().catch(()=>{}); else plazaPublish(true); plazaMiniSync(); plazaPanelRefresh(); }
-function plazaSetNick(v){ try{ localStorage.setItem('orgNickPlaza',String(v||'').trim().slice(0,12)); }catch(e){} plazaPublish(true); plazaMiniSync(); const l=document.getElementById('plazaList'); if(l&&_plaza) plazaRender(); }   // 바꾸면 풀밭 이름표 · 내 카드에 바로
+let _plzMsgT=null;
+function plazaSetMsg(v,now){ try{ localStorage.setItem('orgPlazaMsg',String(v||'').trim().slice(0,24)); }catch(e){}
+  clearTimeout(_plzMsgT); _plzMsgT=setTimeout(()=>{ plazaPublish(true); plazaMiniSync(); cloudPushDebounced(); }, now?0:900); }
+// 다른 기기에서 바뀐 값이 오면 열려 있는 입력 칸도 맞춤 (치는 중인 칸은 그대로)
+function _plazaFormSync(){ [['plzMsgIn','orgPlazaMsg'],['plzNickIn','orgNickPlaza']].forEach(([id,ls])=>{ const el=document.getElementById(id); if(el&&document.activeElement!==el) el.value=localStorage.getItem(ls)||''; }); const reps=document.querySelector('.plz-reps'), r=plazaRep();
+  if(reps&&!reps.querySelector(`.plz-rep.on[onclick*="'${r}'"]`)&&!(document.activeElement&&document.activeElement.closest&&document.activeElement.closest('#pzSide input'))) try{ plazaPanelRefresh(); }catch(e){} }
+function plazaSetNick(v){ try{ localStorage.setItem('orgNickPlaza',String(v||'').trim().slice(0,12)); }catch(e){} cloudPushDebounced(); plazaPublish(true); plazaMiniSync(); const l=document.getElementById('plazaList'); if(l&&_plaza) plazaRender(); }   // 바꾸면 풀밭 이름표 · 내 카드에 바로
 async function plazaFetch(){
   try{ const q=await fbDb.collection('players').limit(200).get(); _plaza=q.docs.map(d=>d.data()); _plazaErr='';
     try{ localStorage.setItem('orgPlazaCache',JSON.stringify({uid:mailUser().uid,list:_plaza})); }catch(e){} try{ labCheckWins(); }catch(e){} }   // 새로고침하면 이걸로 먼저 그림
@@ -10412,8 +10422,8 @@ function plazaRender(){
 function plazaHTML(){
   const u=mailUser();
   if(!u) return `<h3>광장</h3><div class="set-sec"><p class="set-p">Google 로그인하면 이 사이트를 쓰는 사람들과 세포를 구경하고 선물할 수 있어요.</p><button class="btn btn-pri" onclick="cloudToggle()">Google 로그인</button></div>`;
-  return `<div class="set-sec"><label class="set-row"><span><b>내 별명</b></span><input value="${esc(plazaNick())}" maxlength="12" style="width:130px;" onchange="plazaSetNick(this.value)"></label>
-    <label class="set-row"><span><b>한 줄 상태</b></span><input value="${esc((()=>{ try{ return localStorage.getItem('orgPlazaMsg')||''; }catch(e){ return ''; } })())}" maxlength="24" placeholder="오늘은 split 데이" style="width:180px;" onchange="try{localStorage.setItem('orgPlazaMsg',this.value.trim())}catch(e){} plazaPublish(true); plazaMiniSync()"></label>
+  return `<div class="set-sec"><label class="set-row"><span><b>내 별명</b></span><input id="plzNickIn" value="${esc(plazaNick())}" maxlength="12" style="width:130px;" onchange="plazaSetNick(this.value)"></label>
+    <label class="set-row"><span><b>한 줄 상태</b></span><input id="plzMsgIn" value="${esc((()=>{ try{ return localStorage.getItem('orgPlazaMsg')||''; }catch(e){ return ''; } })())}" maxlength="24" placeholder="오늘은 split 데이" style="width:180px;" oninput="plazaSetMsg(this.value)" onchange="plazaSetMsg(this.value,true)"></label>
     <div class="set-row plz-reprow"><span><b>광장 대표 세포</b><small>메인 화면 광장에 이 세포가 나가 돌아다녀요</small></span></div>
     <div class="plz-reps">${Object.keys(petSt.owned).filter(id=>petKind(id)).map(id=>`<button class="plz-rep${id===plazaRep()?' on':''}" onclick="plazaSetRep('${id}')" title="${esc(plazaCellName(id))}"><canvas data-k="${id}" width="48" height="48"></canvas><span>${esc(plazaCellName(id))}</span></button>`).join('')||'<p class="set-p">아직 세포가 없어요.</p>'}</div>
     <div id="plazaList"><p class="set-p">불러오는 중…</p></div>`;
