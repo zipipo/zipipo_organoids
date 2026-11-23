@@ -213,6 +213,7 @@ td{padding:6px 8px;border-bottom:1px solid var(--bd);font-size:.78rem;vertical-a
 .pl-drop.can{border-color:var(--acc-bd);cursor:pointer;}
 .pl-drop.over{border-color:var(--acc);background:var(--acc-bg);}
 .pl-empty{font-size:.72rem;color:var(--mut);padding:0 4px;}
+.pl-roles{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:6px 0;} .pl-role{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--bd);border-radius:6px;padding:2px 4px 2px 7px;font-size:.76rem;background:var(--sur);} .pl-role.on{border-color:var(--acc);} .pl-role select{font-size:.72rem;padding:1px 2px;border:none;background:transparent;}
 .pl-chip{display:inline-flex;align-items:center;flex-wrap:wrap;gap:4px;background:var(--sur);border:1px solid var(--bd);border-radius:6px;padding:3px 5px;cursor:grab;font-size:.76rem;}
 .pl-chip.sel{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc-bg);}
 .pl-cn{font-weight:700;padding:0 4px;cursor:pointer;color:var(--tx);}
@@ -7635,17 +7636,43 @@ function pptMsplitSet(g){ const v=pptCuts['msplit:'+g]; if(v!=null) return +v; r
 function pptSetMsplitAll(on){ if(on) pptCuts['msplit:*']=1; else delete pptCuts['msplit:*']; Object.keys(pptCuts).forEach(k=>{ if(k.startsWith('msplit:')&&k!=='msplit:*') delete pptCuts[k]; }); savePptCuts(); pptLayRender(); }
 // 사진 칸 폭만 재 봄 (그리지 않음)
 function pptMatrixCW(p,th){ let cw=0; pptDrawMatrix({text(){},image(){},cw:v=>{cw=v;}},Object.assign({},p,{cwFix:0}),th); return cw; }
+// ── 이름 조각 역할 (유진 2026-11-23: 이름 모양이 사람마다 달라서 조각마다 행 · 열 · 장 · 무시를 직접 고름)
+//    pptCuts['roles:'+실험] = {조각: 'row'|'col'|'page'|'skip', '#time'|'#dose': 역할}. 시간(24h) · 농도(10ng) 조각은 같은 모양끼리 같이 따라감
+const PPT_ROLES=[['','자동'],['row','행'],['col','열'],['page','장 나누기'],['skip','무시']];
+const pptTokCls=t=>/^\d+(?:\.\d+)?(?:h|hr|hrs|min)$/i.test(t)?'time':/^\d+(?:\.\d+)?(?:pg|ng|ug|µg|mg|um|µm|nm|mm)(?:\/?ml)?$/i.test(t)?'dose':'';
+const pptRolesOf=g=>pptCuts['roles:'+g]||{};
+const pptRoleOf=(R,t)=>R[t]||(pptTokCls(t)&&R['#'+pptTokCls(t)])||'';
+function pptSetRole(g,t,v){ const R=Object.assign({},pptRolesOf(g)), c=pptTokCls(t);
+  if(v){ R[t]=v; if(c) R['#'+c]=v; } else { delete R[t]; if(c) delete R['#'+c]; }
+  if(Object.keys(R).length) pptCuts['roles:'+g]=R; else delete pptCuts['roles:'+g]; savePptCuts(); pptLayRender(); }
+function pptClearRoles(g){ delete pptCuts['roles:'+g]; savePptCuts(); pptLayRender(); }
+let pptToksOf={};   // 실험 → 이름 조각(나온 순서, well 빼고)
+function pptExpToks(gi){ const out=[]; gi.forEach(x=>pptCondSplit([x.note,x.cond].filter(Boolean).join(' ')).w.forEach(t=>{ if(!out.includes(t)) out.push(t); })); return out; }
+// 썸네일을 눌러 고칠 때 맨 위: 이 실험 이름 조각마다 역할 고르기
+function pptRolesHtml(p){
+  const g=p.grp||p.exp, toks=pptToksOf[g]||[]; if(!toks.length) return '';
+  const R=pptRolesOf(g), q=esc(g).replace(/'/g,"\\'");
+  return `<div class="pl-roles"><span class="pl-zl">이름 조각</span>`+toks.map(t=>{ const v=pptRoleOf(R,t), tq=esc(t).replace(/'/g,"\\'");
+    return `<label class="pl-role${v?' on':''}"><b>${esc(t)}</b><select onchange="pptSetRole('${q}','${tq}',this.value)">${PPT_ROLES.map(([k,l])=>`<option value="${k}"${v===k?' selected':''}>${l}</option>`).join('')}</select></label>`; }).join('')
+    +(Object.keys(R).length?`<button class="link-btn" onclick="pptClearRoles('${q}')">모두 자동</button>`:'')+`</div>`;
+}
 function pptTablePlan(g,gi,pt,th,gb){
-  if(new Set(gi.map(x=>x.m.date)).size<2) return null;
-  const sp=gi.map(x=>pptCondSplit(x.cond)), thr=Math.max(2,Math.ceil(gi.length*0.12)), cnt={};
+  const R=pptRolesOf(gb||g), hasR=Object.keys(R).length>0;
+  if(!hasR&&new Set(gi.map(x=>x.m.date)).size<2) return null;
+  // 조각 역할을 정했으면 Pre 메모도 조각으로 (날짜 칸에 따로 붙이지 않음)
+  if(hasR) gi=gi.map(x=>Object.assign({},x,{cond:[x.note,x.cond].filter(Boolean).join(' '),note:''}));
+  const sp0=gi.map(x=>pptCondSplit(x.cond));
+  const sp=sp0.map(s=>Object.assign({},s,{w:s.w.filter(t=>!pptRoleOf(R,t))})), thr=Math.max(2,Math.ceil(gi.length*0.12)), cnt={};
   sp.forEach(s=>new Set(s.w).forEach(w=>{ cnt[w]=(cnt[w]||0)+1; }));
   const freq=w=>cnt[w]>=thr;
   // 드문 말: 나오는 사진마다 자주 나오는 조건이 같이 붙어 있을 때만 (조건 하나짜리 사진이면 그게 조건)
   const rare=w=>!freq(w)&&sp.every(s=>!s.w.includes(w)||s.w.some(freq));
-  const it=gi.map((x,i)=>{ const s=sp[i]; return Object.assign({},x,{cK:s.w.filter(w=>!rare(w)).join(' '),rN:s.w.filter(rare).join(' '),wl:s.well,wv:s.wellVal}); });
+  const it=gi.map((x,i)=>{ const s=sp[i], w0=sp0[i].w, by=r=>w0.filter(t=>pptRoleOf(R,t)===r);
+    return Object.assign({},x,{cK:w0.filter(t=>{ const r=pptRoleOf(R,t); return r==='col'||(!r&&!rare(t)); }).join(' '),
+      rN:w0.filter(t=>{ const r=pptRoleOf(R,t); return r==='row'||(!r&&rare(t)); }).join(' '),pg:by('page').join(' '),wl:s.well,wv:s.wellVal}); });
   const ord=pptOrd(g), conds=[...new Set(it.map(x=>x.cK))].sort((a,b)=>(a===b?0:!a?-1:!b?1:0)||ord(a,b)||pptCondCmp(a.split(' '),b.split(' ')));
   const cols=[]; conds.forEach(c=>{ const ws=new Map(); it.filter(x=>x.cK===c).forEach(x=>ws.set(x.wl,x.wv)); [...ws.entries()].sort((a,b)=>(a[1]-b[1])||pptNatCmp(a[0],b[0])).forEach(([wl])=>cols.push({c,wl})); });
-  if(cols.length<2) return null;
+  if(cols.length<(hasR?1:2)) return null;
   const hasW=cols.some(o=>o.wl), grouped=hasW&&conds.some(Boolean);
   const Mv=[...new Set(it.map(x=>x.m.mag||''))].sort((a,b)=>(parseInt(a)||9999)-(parseInt(b)||9999));
   const ms=Mv.length>1?(pptMsplitSet(g)!=null?pptMsplitSet(g):(cols.length>4?1:0)):0;
@@ -7659,7 +7686,8 @@ function pptTablePlan(g,gi,pt,th,gb){
   const joinRuns=(a,b,always)=>(b||always)?a.concat([{text:'\n'},{text:String(b||'')}]):a;
   const rowCmp=(a,b)=>pptCmpArr([a.m.date,a.m.passageVal||0],[b.m.date,b.m.passageVal||0])||String(a.note||'').localeCompare(String(b.note||''))
     ||(a.rN?1:0)-(b.rN?1:0)||pptNatCmp(a.rN,b.rN)||((parseInt(a.m.mag)||9999)-(parseInt(b.m.mag)||9999));
-  const secs=ms?Mv.map(m=>({m,it:it.filter(x=>(x.m.mag||'')===m)})):[{m:'',it}];
+  const PGv=[...new Set(it.map(x=>x.pg))].sort((a,b)=>pptCondCmp(a.split(' '),b.split(' ')));
+  const secs=(ms?Mv:['']).flatMap(m=>PGv.map(pg=>({m,pg,it:it.filter(x=>(!ms||(x.m.mag||'')===m)&&x.pg===pg)}))).filter(s=>s.it.length);
   const asp=gi.reduce((s,x)=>s+(x.f.aspect||0.75),0)/gi.length, src=gi[0].f.name, cut=(gi.find(x=>x.cut)||{}).cut;
   const mk=(sec,band,rs)=>{ const bc=cols.slice(band[0],band[1]);
     const multi=rs.some((r,j)=>j&&dk(rs[j-1].x)===dk(r.x));   // 한 날짜에 행이 여럿 → 날짜는 묶음 칸, 행 이름은 메모 · 배율만
@@ -7686,7 +7714,7 @@ function pptTablePlan(g,gi,pt,th,gb){
       let cur=[]; const flush=()=>{ if(cur.length){ gp.push(Object.assign(mk(sec,band,cur),{rowsPer:Math.max(per,cur.length),rowsAll:rows.length,rowsWant:want,slotRows:Math.max(fit,cur.length)})); cur=[]; } };
       blocks.forEach(b=>{ if(cur.length&&cur.length+b.length>per) flush(); cur=cur.concat(b); }); flush(); });
     gp.sort((a,b)=>pptCmpArr([a.cells.flat(2).filter(Boolean).map(f=>pptParse(f.name).date).sort()[0]||''],[b.cells.flat(2).filter(Boolean).map(f=>pptParse(f.name).date).sort()[0]||'']));   // 줄(band)이 나뉘어도 날짜 순서로
-    const t=g+(ms&&sec.m?'  '+sec.m:'');
+    const t=g+(sec.pg?'  '+sec.pg:'')+(ms&&sec.m?'  '+sec.m:'');
     gp.forEach(p=>{ p.exp=t; }); out.push(...pptNumber(gp,t)); });
   return out;
 }
@@ -7709,6 +7737,7 @@ function pptPlanAuto(files,th){
   Object.entries(sib).forEach(([b,ts])=>{ if(ts.length<2 || groups[b]) return;
     groups[b]=ts.flatMap(t=>groups[t].map(x=>Object.assign({},x,{cond:[t.slice(b.length+1),x.cond].filter(Boolean).join(' ')})));
     ts.forEach(t=>delete groups[t]); });
+  pptToksOf={}; Object.keys(groups).forEach(g=>{ pptToksOf[g]=pptExpToks(groups[g]); });
   // 배율마다 따로 장으로 정했으면(실험마다 또는 덱 전체) 실험을 배율별로 나눠서 「제목  4x」 실험처럼 배치
   const gBase={};
   Object.keys(groups).forEach(g=>{ const ms=[...new Set(groups[g].map(x=>x.m.mag||''))]; if(ms.length<2||pptMsplitSet(g)!==1) return;
@@ -8278,7 +8307,7 @@ function pptLayRender(fromHist){
         <label class="pl-ck"><input type="checkbox"${p.noTitle?'':' checked'} onchange="pptEdTitle(this.checked)">제목</label>
         ${p.edited?`<button class="link-btn" onclick="pptEdReset()">처음 배치로</button>`:''}
         ${pptHistBtns()}</div>
-      ${pptExpChipsHtml(p,pages)}
+      ${p.auto?pptRolesHtml(p):''}${pptExpChipsHtml(p,pages)}
       <div class="pl-hint">사진 · 열 이름 · 행 이름은 끌어서 옮기기 · 글자는 눌러서 고치기 · 빼려면 ×</div>
       <div class="pl-th ed" data-key="${esc(p.key)}">${D.html()}</div>
       <div class="pl-tray z" data-k="tray"><span>안 넣은 사진 <b>${tray.length}</b>장${tray.length?' — 끌어서 칸에 넣기':' · 뺄 사진은 여기로 끌어도 돼요'}</span>${tray.slice(0,80).map(f=>`<img src="${f.thumb}" draggable="true" data-id="${f.id}" title="${esc(f.name)}" alt="">`).join('')}${tray.length>80?`<span>외 ${tray.length-80}장</span>`:''}</div>
@@ -10951,6 +10980,7 @@ setTimeout(async()=>{ if(!mailUser()||!fbDb) return; try{ const q=await fbDb.col
 //  새 기능을 올릴 때 NEWS의 id · date · items만 바꾸면 됨
 // ══════════════════════════════════════════
 const NEWS={id:'2026-11-23b', date:'2026-11-23', days:5, items:[
+  ['<b>PPT 이름 조각</b>','썸네일을 눌러 고칠 때 맨 위에 이름 조각(24h · 10ng · Control …)마다 행 · 열 · 장 나누기 · 무시를 고를 수 있어요. 24h처럼 시간 · 농도 조각은 48h · 20ng도 같이 따라가요. 「배율마다 따로 장」 체크도 생겼어요'],
   ['<b>현미경 사진 PPT 표 배치</b>','여러 날 찍은 실험은 왼쪽 = 날짜, 위 = 조건(CM · FM · MM) 아래 well 1 · 2 · 3. 「한 줄 3 · 6 · 9장」을 고르면 같은 단위 장끼리 사진 크기가 같아요. 배율은 장을 나눠도, 같이 봐도 돼요'],
   ['<b>세포 왕 순위</b>','광장에서 가진 세포 수(겹친 것 포함) 순서로 1위 · 2위 · 3위'],
   ['<b>보너스 뽑기</b>','하루 1번 뽑기 말고도: 랩 미션 하나 깰 때마다 · 하루 기록 5건 · 한 주 4일 들르기 · 친화도 Lv.5 · Lv.10. 설정 › 세포에서 「보너스」로 뽑아요'],
