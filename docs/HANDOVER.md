@@ -173,6 +173,9 @@ match /mailbox/{id} {
 
 ## 작업 기록
 
+- 2026-11-24(3): detached 장 빈칸 없앰 (브랜치 `claude/ppt-classic-layout`, main 반영은 유진 확인 후).
+  - `pptPackPlan`: detached 사진은 날짜 열, 배율 행을 쓰지 않고 왼쪽부터 채움 (한 줄 5장, 한 장에 3줄). `p.pack`이면 `pptDrawClassic`이 사진마다 위에 날짜, 왼쪽 위에 조건과 well (`p.packInfo`)을 그림.
+  - 시험: 원본 94장 → 11장 (8번 detached 4장), 86장 → 9장, 사진 빠짐 없음, 가장 아래 7.026 in. 「같은 칸」, 「따로 장」 전환 확인.
 - 2026-11-24(2): 유진 확인 후 수정, main 반영.
   - 회색 메모 칸: Log에서 가져오지 않음 (`pptClassicMemo` 지움). 3행 이하 장에 빈 칸을 두고 PPT나 슬라이드 고치기에서 직접 씀 (`p.memo`).
   - 하나뿐인 조건 (detached): 기본은 실험 바로 뒤 따로 장, 실험 줄에서 「같은 칸」을 고르면 예전처럼 같은 칸 + 사진 아래 글자 (`pptCuts['rare:실험']` = cell).

@@ -7809,6 +7809,23 @@ function pptClassicPlan(g,gi,pt,th,gb,force){
   pages.forEach((p,n)=>{ p.title=g+(p.condT?'  '+p.condT:'')+(pages.length>1?`  (${n+1}/${pages.length})`:''); });
   return pages;
 }
+function pptPackPlan(g,gi,th,r){
+  const PER=5, ROWS=3, magN=m=>parseInt(m)||9999;
+  const it=gi.slice().sort((a,b)=>pptCmpArr([a.m.date,a.m.passageVal||0],[b.m.date,b.m.passageVal||0])||pptNatCmp(a.clW||'',b.clW||'')||(a.clWv||0)-(b.clWv||0)||magN(a.m.mag)-magN(b.m.mag)||(a.m.regionVal||0)-(b.m.regionVal||0)||pptNatCmp(a.f.name,b.f.name));
+  const info={}; it.forEach(x=>{ const m=x.m, h=[{text:pptFmtDate(m.date),options:{color:th.txt}}];
+    if(m.passage) h.push({text:'  ',options:{color:th.txt}},{text:m.passage.toUpperCase(),options:{color:PPT_P_GREEN,bold:true}});
+    if(m.day) h.push({text:'  '+m.day,options:{color:th.txt}});
+    if(x.note) h.push({text:'  '+x.note,options:{color:th.txt,fontSize:9}});
+    const cap=x.rareCap&&x.rareCap!==r.name?x.rareCap:'';
+    info[x.f.id]={head:h,tag:[x.clW,x.clWell,cap].filter(Boolean).join(' ')}; });
+  const pages=[], n=Math.ceil(it.length/(PER*ROWS));
+  for(let a=0;a<it.length;a+=PER*ROWS){ const part=it.slice(a,a+PER*ROWS), cells=[];
+    for(let b=0;b<part.length;b+=PER) cells.push(part.slice(b,b+PER).map(x=>[x.f]));
+    pages.push({kind:'matrix',classic:true,pack:true,plain:true,fill:true,auto:true,exp:g,pt:g.split(' ')[0],src:it[0].f.name,cut:(gi.find(x=>x.cut)||{}).cut,grp:g,baseG:r.base,rareName:r.name,
+      packInfo:info,fCaps:{},nMag:1,nMv:1,msplit:false,laneKeys:[],condT:r.name,memo:'',mdir:'v',lay:'pack',cells,rowLabels:cells.map(()=>''),colLabels:cells[0].map(()=>''),
+      title:g+(n>1?`  (${pages.length+1}/${n})`:'')}); }
+  return pages;
+}
 function pptDrawClassic(D,p,th){
   const C=PPTC, nr=p.cells.length, nc=p.colLabels.length, four=nr>=C.maxRows, hz=p.mdir==='h';
   const y0=four?C.y4:C.y3, x0=C.x0+(hz?C.hLab+C.gx:0), arrOf=c=>c?(Array.isArray(c)?c:[c]):[], capOf=f=>(p.fCaps&&p.fCaps[f.id])||'';
@@ -7821,6 +7838,17 @@ function pptDrawClassic(D,p,th){
   }
   if(!four){ const mx=0.28*2.54, my=1.13*2.54, mw=(6.52-0.28)*2.54, mh=(1.65-1.13)*2.54; D.text(p.memo||' ',mx,my,mw,mh,{fontSize:11,color:'000000',align:'center',valign:'middle',fill:{color:'F2F2F2'}}); if(D.zone) D.zone('memo',{},mx,my,mw,mh,p.memo||''); }
   const hH=0.27*2.54, hY=y0-hH-0.03*2.54;
+  if(p.pack){ const pitch=C.h+hH+0.03*2.54+C.gy;
+    p.cells.forEach((row,r)=>row.forEach((cell,c)=>{ const f=arrOf(cell)[0], cx=C.x0+c*(C.w+C.gx), y=y0+r*pitch;
+      if(D.zone) D.zone('cell',{r,c},cx,y,C.w,C.h);
+      if(!f) return;
+      const q=(p.packInfo&&p.packInfo[f.id])||{}, iw=Math.min(C.w,C.h/f.aspect), ih=iw*f.aspect, ix=cx+(C.w-iw)/2, iy=y+(C.h-ih)/2;
+      if(q.head) D.text(q.head,cx,y-hH-0.03*2.54,C.w,hH,{fontSize:12,bold:true,color:th.txt,align:'center',valign:'middle'});
+      D.image(f,ix,iy,iw,ih);
+      const mg=pptMagOf(f); if(mg) pptBadge(D,mg,ix,iy,iw);
+      if(q.tag){ const tw=Math.min(iw*0.8,q.tag.length*0.125+0.2); D.text(q.tag,ix,iy,tw,0.34,{fontSize:7,color:'000000',align:'center',valign:'middle',fill:{color:'FFFFFF'}}); }
+      if(D.zone) D.zone('ph',{r,c,j:0},ix,iy,iw,ih); }));
+    return; }
   p.colLabels.forEach((t,c)=>{ const x=x0+c*(C.w+C.gx);
     D.text(t,x,hY,C.w,hH,{fontSize:12,bold:true,color:th.txt,align:'center',valign:'middle'});
     if(D.zone) D.zone('col',{c},x,hY,C.w,hH,pptPlain(t)); });
@@ -7869,11 +7897,11 @@ function pptPlanAuto(files,th){
   Object.keys(groups).forEach(g=>{ const G=gBase[g]||g; if(pptCuts['rare:'+G]==='cell') return;
     const r=groups[g].filter(x=>x.capT); if(!r.length||r.length===groups[g].length) return;
     groups[g]=groups[g].filter(x=>!x.capT); const by={};
-    r.forEach(x=>{ const n=x.capT.split(' ').pop(); (by[n]=by[n]||[]).push(Object.assign({},x,{capT:''})); });
+    r.forEach(x=>{ const n=x.capT.split(' ').pop(); (by[n]=by[n]||[]).push(Object.assign({},x,{capT:'',rareCap:x.capT})); });
     Object.entries(by).forEach(([n,a])=>{ const k=g+'  '+n; groups[k]=a; rareG[k]={base:G,name:n}; }); });
   const pages=[];
   Object.keys(groups).sort(pptNatCmp).forEach(g=>{
-    if(rareG[g]){ const cl=pptClassicPlan(g,groups[g],g.split(' ')[0],th,null,true)||[]; cl.forEach(q=>{ q.baseG=rareG[g].base; q.rareName=rareG[g].name; }); pages.push(...cl); return; }
+    if(rareG[g]){ pages.push(...pptPackPlan(g,groups[g],th,rareG[g])); return; }
     const gi=groups[g], pt=g.split(' ')[0], ord=pptOrd(g);
     if(pptCuts['view:'+(gBase[g]||g)]!=='table'){ const cl=pptClassicPlan(g,gi,pt,th,gBase[g]); if(cl){ const tok=!!pptTablePlan(g,gi,pt,th,gBase[g]); cl.forEach(q=>{ q.tableOK=tok; }); pages.push(...cl); return; } }
     const tb=pptTablePlan(g,gi,pt,th,gBase[g]); if(tb){ pages.push(...tb); return; }
