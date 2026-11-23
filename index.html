@@ -9655,7 +9655,7 @@ window._petsIn=p=>{
   Object.keys(p).filter(k=>k.startsWith('o:')).forEach(k=>{ const id=k.slice(2); if(!petKind(id)) return; owned[id]=Object.assign({hap:60}, petSt.owned[id]||{}, p[k]); });
   petSt.owned=owned;
   if(Array.isArray(p.active)) petSt.active=p.active.filter(id=>owned[id]);
-  if(p.lastDraw!=null) petSt.lastDraw=p.lastDraw;
+  if(p.lastDraw&&p.lastDraw>(petSt.lastDraw||'')) petSt.lastDraw=p.lastDraw;   // 더 늦은 날짜만 (옛 값이 와서 오늘 뽑은 게 지워지면 또 뽑힘)
   if(p.hidden!=null) petSt.hidden=!!p.hidden;
   if(p.giftStart&&p.giftStart!==petSt.giftStart){ if(!petSt.giftStart||p.giftStart>petSt.giftStart){ petSt.giftStart=p.giftStart; petSt.cleaned=p.cleaned||0; petSt.flowersAll=p.flowersAll||0; petSt.patsAll=p.patsAll||0; petSt.fedAll=p.fedAll||0; } }
   if(p.labDone) petSt.labDone=p.labDone;
@@ -9674,7 +9674,19 @@ window._petsIn=p=>{
 const petKind=id=>PET_KINDS.find(k=>k.id===id);
 const petName=id=>(petSt.owned[id]&&petSt.owned[id].name)||(petKind(id)||{}).name||'';
 function petTodayKey(){ return ymdLocal(new Date()); }
-function petCanDraw(){ return petSt.lastDraw!==petTodayKey(); }
+// 하루 1번 (2026-11-23, 가끔 2번 뽑힘): 이 창 값 + 같은 브라우저 다른 창이 저장한 값 + (뽑기 직전) 계정에 저장된 값을 모두 봄
+function petLastDrawLS(){ try{ const o=JSON.parse(localStorage.getItem('orgPets')||'{}'); return o.lastDraw||''; }catch(e){ return ''; } }
+function petCanDraw(){ const ls=petLastDrawLS(); if(ls>(petSt.lastDraw||'')) petSt.lastDraw=ls; return petSt.lastDraw!==petTodayKey(); }
+// 같은 브라우저 다른 창에서 세포 상태가 바뀌면 이 창도 그걸로 (안 그러면 옛 상태로 다시 저장해서 뽑은 세포 · 날짜가 지워짐)
+window.addEventListener('storage',e=>{ if(e.key!=='orgPets'||!e.newValue) return; try{ const o=JSON.parse(e.newValue); if(o&&o.owned){ petSt=o; try{ _petRefresh(); }catch(_){} } }catch(_){} });
+let _pgBusy=false;
+async function petDrawCloudCheck(){
+  try{ const u=mailUser(); if(!u||!fbDb) return;
+    const snap=await Promise.race([cloudDocRef(u.uid).get(), new Promise(r=>setTimeout(()=>r(null),3000))]);
+    const ld=snap&&snap.exists&&((snap.data()||{}).pets||{}).lastDraw;
+    if(ld&&ld>(petSt.lastDraw||'')) petSt.lastDraw=ld;
+  }catch(e){}
+}
 const petReduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
 let PETS=[], petLayer=null;   // 화면에 나와 있는 펫들
 
@@ -10026,8 +10038,10 @@ function petPick(){
 // 희귀도 별: 동글동글한 노란 별 (못 채운 칸은 연한 별)
 function petStars(r){ const st=on=>`<svg class="pstar${on?' on':''}" viewBox="0 0 24 24"><path d="M12 2.8c.5 0 .9.3 1.1.7l2.2 4.6 5 .7c1 .1 1.3 1.3.6 2l-3.6 3.5.9 5c.2 1-.9 1.7-1.7 1.2L12 18.1l-4.5 2.4c-.9.5-1.9-.3-1.7-1.2l.9-5-3.6-3.5c-.7-.7-.3-1.9.6-2l5-.7 2.2-4.6c.2-.4.6-.7 1.1-.7z"/></svg>`;
   return `<span class="pstars">${[1,2,3].map(i=>st(i<=r)).join('')}</span>`; }
-function petGacha(){
-  if(!petCanDraw()) return;
+async function petGacha(){
+  if(_pgBusy||!petCanDraw()) return;
+  _pgBusy=true; await petDrawCloudCheck(); _pgBusy=false;   // 다른 기기에서 오늘 이미 뽑았는지
+  if(!petCanDraw()){ toast('오늘은 다른 기기에서 이미 뽑았어요. 내일 또 만나요',{warn:true}); try{ renderSettings('pet'); }catch(e){} return; }
   const ov=document.createElement('div'); ov.className='pet-gacha';
   ov.innerHTML=`<div class="pg-card"><div class="pg-ball"><canvas id="pgCv" width="48" height="48"></canvas></div><b id="pgName">두근두근…</b><small id="pgSub"> </small><div class="pm-btns" id="pgBtns" style="visibility:hidden;"><button class="btn btn-pri" id="pgOk">반가워!</button></div></div>`;
   document.body.appendChild(ov);
