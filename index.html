@@ -1454,6 +1454,8 @@ body.pet-on[data-tab="today"] #petLayer{display:block;}
 .dex-why{display:block;font-size:.6rem;color:var(--mut);line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
 .plz-box{margin:6px 0 8px;} .plz-box summary{cursor:pointer;font-size:.8rem;font-weight:700;color:var(--sub);padding:4px 0;} .plz-box .plz-items{margin-top:6px;}
 .plz-reps{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 10px;} .plz-rep{display:flex;flex-direction:column;align-items:center;gap:2px;border:1px solid var(--bd2);background:var(--sur);border-radius:10px;padding:4px 6px;cursor:pointer;font:inherit;font-size:.66rem;color:var(--sub);}
+.pet-draw{flex-wrap:wrap;} .pd-btns{display:flex;gap:6px;} .pd-how{flex:1 1 100%;color:var(--sub);font-size:.7rem;line-height:1.5;margin-top:4px;}
+.plz-rank{flex:none;min-width:34px;text-align:center;font-size:.74rem;font-weight:800;color:var(--sub);} .plz-rank.r1{color:#C9962E;font-size:.86rem;} .plz-rank.r1::before{content:'♛';display:block;font-size:1rem;line-height:1;} .plz-rank.r2{color:#8A97A8;} .plz-rank.r3{color:#B07A55;}
 .plz-rep.on{border-color:#2563EB;box-shadow:0 0 0 2px #BFD3FE;color:var(--tx);} .plz-card.me{background:#EFF4FF;} .plz-me{font-style:normal;font-size:.62rem;background:#2563EB;color:#fff;border-radius:4px;padding:0 4px;margin-left:4px;}
 .side-incu{margin-top:auto;padding:14px 8px 26px;}   /* 아래 설정 칸이 붙어 있으면서 -12px 겹쳐서, 끝까지 내려도 인큐베이터 다리가 가려지던 것 */
 .side-incu+.side-foot{margin-top:0;}
@@ -9646,7 +9648,7 @@ if(!petSt){
 function savePets(){ try{ localStorage.setItem('orgPets', JSON.stringify(petSt)); }catch(e){} if(typeof cloudPushDebounced==='function') cloudPushDebounced(); }
 // 계정 동기화: 위치 · 기분 · 응가 시각처럼 기기마다 다른 값은 빼고, 펫마다 키를 따로 둬서 합칠 때 덜 부딪히게
 const PET_SYNC_F=['n','name','born','fedTs','flowers','pats','poops','lastPoop'];
-window._petsOut=()=>{ const o={active:petSt.active.slice(), lastDraw:petSt.lastDraw||'', hidden:!!petSt.hidden, giftStart:petSt.giftStart||'', labDone:petSt.labDone||'', labWins:(petSt.labWins||[]).slice(-120), wkc:petSt.wkc||{}, cleaned:petSt.cleaned||0, flowersAll:petSt.flowersAll||0, patsAll:petSt.patsAll||0, fedAll:petSt.fedAll||0, visitOpens:petSt.visitOpens||0, visitDays:petSt.visitDays||0, visitLast:petSt.visitLast||''};
+window._petsOut=()=>{ const o={active:petSt.active.slice(), lastDraw:petSt.lastDraw||'', hidden:!!petSt.hidden, giftStart:petSt.giftStart||'', labDone:petSt.labDone||'', labWins:(petSt.labWins||[]).slice(-120), wkc:petSt.wkc||{}, tkKeys:(petSt.tkKeys||[]).slice(), tkUsed:petSt.tkUsed||0, cleaned:petSt.cleaned||0, flowersAll:petSt.flowersAll||0, patsAll:petSt.patsAll||0, fedAll:petSt.fedAll||0, visitOpens:petSt.visitOpens||0, visitDays:petSt.visitDays||0, visitLast:petSt.visitLast||''};
   Object.entries(petSt.owned).forEach(([id,v])=>{ const x={}; PET_SYNC_F.forEach(f=>{ if(v[f]!=null) x[f]=v[f]; }); o['o:'+id]=x; });
   return o; };
 window._petsIn=p=>{
@@ -9660,6 +9662,8 @@ window._petsIn=p=>{
   if(p.giftStart&&p.giftStart!==petSt.giftStart){ if(!petSt.giftStart||p.giftStart>petSt.giftStart){ petSt.giftStart=p.giftStart; petSt.cleaned=p.cleaned||0; petSt.flowersAll=p.flowersAll||0; petSt.patsAll=p.patsAll||0; petSt.fedAll=p.fedAll||0; } }
   if(p.labDone) petSt.labDone=p.labDone;
   if(Array.isArray(p.labWins)) labWinsAdd(p.labWins);
+  if(Array.isArray(p.tkKeys)){ const a=petSt.tkKeys||(petSt.tkKeys=[]); p.tkKeys.forEach(k=>{ if(typeof k==='string'&&!a.includes(k)) a.push(k); }); }
+  if(p.tkUsed!=null) petSt.tkUsed=Math.max(petSt.tkUsed||0,+p.tkUsed||0);
   if(p.wkc&&p.wkc.wk){ const a=petSt.wkc||{}; if(!a.wk||p.wkc.wk>a.wk) petSt.wkc=Object.assign({},p.wkc); else if(p.wkc.wk===a.wk) Object.keys(p.wkc).forEach(k=>{ if(k!=='wk') a[k]=Math.max(+a[k]||0,+p.wkc[k]||0); }); }
   if(p.cleaned!=null) petSt.cleaned=Math.max(petSt.cleaned||0,p.cleaned);
   if(p.flowersAll!=null) petSt.flowersAll=Math.max(petSt.flowersAll||0,p.flowersAll);
@@ -9679,6 +9683,30 @@ function petLastDrawLS(){ try{ const o=JSON.parse(localStorage.getItem('orgPets'
 function petCanDraw(){ const ls=petLastDrawLS(); if(ls>(petSt.lastDraw||'')) petSt.lastDraw=ls; return petSt.lastDraw!==petTodayKey(); }
 // 같은 브라우저 다른 창에서 세포 상태가 바뀌면 이 창도 그걸로 (안 그러면 옛 상태로 다시 저장해서 뽑은 세포 · 날짜가 지워짐)
 window.addEventListener('storage',e=>{ if(e.key!=='orgPets'||!e.newValue) return; try{ const o=JSON.parse(e.newValue); if(o&&o.owned){ petSt=o; try{ _petRefresh(); }catch(_){} } }catch(_){} });
+// ── 보너스 뽑기 (2026-11-23, 유진: 세포 얻는 기회 더) ──
+// 받을 일마다 키 하나(tkKeys, 같은 키는 한 번만) − 쓴 수(tkUsed). 기기끼리 합칠 때 키는 합집합 · 쓴 수는 큰 쪽이라 두 번 받거나 되살아나지 않음
+// 받는 일: 깜짝 선물 시간(주 1번) · 랩 미션 하나 깰 때마다 · 하루 기록 5건 · 한 주 4일 들르기 · 친화도 Lv.5 · Lv.10
+function petTickets(){ return Math.max(0,(petSt.tkKeys||[]).length-(petSt.tkUsed||0)); }
+function petTicketGive(key,why,quiet){ const a=petSt.tkKeys||(petSt.tkKeys=[]); if(a.includes(key)) return false; a.push(key); savePets();
+  if(!quiet) toast(`보너스 뽑기 1장 · ${why}`); try{ _petRefresh(); if(document.querySelector('.pet-draw')) renderSettings('pet'); }catch(e){} return true; }
+// 깜짝 선물 시간: 주마다 평일 하루 10–17시 중 2시간 (주 번호로 정해서 모두 같음, 미리 안 알려 줌). 그 사이에 앱을 열어 두면 선물
+function petSurpriseOf(wk){ const h=pmHash('surprise|'+wk), d=new Date(wk+'T00:00:00'); d.setDate(d.getDate()+h%5); const st=10+((h>>>4)%6); return {date:ymdLocal(d), dow:h%5, st, en:st+2}; }
+function petTicketScan(){
+  if(!petSt) return;
+  const now=new Date(), t0=ymdLocal(now), wk=petWeekKey();
+  if(logs.filter(l=>l.date===t0).length>=5) petTicketGive('work:'+t0,'오늘 기록 5건, 열일했어요');
+  if((petWk().visit||0)>=4) petTicketGive('visit:'+wk,'이번 주 4일 들렀어요');
+  const S=petSurpriseOf(wk);
+  if(S.date===t0 && now.getHours()>=S.st && now.getHours()<S.en && petTicketGive('sp:'+wk,'',true)) petSurprisePop();
+}
+function petSurprisePop(){
+  const ov=document.createElement('div'); ov.className='pet-gacha';
+  ov.innerHTML=`<div class="pg-card"><div class="pg-ball"><canvas width="48" height="48"></canvas></div><b>깜짝 선물 시간!</b><small>이번 주 딱 2시간, 이때 들른 사람만 받아요</small><div class="pm-btns"><button class="btn btn-pri">열어 보기</button><button class="btn btn-out">나중에</button></div></div>`;
+  document.body.appendChild(ov); drawPet(ov.querySelector('canvas'),'allclear',{frame:0,mode:'happy'});
+  const [go,later]=ov.querySelectorAll('button'); go.onclick=()=>{ ov.remove(); petGacha('ticket'); }; later.onclick=()=>{ ov.remove(); toast('설정 › 세포에서 보너스 뽑기로 열 수 있어요'); };
+}
+setTimeout(()=>{ try{ petTicketScan(); }catch(e){} },4000);
+setInterval(()=>{ try{ petTicketScan(); }catch(e){} },60000);
 let _pgBusy=false;
 async function petDrawCloudCheck(){
   try{ const u=mailUser(); if(!u||!fbDb) return;
@@ -9814,7 +9842,7 @@ function petLvFx(a, lv){
 function petPat(a){
   const o=petSt.owned[a.id]; if(!o) return;
   const lv0=petLvOf(o.pats||0); o.hap=Math.min(100,(o.hap||60)+4); o.pats=(o.pats||0)+1; petSt.patsAll=(petSt.patsAll||0)+1; petWkAdd('pat'); savePets(); if(petSt.patsAll%10===0) petGiftCheck();
-  const lv1=petLvOf(o.pats); if(lv1>lv0){ setTimeout(()=>{ petLvFx(a,lv1); petSay(a,`친해졌어! Lv.${lv1}`,3000); toast(`${petName(a.id)} 친화도 Lv.${lv1}${PET_LV_GIFT[lv1]?` · ${PET_LV_GIFT[lv1]} 생김`:''}`); },300); }
+  const lv1=petLvOf(o.pats); if(lv1>lv0){ if(lv1===5||lv1===10) setTimeout(()=>petTicketGive(`lv${lv1}:${a.id}`,`${petName(a.id)} 친화도 Lv.${lv1}`),3400); setTimeout(()=>{ petLvFx(a,lv1); petSay(a,`친해졌어! Lv.${lv1}`,3000); toast(`${petName(a.id)} 친화도 Lv.${lv1}${PET_LV_GIFT[lv1]?` · ${PET_LV_GIFT[lv1]} 생김`:''}`); },300); }
   a.mode='happy'; a.until=performance.now()+1400; a.jump=2;
   if(lv1<=2){ const h=document.createElement('i'); h.className='pet-heart'; h.innerHTML='<svg class="ic"><use href="#i-heart"/></svg>'; h.style.left=(a.x+16+Math.random()*12)+'px'; h.style.top=(a.y<40?a.y+40:a.y-10)+'px'; petLayer.appendChild(h); setTimeout(()=>h.remove(),1100); }
   else petPatFx(a,lv1);
@@ -9914,7 +9942,9 @@ function petLoop(now){
 let _petSel=null;
 function petPanelHTML(){
   const own=Object.keys(petSt.owned), can=petCanDraw();
-  const draw=`<div class="set-sec pet-draw"><div><b>오늘의 뽑기</b><small>${can?'':'내일 또 만나요'}</small></div><button class="btn ${can?'btn-pri':'btn-out'}" ${can?'':'disabled'} onclick="petGacha()"><svg class="ic"><use href="#i-gift"/></svg>뽑기</button></div>`;
+  const tkn=petTickets(), tkBtn=tkn?`<button class="btn btn-pri" onclick="petGacha('ticket')"><svg class="ic"><use href="#i-gift"/></svg>보너스 ${tkn}</button>`:'';
+  const draw=`<div class="set-sec pet-draw"><div><b>오늘의 뽑기</b><small>${can?'':'내일 또 만나요'}${tkn?` · 보너스 뽑기 ${tkn}장`:''}</small></div><span class="pd-btns">${tkBtn}<button class="btn ${can?'btn-pri':'btn-out'}" ${can?'':'disabled'} onclick="petGacha()"><svg class="ic"><use href="#i-gift"/></svg>뽑기</button></span>
+    <small class="pd-how">보너스 뽑기: 랩 미션 하나 깰 때마다 · 하루 기록 5건 · 한 주 4일 들르기 · 친화도 Lv.5 · Lv.10 · 주 1번 깜짝 선물 시간(평일 낮 어느 2시간, 그때 앱을 열어 두면)</small></div>`;
   const dex=`<div class="set-sec"><h4 class="dex-hd">도감 <span class="mail-n">${petDexCount()} / ${PET_KINDS.filter(k=>!k.gift).length}</span>${own.length?`<span class="dex-all"><button class="link-btn" onclick="petWalkAll(true)">모두 산책</button><button class="link-btn" onclick="petWalkAll(false)">모두 쉬기</button></span>`:''}</h4><div class="pet-dex">${PET_KINDS.filter(k=>!k.gift).map(k=>{ const o=petSt.owned[k.id];
       return o ? `<button class="dex${_petSel===k.id?' on':''}${petSt.active.includes(k.id)?' walk':''}" onclick="_petSel='${k.id}';renderSettings('pet')" title="${esc(petName(k.id))}"><canvas data-k="${k.id}" width="48" height="48"></canvas><span>${esc(petName(k.id))}</span></button>`
                : `<div class="dex unk"><i>?</i><span>&nbsp;</span></div>`; }).join('')}</div>
@@ -10038,16 +10068,17 @@ function petPick(){
 // 희귀도 별: 동글동글한 노란 별 (못 채운 칸은 연한 별)
 function petStars(r){ const st=on=>`<svg class="pstar${on?' on':''}" viewBox="0 0 24 24"><path d="M12 2.8c.5 0 .9.3 1.1.7l2.2 4.6 5 .7c1 .1 1.3 1.3.6 2l-3.6 3.5.9 5c.2 1-.9 1.7-1.7 1.2L12 18.1l-4.5 2.4c-.9.5-1.9-.3-1.7-1.2l.9-5-3.6-3.5c-.7-.7-.3-1.9.6-2l5-.7 2.2-4.6c.2-.4.6-.7 1.1-.7z"/></svg>`;
   return `<span class="pstars">${[1,2,3].map(i=>st(i<=r)).join('')}</span>`; }
-async function petGacha(){
-  if(_pgBusy||!petCanDraw()) return;
-  _pgBusy=true; await petDrawCloudCheck(); _pgBusy=false;   // 다른 기기에서 오늘 이미 뽑았는지
-  if(!petCanDraw()){ toast('오늘은 다른 기기에서 이미 뽑았어요. 내일 또 만나요',{warn:true}); try{ renderSettings('pet'); }catch(e){} return; }
+async function petGacha(mode){
+  const tk=mode==='ticket';
+  if(_pgBusy||(tk?petTickets()<1:!petCanDraw())) return;
+  if(!tk){ _pgBusy=true; await petDrawCloudCheck(); _pgBusy=false;   // 다른 기기에서 오늘 이미 뽑았는지
+    if(!petCanDraw()){ toast('오늘은 다른 기기에서 이미 뽑았어요. 내일 또 만나요',{warn:true}); try{ renderSettings('pet'); }catch(e){} return; } }
   const ov=document.createElement('div'); ov.className='pet-gacha';
   ov.innerHTML=`<div class="pg-card"><div class="pg-ball"><canvas id="pgCv" width="48" height="48"></canvas></div><b id="pgName">두근두근…</b><small id="pgSub"> </small><div class="pm-btns" id="pgBtns" style="visibility:hidden;"><button class="btn btn-pri" id="pgOk">반가워!</button></div></div>`;
   document.body.appendChild(ov);
   const cv=ov.querySelector('#pgCv'); let i=0, n=0;
   const pick=petPick();
-  petSt.lastDraw=petTodayKey();
+  if(tk) petSt.tkUsed=(petSt.tkUsed||0)+1; else petSt.lastDraw=petTodayKey();
   const isNew=!petSt.owned[pick.id];
   if(isNew) petSt.owned[pick.id]={n:1,name:'',born:Date.now(),hap:70,fedTs:Date.now(),flowers:0,pats:0};
   else petSt.owned[pick.id].n=(petSt.owned[pick.id].n||1)+1;
@@ -10065,7 +10096,7 @@ async function petGacha(){
       ov.querySelector('#pgSub').innerHTML=`${petStars(pick.r)}${isNew?' 도감에 새로 등록':' 다시 만나서 반가워요'}`;
       if(!isNew){ const o=petSt.owned[pick.id]; o.hap=Math.min(100,(o.hap||60)+10); savePets(); }
       ov.querySelector('#pgBtns').style.visibility='visible'; } }, 90);
-  ov.querySelector('#pgOk').onclick=()=>{ ov.remove(); _petSel=pick.id; petSync(); _petRefresh(); const a=PETS.find(p=>p.id===pick.id); if(a) petSay(a,'안녕! 잘 부탁해',3000); };
+  ov.querySelector('#pgOk').onclick=()=>{ ov.remove(); _petSel=pick.id; petSync(); _petRefresh(); try{ if(document.querySelector('.pet-draw')) renderSettings('pet'); }catch(e){} const a=PETS.find(p=>p.id===pick.id); if(a) petSay(a,'안녕! 잘 부탁해',3000); };
 }
 petMount();
 // 방문 세기 (2026-11-19부터): 앱을 연 횟수(visitOpens) · 연 날 수(visitDays). 켜 둔 채 30분 넘게 다른 데 있다 돌아와도 한 번 더 셈. 계정 동기화
@@ -10191,7 +10222,7 @@ function labCheckWins(){
   if(!_plaza) return;
   let n=0; _plaza.forEach(p=>{ if(Array.isArray(p.labWins)) n+=labWinsAdd(p.labWins); });
   const wk=plazaWeek(), ppl=plazaWeekPeople(wk);
-  labMissionsOf(wk).forEach(m=>{ if(labMissionVal(m,ppl)>=m.need) n+=labWinsAdd([wk+':'+m.id]); });
+  labMissionsOf(wk).forEach(m=>{ if(labMissionVal(m,ppl)>=m.need){ n+=labWinsAdd([wk+':'+m.id]); petTicketGive(`lab:${wk}:${m.id}`,`랩 미션 「${m.name}」 달성`); } });
   if(n){ _plzTotSrc=null; savePets(); petGiftCheck(); plazaPublish(true); }
 }
 function labMissionHTML(){
@@ -10203,7 +10234,8 @@ function labMissionHTML(){
   const next=PET_KINDS.filter(k=>/^lab\d*$/.test(k.gift||'')&&!petSt.owned[k.id]).map(k=>({k,R:petGiftRule(k.gift)})).sort((a,b)=>a.R.need-b.R.need)[0];
   const d=new Date(wk+'T00:00:00'); d.setDate(d.getDate()+6);
   return `<div class="set-sec plz-goal"><h4>이번 주 랩 미션 <span class="mail-n">${nDone}/3</span><small class="lm-wk">~ ${d.getMonth()+1}/${d.getDate()} · ${ppl.length}명이 함께</small></h4>${rows}
-    <small class="lm-foot">지금까지 같이 깬 미션 <b>${won}</b>개${next?` · 다음 선물 「${esc(next.k.name)}」 ${next.R.need}개`:''}${labAllWeeks()?` · 올클리어 ${labAllWeeks()}번`:' · 3개 모두 깨면 「올클리어 왕관」'}</small></div>`;
+    <small class="lm-foot">${(()=>{ const S=petSurpriseOf(wk), t0=ymdLocal(new Date()), h=new Date().getHours(), got=(petSt.tkKeys||[]).includes('sp:'+wk), past=t0>S.date||(t0===S.date&&h>=S.en);
+      return past||got?`이번 주 깜짝 선물: ${['월','화','수','목','금'][S.dow]} ${S.st}–${S.en}시 · ${got?'받았어요':'놓쳤어요'}`:'이번 주 깜짝 선물 시간: 평일 낮 어느 2시간 (비밀)'; })()} · 미션 하나 깰 때마다 보너스 뽑기 1장<br>지금까지 같이 깬 미션 <b>${won}</b>개${next?` · 다음 선물 「${esc(next.k.name)}」 ${next.R.need}개`:''}${labAllWeeks()?` · 올클리어 ${labAllWeeks()}번`:' · 3개 모두 깨면 「올클리어 왕관」'}</small></div>`;
 }
 let _plaza=null, _plazaErr='', _plazaOff=false;
 // ── 광장 꾸미기: 모두 같이 쓰는 광장. 랩 전체 누적 기록(각자 광장 프로필의 tot를 더함)이 기준을 넘으면 물품이 정해진 자리에 생김
@@ -10453,7 +10485,7 @@ function plazaMe(){
   const rep=plazaRep();
   return { nick:plazaNick().slice(0,12), rep, repName:plazaCellName(rep).slice(0,12), repLv:petLv(rep), walk:petSt.active.slice(0,5),
     deco:plazaMyTot(), dex:petDexCount(), gifts, flowers:petSt.flowersAll||0, msg:(()=>{ try{ return (localStorage.getItem('orgPlazaMsg')||'').slice(0,24); }catch(e){ return ''; } })(), wk, mc:ls.filter(l=>isMediaChange(l.action)).length, split:ls.filter(l=>/split/i.test(l.action||'')).length,
-    n:ls.length, stock:ls.reduce((a,l)=>a+(parseInt(l.stocks)||0),0), seed:ls.filter(l=>isSeed(l.action)).length, days:new Set(ls.map(l=>l.date)).size,
+    cells:Object.values(petSt.owned).reduce((a,o)=>a+(+o.n||1),0), n:ls.length, stock:ls.reduce((a,l)=>a+(parseInt(l.stocks)||0),0), seed:ls.filter(l=>isSeed(l.action)).length, days:new Set(ls.map(l=>l.date)).size,
     shot:(()=>{ const t0=new Date(wk+'T00:00:00').getTime(); return shotSets.filter(x=>(x.createdTs||x.updatedTs||0)>=t0).reduce((a,x)=>a+((x.items||[]).length),0)+shotLog.filter(x=>(x.ts||0)>=t0).length; })(),
     poop:wc.poop||0, pat:wc.pat||0, feed:wc.feed||0, gift:wc.gift||0, visit:wc.visit||0, labWins:(petSt.labWins||[]).slice(-80), ts:Date.now() };
 }
@@ -10489,14 +10521,18 @@ function plazaRender(){
   if(!_plaza){ box.innerHTML=`<p class="set-p">${_plazaErr||'불러오는 중…'}</p>`; return; }
   const me=mailUser(), wk=plazaWeek();
   labCheckWins();
-  const others=_plaza.filter(p=>p.uid!==(me&&me.uid)).sort((a,b)=>(b.ts||0)-(a.ts||0)), mine=Object.assign({uid:me&&me.uid},plazaMe());
+  const others=_plaza.filter(p=>p.uid!==(me&&me.uid)), mine=Object.assign({uid:me&&me.uid},plazaMe());
+  // 세포 왕 순위 (2026-11-23): 가진 세포 수(겹친 것 포함). 예전 버전이라 cells가 없으면 도감 + 도장깨기로 어림
+  const cellsOf=p=>p.cells!=null?+p.cells:(p.dex||0)+((p.gifts||[]).length);
+  const ranked=[mine].concat(others).sort((a,b)=>cellsOf(b)-cellsOf(a)||(b.ts||0)-(a.ts||0));
+  const rankOf=p=>1+ranked.filter(q=>cellsOf(q)>cellsOf(p)).length;
   const nGift=PET_KINDS.filter(k=>k.gift).length, nDex=PET_KINDS.filter(k=>!k.gift).length;
   box.innerHTML=`${labMissionHTML()}
     ${plazaDecoHTML()}
-    <div class="set-sec"><h4>함께 쓰는 사람 <span class="mail-n">${others.length+1}</span></h4><div class="plz-list">${[mine].concat(others).map(p=>{ const isMe=p===mine;
-      return `<div class="plz-card${isMe?' me':''}">
+    <div class="set-sec"><h4>세포 왕 순위 <span class="mail-n">${others.length+1}명</span></h4><div class="plz-list">${ranked.map(p=>{ const isMe=p===mine, rk=rankOf(p);
+      return `<div class="plz-card${isMe?' me':''}"><span class="plz-rank r${Math.min(rk,4)}">${rk}위</span>
       <canvas data-k="${esc(p.rep||'')}" data-lv="${+p.repLv||0}" width="48" height="48"></canvas>
-      <div class="plz-info"><b>${esc(p.repName?`${p.repName} (${p.nick||'세포 친구'})`:(p.nick||'세포 친구'))}${isMe?' <em class="plz-me">나</em>':''}</b><small>도감 ${p.dex||0}/${nDex} · 도장깨기 ${(p.gifts||[]).length}/${nGift} · 이번 주 MC ${p.wk===wk?p.mc||0:0}</small>${p.msg?`<span class="plz-msg">${esc(p.msg)}</span>`:''}</div>
+      <div class="plz-info"><b>${esc(p.repName?`${p.repName} (${p.nick||'세포 친구'})`:(p.nick||'세포 친구'))}${isMe?' <em class="plz-me">나</em>':''}</b><small>세포 <span style="font-weight:800;color:var(--tx);">${cellsOf(p)}</span>마리 · 도감 ${p.dex||0}/${nDex} · 도장깨기 ${(p.gifts||[]).length}/${nGift} · 이번 주 MC ${p.wk===wk?p.mc||0:0}</small>${p.msg?`<span class="plz-msg">${esc(p.msg)}</span>`:''}</div>
       ${isMe?'':`<div class="plz-act"><button class="btn btn-out" onclick="plazaPickCell('${p.uid}')">${ic('gift')}세포</button></div>`}</div>`; }).join('')}</div>${others.length?'':'<p class="set-p">아직 다른 사람은 없어요.</p>'}</div>`;
   box.querySelectorAll('canvas[data-k]').forEach(c=>{ if(petKind(c.dataset.k)) drawPet(c,c.dataset.k,{frame:0,mode:'idle',lv:+c.dataset.lv||0}); });
   plazaDecoDraw(box);
@@ -10811,7 +10847,10 @@ setTimeout(async()=>{ if(!mailUser()||!fbDb) return; try{ const q=await fbDb.col
 //  업데이트 안내: 올린 날부터 5일 동안 열 때마다 보여줌 (「다시 보지 않기」 체크하면 이 버전은 끝)
 //  새 기능을 올릴 때 NEWS의 id · date · items만 바꾸면 됨
 // ══════════════════════════════════════════
-const NEWS={id:'2026-11-22', date:'2026-11-22', days:5, items:[
+const NEWS={id:'2026-11-23', date:'2026-11-23', days:5, items:[
+  ['<b>세포 왕 순위</b>','광장에서 가진 세포 수(겹친 것 포함) 순서로 1위 · 2위 · 3위'],
+  ['<b>보너스 뽑기</b>','하루 1번 뽑기 말고도: 랩 미션 하나 깰 때마다 · 하루 기록 5건 · 한 주 4일 들르기 · 친화도 Lv.5 · Lv.10. 설정 › 세포에서 「보너스」로 뽑아요'],
+  ['<b>깜짝 선물 시간</b>','일주일에 한 번, 평일 낮 어느 2시간 동안 앱을 열어 두면 선물이 와요. 언제인지는 비밀, 지나고 나면 광장에서 알려 줘요'],
   ['<b>랩 미션</b>','매주 월요일 미션 3개가 바뀌어요(일 · 함께 · 놀이 하나씩: MC · Split · Stock · 새 라인 · 사진 / 출석 · 꾸준히 · 세포 나눔 / 응가 · 쓰다듬기 · 밥 · 들르기). 같이 깬 미션 수로 피펫 요정 · 삼각 플라스크 · 페트리 접시 · 다같이 셋 · 랩 수호신, 한 주 3개 모두 깨면 올클리어 왕관. 광장에는 깃발 가랜드 · 마스코트 동상 · 협동 종'],
   ['<b>촬영 순서 중간 고치기</b>','줄 이름을 누르면 라인 · 특이사항 · 배율 고치기, 이 앞에 넣기, ↑ ↓ 옮기기'],
   ['<b>친화도 이펙트</b>','쓰다듬으면 친화도가 높을수록 화려해져요(하트 → 반짝 → 음표 → 별 → 무지개 하트 → 금빛). 레벨이 오를 땐 Lv마다 다른 축하: 하트 퐁 · 하트 터짐 · 음표 · 꽃잎 · 비눗방울 · 별 · 금가루 왕관 · 무지개 고리 · 폭죽'],
