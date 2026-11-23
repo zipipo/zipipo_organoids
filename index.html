@@ -8985,14 +8985,18 @@ function renderDiary(){
       // 실험 기록: 이름 굵게 · 라인 · 주요 칸 값 (누르면 고치기)
       const ex=expOnDay(ds).map(e=>{ const sub=[expLineNames(e).join(' · '),expShort(e)].filter(Boolean).join(' / ');
         return `<div class="dy-rec exp" onclick="expOpen('${e.id}')" title="${esc([e.name,...(e.fields||[]).filter(f=>f.v).map(f=>f.k+': '+f.v),e.memo||''].filter(Boolean).join('\n'))}"><i class="dot"></i><b>${esc(e.name)}</b><small>${esc(sub)}</small></div>`; }).join('');
-      return `<div class="dy-wd${ds===t0?' now':''}${dow===6?' sat':dow===0?' sun':''}"><h4><span>${c.getMonth()+1}/${c.getDate()}</span><small>${wd[i]}</small><button class="dy-add" onclick="expOpen('','${ds}')" title="이 날 실험 기록 추가">+</button></h4>${ex+rows+pl||'<div class="dy-empty">쉬는 날</div>'}</div>`;
+      return `<div class="dy-wd${ds===t0?' now':''}${dow===6?' sat':dow===0?' sun':''}"><h4><span>${c.getMonth()+1}/${c.getDate()}</span><small>${wd[i]}</small><button class="dy-add" onclick="expOpen('','${ds}')" title="이 날 실험 기록 추가">+</button></h4>${ex+rows+pl||(ds<t0?'<div class="dy-empty">쉬는 날</div>':ds===t0?'<div class="dy-empty">아직 기록 없음</div>':'')}</div>`;
     };
     const from=ymdLocal(days[0]), to=ymdLocal(days[6]), st=_twStats(from,to);
     const typeCnt={}; st.ls.forEach(lg=>{ const l=lineOf(lg.lineId); if(l) typeCnt[l.type]=(typeCnt[l.type]||0)+1; });
     const topT=Object.entries(typeCnt).sort((x,y)=>y[1]-x[1]).slice(0,3).map(([t,n])=>`${esc(t)} ${n}`).join(', ');
-    const ps=new Date(days[0]); ps.setDate(ps.getDate()-7); const pe=new Date(days[0]); pe.setDate(pe.getDate()-1);
-    const pv=_twStats(ymdLocal(ps),ymdLocal(pe)), dl=(a,b)=>{ const d=a-b; return d?` <em class="${d>0?'up':'dn'}">${d>0?'+':'−'}${Math.abs(d)}</em>`:''; };
-    const note=`<div class="dy-week-note">작업 <b>${st.all}</b>${dl(st.all,pv.all)} · 라인 <b>${st.lines}</b> · Split <b>${st.split}</b>${dl(st.split,pv.split)} · MC <b>${st.mc}</b>${dl(st.mc,pv.mc)} · Stock <b>${st.vials}</b> vial${dl(st.vials,pv.vials)}${st.seed?` · 새 라인 <b>${st.seed}</b>`:''}<br><small>지난주와 비교</small>${topT?`<br>${topT}`:''}</div>`;
+    // 지난주 비교 (2026-11-23, 유진: 아직 안 온 날까지 0으로 세서 −57): 이번 주면 오늘 요일까지만 지난주 같은 요일까지와 비교, 아직 안 온 주는 비교 안 함
+    const ps=new Date(days[0]); ps.setDate(ps.getDate()-7);
+    const nowWk=from<=t0&&t0<=to, futWk=from>t0, upto=nowWk?Math.round((new Date(t0+'T00:00:00')-days[0])/864e5):6;
+    const pe=new Date(ps); pe.setDate(ps.getDate()+upto);
+    const pv=_twStats(ymdLocal(ps),ymdLocal(pe)), dl=(a,b)=>{ if(futWk) return ''; const d=a-b; return d?` <em class="${d>0?'up':'dn'}">${d>0?'+':'−'}${Math.abs(d)}</em>`:''; };
+    const cmpLab=futWk?'아직 오지 않은 주':nowWk?(upto===6?'지난주와 비교':`지난주 ${wd[upto]}요일까지와 비교`):'지난주와 비교';
+    const note=`<div class="dy-week-note">작업 <b>${st.all}</b>${dl(st.all,pv.all)} · 라인 <b>${st.lines}</b> · Split <b>${st.split}</b>${dl(st.split,pv.split)} · MC <b>${st.mc}</b>${dl(st.mc,pv.mc)} · Stock <b>${st.vials}</b> vial${dl(st.vials,pv.vials)}${st.seed?` · 새 라인 <b>${st.seed}</b>`:''}<br><small>${cmpLab}</small>${topT?`<br>${topT}`:''}</div>`;
     const wkNo=Math.ceil(((s-new Date(s.getFullYear(),0,1))/86400000+new Date(s.getFullYear(),0,1).getDay()+1)/7);
     el.innerHTML=`<div class="dy">${head('Week '+wkNo,`${s.getMonth()+1}/${s.getDate()} – ${days[6].getMonth()+1}/${days[6].getDate()}`)}
       <div class="dy-spread"><div class="dy-paper">${days.slice(0,4).map((c,i)=>dayBox(c,i)).join('')}</div>
@@ -9024,6 +9028,9 @@ function buildThisWeek(){
   const s=_twStart(_twOff), t0=today(), wd=['월','화','수','목','금','토','일'];
   const days=[...Array(7)].map((_,i)=>{ const d=new Date(s); d.setDate(s.getDate()+i); return ymdLocal(d); });
   const pS=_twStart(_twOff-1), pDays=[ymdLocal(pS),(()=>{const d=new Date(pS); d.setDate(d.getDate()+6); return ymdLocal(d);})()];
+  // 이번 주면 지난주도 오늘 요일까지만 (아직 안 온 날을 0으로 세서 −로 나오지 않게)
+  const _upto=days.indexOf(t0); if(_upto>=0){ const d=new Date(pS); d.setDate(d.getDate()+_upto); pDays[1]=ymdLocal(d); }
+  const _fut=days[0]>t0;
   const cur=_twStats(days[0],days[6]), prev=_twStats(pDays[0],pDays[1]);
   const lineOf=id=>lines.find(l=>l.id===id), short=l=>l?`${l.patientId} ${l.type}`:'(삭제)';
   const rows=days.map((ds,i)=>{
@@ -9039,7 +9046,7 @@ function buildThisWeek(){
       + pl.map(p=>`<span class="twl-i plan"><i></i><b>${esc(p.action)}</b> 예정</span>`).join('');
     return `<div class="twl-r${ds===t0?' now':''}"><span class="twl-d">${wd[i]} <small>${ds.slice(5).replace('-','/')}</small></span><div class="twl-b">${items}</div></div>`;
   }).join('');
-  const dlt=(a,b)=>{ const d=a-b; return d?`<em class="${d>0?'up':'dn'}">${d>0?'+':'−'}${Math.abs(d)}</em>`:''; };
+  const dlt=(a,b)=>{ if(_fut) return ''; const d=a-b; return d?`<em class="${d>0?'up':'dn'}">${d>0?'+':'−'}${Math.abs(d)}</em>`:''; };
   const sum=`<div class="twl-sum"><span>작업 <b>${cur.all}</b>${dlt(cur.all,prev.all)}</span><span>라인 <b>${cur.lines}</b></span><span>Split <b>${cur.split}</b>${dlt(cur.split,prev.split)}</span><span>MC <b>${cur.mc}</b></span><span>Stock <b>${cur.vials}</b> vial</span></div>`;
   return sum+(rows?`<div class="twl">${rows}</div>`:_anaEmpty('이 주에는 기록이 없어요.'));
 }
