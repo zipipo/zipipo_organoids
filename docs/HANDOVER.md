@@ -173,6 +173,12 @@ match /mailbox/{id} {
 
 ## 작업 기록
 
+- 2026-11-24(6): 폴더째 올리기, 선물 알림, 쓰다듬기 막기, Lv.5 뽑기권 빠짐 (브랜치 `claude/upload-gift-pat`, main 반영은 유진 확인 후).
+  - `wireDrop(dropId, inputId, handle)`: PPT, 스케일바 올리기 칸 공통. 「폴더째 고르기」 (webkitdirectory input), 끌어다 놓은 폴더는 `dropEntries` + `entriesToFiles`로 하위 폴더까지 꺼냄. 사진 아닌 파일은 기존 handle에서 걸러짐.
+  - 선물: `plazaInbox`가 토스트 대신 `plazaGotPop` 창 (세포 그림, 보낸 사람, 「만나러 가기」). `petSt.gotLog` 최근 20개, 설정 › 세포 맨 위에 2주 동안 `plazaGotHTML`.
+  - 쓰다듬기: 랩 사람 하나가 밤새 쓰다듬어 Lv.5, Lv.10 보너스 뽑기로 도감을 다 채움. 세포마다 하루 `PET_PAT_DAY`=20번까지만 친화도 오름 (`o.pd`={d,n}, 동기화 필드에 넣음). 친화도 뽑기권은 `petLvTicketScan`이 하루 1장 (`petSt.lvTk`), 밀린 건 다음 날부터. 이미 채운 사람 데이터는 안 건드림.
+  - Lv.5 뽑기권이 안 들어옴: `_petsIn`이 세포 기록을 들어온 값으로 덮어 pats가 옛 값으로 줄었다가 다시 Lv.5가 되면 알림만 뜨고 키는 이미 있어 안 들어왔음 (추정). `petOwnedMerge`로 pats, flowers는 큰 쪽. 다른 탭 저장(storage 이벤트)도 통째로 바꾸지 않고 `petStMergeTab`으로 뽑기권 키, pats 합침. 빠진 키는 `petLvTicketScan`이 다시 줌.
+  - 시험: 폴더 13장 고르기, 가짜 폴더 entry 끌어다 놓기, 선물 창, 30번 쓰다듬기 → 20번만 오름, 뽑기권 하루 1장, 옛 값 합치기에서 pats 안 줄어듦. 페이지 오류 0. Firebase 실제 선물 주고받기는 확인 안 함.
 - 2026-11-24(5): PPT 화면에 「이름 나누기」 추가. 유진 확인 후 (3) – (5) main 반영 (b0d10f2). 로그인한 계정 화면과 다른 기기 이어짐은 확인 필요.
   - 실험마다 이름을 말 단위 칩으로 보여 줌. 말을 누르면 여기까지 실험 이름, 조건, 특이사항, 날짜 옆 메모, 이름에서 빼기, 자동으로.
   - 저장: `pptCuts['words:*']` = {말: cond, spec, note, skip} 모든 실험에 적용, `pptCuts['wcut:*']` = {이름 앞부분: 1}. `savePptCuts`로 기억.
