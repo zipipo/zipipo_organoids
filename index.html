@@ -7763,9 +7763,9 @@ function pptTablePlan(g,gi,pt,th,gb){
     return {kind:'matrix',plain:true,fill:true,auto:true,table:true,noMagBadge:Mv.length>1,rowLabels,rowBreaks,colLabels,colGroups,cells,
       grp:gb||g,pt,src,cut,rlFs:8,fCaps:pptCapMap(gi),unit:u,minCols:u,msplit:ms||!!gb,nMag:gb?2:Mv.length,lay:'table'+u+(ms?'m':'')}; };
   // 한 장 행 수: 폭으로 정해지는 사진 크기를 지키는 만큼 (− / + 로 고친 값이 있으면 그것)
-  let fit=want;
+  let fit=want, p1=null, cw1=0;
   if(!fit){ const s0=secs[0], b0=bands[0], r0=[...new Map(s0.it.map(x=>[rk(x),{k:rk(x),x}])).values()].sort((a,b)=>rowCmp(a.x,b.x)).slice(0,1);
-    const p1=mk(s0,b0,r0), cw1=pptMatrixCW(p1,th); fit=1;
+    p1=mk(s0,b0,r0); cw1=pptMatrixCW(p1,th); fit=1;
     for(let k=2;k<=12;k++){ if(pptMatrixCW(Object.assign({},p1,{slotRows:k}),th)>=cw1*0.97) fit=k; else break; } }
   const out=[];
   secs.forEach(sec=>{ const gp=[];
@@ -7773,8 +7773,10 @@ function pptTablePlan(g,gi,pt,th,gb){
       const rows=[...new Map(inB.map(x=>[rk(x),{k:rk(x),x}])).values()].sort((a,b)=>rowCmp(a.x,b.x));
       // 같은 날짜 묶음(날짜 행 + 덜 나오는 메모 행)은 장 사이에서 쪼개지 않게
       const blocks=[]; rows.forEach((r,j)=>{ if(j&&dk(rows[j-1].x)===dk(r.x)) blocks[blocks.length-1].push(r); else blocks.push([r]); });
-      const n=Math.max(1,Math.ceil(rows.length/fit)), per=Math.max(1,Math.ceil(rows.length/n));
-      let cur=[]; const flush=()=>{ if(cur.length){ gp.push(Object.assign(mk(sec,band,cur),{rowsPer:Math.max(per,cur.length),rowsAll:rows.length,rowsWant:want,slotRows:Math.max(fit,cur.length)})); cur=[]; } };
+      // 2026-11-24 유진: 사진을 조금(85%까지) 줄이면 한 장에 다 들어가는 표는 나누지 않고 한 장으로 (well 1만 고른 4행 등)
+      const one=!want&&p1&&rows.length>fit&&rows.length<=8&&pptMatrixCW(Object.assign({},p1,{slotRows:rows.length}),th)>=cw1*0.85;
+      const fitB=one?rows.length:fit, n=Math.max(1,Math.ceil(rows.length/fitB)), per=Math.max(1,Math.ceil(rows.length/n));
+      let cur=[]; const flush=()=>{ if(cur.length){ gp.push(Object.assign(mk(sec,band,cur),{rowsPer:Math.max(per,cur.length),rowsAll:rows.length,rowsWant:want,slotRows:Math.max(fitB,cur.length),squeeze:one})); cur=[]; } };
       blocks.forEach(b=>{ if(cur.length&&cur.length+b.length>per) flush(); cur=cur.concat(b); }); flush(); });
     gp.sort((a,b)=>pptCmpArr([a.cells.flat(2).filter(Boolean).map(f=>pptParse(f.name).date).sort()[0]||''],[b.cells.flat(2).filter(Boolean).map(f=>pptParse(f.name).date).sort()[0]||'']));   // 줄(band)이 나뉘어도 날짜 순서로
     const t=g+(sec.pg?'  '+sec.pg:'')+(ms&&sec.m?'  '+sec.m:'');
@@ -8020,6 +8022,13 @@ function pptPlanAuto(files,th,ctxFiles){
     const r=groups[g].filter(x=>x.capT); if(!r.length) return;
     groups[g]=groups[g].filter(x=>!x.capT); if(!groups[g].length) delete groups[g];
     const k=g+'  특이사항'; groups[k]=r.map(x=>Object.assign({},x,{capT:'',rareCap:x.capT})); rareG[k]={base:G,name:'특이사항'}; });
+  // 같은 날, 같은 칸에 두 번째 사진((2) 컷 등): 칸을 반으로 나누지 않고 첫 사진만 두고, 나머지는 실험 뒤 「추가 사진」 장 (2026-11-24 유진)
+  Object.keys(groups).forEach(g=>{ if(rareG[g]) return; const G=gBase[g]||g, seen=new Set(), keep=new Set(), extra=[];
+    const ck=x=>[x.m.date,x.m.passageVal||0,x.m.day||'',x.note||'',x.clW!=null?x.clW:x.cond,x.clWell||'',x.m.mag||''].join('|');
+    groups[g].slice().sort((a,b)=>(a.m.regionVal||0)-(b.m.regionVal||0)||pptNatCmp(a.f.name,b.f.name)).forEach(x=>{ if(x.capT){ keep.add(x); return; } const k=ck(x); if(seen.has(k)) extra.push(x); else { seen.add(k); keep.add(x); } });
+    if(!extra.length) return;
+    groups[g]=groups[g].filter(x=>keep.has(x));
+    const k=g+'  추가 사진'; groups[k]=(groups[k]||[]).concat(extra); rareG[k]={base:G,name:'추가 사진'}; });
   const pages=[];
   Object.keys(groups).sort(pptNatCmp).forEach(g=>{
     if(rareG[g]){ pages.push(...pptPackPlan(g,groups[g],th,rareG[g])); return; }
@@ -8153,7 +8162,7 @@ function pptPlanAll(){
   pages.forEach(p=>{ if(p.title&&!(p.edited&&!p.dr)) p.title=pptUndash(p.title); });
   // 사진 크기 맞춤: 표 배치는 덱 전체에서 같은 단위(한 줄 3 · 6 · 9장)끼리, 그 밖의 자동 장은 실험 안에서 같은 단위끼리 가장 작은 칸에 맞춤
   { const th=dark?PPT_TH.dark:PPT_TH.light, uni={};
-    pages.forEach(p=>{ if(p.kind!=='matrix'||!p.auto||!p.unit||p.edited) return; const k=p.table?'T'+p.unit:'E'+(p.grp||p.exp)+'|'+p.unit; (uni[k]=uni[k]||[]).push(p); });
+    pages.forEach(p=>{ if(p.kind!=='matrix'||!p.auto||!p.unit||p.edited||p.squeeze) return; const k=p.table?'T'+p.unit:'E'+(p.grp||p.exp)+'|'+p.unit; (uni[k]=uni[k]||[]).push(p); });
     Object.values(uni).forEach(ps=>{ const cw=Math.min(...ps.map(q=>pptMatrixCW(q,th))); ps.forEach(q=>{ q.cwFix=cw; }); }); }
   pptPlaceOverlays(pages);
   return {pages,dark,model};
@@ -11391,7 +11400,7 @@ setTimeout(async()=>{ if(!mailUser()||!fbDb) return; try{ const q=await fbDb.col
 // ══════════════════════════════════════════
 const NEWS={id:'2026-11-24', date:'2026-11-24', days:5, items:[
   ['<b>PPT 사진 골라 장 더 만들기</b>','배치 미리보기 위 「사진 골라 장 더 만들기」에서 well 1 · 4x처럼 칩을 켜거나 사진을 눌러 고르면, 그 사진만으로 원래 실험 장 바로 뒤에 장이 더 생겨요'],
-  ['<b>PPT 사진 크기 고정</b>','사진이 적은 장도 기본 칸(2.44 in)보다 커지지 않아요. 9열 표처럼 안 들어갈 때만 작아져요. 회색 메모 칸은 이제 기본으로 안 들어가고, 썸네일을 눌러 고칠 때 쓰면 생겨요'],
+  ['<b>PPT 사진 크기 고정</b>','사진이 적은 장도 기본 칸(2.44 in)보다 커지지 않아요. 9열 표처럼 안 들어갈 때만 작아지고, 조금만 줄이면 한 장에 다 들어가는 표는 한 장으로 넣어요. 같은 칸에 두 번째로 찍은 사진((2) 등)은 반으로 나누지 않고 실험 뒤 「추가 사진」 장으로 가요. 회색 메모 칸은 이제 기본으로 안 들어가고, 썸네일을 눌러 고칠 때 쓰면 생겨요'],
   ['<b>폴더째 올리기</b>','PPT 만들기 · 스케일바에서 사진 대신 폴더를 끌어다 놓거나 「폴더째 고르기」로 골라도 돼요. 안의 하위 폴더 사진까지 들어가요'],
   ['<b>선물 알림</b>','친구가 세포를 보내면 앱을 열 때 「선물이 왔어요!」 창이 떠요. 받은 기록은 설정 › 세포 맨 위에 2주 동안 남아요'],
   ['<b>쓰다듬기</b>','친화도는 세포마다 하루 20번까지 올라요(더 쓰다듬어도 하트는 나와요). 친화도 Lv.5 · Lv.10 보너스 뽑기는 하루 1장씩. 기기를 오가면 친화도가 줄던 것도 고쳤어요'],
