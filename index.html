@@ -7449,6 +7449,7 @@ function pptAutoSplit(name,ctx){
   let detail=null, note=[];
   if(rest.length>=2){ detail=rest[0]; note=rest.slice(1); }
   else if(rest.length===1&&(PPT_WELLISH.test(rest[0])||/^[A-P]\d{1,2}$/i.test(rest[0]))) note=[rest[0]];   // A1 · D3 같은 plate 칸 이름도 조건   // well-1 · plate-2 같은 건 세부 라인 이름이 아니라 조건 (실험이 well마다 갈리지 않게)
+  else if(rest.length===1&&PPT_SPEC_ANY.test(rest[0])) note=[rest[0]];
   else if(rest.length===1){ const t=rest[0], c=ctx[k]||{plain:false,lead:new Set()};
     const inLines=(typeof lines!=='undefined'?lines:[]).some(l=>(l.patientId+'|'+l.type).toLowerCase()===k&&l.detail&&pptNormDetail(l.detail)===t.toLowerCase());
     if(inLines||/^for-/i.test(t)||c.lead.has(t)||!c.plain) detail=t; else note=[t]; }
@@ -7740,13 +7741,21 @@ function pptCapText(D,t,x,iy,w,ih,limit){ const h=0.36, fz=w<2?6:8;
   if(iy+ih+h<=limit+0.001) D.text(t,x,iy+ih,w,h,{fontSize:fz,color:'000000',align:'center',valign:'middle'});
   else D.text(t,x,iy+ih-h,Math.min(w,Math.max(1.2,t.length*0.17+0.2)),h,{fontSize:fz,color:'000000',align:'center',valign:'middle',fill:{color:'FFFFFF'}}); }
 // 이름 해석: Pre-24h의 시간은 조건으로, 끝 번호(-1, -2)는 반복으로, 10과 IFNg-10ng는 같은 조건으로, 드문 말(detached)은 사진 아래 글자로
+const PPT_SPEC=[/\(?dr[iy]ed(?:[\s-]+for[\s-]+\d+[\s-]+days?)?\)?/gi,/(?:cell[\s-]+)?detached/gi,/contaminated/gi,/부착잔여/g], PPT_SPEC_ANY=/detach|contaminat|부착잔여|dr[iy]ed/i;
+// 그날 작업 단계: 조건이 아니라 날짜 쪽 메모
+const PPT_STAGE=/(^|[\s-])(hand-?pick(?:용|-전)?|split-전|split-d\d+|thaw-d\d+|reseeding-전)(?=$|[\s-])/i;
 function pptNormGroup(g,items){
   if(Object.keys(pptRolesOf(g)).length) return items;   // 이름 조각을 직접 정한 실험은 그대로
   const man=pptCuts['alias:'+g]||{};
   let A=items.map(x=>{ let note=x.note||'', pre=[]; const nm=note.match(/^pre-(.+)$/i);
     if(nm&&PPT_TIME.test(nm[1])){ pre=[nm[1]]; note='Pre'; }
-    const s=pptCondSplit(x.cond), w=pre.concat(s.w).filter(t=>!(/^day\d+$/i.test(t)&&x.m.day&&t.slice(3)===x.m.day.slice(1)));
-    return {x,note,w,well:s.well,wellVal:s.wellVal}; });
+    let c0=x.cond||''; const caps=[]; PPT_SPEC.forEach(rx=>{ c0=c0.replace(rx,v=>{ caps.push(v.replace(/[()]/g,'').replace(/-/g,' ').trim()); return ' '; }); });
+    const s=pptCondSplit(c0), sw=s.w.filter((t,i,arr)=>!(/^well$/i.test(t)&&/^\d+$/.test(arr[i+1]||''))&&!(/^\d+$/.test(t)&&/^well$/i.test(arr[i-1]||'')));   // W1 뒤의 well-1은 두 번 적지 않음
+    const w=pre.concat(sw).filter(t=>!(/^day\d+$/i.test(t)&&x.m.day&&t.slice(3)===x.m.day.slice(1)));
+    return {x,note,w,well:(s.well||'').replace(/ 0+(\d)/,' $1'),wellVal:s.wellVal,caps}; });
+  // plate 칸 이름(A1, B3 …): 한 실험에 3가지 이상이면 조건이 아니라 well
+  const plOf=t=>{ const m=String(t).match(PPT_WELL); return m&&+m[2]>=1&&+m[2]<=24?m:null; }, plSet=new Set(A.flatMap(a=>a.w.filter(plOf)));
+  if(plSet.size>=3) A.forEach(a=>{ const t=a.w.filter(plOf).pop(); if(!t) return; const m=plOf(t); a.well=t; a.wellVal=(m[1].charCodeAt(0)-64)*100+(+m[2]); a.w=a.w.filter(v=>v!==t); });
   // 끝 번호: 같은 앞부분에서 1, 2, …로 이어질 때만 반복 (24h-10의 10은 농도)
   const tails={}; A.forEach(a=>{ if(a.well||a.w.length<2) return; const t=a.w[a.w.length-1]; if(/^\d$/.test(t)) (tails[a.w.slice(0,-1).join(' ')]=tails[a.w.slice(0,-1).join(' ')]||new Set()).add(+t); });
   const isRep=k=>{ const v=tails[k]; return v&&Math.min(...v)===1&&Math.max(...v)===v.size; };
@@ -7754,18 +7763,19 @@ function pptNormGroup(g,items){
   // 같은 뜻: 직접 고른 값 → 없으면 숫자 N과 「약이름 Nng」가 한 가지로만 맞을 때
   const dose={}; A.forEach(a=>a.w.forEach((t,i)=>{ const m=t.match(/^(\d+(?:\.\d+)?)(?:pg|ng|ug|µg|mg)(?:\/?ml)?$/i); if(m&&i>0&&!PPT_TIME.test(a.w[i-1])){ const v=a.w[i-1]+' '+t; (dose[m[1]]=dose[m[1]]||new Set()).add(v); } }));
   A.forEach(a=>{ a.w=a.w.flatMap(t=>{ if(man[t]) return String(man[t]).split(' '); if(/^\d+(?:\.\d+)?$/.test(t)&&dose[t]&&dose[t].size===1) return [...dose[t]][0].split(' '); return [t]; }); });
-  // 드문 말: 자주 나오는 조건과 같이 붙어 있을 때만 사진 아래 글자
-  const thr=Math.max(2,Math.ceil(A.length*0.12)), cnt={}; A.forEach(a=>new Set(a.w).forEach(t=>{ cnt[t]=(cnt[t]||0)+1; }));
-  const solid=t=>PPT_TIME.test(t)||!!pptTokCls(t)||/^\d/.test(t), freq=t=>cnt[t]>=thr&&!PPT_TIME.test(t);
-  const rare=t=>!solid(t)&&cnt[t]<thr&&A.every(a=>!a.w.includes(t)||a.w.some(freq));
-  return A.map(a=>{ const cap=a.w.filter(rare), w=a.w.filter(t=>!rare(t));
-    return Object.assign({},a.x,{note:a.note,cond:w.concat(a.well?[a.well.replace(' ','-')]:[]).join(' '),clW:w.join(' '),clWell:a.well,clWv:a.wellVal,capT:cap.join(' ')}); });
+  const R=A.map(a=>Object.assign({},a.x,{note:a.note,cond:a.w.concat(a.well?[a.well.replace(' ','-')]:[]).join(' '),clW:a.w.join(' '),clWell:a.well,clWv:a.wellVal,capT:a.caps.join(' ')}));
+  // well 번호를 안 적은 사진: 같은 날짜, 배율이 겹치지 않으면 그 조건의 첫 well 줄에 넣음 (글자는 안 붙임)
+  const kf=(r,w)=>[r.clW,w,r.m.date,r.m.passageVal,r.m.day,r.m.mag].join('|'), seen=new Set(R.filter(r=>r.clWell).map(r=>kf(r,r.clWell)));
+  R.forEach(r=>{ if(r.clWell) return; const ws=R.filter(q=>q.clW===r.clW&&q.clWell&&!q.noWell); if(!ws.length) return;
+    const b=ws.reduce((m,q)=>q.clWv<m.clWv?q:m), k=kf(r,b.clWell); if(seen.has(k)) return; seen.add(k); r.clWell=b.clWell; r.clWv=b.clWv; r.noWell=true; });
+  return R;
 }
 function pptRowChunks(n){ if(n<=PPTC.maxRows) return [n]; if(n===5) return [3,2];
   const pg=Math.ceil(n/4), t=(4-n%4)%4; return Array.from({length:pg},(_,i)=>i<pg-t?4:3); }
 function pptClassicPlan(g,gi,pt,th,gb,force){
   const G=gb||g, ord=pptOrd(g), magN=m=>parseInt(m)||9999;
-  const it=gi.map(x=>{ const c=x.clW!=null?x.clW:x.cond; return Object.assign({},x,{lc:c,lw:x.clWell||'',lv:x.clWv||0,lk:c+'|'+(x.clWell||''),mg:x.m.mag||'',dk:[x.m.date,x.m.passageVal||0,x.m.day].join('|')}); });
+  const dayKey=x=>[x.m.date,x.m.passageVal||0,x.m.day].join('|'), dayNotes={}; gi.forEach(x=>{ (dayNotes[dayKey(x)]=dayNotes[dayKey(x)]||new Set()).add(x.note||''); });
+  const it=gi.map(x=>{ const c=x.clW!=null?x.clW:x.cond, dk0=dayKey(x); return Object.assign({},x,{lc:c,lw:x.clWell||'',lv:x.clWv||0,lk:c+'|'+(x.clWell||''),mg:x.m.mag||'',dk:dayNotes[dk0].size>1?dk0+'|'+(x.note||''):dk0}); });
   const Dk=[...new Map(it.map(x=>[x.dk,x])).values()].sort((a,b)=>pptCmpArr([a.m.date,a.m.passageVal||0],[b.m.date,b.m.passageVal||0])).map(x=>x.dk);
   const conds=[...new Set(it.map(x=>x.lc))].sort((a,b)=>(a===b?0:!a?-1:!b?1:0)||ord(a,b)||pptCondCmp(a.split(' '),b.split(' ')));
   const lanes=conds.flatMap(c=>[...new Map(it.filter(x=>x.lc===c).map(x=>[x.lk,x])).values()].sort((a,b)=>a.lv-b.lv||pptNatCmp(a.lw,b.lw)).map(x=>({k:x.lk,c,w:x.lw})));
@@ -7784,7 +7794,7 @@ function pptClassicPlan(g,gi,pt,th,gb,force){
   const laneLab=(l,multi)=>[multi?l.c:'',l.w].filter(Boolean).join(' ');
   const push=(ls,o)=>{ const cs=[...new Set(ls.map(l=>l.c))];
     pages.push(Object.assign({kind:'matrix',classic:true,plain:true,fill:true,auto:true,exp:g,pt,src,cut,grp:G,fCaps,nMag:gb?2:Mv.length,msplit:!!gb,
-      laneKeys:ls.map(l=>l.k),condT:cs.length===1?cs[0]:cs.filter(Boolean).join(', '),memo:'',nMv:Mv.length,lay:'classic'+o.mdir},o)); };
+      laneKeys:ls.map(l=>l.k),condT:cs.length===1?cs[0]:'',memo:'',nMv:Mv.length,noTag:Object.fromEntries(gi.filter(x=>x.noWell).map(x=>[x.f.id,1])),lay:'classic'+o.mdir},o)); };
   let i=0;
   while(i<lanes.length){ const d=dirOf(lanes[i]); let j=i; while(j<lanes.length&&dirOf(lanes[j])===d) j++;
     const run=lanes.slice(i,j); i=j;
@@ -7816,15 +7826,28 @@ function pptPackPlan(g,gi,th,r){
     if(m.passage) h.push({text:'  ',options:{color:th.txt}},{text:m.passage.toUpperCase(),options:{color:PPT_P_GREEN,bold:true}});
     if(m.day) h.push({text:'  '+m.day,options:{color:th.txt}});
     if(x.note) h.push({text:'  '+x.note,options:{color:th.txt,fontSize:9}});
-    const cap=x.rareCap&&x.rareCap!==r.name?x.rareCap:'';
-    info[x.f.id]={head:h,tag:[x.clW,x.clWell,cap].filter(Boolean).join(' ')}; });
-  const pages=[], n=Math.ceil(it.length/(PER*ROWS));
-  for(let a=0;a<it.length;a+=PER*ROWS){ const part=it.slice(a,a+PER*ROWS), cells=[];
+    const cap=x.rareCap||x.capT||'';
+    info[x.f.id]={head:h,tag:[x.clW,x.noWell?'':x.clWell,cap].filter(Boolean).join(' ')}; });
+  const MAX=PER*ROWS, rem=it.length%MAX, sizes=Array(Math.floor(it.length/MAX)).fill(MAX); if(rem) sizes.push(rem);
+  if(sizes.length>1&&rem&&rem<=2){ const t=MAX+rem; sizes[sizes.length-2]=Math.ceil(t/2); sizes[sizes.length-1]=Math.floor(t/2); }
+  const pages=[], n=sizes.length; let at=0;
+  for(const sz of sizes){ const part=it.slice(at,at+sz), cells=[]; at+=sz;
     for(let b=0;b<part.length;b+=PER) cells.push(part.slice(b,b+PER).map(x=>[x.f]));
-    pages.push({kind:'matrix',classic:true,pack:true,plain:true,fill:true,auto:true,exp:g,pt:g.split(' ')[0],src:it[0].f.name,cut:(gi.find(x=>x.cut)||{}).cut,grp:g,baseG:r.base,rareName:r.name,
-      packInfo:info,fCaps:{},nMag:1,nMv:1,msplit:false,laneKeys:[],condT:r.name,memo:'',mdir:'v',lay:'pack',cells,rowLabels:cells.map(()=>''),colLabels:cells[0].map(()=>''),
+    pages.push({kind:'matrix',classic:true,pack:true,plain:true,fill:true,auto:true,exp:g,pt:g.split(' ')[0],src:it[0].f.name,cut:(gi.find(x=>x.cut)||{}).cut,grp:r.base,baseG:r.base,rareName:r.name||undefined,
+      packInfo:info,fCaps:pptCapMap(gi),nMag:1,nMv:1,msplit:false,laneKeys:[],condT:r.name,memo:'',mdir:'v',lay:'pack',cells,rowLabels:cells.map(()=>''),colLabels:cells[0].map(()=>''),
       title:g+(n>1?`  (${pages.length+1}/${n})`:'')}); }
   return pages;
+}
+// 빈칸이 절반 넘는 장, 날짜 하나에 well만 세로로 늘어선 장은 사진을 왼쪽부터 채우는 배치로
+function pptDensify(g,gi,cl,th,gb){
+  if(cl.some(p=>p.mdir==='h')) return cl;
+  const loose=p=>{ const c=p.cells.flat(), e=c.filter(x=>!x||!x.length).length; const rowMax=Math.max(...p.cells.map(r=>r.filter(x=>x&&x.length).length)); return (c.length>=4&&e/c.length>=0.5&&rowMax<3)||(p.colLabels.length===1&&p.laneKeys.length>=2); };
+  const hasLoose=cl.some(loose), weak=p=>loose(p)||(hasLoose&&pptPageFiles(p).length<=2), bad=cl.filter(weak); if(!bad.length) return cl;
+  const ids=new Set(bad.flatMap(pptPageFiles).map(f=>f.id)), pk=pptPackPlan(g,gi.filter(x=>ids.has(x.f.id)),th,{base:gb||g,name:''});
+  pk.forEach(q=>{ q.tableOK=cl[0].tableOK; q.nMag=cl[0].nMag; q.msplit=cl[0].msplit; });
+  const out=[]; let put=false; cl.forEach(p=>{ if(!weak(p)) out.push(p); else if(!put){ out.push(...pk); put=true; } });
+  out.forEach((p,i)=>{ p.title=p.title.replace(/  \(\d+\/\d+\)$/,'')+(out.length>1?`  (${i+1}/${out.length})`:''); });
+  return out;
 }
 function pptDrawClassic(D,p,th){
   const C=PPTC, nr=p.cells.length, nc=p.colLabels.length, four=nr>=C.maxRows, hz=p.mdir==='h';
@@ -7838,8 +7861,8 @@ function pptDrawClassic(D,p,th){
   }
   if(!four){ const mx=0.28*2.54, my=1.13*2.54, mw=(6.52-0.28)*2.54, mh=(1.65-1.13)*2.54; D.text(p.memo||' ',mx,my,mw,mh,{fontSize:11,color:'000000',align:'center',valign:'middle',fill:{color:'F2F2F2'}}); if(D.zone) D.zone('memo',{},mx,my,mw,mh,p.memo||''); }
   const hH=0.27*2.54, hY=y0-hH-0.03*2.54;
-  if(p.pack){ const pitch=C.h+hH+0.03*2.54+C.gy;
-    p.cells.forEach((row,r)=>row.forEach((cell,c)=>{ const f=arrOf(cell)[0], cx=C.x0+c*(C.w+C.gx), y=y0+r*pitch;
+  if(p.pack){ const pitch=C.h+hH+0.03*2.54+C.gy, py=C.y3-0.10*2.54;
+    p.cells.forEach((row,r)=>row.forEach((cell,c)=>{ const f=arrOf(cell)[0], cx=C.x0+c*(C.w+C.gx), y=py+r*pitch;
       if(D.zone) D.zone('cell',{r,c},cx,y,C.w,C.h);
       if(!f) return;
       const q=(p.packInfo&&p.packInfo[f.id])||{}, iw=Math.min(C.w,C.h/f.aspect), ih=iw*f.aspect, ix=cx+(C.w-iw)/2, iy=y+(C.h-ih)/2;
@@ -7861,7 +7884,8 @@ function pptDrawClassic(D,p,th){
       fs.forEach((f,j)=>{ const iw=Math.min(bw,C.h/f.aspect), ih=iw*f.aspect, ix=cx+j*(bw+0.08)+(bw-iw)/2, iy=k>1?y:y+(C.h-ih)/2;
         D.image(f,ix,iy,iw,ih);
         const mg=pptMagOf(f); if(mg) pptBadge(D,mg,ix,iy,iw);
-        if(!hz&&tag&&j===0){ const s=pptPlain(tag), tw=Math.min(iw*0.7,s.length*0.125+0.2); D.text(s,ix,iy,tw,0.34,{fontSize:7,color:'000000',align:'center',valign:'middle',fill:{color:'FFFFFF'}}); }
+        const tg0=hz||!tag?'':pptPlain(tag), tg=p.noTag&&p.noTag[f.id]?tg0.replace(/\s*(?:well|rep) \S+$/,''):tg0;
+        if(tg&&j===0){ const s=tg, tw=Math.min(iw*0.7,s.length*0.125+0.2); D.text(s,ix,iy,tw,0.34,{fontSize:7,color:'000000',align:'center',valign:'middle',fill:{color:'FFFFFF'}}); }
         if(capOf(f)) pptCapText(D,capOf(f),ix,iy,iw,ih,y+C.h);
         if(D.zone) D.zone('ph',{r,c,j},ix,iy,iw,ih); });
     }); });
@@ -7877,11 +7901,12 @@ function pptPlanAuto(files,th){
     let cond=[c&&!shots?pptJoin(c.cond):'', m.well, m.extra].filter(Boolean).join(' ').replace(/_/g,' ').trim(), note='';
     // 「Pre-처리」「Pre-split」 같은 건 조건이 아니라 그날 찍은 때 → 날짜 쪽에 붙여 같은 well끼리 줄이 맞게
     cond=cond.replace(/(^|[\s-])(pre-[^\s-]+)(?=$|[\s-])/i,(a,b,pre)=>{ note=pre; return b===' '?' ':''; }).replace(/^[\s-]+|[\s-]+$/g,'').replace(/\s{2,}/g,' ');
+    if(!note) cond=cond.replace(PPT_STAGE,(a,b,st)=>{ note=st; return b===' '?' ':''; }).replace(/^[\s-]+|[\s-]+$/g,'').replace(/\s{2,}/g,' ');
     (groups[title]=groups[title]||[]).push({f,m,cond,note,cut:c&&c.key});
   });
   // 이름 끝만 다른 형제 실험(for-CM-test-CM / -FM / -MM)은 한 실험의 조건으로 묶음. 끝을 뗀 이름이 따로 있으면(for-Neoantigen과 -2nd) 다른 실험으로 둠
   const base=t=>t.replace(/-[^-\s]+$/,''), sib={};
-  Object.keys(groups).forEach(t=>{ const b=base(t); if(b!==t && b.includes(' ')) (sib[b]=sib[b]||[]).push(t); });
+  Object.keys(groups).forEach(t=>{ const b=base(t); if(b!==t && b.split(' ').length>=3) (sib[b]=sib[b]||[]).push(t); });
   Object.entries(sib).forEach(([b,ts0])=>{ const ts=ts0.filter(t=>!/^\d+(st|nd|rd|th)$/i.test(t.slice(b.length+1)));
     if(ts.length<2 || (groups[b]&&!ts.every(t=>/^[A-Z]{2,4}$/.test(t.slice(b.length+1))))) return;
     groups[b]=(groups[b]||[]).concat(ts.flatMap(t=>groups[t].map(x=>Object.assign({},x,{cond:[t.slice(b.length+1),x.cond].filter(Boolean).join(' ')}))));
@@ -7895,15 +7920,14 @@ function pptPlanAuto(files,th){
   // 하나뿐인 조건(detached): 기본은 실험 바로 뒤 따로 장, 「같은 칸」을 고르면 그 칸에 + 사진 아래 글자
   const rareG={};
   Object.keys(groups).forEach(g=>{ const G=gBase[g]||g; if(pptCuts['rare:'+G]==='cell') return;
-    const r=groups[g].filter(x=>x.capT); if(!r.length||r.length===groups[g].length) return;
-    groups[g]=groups[g].filter(x=>!x.capT); const by={};
-    r.forEach(x=>{ const n=x.capT.split(' ').pop(); (by[n]=by[n]||[]).push(Object.assign({},x,{capT:'',rareCap:x.capT})); });
-    Object.entries(by).forEach(([n,a])=>{ const k=g+'  '+n; groups[k]=a; rareG[k]={base:G,name:n}; }); });
+    const r=groups[g].filter(x=>x.capT); if(!r.length) return;
+    groups[g]=groups[g].filter(x=>!x.capT); if(!groups[g].length) delete groups[g];
+    const k=g+'  특이사항'; groups[k]=r.map(x=>Object.assign({},x,{capT:'',rareCap:x.capT})); rareG[k]={base:G,name:'특이사항'}; });
   const pages=[];
   Object.keys(groups).sort(pptNatCmp).forEach(g=>{
     if(rareG[g]){ pages.push(...pptPackPlan(g,groups[g],th,rareG[g])); return; }
     const gi=groups[g], pt=g.split(' ')[0], ord=pptOrd(g);
-    if(pptCuts['view:'+(gBase[g]||g)]!=='table'){ const cl=pptClassicPlan(g,gi,pt,th,gBase[g]); if(cl){ const tok=!!pptTablePlan(g,gi,pt,th,gBase[g]); cl.forEach(q=>{ q.tableOK=tok; }); pages.push(...cl); return; } }
+    if(pptCuts['view:'+(gBase[g]||g)]!=='table'){ const cl=pptClassicPlan(g,gi,pt,th,gBase[g]); if(cl){ const tok=!!pptTablePlan(g,gi,pt,th,gBase[g]); cl.forEach(q=>{ q.tableOK=tok; }); pages.push(...pptDensify(g,gi,cl,th,gBase[g])); return; } }
     const tb=pptTablePlan(g,gi,pt,th,gBase[g]); if(tb){ pages.push(...tb); return; }
     if(pptCuts['view:'+(gBase[g]||g)]==='table'){ const cl=pptClassicPlan(g,gi,pt,th,gBase[g]); if(cl){ pages.push(...cl); return; } }
     const gNMag=gBase[g]?2:new Set(gi.map(x=>x.m.mag||'')).size;
@@ -7990,7 +8014,7 @@ function pptExpBar(p,pages){
   if(isT||ps.some(x=>x.tableOK)) out.push(pptSeg('배치',[['날짜별',!isT,`pptSetView('${q}','')`,'한 장에 한 조건, 열 = 날짜, 행 = 배율'],['조건 비교 표',isT,`pptSetView('${q}','table')`,'행 = 날짜, 열 = 조건 × well']]));
   if(ps.some(x=>x.nMag>1)){ const sp=main.some(x=>x.msplit); out.push(pptSeg('배율',[['한 장에 같이',!sp,`pptSetMsplit('${q}',0)`,'4x, 10x, 20x를 같은 장에'],['배율마다 따로 장',sp,`pptSetMsplit('${q}',1)`,'4x 장, 10x 장, 20x 장으로 나눔']])); }
   if(isT){ const set=+pptCuts['unit:'+G]||0; out.push(pptSeg('한 줄 사진',[['자동',!set,`pptSetUnit('${q}',0)`,'열 수에 맞게']].concat([3,6,9].map(u=>[u+'장',set===u,`pptSetUnit('${q}',${u})`,'한 줄에 '+u+'장'])))); }
-  const rn=[...new Set(ps.flatMap(x=>(x.rareName?[x.rareName]:[]).concat(Object.values(x.fCaps||{}).map(t=>t.split(' ').pop()))))];
+  const rn=ps.some(x=>x.rareName||Object.keys(x.fCaps||{}).length)?['특이사항']:[];
   if(rn.length){ const cell=pptCuts['rare:'+G]==='cell'; out.push(pptSeg(esc(rn.join(', ')),[['따로 장',!cell,`pptSetRare('${q}','')`,'이 실험 뒤에 따로 장으로'],['같은 칸',cell,`pptSetRare('${q}','cell')`,'같은 날짜, 같은 well 칸에 넣고 사진 아래 글자']])); }
   return `<div class="pl-exp"><b>${esc(pptUndash(G))}</b><span class="pl-mut">${ps.length}장</span>${out.join('')}</div>`;
 }
