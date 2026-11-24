@@ -173,19 +173,19 @@ match /mailbox/{id} {
 
 ## 작업 기록
 
-- 2026-11-24(5): PPT 화면에 「이름 나누기」 추가 (브랜치 `claude/ppt-classic-layout`, main 반영은 유진 확인 후).
+- 2026-11-24(5): PPT 화면에 「이름 나누기」 추가. 유진 확인 후 (3) – (5) main 반영 (b0d10f2). 로그인한 계정 화면과 다른 기기 이어짐은 확인 필요.
   - 실험마다 이름을 말 단위 칩으로 보여 줌. 말을 누르면 여기까지 실험 이름, 조건, 특이사항, 날짜 옆 메모, 이름에서 빼기, 자동으로.
   - 저장: `pptCuts['words:*']` = {말: cond, spec, note, skip} 모든 실험에 적용, `pptCuts['wcut:*']` = {이름 앞부분: 1}. `savePptCuts`로 기억.
   - 자동 규칙: 실험 합치기는 끝이 대문자 2 – 4자일 때만 (for-CM-test와 for-CM-Assembloid는 안 합침). contamination, 오염, detachment, Post-…, Pre-fix-uSlide도 알아봄. 실험 이름 끝의 특이사항 말은 이름에서 뗌.
   - 시험: 가상 이름 13개로 버튼 전환, 새로고침 뒤 기억 확인. 756장 → 95장, 원본 94장 → 11장, 86장 → 9장 그대로.
-- 2026-11-24(4): 사진 756장 (10/06 – 11/16) 기준으로 이름 해석 고침 (브랜치 `claude/ppt-classic-layout`, main 반영은 유진 확인 후).
+- 2026-11-24(4): 사진 756장 (10/06 – 11/16) 기준으로 이름 해석 고침 (main 반영 b0d10f2).
   - 세포 종류: 끝을 뗀 이름이 「환자 + 세포」뿐이면 형제 실험으로 묶지 않음 (Tumor-org, Tumor-CAF 분리).
   - 특이사항: 빈도 추측을 없애고 `PPT_SPEC` (detached, contaminated, 부착잔여, dryed)만 인정. 실험마다 「특이사항」 장으로 모음.
   - well: A1, B3 같은 plate 칸이 한 실험에 3가지 이상이면 well로 읽음. W1 뒤 well-1은 한 번만 적음. well 번호 없는 사진은 겹치지 않으면 첫 well 줄에 넣고 글자는 안 붙임 (`noWell`).
   - 작업 단계 `PPT_STAGE` (hand-pick, split-전, split-dN, thaw-dN, reseeding-전)는 날짜 쪽 메모. 같은 날 메모가 다르면 열을 나눔.
   - `pptDensify`: 빈칸이 절반 이상이고 한 줄에 사진 3장 이상인 줄이 없는 장, 날짜 하나에 well만 늘어선 장은 사진 채우는 배치로.
   - 시험: 756장 → 95장, 사진 빠짐 없음, 세포 종류 섞인 장 없음, 가장 아래 7.026 in. 756장은 같은 이름의 작은 사본으로 시험. 원본 94장 → 11장, 86장 → 9장.
-- 2026-11-24(3): detached 장 빈칸 없앰 (브랜치 `claude/ppt-classic-layout`, main 반영은 유진 확인 후).
+- 2026-11-24(3): detached 장 빈칸 없앰 (main 반영 b0d10f2).
   - `pptPackPlan`: detached 사진은 날짜 열, 배율 행을 쓰지 않고 왼쪽부터 채움 (한 줄 5장, 한 장에 3줄). `p.pack`이면 `pptDrawClassic`이 사진마다 위에 날짜, 왼쪽 위에 조건과 well (`p.packInfo`)을 그림.
   - 시험: 원본 94장 → 11장 (8번 detached 4장), 86장 → 9장, 사진 빠짐 없음, 가장 아래 7.026 in. 「같은 칸」, 「따로 장」 전환 확인.
 - 2026-11-24(2): 유진 확인 후 수정, main 반영.
