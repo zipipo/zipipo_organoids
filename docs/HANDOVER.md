@@ -173,6 +173,13 @@ match /mailbox/{id} {
 
 ## 작업 기록
 
+- 2026-11-24(7): 유진이 손본 PPT (`261124 Cell images (261108-261114).pptx`) 보고 고침 (브랜치 `claude/ppt-pick`, (6) 위에 이어 올림, main 반영은 유진 확인 후).
+  - 사진 크기 고정 (랩 사람: 장마다 사진 비율이 다름): `pptDrawMatrix`에서 모든 장 `colW ≤ PPTC.w`, `≤ PPTC.h / 가장 긴 사진 비율`. 사진이 적어도 안 커지고, 9열 표처럼 안 들어갈 때만 줄어듦. 756장 사본: 748장 2.44 × 1.37 in, 8장 1.20 in (같은 칸 두 장이라 반으로 나눔, 그대로 둠).
+  - 사진 골라 장 더 만들기: `pptCuts['pick:*']` = [{id, name, names: 파일 이름}]. `pptPickPlan`이 고른 사진만 `pptPlanAuto(sub, th, all)`로 배치해 원래 실험 장 바로 뒤에 넣음 (`p.pick`, 제목 뒤에 name). `pptPlanAuto` 셋째 인자는 이름 해석 기준 파일 (고른 것만으로 해석이 달라지지 않게). `pptNameInfo`, `pptToksOf`는 원래대로 되돌림. `pptPageKey`에 pick id. 고르기 화면 `pptPickHtml`: 실험마다 well, 배율, 날짜 칩은 거르기 (같은 줄 또는, 다른 줄 그리고), 사진 눌러 하나씩.
+  - 표 글자: 조건 12 (굵게), well 10 (안 굵게), 날짜 9. 예전엔 셋 다 약 8 pt.
+  - 회색 메모 칸: 글이 있을 때만 그림. 고치기 화면에서만 「메모를 쓰려면 누르기」 회색 글자.
+  - 날짜 옆 메모 (Pre-수확 등) 색 `7C3AED` 보라 → `0E7490` 청록 (검은 배경 `67E8F9`).
+  - 남은 것: well 1만 고른 4x 표는 4행이 한 장에 안 들어가 2행씩 두 장 (고정 크기 유지). 유진 덱 3장은 4행을 한 장에 넣었음.
 - 2026-11-24(6): 폴더째 올리기, 선물 알림, 쓰다듬기 막기, Lv.5 뽑기권 빠짐 (브랜치 `claude/upload-gift-pat`, main 반영은 유진 확인 후).
   - `wireDrop(dropId, inputId, handle)`: PPT, 스케일바 올리기 칸 공통. 「폴더째 고르기」 (webkitdirectory input), 끌어다 놓은 폴더는 `dropEntries` + `entriesToFiles`로 하위 폴더까지 꺼냄. 사진 아닌 파일은 기존 handle에서 걸러짐.
   - 선물: `plazaInbox`가 토스트 대신 `plazaGotPop` 창 (세포 그림, 보낸 사람, 「만나러 가기」). `petSt.gotLog` 최근 20개, 설정 › 세포 맨 위에 2주 동안 `plazaGotHTML`.
