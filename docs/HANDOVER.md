@@ -173,6 +173,11 @@ match /mailbox/{id} {
 
 ## 작업 기록
 
+- 2026-11-24(5): PPT 화면에 「이름 나누기」 추가 (브랜치 `claude/ppt-classic-layout`, main 반영은 유진 확인 후).
+  - 실험마다 이름을 말 단위 칩으로 보여 줌. 말을 누르면 여기까지 실험 이름, 조건, 특이사항, 날짜 옆 메모, 이름에서 빼기, 자동으로.
+  - 저장: `pptCuts['words:*']` = {말: cond, spec, note, skip} 모든 실험에 적용, `pptCuts['wcut:*']` = {이름 앞부분: 1}. `savePptCuts`로 기억.
+  - 자동 규칙: 실험 합치기는 끝이 대문자 2 – 4자일 때만 (for-CM-test와 for-CM-Assembloid는 안 합침). contamination, 오염, detachment, Post-…, Pre-fix-uSlide도 알아봄. 실험 이름 끝의 특이사항 말은 이름에서 뗌.
+  - 시험: 가상 이름 13개로 버튼 전환, 새로고침 뒤 기억 확인. 756장 → 95장, 원본 94장 → 11장, 86장 → 9장 그대로.
 - 2026-11-24(4): 사진 756장 (10/06 – 11/16) 기준으로 이름 해석 고침 (브랜치 `claude/ppt-classic-layout`, main 반영은 유진 확인 후).
   - 세포 종류: 끝을 뗀 이름이 「환자 + 세포」뿐이면 형제 실험으로 묶지 않음 (Tumor-org, Tumor-CAF 분리).
   - 특이사항: 빈도 추측을 없애고 `PPT_SPEC` (detached, contaminated, 부착잔여, dryed)만 인정. 실험마다 「특이사항」 장으로 모음.
