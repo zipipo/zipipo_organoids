@@ -173,6 +173,12 @@ match /mailbox/{id} {
 
 ## 작업 기록
 
+- 2026-11-25: 바쁜 대학원생 입장 UX 점검 뒤 유진이 고른 4가지 (브랜치 `claude/ecstatic-cannon-15e0x9`, main 반영 전, 유진 요청). 데모(?demo) 390px · 1440px에서 확인, 로그인 계정 동기화는 확인 안 함.
+  - 라인 찾기: 기록 입력의 `<select id="lineSelect">`는 숨기고(다른 코드가 쓰니 남김) `#lineFind` 검색 칸. 공백 · _ · - 무시하고 lineTag에 포함되면 목록(`lineFindRender`), ↑↓ · Enter · 누르기로 선택, 비워두고 누르면 진행 중 전체. 아래 「최근」 칩 3개(`renderLineRecent`, 최근 기록 seq 순, 이미 고른 것 · 완료 라인 뺌). 오늘 작업 탭에서도 / → `#lineFind`.
+  - 저장 뒤 액션 · Plate 유지: `saveDailyLog`가 `resetLogPlate()` · `setAction('Media Change')`를 안 함. 라인 · 비율 · Well · vial · 메모만 비움. 배양 완료는 예전처럼 MC로 돌아감.
+  - 오늘 아닌 날짜: `renderDateChips`에서 저장될 날짜(bulkDates 1개면 그것)가 오늘이 아니면 날짜 칸 · 저장 버튼에 --warn 테두리, 버튼 글자 「어제 11/24 날짜로 저장」 / 「날짜 n개로 저장」.
+  - 폰 「n개 선택」 바(`#selFab`, 이제 div): MC · MA는 `fabAct`로 바로 저장, Split · Obs는 액션 골라 입력 칸으로, ⋯는 입력 칸으로. 오늘이 아니면 바 끝에 「어제」 표시.
+  - MC 버튼 길게 눌러 어제로 기록(C3)은 유진이 안 하기로 함. NEWS id 2026-11-25에 4줄 추가.
 - 2026-11-24(8): HE 사진 50장 (`261124_HE_C0-No1_Hepa1c1c7-5e6_s1_4x` 모양)으로 PPT 만들며 불편했던 5가지 (main 반영 b033199, 11-25 유진 요청). 실제 사진, 로그인한 계정 동기화는 확인 안 함.
   - 이름 자동 끊기: 개체 번호 `PPT_INDIV` (No1, #3, Mouse2, Ms1) 앞에서 끊음 (`pptIndivCut`, 셋째 말부터). HE 50장: 실험 11개 → 3개 (HE C0, C1, C2).
   - 「여기까지 실험 이름」: 숫자만 다른 이름은 같은 자리에서 끊음. 키 `~he c#` (`pptShapeKey`), 예전 정확한 키도 그대로 읽음.

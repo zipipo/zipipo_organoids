@@ -809,6 +809,18 @@ label{font-size:.74rem;font-weight:550;color:var(--sub);}
 .pv-after{color:var(--acc);font-weight:600;}
 .cp-foot{padding:10px 14px;border-top:1px solid var(--bd2);flex:none;}
 .btn-save{width:100%;height:36px;font-size:.84rem;}
+.btn-save.save-off,#logDate.date-off{box-shadow:0 0 0 2px var(--warn);}
+.btn-save.save-off{font-weight:700;}
+.line-find{width:100%;}
+.lf-list{margin-top:4px;max-height:236px;overflow:auto;border:1px solid var(--bd);border-radius:6px;background:var(--sur);}
+.lf-it{display:flex;align-items:center;gap:7px;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--bd);padding:7px 10px;font:inherit;font-size:.82rem;color:inherit;cursor:pointer;}
+.lf-it:last-child{border-bottom:0;}
+.lf-it small{margin-left:auto;color:var(--mut);}
+.lf-it.on,.lf-it:hover{background:var(--acc-bg);}
+.lf-none{padding:8px 10px;font-size:.8rem;color:var(--mut);}
+.lf-recent{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-top:6px;}
+.lf-recent:empty{display:none;}
+.lf-rl{font-size:.72rem;color:var(--mut);}
 
 /* 타임라인 */
 .tl-wrap{background:var(--sur);border:1px solid var(--bd);border-radius:8px;margin-bottom:8px;overflow:hidden;}
@@ -1670,7 +1682,7 @@ body[data-theme="dark"] .btn-pri{background:var(--pri-bg);color:var(--pri-fg);bo
 body[data-theme="dark"] .btn-pri:hover{background:var(--pri-bgh);border-color:#5A5A64;}
 body[data-theme="dark"] .chip.on{background:#34343B;border-color:#4A4A53;color:#EDEDEF;}
 body[data-theme="dark"] .sel-fab{background:#26262C;color:#EDEDEF;box-shadow:0 8px 24px rgba(0,0,0,.5),inset 0 0 0 1px #4A4A53;}
-body[data-theme="dark"] .sel-fab b{background:rgba(255,255,255,.1);}
+body[data-theme="dark"] .sel-fab button{background:rgba(255,255,255,.1);}
 body[data-theme="dark"] [style*="background:#E2E8F0"]{background:var(--bd)!important;}
 body[data-theme="dark"] [style*="solid #E2E8F0"],body[data-theme="dark"] [style*="border:1px solid #E2E8F0"]{border-color:var(--bd)!important;}
 
@@ -1814,7 +1826,12 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
   .mtabs button.on{color:var(--pri);}
   .sel-fab{display:flex;align-items:center;gap:10px;position:fixed;left:50%;bottom:74px;z-index:310;transform:translate(-50%,20px);opacity:0;pointer-events:none;
     background:var(--pri-bg);color:var(--pri-fg);border:1px solid #D4D5DB;border-radius:8px;padding:10px 12px 10px 14px;font:inherit;font-size:.82rem;box-shadow:0 8px 24px rgba(0,0,0,.2);transition:opacity .2s,transform .25s var(--ease);}
-  .sel-fab b{background:rgba(0,0,0,.06);border-radius:5px;padding:3px 9px;font-weight:600;}
+  .sel-fab{gap:6px;padding:7px 8px 7px 12px;white-space:nowrap;}
+  .sel-fab>span{font-weight:600;margin-right:2px;}
+  .sel-fab button{border:0;border-radius:6px;background:rgba(0,0,0,.07);color:inherit;font:inherit;font-weight:650;font-size:.8rem;padding:7px 9px;cursor:pointer;}
+  .sel-fab button:first-of-type{background:var(--pri,#333);color:var(--sur,#fff);}
+  .sel-fab em{font-style:normal;font-size:.72rem;font-weight:700;color:var(--warn);}
+  .sel-fab em:empty{display:none;}
   .sel-fab.on{opacity:1;transform:translate(-50%,0);pointer-events:auto;}
   .toast-wrap{bottom:130px;}
   .act-grid{grid-template-columns:repeat(3,1fr);}
@@ -2051,7 +2068,11 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
           <div class="ef-row">
             <label>라인</label>
             <div id="bulkLineTags" class="tag-box"></div>
-            <select id="lineSelect" onchange="addLineFromSelect()"></select>
+            <input type="search" id="lineFind" class="line-find" placeholder="라인 찾기 · 번호만 쳐도 돼요  /" autocomplete="off" enterkeyhint="done"
+              oninput="lineFindRender()" onfocus="lineFindRender()" onkeydown="lineFindKey(event)" onblur="setTimeout(lineFindClose,180)">
+            <div id="lineFindList" class="lf-list" style="display:none;"></div>
+            <div id="lineRecent" class="lf-recent"></div>
+            <select id="lineSelect" onchange="addLineFromSelect()" style="display:none;"></select>
           </div>
           <div class="ef-row">
             <label>날짜</label>
@@ -2085,7 +2106,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
           <div id="stockInline" style="display:none;"></div>
         </div>
         <div class="prev-bar" id="prevArea"></div>
-        <div class="cp-foot"><button class="btn btn-pri btn-save" onclick="saveDailyLog()">기록 저장</button></div>
+        <div class="cp-foot"><button class="btn btn-pri btn-save" id="saveBtn" onclick="saveDailyLog()">기록 저장</button></div>
       </aside>
     </div>
   </div>
@@ -2136,7 +2157,9 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
 </main>
 </div>
 <div class="side-backdrop" onclick="closeSide()"></div>
-<button id="selFab" class="sel-fab" onclick="document.getElementById('logCard').scrollIntoView({behavior:'smooth',block:'start'})"><span></span><b>기록하기</b></button>
+<div id="selFab" class="sel-fab"><span></span>
+  <button onclick="fabAct('Media Change')" title="바로 저장">MC</button><button onclick="fabAct('Media Addition')" title="바로 저장">MA</button><button onclick="fabAct('Split')">Split</button><button onclick="fabAct('Observation')">Obs</button>
+  <button class="fab-more" onclick="fabAct()" title="입력 칸으로">⋯</button><em id="fabDate"></em></div>
 <nav class="mtabs">
   <button class="tab" data-tab="today" onclick="setTab('today')"><svg class="ic"><use href="#i-today"/></svg>오늘</button>
   <button class="tab" data-tab="tl" onclick="setTab('tl')"><svg class="ic"><use href="#i-flask"/></svg>라인</button>
@@ -4394,6 +4417,16 @@ function renderDateChips(){
   const d=new Date(); const t=ymdLocal(d); d.setDate(d.getDate()-1); const y=ymdLocal(d);
   document.getElementById('dToday').classList.toggle('on',v===t);
   document.getElementById('dYest').classList.toggle('on',v===y);
+  // 오늘이 아닌 날짜로 저장하게 되면 날짜 칸과 저장 버튼에 바로 보이게 (어제로 하나 적고 그대로 오늘 것 적는 실수 막기)
+  const eff=bulkDates.length===1?bulkDates[0]:v, many=bulkDates.length>1;
+  const off=many||(eff&&eff!==t);
+  document.getElementById('logDate').classList.toggle('date-off',off&&!many);
+  const sb=document.getElementById('saveBtn');
+  if(sb){ const md=eff?`${+eff.slice(5,7)}/${+eff.slice(8,10)}`:'';
+    sb.textContent=many?`날짜 ${bulkDates.length}개로 저장`:off?`${eff===y?'어제 ':''}${md} 날짜로 저장`:'기록 저장';
+    sb.classList.toggle('save-off',!!off); }
+  const fd=document.getElementById('fabDate');
+  if(fd) fd.textContent=many?`날짜 ${bulkDates.length}개`:off?(eff===y?'어제':`${+eff.slice(5,7)}/${+eff.slice(8,10)}`):'';
 }
 
 let bulkDates=[];
@@ -4427,6 +4460,55 @@ function renderBulkLineTags(){
   }).join('')+(bulkLines.length>1?`<button class="link-btn" onclick="clearBulkLines()">전체 해제</button>`:'');
   const sel=document.getElementById('lineSelect');
   if(sel&&sel.options.length) sel.options[0].text=bulkLines.length?'라인 추가…':'라인 선택…';
+  const lf=document.getElementById('lineFind');
+  if(lf) lf.placeholder=bulkLines.length?'라인 더 찾기  /':'라인 찾기 · 번호만 쳐도 돼요  /';
+  renderLineRecent();
+}
+// ── 라인 찾기: 글자 일부(번호만 쳐도)로 거르고 Enter / 누르기로 선택. 비워두고 누르면 전체 목록 ──
+let _lfIdx=0;
+const lfNorm=x=>String(x||'').toLowerCase().replace(/[\s_\-]/g,'');
+function lineFindMatches(){
+  const q=lfNorm(document.getElementById('lineFind').value);
+  return lines.filter(l=>!l.isCompleted&&!bulkLines.includes(l.id)).sort(typeCmp)
+    .filter(l=>!q||lfNorm(lineTag(l)).includes(q));
+}
+function lineFindRender(){
+  const box=document.getElementById('lineFindList'), ms=lineFindMatches();
+  if(_lfIdx>=ms.length) _lfIdx=0;
+  if(!ms.length){ box.innerHTML='<div class="lf-none">맞는 진행 중 라인이 없어요</div>'; box.style.display=''; return; }
+  box.innerHTML=ms.map((l,i)=>`<button type="button" class="lf-it${i===_lfIdx?' on':''}" style="${toneVars(getC(l.type,false))}" onmousedown="event.preventDefault()" onclick="lineFindPick('${l.id}')"><i class="tdot"></i>${esc(lineTag(l))}<small>P${l.passage}</small></button>`).join('');
+  box.style.display='';
+}
+function lineFindPick(id){
+  if(id&&!bulkLines.includes(id)){ bulkLines.push(id); onLinesChanged(); }
+  const lf=document.getElementById('lineFind'); lf.value=''; _lfIdx=0;
+  if(document.activeElement===lf) lineFindRender(); else lineFindClose();
+}
+function lineFindClose(){ const b=document.getElementById('lineFindList'); if(b) b.style.display='none'; }
+function lineFindKey(e){
+  const ms=lineFindMatches();
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){ e.preventDefault(); if(ms.length){ _lfIdx=(_lfIdx+(e.key==='ArrowDown'?1:-1)+ms.length)%ms.length; lineFindRender(); } }
+  else if(e.key==='Enter'&&!e.ctrlKey&&!e.metaKey){ e.preventDefault(); if(ms[_lfIdx]) lineFindPick(ms[_lfIdx].id); }
+  else if(e.key==='Escape'){ e.stopPropagation(); e.target.value=''; e.target.blur(); lineFindClose(); }
+  else _lfIdx=0;
+}
+// 최근에 기록한 진행 중 라인 3개 (아직 안 고른 것)
+function renderLineRecent(){
+  const el=document.getElementById('lineRecent'); if(!el) return;
+  const seen=new Set(), out=[];
+  [...logs].sort((a,b)=>(b.seq||0)-(a.seq||0)).some(lg=>{
+    if(seen.has(lg.lineId)) return false; seen.add(lg.lineId);
+    const l=lines.find(x=>x.id===lg.lineId);
+    if(l&&!l.isCompleted&&!bulkLines.includes(l.id)) out.push(l);
+    return out.length>=3;
+  });
+  el.innerHTML=out.length?`<span class="lf-rl">최근</span>`+out.map(l=>`<button type="button" class="chip sm" onclick="lineFindPick('${l.id}')">${esc(lineTag(l))}</button>`).join(''):'';
+}
+// 폰 「n개 선택」 바: MC · MA는 바로 저장, 나머지는 액션 골라서 입력 칸으로
+function fabAct(a){
+  if(a) setAction(a);
+  if(a==='Media Change'||a==='Media Addition') return saveDailyLog();
+  document.getElementById('logCard').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
 // ══════════════════════════════════════════
@@ -4637,8 +4719,8 @@ function saveDailyLog(){
   bulkLines=[];
   ['logDet','logWells','logStocks','logMemo','logActionCustom','logDomes'].forEach(i=>document.getElementById(i).value='');
   domeShow('log',false);
-  resetLogPlate();
-  setAction('Media Change');
+  // 액션 · Plate는 그대로 둔다 (Split을 라인마다 이어서 적을 때 다시 안 고르게). 라인 · 비율 · Well · 메모만 비움
+  setAction(document.getElementById('logAction').value==='__custom__'?action:document.getElementById('logAction').value);
   updateUI();previewDay();
   const n=lineIds.length*dates.length;
   let mdMsg=''; try{ mdMsg=mdUseNote(logs.filter(l=>(l.seq||0)>seq0)); }catch(e){}
@@ -5858,8 +5940,8 @@ document.addEventListener('keydown',e=>{
     if(lf&&lf.style.display!=='none'&&curTab==='tl'){ closeLineModal(); return; }
   }
   // '/': 배양 라인 페이지에서 검색 칸으로 바로 이동
-  if(e.key==='/'&&!e.ctrlKey&&!e.metaKey&&curTab==='tl'&&!/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)){
-    e.preventDefault(); document.getElementById('lineSearch').focus(); return;
+  if(e.key==='/'&&!e.ctrlKey&&!e.metaKey&&(curTab==='tl'||curTab==='today')&&!document.querySelector('.modal.open')&&!/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)){
+    e.preventDefault(); document.getElementById(curTab==='today'?'lineFind':'lineSearch').focus(); return;
   }
   // Ctrl/Cmd+Enter: 기록 수정 창이 열려 있으면 그걸 저장, 아니면 오늘 작업의 기록 저장
   if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){
@@ -11415,7 +11497,11 @@ setTimeout(async()=>{ if(!mailUser()||!fbDb) return; try{ const q=await fbDb.col
 //  업데이트 안내: 올린 날부터 5일 동안 열 때마다 보여줌 (「다시 보지 않기」 체크하면 이 버전은 끝)
 //  새 기능을 올릴 때 NEWS의 id · date · items만 바꾸면 됨
 // ══════════════════════════════════════════
-const NEWS={id:'2026-11-24', date:'2026-11-24', days:5, items:[
+const NEWS={id:'2026-11-25', date:'2026-11-25', days:5, items:[
+  ['<b>라인 찾기</b>','기록 입력의 라인 칸에 번호만 쳐도 돼요(31 → HCC31). ↑↓ · Enter로 고르고, 오늘 작업에서 / 를 누르면 바로 여기로 와요. 아래 「최근」 칩은 방금 기록한 라인 3개'],
+  ['<b>저장해도 액션 그대로</b>','Split을 라인마다 이어서 적을 때 다시 고르지 않게, 저장하면 라인 · 비율 · Well · 메모만 비우고 액션 · Plate는 남겨요'],
+  ['<b>오늘이 아닌 날짜 표시</b>','어제나 다른 날짜로 저장하게 되면 날짜 칸이 노랗게 두르고 버튼이 「어제 11/24 날짜로 저장」으로 바뀌어요'],
+  ['<b>폰 빠른 기록</b>','폰에서 라인을 체크하면 아래 바에서 MC · MA는 바로 저장, Split · Obs는 골라서 입력 칸으로 가요'],
   ['<b>PPT 사진 골라 장 더 만들기</b>','배치 미리보기 위 「사진 골라 장 더 만들기」에서 well 1 · 4x처럼 칩을 켜거나 사진을 눌러 고르면, 그 사진만으로 원래 실험 장 바로 뒤에 장이 더 생겨요'],
   ['<b>PPT 사진 크기 고정</b>','사진이 적은 장도 기본 칸(2.44 in)보다 커지지 않아요. 9열 표처럼 안 들어갈 때만 작아지고, 조금만 줄이면 한 장에 다 들어가는 표는 한 장으로 넣어요. 같은 칸에 두 번째로 찍은 사진((2) 등)은 반으로 나누지 않고 실험 뒤 「추가 사진」 장으로 가요. 회색 메모 칸은 이제 기본으로 안 들어가고, 썸네일을 눌러 고칠 때 쓰면 생겨요'],
   ['<b>폴더째 올리기</b>','PPT 만들기 · 스케일바에서 사진 대신 폴더를 끌어다 놓거나 「폴더째 고르기」로 골라도 돼요. 안의 하위 폴더 사진까지 들어가요'],
