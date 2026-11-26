@@ -705,6 +705,10 @@ label{font-size:.74rem;font-weight:550;color:var(--sub);}
 .bd-group em{font-style:normal;font-weight:500;font-size:.74rem;color:var(--sub);}
 .bd-group .bd-color{margin-left:auto;}
 .type-chip{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:5px;background:var(--td);color:var(--tt);font-size:.8rem;font-weight:700;letter-spacing:-.01em;white-space:nowrap;}
+.sp-tag{display:inline-flex;align-items:center;margin-left:8px;font-size:.68rem;font-weight:600;color:var(--warn);background:var(--warn-bg);border-radius:4px;padding:1px 6px;cursor:pointer;}
+.sp-tag.due{color:var(--due);background:var(--due-bg);}
+.bm-sp{font-size:.74rem;color:var(--mut);padding:4px 2px 6px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;}
+.bm-sp b{color:inherit;}
 .plan-tag{display:inline-flex;align-items:center;gap:3px;margin-left:8px;font-size:.68rem;font-weight:600;color:var(--pri);background:var(--acc-bg);border-radius:4px;padding:1px 6px;}
 .plan-tag .ic{width:11px;height:11px;}
 .bd-color{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border:none;border-radius:4px;background:transparent;color:inherit;cursor:pointer;opacity:.55;}
@@ -3211,10 +3215,31 @@ const ic=(n,cls)=>`<svg class="ic${cls?' '+cls:''}"><use href="#i-${n}"/></svg>`
 // 배양 현황에서 라인별 최근 기록을 바로 펼쳐본다 (저장 직후 확인하려고 다른 페이지로 갈 필요 없게)
 const _bdOpen=new Set();
 function toggleBdRow(id){ _bdOpen.has(id)?_bdOpen.delete(id):_bdOpen.add(id); renderDash(); }
+// 다음 Split 예상: 지난 Split(P+1) 간격 최근 3번 평균 (2~40일만). Split이 1번뿐이면 seeding → 첫 Split 간격
+function splitPred(id){
+  const L=logs.filter(l=>l.lineId===id&&l.date).sort((a,b)=>a.date.localeCompare(b.date)||(a.seq||0)-(b.seq||0));
+  const ups=[...new Set(L.filter(l=>isPassageUp(l.action)).map(l=>l.date))];
+  if(!ups.length) return null;
+  const pts=ups.length>1?ups:[L[0].date,...ups].filter((x,i,a)=>a.indexOf(x)===i);
+  const dd=(a,b)=>Math.round((Date.UTC(+b.slice(0,4),+b.slice(5,7)-1,+b.slice(8,10))-Date.UTC(+a.slice(0,4),+a.slice(5,7)-1,+a.slice(8,10)))/864e5);
+  const gaps=pts.slice(1).map((x,i)=>dd(pts[i],x)).filter(g=>g>=2&&g<=40).slice(-3);
+  if(!gaps.length) return null;
+  const avg=Math.round(gaps.reduce((a,b)=>a+b,0)/gaps.length), last=ups[ups.length-1];
+  const d=new Date(+last.slice(0,4),+last.slice(5,7)-1,+last.slice(8,10)+avg), date=ymdLocal(d);
+  const sp=L.filter(l=>isPassageUp(l.action)&&l.details).pop();
+  return {date,avg,n:gaps.length,ratio:sp?sp.details:'',left:dd(ymdLocal(new Date()),date)};
+}
+function splitPlanFor(id,date){
+  const t=ymdLocal(new Date()); if(date<t) date=t;   // 예상일이 지났으면 오늘로
+  openPlanModal(date,[id]);
+  const a=document.getElementById('plAction'); if(a&&[...a.options].some(o=>o.value==='Split')) a.value='Split';
+  const sp=splitPred(id), n=document.getElementById('plNote'); if(n&&sp&&sp.ratio&&!n.value) n.value=sp.ratio+' 예정';
+}
 function buildMiniLog(id){
   const lgs=logs.filter(l=>l.lineId===id).sort((a,b)=>b.date.localeCompare(a.date)||(b.seq||0)-(a.seq||0)).slice(0,5);
   const n=logs.filter(l=>l.lineId===id).length;
-  return `<div class="bd-mini" onclick="event.stopPropagation()">${lgs.map(lg=>`<div class="bm-row" onclick="openLogModal('${lg.id}')">
+  const sp=splitPred(id);
+  return `<div class="bd-mini" onclick="event.stopPropagation()">${sp?`<div class="bm-sp">다음 Split 예상 <b>${sp.date.slice(5).replace('-','.')}</b> · 지난 ${sp.n}번 평균 ${sp.avg}일${sp.ratio?' · 지난번 '+esc(sp.ratio):''} <button class="link-btn" onclick="splitPlanFor('${id}','${sp.date}')">예정에 넣기</button></div>`:''}${lgs.map(lg=>`<div class="bm-row" onclick="openLogModal('${lg.id}')">
       <span class="bm-d">${lg.date.slice(5).replace('-','.')}</span><span class="badge ${badgeCls(lg.action)}">${esc(actLabel(lg.action))}</span>
       <span class="bm-pd"><b>P${lg.passage}</b> ${esc(lg.dayInfo||'')}</span>
       <span class="bm-x">${esc([lg.details,lg.finalWells?wellTxt(lg.finalWells,lg.domes):'',lg.stocks?lg.stocks+' vial':'',lg.memo].filter(Boolean).join(' · '))}</span></div>`).join('')}
@@ -3279,7 +3304,7 @@ function renderDash(){
       const open=_bdOpen.has(ll.id);
       return `<div class="bd-row${bulkLines.includes(ll.id)?' sel':''}${open?' open':''}" data-line="${ll.id}" draggable="true" ondragstart="planDragStart(event,'${ll.id}')" onclick="selectLine('${ll.id}')">
         <span class="cbx">${ic('check')}</span>
-        <span class="bd-name">${esc(ll.label)}${ll.detail?`<small>${esc(ll.detail)}</small>`:''}${planToday[ll.id]?`<span class="plan-tag" title="오늘 예정">${ic('pin','ic-sm')}${esc(planToday[ll.id])}</span>`:''}</span>
+        <span class="bd-name">${esc(ll.label)}${ll.detail?`<small>${esc(ll.detail)}</small>`:''}${planToday[ll.id]?`<span class="plan-tag" title="오늘 예정">${ic('pin','ic-sm')}${esc(planToday[ll.id])}</span>`:''}${(sp=>sp&&sp.left<=3&&!planToday[ll.id]&&!plans.some(p=>!p.done&&p.action==='Split'&&p.lineIds.includes(ll.id))?`<span class="sp-tag${sp.left<0?' due':''}" title="지난 Split ${sp.n}번 평균 ${sp.avg}일. 누르면 예정 작업에 넣기" onclick="event.stopPropagation();splitPlanFor('${ll.id}','${sp.date}')">Split ${sp.left<0?`예상 +${-sp.left}일`:sp.left===0?'예상 오늘':'~'+sp.date.slice(5).replace('-','.')}</span>`:'')(splitPred(ll.id))}</span>
         <span class="bd-pd"><b>P${ll.p}</b> ${ll.day}${ll.rs&&ll.rs.due?`<span class="rs-due" title="day${RESEED_LIMIT}가 지났어요. Reseeding이 필요해요">지연</span>`:''}${ll.well?`<span class="pd-w">${ll.well} well</span>`:''}</span>
         <span class="bd-plate">${esc(ll.plate||'')}</span>
         <span class="bd-well">${ll.well?ll.well+' well'+(ll.dome?`<small class="bd-dome">${esc(ll.dome)} dome</small>`:''):'<span class="nil">-</span>'}</span>
@@ -11497,7 +11522,8 @@ setTimeout(async()=>{ if(!mailUser()||!fbDb) return; try{ const q=await fbDb.col
 //  업데이트 안내: 올린 날부터 5일 동안 열 때마다 보여줌 (「다시 보지 않기」 체크하면 이 버전은 끝)
 //  새 기능을 올릴 때 NEWS의 id · date · items만 바꾸면 됨
 // ══════════════════════════════════════════
-const NEWS={id:'2026-11-25', date:'2026-11-25', days:5, items:[
+const NEWS={id:'2026-11-26', date:'2026-11-26', days:5, items:[
+  ['<b>다음 Split 예상</b>','지난 Split 간격(최근 3번 평균)으로 라인마다 다음 Split 날을 계산해요. 3일 안이거나 지났으면 배양 현황 라인 이름 옆에 「Split ~11.28」이 뜨고, 누르면 예정 작업에 넣어요. ▾로 펼치면 평균 간격 · 지난번 비율이 보여요'],
   ['<b>라인 찾기</b>','기록 입력의 라인 칸에 번호만 쳐도 돼요(31 → HCC31). ↑↓ · Enter로 고르고, 오늘 작업에서 / 를 누르면 바로 여기로 와요. 아래 「최근」 칩은 방금 기록한 라인 3개'],
   ['<b>저장해도 액션 그대로</b>','Split을 라인마다 이어서 적을 때 다시 고르지 않게, 저장하면 라인 · 비율 · Well · 메모만 비우고 액션 · Plate는 남겨요'],
   ['<b>오늘이 아닌 날짜 표시</b>','어제나 다른 날짜로 저장하게 되면 날짜 칸이 노랗게 두르고 버튼이 「어제 11/24 날짜로 저장」으로 바뀌어요'],

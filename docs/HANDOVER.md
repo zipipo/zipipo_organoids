@@ -173,6 +173,10 @@ match /mailbox/{id} {
 
 ## 작업 기록
 
+- 2026-11-26: 다음 Split 예상 (F1, 유진이 고름, 브랜치 `claude/ecstatic-cannon-15e0x9`, main 반영 전). 데모에서 확인, 실제 데이터는 확인 안 함.
+  - `splitPred(id)`: P+1 기록(`isPassageUp`) 날짜의 간격 중 2~40일만, 최근 3번 평균. Split이 1번뿐이면 첫 기록(seeding) → 첫 Split 간격. 마지막 Split + 평균 = 예상일, 지난번 비율은 마지막 Split details.
+  - 배양 현황: 예상일이 3일 안이거나 지났고, 오늘 예정 · 안 끝난 Split 예정이 없으면 라인 이름 옆 `.sp-tag` 「Split ~11.28」 / 「Split 예상 +3일」. 누르면 `splitPlanFor` → 예정 작업 창(Split, 「1:3 예정」, 지난 날짜면 오늘). ▾ 펼친 최근 기록 위에 평균 간격 · 지난번 비율 · 예정에 넣기.
+  - F2 Myco, F3 이상 표시는 유진이 안 하기로 함. NEWS id 2026-11-26.
 - 2026-11-25: 바쁜 대학원생 입장 UX 점검 뒤 유진이 고른 4가지 (브랜치 `claude/ecstatic-cannon-15e0x9`, main 반영 전, 유진 요청). 데모(?demo) 390px · 1440px에서 확인, 로그인 계정 동기화는 확인 안 함.
   - 라인 찾기: 기록 입력의 `<select id="lineSelect">`는 숨기고(다른 코드가 쓰니 남김) `#lineFind` 검색 칸. 공백 · _ · - 무시하고 lineTag에 포함되면 목록(`lineFindRender`), ↑↓ · Enter · 누르기로 선택, 비워두고 누르면 진행 중 전체. 아래 「최근」 칩 3개(`renderLineRecent`, 최근 기록 seq 순, 이미 고른 것 · 완료 라인 뺌). 오늘 작업 탭에서도 / → `#lineFind`.
   - 저장 뒤 액션 · Plate 유지: `saveDailyLog`가 `resetLogPlate()` · `setAction('Media Change')`를 안 함. 라인 · 비율 · Well · vial · 메모만 비움. 배양 완료는 예전처럼 MC로 돌아감.
