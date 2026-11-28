@@ -588,6 +588,7 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.92em;bac
 .dd-dot{width:6px;height:6px;border-radius:50%;background:var(--due);}
 .bk-ok{color:var(--ok);font-weight:600;} .bk-warn{color:var(--due);font-weight:600;} .bk-sub{color:var(--mut);}
 .bk-mini{background:var(--due-bg);color:var(--due);border:none;border-radius:4px;padding:2px 7px;font-size:.7rem;font-weight:600;cursor:pointer;}
+.sb-map{display:grid;gap:4px;margin-top:8px;} .sb-mrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;} .sb-mrow>b{min-width:140px;color:var(--ink);} .sb-mdir{color:var(--pri);}
 .sb-sort{display:inline-flex;align-items:center;gap:8px;margin-left:10px;flex-wrap:wrap;} .sb-sort label{display:inline-flex;align-items:center;gap:3px;cursor:pointer;} .sb-sort input{width:auto;margin:0;} .sb-sort select{height:24px;font-size:.72rem;padding:0 4px;border:1px solid var(--bd);border-radius:6px;background:var(--sur);color:var(--ink);}
 
 /* 상단 바 */
@@ -6690,7 +6691,19 @@ async function sbGetDir(){
 async function sbDirAlive(h){ try{ await h.values().next(); return true; }catch(e){ return !(e&&e.name==='NotFoundError'); } }
 async function sbChangeDir(){ try{ const h=await window.showDirectoryPicker({mode:'readwrite',id:'orgSbarDir'}); sbDirHandle=h; await idbSet('sbDir',h); renderSbDir(); }catch(e){} }
 function renderSbDir(){ const el=document.getElementById('sbDirInfo'); if(!el) return; el.innerHTML = (sbDirHandle? `저장 폴더: <b>${esc(sbDirHandle.name)}</b> <button class="bk-mini" onclick="sbChangeDir()">변경</button>` : `저장 폴더: 저장할 때 선택 <button class="bk-mini" onclick="sbChangeDir()">지금 지정</button>`)
-  +(window.showDirectoryPicker?` <span class="sb-sort"><label><input type="checkbox" ${sbSort()!=='none'?'checked':''} onchange="sbSetSort(this.checked?'lt':'none');renderSbDir()">환자_종류 폴더</label>${sbSort()!=='none'?`<label><input type="checkbox" ${sbDetailOn()?'checked':''} onchange="sbSetDetail(this.checked)">세부명까지</label>`:''}<button class="bk-mini" onclick="sbSortExisting()">이미 저장한 사진 정리</button></span>`:''); }
+  +(window.showDirectoryPicker?` <span class="sb-sort"><label><input type="checkbox" ${sbSort()!=='none'?'checked':''} onchange="sbSetSort(this.checked?'lt':'none');renderSbDir()">환자_종류 폴더</label>${sbSort()!=='none'?`<label><input type="checkbox" ${sbDetailOn()?'checked':''} onchange="sbSetDetail(this.checked)">세부명까지</label>`:''}<button class="bk-mini" onclick="sbSortExisting()">이미 저장한 사진 정리</button></span>${sbMapHTML()}`:''); }
+// 환자_종류마다 이미 있는 폴더 고르기 (11-28 유진): 고르면 IndexedDB(sbMap)에 기억, 그 환자_종류 사진은 늘 그 폴더로. 안 고르면 자동(저장 폴더 안 환자_종류 폴더)
+let sbMap={}; idbGet('sbMap').then(m=>{ if(m&&typeof m==='object') sbMap=m; }).catch(()=>{});
+function sbGroups(){ return [...new Set((sbFiles||[]).filter(f=>f.lineId).map(f=>{ const l=sbLine(f.lineId); return l?sbLineDir(l):''; }).filter(Boolean))].sort(); }
+function sbMapHTML(){ if(sbSort()==='none') return ''; const gs=sbGroups(); if(!gs.length) return '';
+  return `<div class="sb-map">${gs.map(k=>`<div class="sb-mrow"><b>${esc(k)}</b><span>→ ${sbMap[k]?`<b class="sb-mdir">${esc(sbMap[k].name)}</b>`:'자동'}</span><button class="bk-mini" onclick="sbMapPick(${esc(JSON.stringify(k))})">폴더 고르기</button>${sbMap[k]?`<button class="bk-mini" onclick="sbMapClear(${esc(JSON.stringify(k))})">풀기</button>`:''}</div>`).join('')}</div>`; }
+async function sbMapPick(k){ let h; try{ h=await window.showDirectoryPicker({mode:'readwrite',id:'orgSbarMap'}); }catch(e){ return; } sbMap[k]=h; renderSbDir(); try{ await idbSet('sbMap',sbMap); }catch(e){} }
+async function sbMapClear(k){ delete sbMap[k]; try{ await idbSet('sbMap',sbMap); }catch(e){} renderSbDir(); }
+// 저장 직전 (버튼 누른 바로 뒤): 이번에 쓸 고른 폴더들 권한 받기. 못 받거나 없어진 폴더는 자동 폴더로
+async function sbMapReady(keys){ const ok={}, miss=[];
+  for(const k of keys){ const h=sbMap[k]; if(!h) continue;
+    try{ let q=await h.queryPermission({mode:'readwrite'}); if(q!=='granted') q=await h.requestPermission({mode:'readwrite'}); if(q==='granted'&&await sbDirAlive(h)) ok[k]=h; else miss.push(k); }catch(e){ miss.push(k); } }
+  return {ok,miss}; }
 // 사진 폴더 나누기 (11-28 랩 사람들: 저장한 사진을 라인 · 날짜 폴더로 다시 옮기는 게 힘듦)
 // 11-28 유진: 날짜 폴더 없이 환자_종류 폴더 하나에 다 넣기 (lt), 세부명까지 폴더를 나눌지는 고름 (orgSbDetail). none = 안 나눔
 // 같은 환자_종류 폴더가 이미 있으면 그 폴더에 이어서 넣음. 파일 이름까지 같으면 예전처럼 덮어씀
@@ -6715,8 +6728,9 @@ async function sbSortExisting(){
   if(!jobs.length) return alert('정리할 사진이 없어요.');
   const nDir=new Set(jobs.map(j=>j.parts.join('/'))).size;
   if(!confirm(`${jobs.length}장 → 폴더 ${nDir}개`)) return;
+  const MAP=await sbMapReady([...new Set(jobs.map(j=>j.parts[0]).filter(Boolean))]);   // 환자_종류마다 고른 폴더가 있으면 그리로
   sbLoading(true,'정리 중…'); const cache={}; let moved=0, fail=0;
-  for(const j of jobs){ try{ const dir=await sbSubDir(root,j.parts,cache);
+  for(const j of jobs){ try{ const dir=MAP.ok[j.parts[0]]||await sbSubDir(root,j.parts,cache);
       let exists=false; try{ await dir.getFileHandle(j.name); exists=true; }catch(e){}
       if(exists){ fail++; continue; }
       const file=await j.h.getFile(), fh=await dir.getFileHandle(j.name,{create:true}), w=await fh.createWritable(); await w.write(file); await w.close();
@@ -6804,6 +6818,7 @@ function renderSbarList(){
       <button class="sb-x" title="제거" onclick="sbRemove(${i})">×</button>
     </div>`;
   }).join('');
+  renderSbDir();   // 환자_종류마다 폴더 고르기 줄도 지금 사진에 맞게
 }
 
 function sbBarOn(){ const t=document.getElementById('sbAddBar'); return !t || t.checked; }
@@ -6877,6 +6892,7 @@ async function sbarSaveAll(btn){
     dir = await sbGetDir();   // 기억된 폴더 우선, 없으면 선택
     if(!dir){ if(_sbDirErr) alert('저장 폴더 권한을 받지 못했어요. [저장]을 한 번 더 눌러 주세요.'); return; }
   }
+  const MAP=useFS&&sbSort()!=='none'?await sbMapReady([...new Set(named.map(f=>{ const l=sbLine(f.lineId); return l?sbLineDir(l):''; }).filter(Boolean))]):{ok:{},miss:[]};
   if(!confirm(msg.join('\n\n')+'\n\n틀린 게 있으면 [취소]를 누르고 고쳐주세요.')) return;
   if(useFS){
     if(plain.length){
@@ -6912,7 +6928,7 @@ async function sbarSaveAll(btn){
       if(cnt[base]==null){ cnt[base]=0; } else { cnt[base]++; base=base+' ('+cnt[base]+')'; }
       jobs.push({f,folder:dir,fname:safeFileName(base)+ext,bar:true,parts:dir?sbSortParts(sbLineDir(line),ymd6(sbEffDate(f))):[]});
     });
-    const dcache={}; for(const j of jobs) if(j.parts&&j.parts.length&&j.folder) j.folder=await sbSubDir(j.folder,j.parts,dcache);   // 라인 · 날짜 하위 폴더
+    const dcache={}; for(const j of jobs) if(j.parts&&j.parts.length&&j.folder) j.folder=MAP.ok[j.parts[0]]||await sbSubDir(j.folder,j.parts,dcache);   // 고른 폴더, 없으면 환자_종류 하위 폴더
     const N=Math.max(2,(sbPool()||{ws:[0,0]}).ws.length);
     let next=0, firstErr=null; const failed=[];
     const runOne=async j=>{
@@ -6941,7 +6957,7 @@ async function sbarSaveAll(btn){
         +(nf?'\n\n폴더 경로 + 파일 이름이 너무 길면 Windows가 파일을 못 만들어요. 바탕화면 바로 아래처럼 짧은 경로의 폴더로 바꾸거나(저장 폴더 [변경]), 특이사항을 줄여 주세요.':'\n\n'+(failed[0].err&&failed[0].err.message||'')));
       return;
     }
-    alert(sbFiles.length+'개 저장 완료'+(dir?' (선택한 폴더)':' (브라우저 다운로드 폴더)')+(plain.length&&pdir?`\n보정만 한 사진 ${plain.length}장: ${pdirName} 폴더`:''));
+    alert(sbFiles.length+'개 저장 완료'+(dir?' (선택한 폴더)':' (브라우저 다운로드 폴더)')+(MAP.miss.length?`\n${MAP.miss.join(', ')}: 고른 폴더를 못 열어서 자동 폴더에 저장`:'')+(plain.length&&pdir?`\n보정만 한 사진 ${plain.length}장: ${pdirName} 폴더`:''));
   }catch(e){
     if(e&&(e.gone||e.name==='NotFoundError')){
       // 저장하는 동안 폴더가 지워졌거나 옮겨짐: 기억한 폴더를 잊어서 다음 [저장]에서 새로 고르게
@@ -11917,7 +11933,7 @@ const NEWS={id:'2026-11-28c', date:'2026-11-28', days:7, notice:'꽃 · 응가�
   ['<b>세포 · 광장</b>','한 창으로 합쳤어요. 왼쪽 메뉴 아래에서'],
   ['<b>밥 없어짐</b>','세포 밥 주기가 없어졌어요'],
   ['<b>MC 주기</b>','배양 라인 종류 이름 옆 칩에서'],
-  ['<b>사진 폴더</b>','이름 · 스케일바 저장 때 환자_종류 폴더로'],
+  ['<b>사진 폴더</b>','이름 · 스케일바 저장 때 환자_종류 폴더로. 이미 있는 폴더를 골라 둘 수도 있어요'],
   ['<b>실험 기록</b>','오늘 작업 기록 입력 위에서 바로'],
 ]};
 function newsShow(force){
