@@ -970,7 +970,7 @@ body[data-tab="fig"] .pane[data-pane="fig"]{display:block;animation:paneIn .28s 
 .cnt-big{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;} .cnt-big small{font-size:.8rem;color:var(--mut);font-weight:600;} .cnt-big b{font-size:2rem;letter-spacing:-.01em;color:var(--ink);} .cnt-big span{font-size:.85rem;color:var(--mut);}
 .cnt-kv{display:grid;grid-template-columns:1fr 1fr;gap:8px;} .cnt-kv div{background:var(--sur);border-radius:10px;padding:8px 10px;display:grid;gap:2px;} .cnt-kv small{font-size:.7rem;color:var(--mut);} .cnt-kv b{font-size:1.05rem;} .cnt-kv i{font-style:normal;font-size:.78rem;color:var(--mut);font-weight:500;}
 .cnt-warn{font-size:.76rem;color:#9A5B00;background:#FFF5E0;border-radius:8px;padding:6px 9px;} .cnt-err{color:#B42318;font-weight:600;font-size:.85rem;display:flex;gap:6px;align-items:center;} .cnt-empty{font-size:.85rem;color:var(--mut);line-height:1.6;}
-.cnt-copy{justify-self:start;}
+.cnt-copy{justify-self:start;} .cnt-acts{display:flex;gap:6px;} .cnt-h{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:10px;background:var(--sur);border:1px solid var(--bd);font-size:.84rem;flex-wrap:wrap;} .cnt-h .d{color:var(--mut);width:40px;} .cnt-h b{min-width:120px;} .cnt-h span:not(.d){flex:1;color:var(--sub);} #cntHist:empty{display:none;}
 .cnt-split{border-top:1px solid var(--bd);padding:14px 16px 16px;display:grid;gap:8px;} .cnt-sh{display:flex;gap:8px;align-items:baseline;} .cnt-sh small{color:var(--mut);font-size:.74rem;}
 .cnt-p{border:1px solid var(--bd);border-radius:12px;background:var(--sur);} .cnt-p.open{border-color:var(--pri);}
 .cnt-pr{display:flex;align-items:center;gap:8px;padding:8px 10px;flex-wrap:wrap;}
@@ -12078,9 +12078,13 @@ const CNT_DIL=2, CNT_SQ=[1,2,4,5,8,9], CNT_MAN=[1,1.5,2,2.5,3,4,5,6,7,8,9], CNT_
 const CNT_DEF=[{id:'stock',name:'Stock',unit:'vial',m:1,e:6,n:1},{id:'pellet',name:'Pellet',unit:'tube',m:1,e:6,n:1},{id:'seed',name:'Seeding',unit:'well',m:1,e:5,n:1}];
 let cntSt=(()=>{ try{ return JSON.parse(localStorage.getItem('orgCnt'))||{}; }catch(e){ return {}; } })();
 cntSt=Object.assign({sq:4,mode:'ld',live:'',dead:'',total:'',vol:'',vu:'mL',name:''},cntSt);
+// 센 값은 이 페이지에만 1시간 동안 자동으로 남음 (11-28 유진). 마지막으로 고친 지 1시간 지나면 비움 (칸 수 · 입력 방식 · 용도는 그대로)
+const CNT_KEEP=3600e3;
+function cntExpire(){ if(cntSt.ts&&Date.now()-cntSt.ts>CNT_KEEP){ Object.assign(cntSt,{live:'',dead:'',total:'',vol:'',name:''}); delete cntSt.ts; try{ localStorage.setItem('orgCnt',JSON.stringify(cntSt)); }catch(e){} return true; } return false; }
+cntExpire();
 let cntPurps=(()=>{ try{ const a=JSON.parse(localStorage.getItem('orgCntPurps')); if(Array.isArray(a)&&a.length) return a; }catch(e){} return JSON.parse(JSON.stringify(CNT_DEF)); })();
 let _cntOpen=null;   // 세포 수를 고르는 중인 용도 id
-function cntSave(){ try{ localStorage.setItem('orgCnt',JSON.stringify(cntSt)); }catch(e){} }
+function cntSave(){ cntSt.ts=Date.now(); try{ localStorage.setItem('orgCnt',JSON.stringify(cntSt)); }catch(e){} }
 function cntSavePurps(){ try{ localStorage.setItem('orgCntPurps',JSON.stringify(cntPurps)); }catch(e){} cloudPushDebounced(); }
 const CNT_SUP={'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','-':'⁻'};
 const cntPow=e=>'10'+String(e).split('').map(c=>CNT_SUP[c]||c).join('');
@@ -12091,6 +12095,8 @@ const cntNum=v=>{ const t=String(v==null?'':v).replace(/,/g,'').trim(); if(t==='
 // µL 표시: 올림, 10 µL 미만은 소수 1자리 올림
 function cntUL(v){ if(!isFinite(v)) return '-'; return cntULn(v).toLocaleString('en-US',{maximumFractionDigits:1}); }
 const cntULn=v=>v<=0?0:v<10?Math.ceil(v*10-1e-9)/10:Math.ceil(v-1e-9);
+// 1 mL 넘으면 「9 mL + 40 µL」처럼 (11-28 유진)
+function cntVol(v){ if(!isFinite(v)) return '-'; const n=cntULn(v); if(n<1000) return n.toLocaleString('en-US',{maximumFractionDigits:1})+' µL'; const ml=Math.floor(n/1000), r=Math.round((n-ml*1000)*10)/10; return `${ml} mL`+(r?` + ${r.toLocaleString('en-US',{maximumFractionDigits:1})} µL`:''); }
 // ── 계산 (화면과 따로, 시험하기 쉽게) ──
 // in: {sq, mode:'ld'|'lt', live, dead, total, vol, vu}, purps → {ok, err, conc, total, via, ...rows}
 function cntCompute(st,purps){
@@ -12127,14 +12133,14 @@ function cntText(r){
   if(!r.ok) return '';
   const unitSum=`${r.sq}칸 합`, a=[`Trypan blue 1:1, ${unitSum} live ${r.live}${isFinite(r.dead)?` / dead ${r.dead}`:''} → ${cntSci(r.conc)} cells/mL${r.hasVol?`, ${cntStr(r.volML)}에서 live ${cntSci(r.total)}`:''}${isFinite(r.via)?`, viability ${r.via.toFixed(1)}%`:''}`];
   if(cntSt.name) a[0]=`${cntSt.name}: `+a[0];
-  (r.rows||[]).filter(x=>x.n>0&&x.per>0).forEach(x=>a.push(`${x.name} ${x.n} ${x.unit} × ${cntSci(x.per)} = ${cntSci(x.need)} (${x.n>1?`${x.unit}당 ${cntUL(x.ulPer)} µL, `:''}합 ${cntUL(x.ul)} µL)`));
-  if(r.hasVol&&(r.rows||[]).some(x=>x.n>0)) a.push(r.leftCells<-1e-6?`${cntSci(-r.leftCells)}개 모자람`:`남음 ${cntSci(r.leftCells)} (${cntUL(Math.max(0,r.leftUL))} µL)`);
+  (r.rows||[]).filter(x=>x.n>0&&x.per>0).forEach(x=>a.push(`${x.name} ${x.n} ${x.unit} × ${cntSci(x.per)} = ${cntSci(x.need)} (${x.n>1?`${x.unit}당 ${cntVol(x.ulPer)}, `:''}합 ${cntVol(x.ul)})`));
+  if(r.hasVol&&(r.rows||[]).some(x=>x.n>0)) a.push(r.leftCells<-1e-6?`${cntSci(-r.leftCells)}개 모자람`:`남음 ${cntSci(r.leftCells)} (${cntVol(Math.max(0,r.leftUL))})`);
   return a.join('\n'); }
 const cntStr=ml=>ml<1?`${+(ml*1000).toPrecision(4)} µL`:`${+ml.toPrecision(4)} mL`;
 
 // ── 화면 ──
 function renderCnt(){
-  const el=document.getElementById('cntContent'); if(!el) return; const s=cntSt;
+  const el=document.getElementById('cntContent'); if(!el) return; cntExpire(); const s=cntSt;
   const seg=(k,v,t,on)=>`<button class="seg${on?' on':''}" onclick="cntSet('${k}',${JSON.stringify(v).replace(/"/g,'&quot;')})">${t}</button>`;
   const lineOpts=lines.filter(l=>!l.isCompleted).map(l=>`<option value="${esc(lineTag(l))}">`).join('');
   el.innerHTML=`<section class="panel sec cnt"><div class="panel-hd"><span><i class="sec-ic">${ic('scope')}</i>셀 카운터</span><span class="panel-act"><button class="btn btn-out" onclick="cntReset()">${ic('refresh','ic-sm')}새로 세기</button></span></div>
@@ -12150,7 +12156,7 @@ function renderCnt(){
       <div class="cnt-how">cells/mL = 합계 ÷ ${s.sq}칸 × 2 × 10⁴ · 총 세포 = cells/mL × 부피</div>
     </div><div class="cnt-out" id="cntOut"></div></div>
     <div class="cnt-split"><div class="cnt-sh"><b>나누기</b><small>위에서부터 차례로 떼어 가요. 숫자를 눌러 고르기</small></div><div id="cntRows"></div>
-      <div class="cnt-addp"><input id="cntNewP" placeholder="용도 추가 (예: Seeding Tumor-org, Seeding CAF)" onkeydown="if(event.key==='Enter')cntAddPurp()"><button class="btn btn-out" onclick="cntAddPurp()">${ic('plus','ic-sm')}추가</button><button class="link-btn" onclick="cntResetPurps()">기본으로</button></div></div>
+      <div class="cnt-addp"><input id="cntNewP" placeholder="용도 추가 (예: Seeding Tumor-org, Seeding CAF)" onkeydown="if(event.key==='Enter')cntAddPurp()"><button class="btn btn-out" onclick="cntAddPurp()">${ic('plus','ic-sm')}추가</button><button class="link-btn" onclick="cntZero()">개수 0으로</button><button class="link-btn" onclick="cntResetPurps()">기본으로</button></div></div>
   </section>`;
   cntOut();
 }
@@ -12165,14 +12171,14 @@ function cntOut(){
     <div class="cnt-kv"><div><small>총 live 세포</small><b>${r.hasVol?cntSci(r.total):'<i>부피를 넣으면</i>'}</b></div><div><small>Viability</small><b>${isFinite(r.via)?r.via.toFixed(1)+'%':'-'}</b></div>
       <div><small>µL당</small><b>${cntSci(r.perUL)}</b></div><div><small>Dead</small><b>${isFinite(r.deadConc)?cntSci(r.deadConc)+'/mL':'-'}</b></div></div>
     ${r.warn.map(w=>`<div class="cnt-warn">${esc(w)}</div>`).join('')}
-    <button class="btn btn-out cnt-copy" onclick="cntCopy()">${ic('list','ic-sm')}글로 복사</button>`;
+    <span class="cnt-acts"><button class="btn btn-out" onclick="cntCopy()">${ic('list','ic-sm')}글로 복사</button></span>`;
   if(rows) rows.innerHTML=cntRowsHtml(r);
 }
 function cntRowsHtml(r){
   const R={}; (r.rows||[]).forEach(x=>R[x.id]=x);
   const html=cntPurps.map((p,i)=>{ const x=R[p.id]||{}, open=_cntOpen===p.id, per=(+p.m||0)*Math.pow(10,+p.e||0);
     const res=!r.ok||!(r.conc>0)?'<span class="cnt-res nil">-</span>'
-      :`<span class="cnt-res${x.short?' short':''}"><b>${cntUL(x.ul)} µL</b>${x.n>1?`<small>${p.unit}당 ${cntUL(x.ulPer)} µL</small>`:''}${x.short?`<small>모자라요${isFinite(x.max)?` · ${Math.max(0,x.max)}개까지`:''}</small>`:''}${x.ulPer<2&&x.n>0?'<small>2 µL보다 적어요 · 희석 고려</small>':''}</span>`;
+      :`<span class="cnt-res${x.short?' short':''}"><b>${cntVol(x.ul)}</b>${x.n>1?`<small>${p.unit}당 ${cntVol(x.ulPer)}</small>`:''}${x.short?`<small>모자라요${isFinite(x.max)?` · ${Math.max(0,x.max)}개까지`:''}</small>`:''}${x.ulPer<2&&x.n>0?'<small>2 µL보다 적어요 · 희석 고려</small>':''}</span>`;
     return `<div class="cnt-p${open?' open':''}">
       <div class="cnt-pr"><span class="cnt-pmove"><button onclick="cntMove(${i},-1)" ${i?'':'disabled'} title="위로">▲</button><button onclick="cntMove(${i},1)" ${i<cntPurps.length-1?'':'disabled'} title="아래로">▼</button></span>
         <input class="cnt-pname" value="${esc(p.name)}" onchange="cntPSet('${p.id}','name',this.value.trim()||'용도')">
@@ -12184,15 +12190,17 @@ function cntRowsHtml(r){
         <div><small>× 10의</small>${CNT_EXP.map(e=>`<button class="cnt-chip${+p.e===e?' on':''}" onclick="cntPSet('${p.id}','e',${e})">${cntPow(e)}</button>`).join('')}</div>
         <div><small>단위</small>${CNT_UNITS.map(u=>`<button class="cnt-chip${p.unit===u?' on':''}" onclick="cntPSet('${p.id}','unit','${u}')">${u}</button>`).join('')}</div>
         <button class="btn btn-pri cnt-done" onclick="_cntOpen=null;cntOut()">${ic('check','ic-sm')}${esc(cntSci(per))} / ${esc(p.unit)}</button></div>`:''}</div>`; }).join('');
-  const left=r.ok&&r.hasVol&&r.conc>0&&(r.rows||[]).some(x=>x.n>0)?`<div class="cnt-left${r.leftCells<-1e-6?' short':''}">${r.leftCells<-1e-6?`${cntSci(-r.leftCells)}개 모자라요`:`남는 세포 <b>${cntSci(r.leftCells)}</b> · <b>${cntUL(Math.max(0,r.leftUL))} µL</b>`}</div>`:'';
+  const left=r.ok&&r.hasVol&&r.conc>0&&(r.rows||[]).some(x=>x.n>0)?`<div class="cnt-left${r.leftCells<-1e-6?' short':''}">${r.leftCells<-1e-6?`${cntSci(-r.leftCells)}개 모자라요`:`남는 세포 <b>${cntSci(r.leftCells)}</b> · <b>${cntVol(Math.max(0,r.leftUL))}</b>`}</div>`:'';
   return html+left;
 }
 function cntPSet(id,k,v){ const p=cntPurps.find(x=>x.id===id); if(!p) return; p[k]=v; cntSavePurps(); cntOut(); }
 function cntMove(i,d){ const j=i+d; if(j<0||j>=cntPurps.length) return; const [p]=cntPurps.splice(i,1); cntPurps.splice(j,0,p); cntSavePurps(); cntOut(); }
-// 되는 만큼: 위 용도를 뗀 뒤 남은 세포로 이 용도를 몇 개 만들 수 있는지
-function cntFill(id){ const p=cntPurps.find(x=>x.id===id); if(!p) return; const saveN=p.n; p.n=0; const r=cntCompute(cntSt,cntPurps), x=(r.rows||[]).find(y=>y.id===id);
-  const before=x?x.leftCells+0:0;   // 이 줄 n=0이면 이 줄 뒤 남은 = 이 줄 앞 남은
-  const per=(+p.m||0)*Math.pow(10,+p.e||0); p.n=per>0&&isFinite(before)?Math.max(0,Math.floor(before/per+1e-9)):saveN; cntSavePurps(); cntOut(); }
+// 되는 만큼: 다른 용도(위 · 아래 모두)에 쓰기로 한 세포를 뺀 나머지로 이 용도를 몇 개 (11-28 유진: 여러 줄 다 누르면 모자라던 것)
+function cntFill(id){ const p=cntPurps.find(x=>x.id===id); if(!p) return; const r=cntCompute(cntSt,cntPurps); if(!r.ok||!r.hasVol) return;
+  const per=(+p.m||0)*Math.pow(10,+p.e||0); if(!(per>0)) return;
+  const others=cntPurps.filter(x=>x.id!==id).reduce((a,x)=>a+(+x.m||0)*Math.pow(10,+x.e||0)*(+x.n||0),0), avail=r.total-others;
+  p.n=Math.max(0,Math.floor(avail/per+1e-9)); if(avail<per) toast(avail>0?'남은 세포로는 1개도 안 돼요':'남은 세포가 없어요',{warn:true}); cntSavePurps(); cntOut(); }
+function cntZero(){ cntPurps.forEach(p=>p.n=0); cntSavePurps(); cntOut(); }
 function cntAddPurp(){ const i=document.getElementById('cntNewP'), v=(i&&i.value||'').trim(); if(!v) return toast('용도 이름을 적어 주세요.',{warn:true});
   const seed=/seed|시딩|well|org|caf|pf/i.test(v); cntPurps.push({id:uid(),name:v,unit:/stock/i.test(v)?'vial':/pellet/i.test(v)?'tube':seed?'well':'vial',m:1,e:/stock|pellet/i.test(v)?6:5,n:1}); _cntOpen=cntPurps[cntPurps.length-1].id; cntSavePurps(); renderCnt(); }
 function cntDelPurp(id){ const p=cntPurps.find(x=>x.id===id); if(!p) return; if(!CNT_DEF.some(d=>d.id===id)&&!confirm(`「${p.name}」 용도를 뺄까요?`)) return; cntPurps=cntPurps.filter(x=>x.id!==id); cntSavePurps(); cntOut(); }
