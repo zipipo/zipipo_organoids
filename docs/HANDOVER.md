@@ -25,7 +25,7 @@
 | 9 | 업데이트 안내 팝업 | ✅ 끝 | `NEWS` (id · date · days:5 · items). 5일 동안 열 때마다, 「다시 보지 않기」면 그 id는 안 뜸. 새 기능 올릴 때 NEWS만 바꾸기. 설정 › 새로 생긴 기능으로 다시 보기 |
 | 10 | 우체통 | 🟡 코드 끝, **Firestore 규칙 필요**, 메일 알림은 **Apps Script 주소 필요** | 설정 › 우체통. Google 로그인한 사람만 보냄(이름 · 이메일 저장). 받은 편지는 읽기 허용된 사람(관리자)에게만 보임, 안 읽은 수는 사이드바 설정 옆. 메일로 받으려면 아래 「우체통 메일 알림」 |
 | 11 | 셀 카운터 | ✅ 끝 (11-28) | 사이드바 도구 › 셀 카운터 (`renderCnt`, 탭 `cnt`). 계산은 `cntCompute(st, purps)` 하나에 모음 |
-| 12 | 라인별 Plate map → PPT | 💬 설계만, 유진 결정 대기 | 아래 「라인 Plate map 설계안」 |
+| 12 | 라인별 Plate map → PPT | ✅ 끝 (11-28, 유진: 기록마다 · PPT 시간순) | 기록 표 Plate 칸 `lmapBtn` → `lmapOpen(logId)`, Figure `src:{lineId,logId}`, 라인 머리 「Map PPT n」 `lmapPpt`. 아래 설계안 그대로, PPT는 (나) 시간순만 |
 
 추천 순서: **2 → 1 → 3 → 4b → 5 → 6** (2·1·3은 기존 데이터만 쓰면 돼서 빠름. 5는 4b의 엑셀 읽기 위에 얹음. 6은 독립적이라 아무 때나).
 
@@ -212,6 +212,12 @@ match /mailbox/{id} {
   - 쓰다듬기 공정성: `petCatchUpScan` 도감이 광장 1등보다 3칸 넘게 뒤면 하루 1장, 15칸 넘게면 2장 보너스 뽑기 (`cu:날짜:n`). 광장 목록(`_plaza`/`orgPlazaCache`)이 있을 때만. 1등 · 다 채운 사람은 안 받음.
   - 우체통 메일: `MAIL_HOOK` 자리만 만듦 (위 「우체통 메일 알림」). 주소는 유진이 Apps Script 배포 후 알려 줘야 함.
   - NEWS id 2026-11-28 (5줄), 예전 항목은 old로.
+- 2026-11-28(2): 라인 Plate map (유진: 맵은 기록마다, PPT는 시간순). 데모에서 HCC26 Seeded 11-08 → Split 11-14로 확인, .pptx는 CDN 막혀 못 뽑아 봄 (`figPpt` 그대로 씀).
+  - 배양 라인 기록 표 Plate 칸: Seeding · Split · Reseeding · Thaw 줄에 「+ map」(점선), 맵이 있으면 「map」(채움). 누르면 `lmapOpen`: 있으면 열고, 없으면 그 라인의 바로 전 맵을 복제(조건 · 색 · well 유지, 규격은 그 기록 plate 글자, 넘는 well은 뺌, 메모 비움) 또는 새로(그 라인 1개 + Control, 마지막 고른 색 조합). 프로젝트는 라인 프로젝트.
+  - P · d: `figLnF` 그 기록 기준, Split · Reseeding은 P+1 · d0, Seeding · Thaw는 P · d0. 제목 자동(예: HCC26 Tumor-org · P4).
+  - 라인 머리 「Map PPT n」: 그 라인 맵을 날짜순으로 한 장씩 (`figPpt(ids, 파일 이름)`). 기록을 지우면 그 맵은 목록에서 빠짐 (figure 자체는 PPT figure 페이지에 남음).
+  - 이 라인에 맵이 있는데 Split · Seeding을 저장하면 토스트 「Plate map도 이어서 만들까요? (P4 → P5)」 + 버튼 (`toast` opt.act 새로).
+  - 확인 필요: Seeding 기록에 plate 글자가 없으면 라인의 지금 plate로 규격을 잡음 (예전 seeding이면 틀릴 수 있음, 편집 창에서 바꿈).
 
 - 2026-11-26: 다음 Split 예상 (F1, 유진이 고름, main 반영 3031eb1). 데모에서 확인, 실제 데이터는 확인 안 함.
   - `splitPred(id)`: P+1 기록(`isPassageUp`) 날짜의 간격 중 2~40일만, 최근 3번 평균. Split이 1번뿐이면 첫 기록(seeding) → 첫 Split 간격. 마지막 Split + 평균 = 예상일, 지난번 비율은 마지막 Split details.

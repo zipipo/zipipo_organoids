@@ -1509,6 +1509,8 @@ body.pet-on[data-tab="today"] #petLayer{display:block;}
 .pm-bars i{display:block;height:100%;background:var(--pri);opacity:.6;border-radius:9px;}
 .pm-meta{font-size:.72rem;color:var(--sub);margin:6px 0 8px;}
 .pm-btns{display:flex;flex-wrap:wrap;gap:5px;}
+.lmap-b{display:inline-flex;align-items:center;gap:3px;margin-left:6px;padding:1px 7px;border:1px dashed var(--bd);border-radius:999px;background:transparent;font:inherit;font-size:.68rem;color:var(--mut);cursor:pointer;vertical-align:middle;opacity:.75;} .lmap-b .ic{width:11px;height:11px;}
+.lmap-b:hover{opacity:1;border-color:var(--pri);color:var(--pri);} .lmap-b.on{border-style:solid;border-color:var(--pri);color:var(--pri);opacity:1;font-weight:700;background:var(--psoft);}
 .pet-det{transition:box-shadow .4s;border-radius:12px;} .pet-det.pd-flash{box-shadow:0 0 0 3px var(--pri);}
 .pm-btns .btn{height:28px;font-size:.72rem;}
 .pet-gacha{position:fixed;inset:0;z-index:700;background:rgba(30,30,40,.25);display:grid;place-items:center;}
@@ -4028,6 +4030,33 @@ function lineOptGroupsHTML(sortedLines, optFn){
 }
 
 // 한 라인의 전체 로그를 테이블 HTML로 만든다 (진행 중 타임라인 인라인 + Archive 상세 모달 공용)
+// ── 라인 Plate map (유진 11-28): Seeding · Split · Reseeding · Thaw 기록마다 맵 한 장 (Figure에 src:{lineId, logId}).
+// 기록 표의 Plate 칸 맵 버튼 → 있으면 열고, 없으면 그 라인의 바로 전 맵을 이어서(조건 · 색 · well 그대로, 규격만 그 기록 plate로) 만들거나 새로.
+// P · d는 그 기록 기준 (Split이면 한 뒤 P+1 · d0). PPT는 라인 맵을 시간순으로 (lmapPpt)
+function lmapSeedLike(a){ return isSeed(a)||isPassageUp(a)||/seed|reseed|thaw/i.test(a||''); }
+function lmapFor(logId){ return (figures||[]).find(f=>f.src&&f.src.logId===logId); }
+function lmapsOfLine(lineId){ return (figures||[]).filter(f=>f.src&&f.src.lineId===lineId&&logs.some(l=>l.id===f.src.logId)).sort((a,b)=>(a.date||'').localeCompare(b.date||'')||(a.created||0)-(b.created||0)); }
+function lmapBtn(lg){ const f=lmapFor(lg.id); if(!f&&!lmapSeedLike(lg.action)) return '';
+  return `<button class="lmap-b${f?' on':''}" onclick="event.stopPropagation();lmapOpen('${lg.id}')" title="${f?'이 기록의 Plate map 열기':'이 기록의 Plate map 만들기 (지난 맵이 있으면 이어서)'}"><svg class="ic"><use href="#i-dish"/></svg>${f?'map':'+ map'}</button>`; }
+function lmapFmt(txt){ const m=String(txt||'').match(/(\d+)\s*-?\s*w(ell)?/i); return m&&FIG_FORMATS[m[1]]?m[1]:''; }
+function lmapOpen(logId){
+  const lg=logs.find(l=>l.id===logId); if(!lg) return; const line=lineById(lg.lineId); let f=lmapFor(logId), msg='';
+  if(!f){
+    const prev=lmapsOfLine(lg.lineId).filter(g=>g.date<=lg.date).pop(), fmt=lmapFmt(lg.plate)||lmapFmt(line&&latestPlate(line))||'';
+    if(prev&&prev.plate){ f=JSON.parse(JSON.stringify(prev)); delete f._nameEdited; delete f._titleEdited; delete f.pptAt; delete f.hideInPpt; f.memo='';
+      if(fmt) f.plate.plates.forEach(pl=>{ if(pl.format!==fmt){ pl.format=fmt; const [R,C]=FIG_FORMATS[fmt]; Object.keys(pl.wells||{}).forEach(k=>{ if(k.charCodeAt(0)-65>=R||parseInt(k.slice(1))>C) delete pl.wells[k]; }); } });
+      msg=`${prev.date.slice(5).replace('-','/')} 맵을 이어서 만들었어요`; }
+    else { const P0=FIG_PALS.find(p=>p.id===(localStorage.getItem('orgFigPal')||'pastel'))||FIG_PALS[1];
+      f={kind:'fig',memo:'',sched:null,plate:{pal:P0.id,conds:[{id:uid(),name:'Control',color:P0.ctrl}],lines:[{id:lg.lineId,color:P0.rings[0]}],plates:[{id:uid(),name:'',format:fmt||'24',wells:{}}]}}; }
+    f.id=uid(); f.date=lg.date; f.src={lineId:lg.lineId,logId}; f.created=f.updated=Date.now();
+    if(line&&line.project) f.project=line.project; else delete f.project;
+    figures.unshift(f); figTouch(f); try{ updateUI(); }catch(e){}   // 배양 라인 표의 map 버튼 · Map PPT 버튼 바로 반영
+  }
+  _figEdit=f.id; _figSel.clear(); _figTab=''; setTab('fig'); renderFig(); if(msg) toast(msg);
+}
+// 라인 맵 전부 시간순 PPT (한 장에 맵 하나)
+function lmapPpt(lineId){ const ms=lmapsOfLine(lineId), ln=lineById(lineId); if(!ms.length) return toast('이 라인에 만든 Plate map이 없어요. 기록 표 Plate 칸의 「+ map」으로 만들어요.',{warn:true});
+  figPpt(ms.map(f=>f.id),`${ln?lineTag(ln):''} Plate map ${ymd6(ms[0].date)}-${ymd6(ms[ms.length-1].date)}`); }
 function buildLogTable(line){
   const lgs=logs.filter(lg=>lg.lineId===line.id).sort((a,b)=>{
     const af=isFin(a.action),bf=isFin(b.action);
@@ -4047,7 +4076,7 @@ function buildLogTable(line){
       <td style="color:var(--sub)">${lg.date}</td>
       <td><span class="badge ${badgeCls(lg.action)}">${esc(actLabel(lg.action))}</span></td>
       <td><span class="pb ${pCls(lg.passage)}">P${lg.passage}</span> <span style="color:var(--sub);font-size:.75rem;">/ ${lg.dayInfo||'-'}</span></td>
-      <td>${esc(lg.plate||'-')}</td>
+      <td>${esc(lg.plate||'-')}${lmapBtn(lg)}</td>
       <td>${esc(lg.details||'-')}</td>
       <td>${lg.finalWells?esc(wellTxt(lg.finalWells,lg.domes)):'<span class="nil">-</span>'}</td>
       <td>${lg.stocks?lg.stocks+' vial':'<span class="nil">-</span>'}</td>
@@ -4122,6 +4151,7 @@ function renderTimelines(containerId,showDone){
           <button class="btn btn-ghost" onclick="startLogForLine('${line.id}')">${ic('plus')}기록</button>
           <button class="btn btn-ghost" onclick="openBranchModal('${line.id}')" title="웰 일부를 떼어 새 라인으로">${ic('branch')}나누기</button>
           ${lineHasKin(line)?`<button class="btn btn-ghost" onclick="openLineage('${line.id}')" title="어디서 나뉘었고 어떻게 쓰였는지">${ic('tree')}Tree</button>`:''}
+          ${(n=>n?`<button class="btn btn-ghost" onclick="lmapPpt('${line.id}')" title="이 라인 Plate map ${n}장을 시간순으로 PPT">${ic('slides')}Map PPT ${n}</button>`:'')(lmapsOfLine(line.id).length)}
           <button class="btn btn-ghost" onclick="editLine('${line.id}')">${ic('edit')}수정</button>
           <button class="btn btn-ghost" onclick="completeLine('${line.id}')">${ic('flag')}배양 완료</button>
         </div>
@@ -4790,6 +4820,9 @@ function saveDailyLog(){
   const n=lineIds.length*dates.length;
   let mdMsg=''; try{ mdMsg=mdUseNote(logs.filter(l=>(l.seq||0)>seq0)); }catch(e){}
   toast(`${action} ${n}건 기록했어요${planMsg}${mdMsg}`,{undo:snap});
+  // 이 라인에 Plate map이 있었고 Split · Seeding 같은 기록이면: 지난 맵을 이어서 새 맵 만들기
+  try{ const nl=logs.filter(l=>(l.seq||0)>seq0&&lmapSeedLike(l.action)&&lmapsOfLine(l.lineId).length&&!lmapFor(l.id))[0];
+    if(nl){ const ln=lineById(nl.lineId), p=parseP(nl.passage); setTimeout(()=>toast(`${ln?lineTag(ln):''} Plate map도 이어서 만들까요? (P${p} → P${isPassageUp(nl.action)?p+1:p})`,{act:['Plate map',()=>lmapOpen(nl.id)]}),400); } }catch(e){}
 }
 
 // 타임라인에서 [기록 추가]: 그 라인만 선택한 채로 오늘 작업 탭의 입력 폼으로 이동
@@ -5771,11 +5804,12 @@ function toast(msg,opt){
     b.onclick=()=>{ if(typeof opt.undo==='function') opt.undo(); else restoreSnap(opt.undo); hide(); toast('되돌렸어요'); };
     el.appendChild(b);
   }
+  if(opt.act){ const b=document.createElement('button'); b.textContent=opt.act[0]; b.onclick=()=>{ hide(); opt.act[1](); }; el.appendChild(b); }   // [글자, 할 일]
   wrap.appendChild(el);
   requestAnimationFrame(()=>el.classList.add('in'));
   let gone=false;
   function hide(){ if(gone) return; gone=true; el.classList.remove('in'); el.classList.add('out'); setTimeout(()=>el.remove(),350); }
-  setTimeout(hide, opt.undo?7000:(opt.warn?3500:2600));
+  setTimeout(hide, opt.undo||opt.act?7000:(opt.warn?3500:2600));
   while(wrap.children.length>3) wrap.firstChild.remove();
 }
 
@@ -11646,6 +11680,7 @@ const NEWS={id:'2026-11-28', date:'2026-11-28', days:5, items:[
   ['<b>셀 카운터</b>','도구 › 셀 카운터. 큰 칸 몇 칸 합계인지 고르고 Live · Dead(또는 전체) 합계와 부피를 넣으면 cells/mL · 총 세포 · viability가 나와요 (Trypan blue 1:1). 아래 Stock · Pellet · Seeding마다 세포 수를 숫자 눌러 고르면 뜰 부피(µL)가 나오고, 용도는 직접 더할 수 있어요'],
   ['<b>PPT figure 색 조합</b>','Plate map 조건 아래 색 조합(파스텔 · 바다 · 노을 · 숲 · 라벤더 · 차분한 · 색약 배려 · 흑백)을 누르면 조건 · 라인 색이 한 번에 바뀌어요. Control · DMSO는 회색, 같은 약 농도는 한 색의 진하기로. 판 색은 연한 회색 · 흰색 · 옅은 조합 색'],
   ['<b>PPT figure well 글자 줄바꿈</b>','well 글자 칸에서 엔터로 줄을 나눠요 (Ctrl+Enter로 쓰기). 글자가 길면 작게 줄이기보다 먼저 줄을 바꿔요. 편집 창은 이제 「닫기」를 눌러야만 닫혀요'],
+  ['<b>라인 Plate map</b>','배양 라인 표에서 Seeding · Split 줄의 Plate 칸 「+ map」을 누르면 그 기록의 Plate map을 만들어요. 지난 맵이 있으면 조건 · 색 · well을 이어받고, P · d는 그 기록 기준(Split이면 한 뒤). 라인 머리의 「Map PPT」는 그 라인 맵을 시간순으로 PPT로. Split을 저장하면 「Plate map」 이어서 만들기가 떠요'],
   ['<b>연구노트 인쇄 묶기</b>','라인별 · 날짜별 · 프로젝트별 · 프로젝트 › 날짜 중 골라서 인쇄해요. 프로젝트로 거르기도 돼요'],
   ['<b>세포 설정 바로 가기 · 따라잡기</b>','화면의 세포를 누르고 「설정」을 누르면 그 세포 설정이 바로 열려요. 도감이 랩 1등보다 많이 뒤면 날마다 따라잡기 보너스 뽑기를 받아요'],
 ], old:[
@@ -12325,9 +12360,13 @@ function figWellCond(pl,wk){ const w=(pl.wells||{})[wk]||{}; return w.c||(pl.col
 function figAxisLab(pm,pl,which,k){ const t=((which==='row'?pl.rowLab:pl.colLab)||{})[k], cid=((which==='row'?pl.rowC:pl.colC)||{})[k], cd=cid&&(pm.conds||[]).find(c=>c.id===cid);
   return {t:figSp(t||(cd?cd.name:'')),color:cd?cd.color:''}; }
 function figPlateUsed(pl){ const [R,C]=FIG_FORMATS[pl.format]||[4,6]; let n=0; for(let i=0;i<R;i++) for(let j=0;j<C;j++){ const wk=String.fromCharCode(65+i)+(j+1), w=(pl.wells||{})[wk]||{}; if(w.l||w.t||figWellCond(pl,wk)) n++; } return n; }
-function figPlateLayout(pm,date){
+// 라인 맵이면 그 기록 기준 P · d: Split · Reseeding은 한 뒤(P+1 · d0), Seeding · Thaw는 그 P · d0, 나머지는 그 기록 값
+function figLnF(x,date,f){ const L=figLn(x,date); if(!L||!f||!f.src||f.src.lineId!==x.id) return L; const lg=logs.find(l=>l.id===f.src.logId); if(!lg) return L;
+  const p0=parseP(lg.passage), up=isPassageUp(lg.action), p=up?p0+1:p0, d=up||lmapSeedLike(lg.action)?'d0':(lg.dayInfo||'');
+  return Object.assign({},L,{p:`P${p}`,pd:[`P${p}`,d].filter(Boolean).join(' · ')}); }
+function figPlateLayout(pm,date,f){
   const F=figFont(), ctx=figMeas(), plates=pm.plates||[];
-  const conds=pm.conds||[], lns=(pm.lines||[]).map(x=>({...x,info:figLn(x,date)})).filter(x=>x.info);
+  const conds=pm.conds||[], lns=(pm.lines||[]).map(x=>({...x,info:figLnF(x,date,f)})).filter(x=>x.info);
   const n=plates.length, perRow=n>1?2:1, dims=plates.map(p=>FIG_FORMATS[p.format]||FIG_FORMATS['24']);
   const maxC=Math.max(...dims.map(d=>d[1]));
   const cell=n===1?Math.min(maxC<=4?230:150,Math.floor(1040/maxC)):Math.min(maxC<=4?200:130,Math.floor((1500-50-70*perRow)/(perRow*maxC)));
@@ -12495,7 +12534,7 @@ function figDrawPlates(D,L,ox,oy,f,sel,hl){
 function figLayout(f){
   figNorm(f);
   const px=60, date=f.date||ymdLocal(new Date());
-  const SL=f.sched?figSchedLayout(f.sched):null, PL=f.plate?figPlateLayout(f.plate,date):null;
+  const SL=f.sched?figSchedLayout(f.sched):null, PL=f.plate?figPlateLayout(f.plate,date,f):null;
   const titleW=figMeasure(figSp(f.title),34,700);
   const W=Math.max(1100,titleW+2*px,SL?SL.W+2*px:0,PL?PL.W+2*px:0);
   const mc=figMeas(); mc.font=`500 22px ${figFont()}`;
@@ -12543,7 +12582,7 @@ function figPlateFmtText(plates){ const fm=[...new Set(plates.map(p=>p.format))]
 // ── 이름 · 제목 기본값 ──
 function figLineInfos(f){
   const date=f.date||ymdLocal(new Date()), out=[];
-  if(f.plate) (f.plate.lines||[]).forEach(x=>{ const L=figLn(x,date); if(L) out.push(L); });
+  if(f.plate) (f.plate.lines||[]).forEach(x=>{ const L=figLnF(x,date,f); if(L) out.push(L); });
   if(f.sched) (f.sched.tracks||[]).forEach(t=>{ const L=t.lineId&&figLn({id:t.lineId},date); if(L&&!out.some(o=>o.tag===L.tag)) out.push(L); });
   return out;
 }
@@ -12582,7 +12621,7 @@ function figAddPlate(id,quiet){ const f=figById(id); if(!f) return; const sel=fi
   if(sel.length){ const m=String(latestPlate(lineById(sel[0]))||'').match(/(\d+)\s*well/); if(m&&FIG_FORMATS[m[1]]) f.plate.plates[0].format=m[1]; }
   if(!quiet){ figTouch(f); renderFig(); } }
 function figDropPart(id,part){ const f=figById(id); if(!f) return; if(!confirm(part==='sched'?'Experiment Schedule을 이 Figure에서 뺄까요?':'Plate map을 이 Figure에서 뺄까요?')) return; f[part]=null; _figSel.clear(); figTouch(f); renderFig(); }
-function figDel(id){ const f=figById(id); if(!f||!confirm(`「${f.name}」을 지울까요?`)) return; figures=figures.filter(x=>x.id!==id); _figPick.delete(id); if(_figEdit===id) _figEdit=null; saveFigures(); renderFig(); }
+function figDel(id){ const f=figById(id); if(!f||!confirm(`「${f.name}」을 지울까요?`)) return; figures=figures.filter(x=>x.id!==id); _figPick.delete(id); if(_figEdit===id) _figEdit=null; saveFigures(); renderFig(); if(f.src) try{ updateUI(); }catch(e){} }
 function figDelMany(ids,all){
   ids=ids.filter(id=>figById(id)); if(!ids.length) return;
   if(!confirm(all?`PPT figure ${ids.length}개를 모두 지울까요? 되돌릴 수 없어요.`:`고른 figure ${ids.length}개를 지울까요? 되돌릴 수 없어요.`)) return;
@@ -12599,7 +12638,7 @@ async function figCopy(id){
   catch(e){ toast('이 브라우저에서는 복사가 안 돼요. PNG로 내려받아 주세요.',{warn:true}); }
 }
 async function figPng(id){ const f=figById(id); if(!f) return; await document.fonts.ready; const b=await figBlob(f); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=safeFileName(f.name||'figure')+'.png'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),3000); }
-async function figPpt(ids){
+async function figPpt(ids,fname){
   ids=ids.filter(id=>figById(id)); if(!ids.length) return toast('PPT로 만들 figure를 골라 주세요.',{warn:true});
   try{ await pptEnsureLib(); }catch(e){ return toast(e.message,{warn:true}); }
   await document.fonts.ready; await pptResolveFont();
@@ -12607,7 +12646,7 @@ async function figPpt(ids){
   // 그림이 아니라 도형 · 글상자로 넣음 → PPT에서 하나하나 고칠 수 있음
   for(const id of ids){ const f=figById(id), s=pptx.addSlide(); figToSlide(pptx,s,f,0.4,0.35,12.53,6.8); }
   figMarkPpt(ids);
-  await pptx.writeFile({fileName:safeFileName(ids.length===1?(figById(ids[0]).name||'figure'):`${ymd6(ymdLocal(new Date()))} figures ${ids.length}`)+'.pptx'});
+  await pptx.writeFile({fileName:safeFileName(fname||(ids.length===1?(figById(ids[0]).name||'figure'):`${ymd6(ymdLocal(new Date()))} figures ${ids.length}`))+'.pptx'});
 }
 
 // ── 화면 ──
