@@ -2086,7 +2086,6 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
   <div id="incubator" class="side-incu"></div>
 
   <div class="side-foot">
-    <button class="nav-i" onclick="hubOpen('me')"><svg class="ic"><use href="#i-paw"/></svg><span>세포 · 광장</span><em id="hubNavN"></em></button>
     <button class="nav-i" onclick="mailOpen()"><svg class="ic"><use href="#i-mail"/></svg><span>우체통</span><em id="mailNavN"></em></button>
     <button class="nav-i" onclick="openSettings()"><svg class="ic"><use href="#i-sliders"/></svg><span>설정</span><em id="setNavN">테마 · 글씨체</em></button>
     <input type="file" id="bkFile" style="display:none;" accept=".json,application/json" onchange="restoreBackup(event)">
@@ -11535,10 +11534,11 @@ function plazaMiniPeople(){
 // 사람 목록이 바뀌면 세포를 더하고 빼기 (자리 · 움직임은 그대로)
 function plazaMiniSync(){
   const el=document.getElementById('plazaMini'); if(!el) return;
-  const ppl=plazaMiniPeople();
-  if(!ppl||!ppl.length){ el.style.display='none'; plazaMiniStop(); return; }
+  // 11-28: 사이드바에서 세포 · 광장으로 가는 길은 이 네모칸 하나 → 로그인 안 했거나 광장이 비어도 늘 보이고, 내 대표 세포만이라도 걸어 다님
+  let ppl=plazaMiniPeople();
+  if(!ppl||!ppl.length){ let mine=null; try{ const r=plazaRep(); if(r&&petKind(r)) mine=Object.assign({uid:'local',me:true},plazaMe()); }catch(e){} ppl=mine?[mine]:[]; }
   el.style.display='';
-  if(!el.querySelector('canvas')){ el.innerHTML=`<div class="pm-box" onclick="plazaOpen()" onmouseenter="_pmMini.hover=1" onmouseleave="_pmMini.hover=0" title="누르면 광장 크게"><div class="pm-hd"><b>광장</b><span id="pmN"></span></div><canvas id="pmCv"></canvas></div>`; }
+  if(!el.querySelector('canvas')){ el.innerHTML=`<div class="pm-box" onclick="hubOpen(mailUser()&&plazaOn()?'plaza':'me')" onmouseenter="_pmMini.hover=1" onmouseleave="_pmMini.hover=0" title="누르면 광장 크게"><div class="pm-hd"><b>광장</b><span id="pmN"></span></div><canvas id="pmCv"></canvas></div>`; }
   const cv=document.getElementById('pmCv'), W=Math.max(160,cv.parentElement.clientWidth-2);
   if(_pm.W!==W){ _pm.W=W; _pm.deco=null; cv.width=W*2; cv.height=_pm.H*2; cv.style.width=W+'px'; cv.style.height=_pm.H+'px'; }
   pmSetEnts(ppl);
@@ -11930,7 +11930,7 @@ if(!STAMP_ON){ const b=document.querySelector('.set-nav button[data-st="stamp"]'
 // ══════════════════════════════════════════
 const NEWS={id:'2026-11-28c', date:'2026-11-28', days:7, notice:'꽃 · 응가는 12/4(금)까지예요. 12/5부터는 안 생겨요', items:[
   ['<b>미니게임</b>','세포 · 광장 › 게임. 10일마다 바뀌고 광장 순위가 있어요'],
-  ['<b>세포 · 광장</b>','한 창으로 합쳤어요. 왼쪽 메뉴 아래에서'],
+  ['<b>세포 · 광장</b>','한 창으로 합쳤어요. 왼쪽 광장 칸을 누르면 열려요'],
   ['<b>밥 없어짐</b>','세포 밥 주기가 없어졌어요'],
   ['<b>MC 주기</b>','배양 라인 종류 이름 옆 칩에서'],
   ['<b>사진 폴더</b>','이름 · 스케일바 저장 때 환자_종류 폴더로. 이미 있는 폴더를 골라 둘 수도 있어요'],
