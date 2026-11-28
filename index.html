@@ -1553,7 +1553,7 @@ body.pet-on[data-tab="today"] #petLayer{display:block;}
 .dex-why{display:block;font-size:.6rem;color:var(--mut);line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
 .plz-box{margin:6px 0 8px;} .plz-box summary{cursor:pointer;font-size:.8rem;font-weight:700;color:var(--sub);padding:4px 0;} .plz-box .plz-items{margin-top:6px;}
 .plz-reps{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 10px;} .plz-rep{display:flex;flex-direction:column;align-items:center;gap:2px;border:1px solid var(--bd2);background:var(--sur);border-radius:10px;padding:4px 6px;cursor:pointer;font:inherit;font-size:.66rem;color:var(--sub);}
-.pet-draw{flex-wrap:wrap;} .pd-btns{display:flex;gap:6px;} .pd-how{flex:1 1 100%;color:var(--sub);font-size:.7rem;line-height:1.5;margin-top:4px;}
+.pet-draw{flex-wrap:wrap;} .pd-btns{display:flex;gap:6px;}
 .plz-rank{flex:none;min-width:34px;text-align:center;font-size:.74rem;font-weight:800;color:var(--sub);} .plz-rank.r1{color:#C9962E;font-size:.86rem;} .plz-rank.r1::before{content:'♛';display:block;font-size:1rem;line-height:1;} .plz-rank.r2{color:#8A97A8;} .plz-rank.r3{color:#B07A55;}
 .plz-rep.on{border-color:#2563EB;box-shadow:0 0 0 2px #BFD3FE;color:var(--tx);} .plz-card.me{background:#EFF4FF;} .plz-me{font-style:normal;font-size:.62rem;background:#2563EB;color:#fff;border-radius:4px;padding:0 4px;margin-left:4px;}
 .side-incu{margin-top:auto;padding:14px 8px 26px;}   /* 아래 설정 칸이 붙어 있으면서 -12px 겹쳐서, 끝까지 내려도 인큐베이터 다리가 가려지던 것 */
@@ -10368,8 +10368,7 @@ function petGrid(shape, frame){
 const PET_LV=[0,6,15,30,50,80,120,170,240,320];
 const PET_LV_GIFT={3:'볼에 하트',5:'리본',8:'왕관',10:'반짝반짝'};
 // 2026-11-24: 밤새 쓰다듬어 Lv.5 · Lv.10 보너스 뽑기로 도감을 다 채운 일이 있어서 막음
-// 세포마다 하루 PET_PAT_DAY번까지만 친화도가 오름 (더 쓰다듬어도 하트는 나옴). 친화도 보너스 뽑기는 하루 1장, 못 받은 건 다음 날부터 하루 1장씩
-const PET_PAT_DAY=20;
+// 친화도는 쓰다듬는 만큼 오름 (11-28 유진: 하루 제한 없앰). Lv.5 · Lv.10 보너스 뽑기도 바로
 function petLvOf(pts){ let l=1; PET_LV.forEach((t,i)=>{ if(pts>=t) l=i+1; }); return l; }
 function petLv(id){ const o=petSt&&petSt.owned&&petSt.owned[id]; return o?petLvOf(o.pats||0):0; }
 function drawPet(cv, kindId, st){
@@ -10643,20 +10642,18 @@ function petLvFx(a, lv){
   }
   a.jump=4; petFx(a,P);
 }
-function petPatLeft(o){ const d=petTodayKey(); return (o.pd&&o.pd.d===d)?Math.max(0,PET_PAT_DAY-(o.pd.n||0)):PET_PAT_DAY; }
-// 친화도 Lv.5 · Lv.10 보너스 뽑기: 하루 1장. 받을 게 남았으면 다음 날 열 때 하나씩
+// 친화도 Lv.5 · Lv.10 보너스 뽑기: 받을 게 있으면 바로 전부
 function petLvTicketScan(){
-  const d=petTodayKey(); if(!petSt||petSt.lvTk===d) return;
-  const keys=petSt.tkKeys||[];
+  if(!petSt) return; let n=0;
   for(const id of Object.keys(petSt.owned)){ const lv=petLv(id);
-    for(const L of [5,10]) if(lv>=L&&!keys.includes(`lv${L}:${id}`)){ petSt.lvTk=d; petTicketGive(`lv${L}:${id}`,`${petName(id)} 친화도 Lv.${L}`); return; } }
+    for(const L of [5,10]) if(lv>=L&&petTicketGive(`lv${L}:${id}`,'',true)) n++; }
+  if(n) toast(`보너스 뽑기 ${n}장`);
 }
 function petPat(a){
   const o=petSt.owned[a.id]; if(!o) return;
-  const left=petPatLeft(o), lv0=petLvOf(o.pats||0); o.hap=Math.min(100,(o.hap||60)+4);
-  if(left>0){ const d=petTodayKey(); o.pd={d, n:(o.pd&&o.pd.d===d?o.pd.n||0:0)+1}; o.pats=(o.pats||0)+1; petSt.patsAll=(petSt.patsAll||0)+1; petWkAdd('pat'); }
-  savePets(); if(left>0&&petSt.patsAll%10===0) petGiftCheck();
-  if(left===1) setTimeout(()=>petSay(a,'오늘은 많이 친해졌어! 내일 또',2600),600);
+  const lv0=petLvOf(o.pats||0); o.hap=Math.min(100,(o.hap||60)+4);
+  o.pats=(o.pats||0)+1; petSt.patsAll=(petSt.patsAll||0)+1; petWkAdd('pat');
+  savePets(); if(petSt.patsAll%10===0) petGiftCheck();
   const lv1=petLvOf(o.pats||0); if(lv1>lv0){ if(lv1===5||lv1===10) setTimeout(petLvTicketScan,3400); setTimeout(()=>{ petLvFx(a,lv1); petSay(a,`친해졌어! Lv.${lv1}`,3000); toast(`${petName(a.id)} 친화도 Lv.${lv1}${PET_LV_GIFT[lv1]?` · ${PET_LV_GIFT[lv1]} 생김`:''}`); },300); }
   a.mode='happy'; a.until=performance.now()+1400; a.jump=2;
   if(lv1<=2){ const h=document.createElement('i'); h.className='pet-heart'; h.innerHTML='<svg class="ic"><use href="#i-heart"/></svg>'; h.style.left=(a.x+16+Math.random()*12)+'px'; h.style.top=(a.y<40?a.y+40:a.y-10)+'px'; petLayer.appendChild(h); setTimeout(()=>h.remove(),1100); }
@@ -10758,8 +10755,7 @@ let _petSel=null;
 function petPanelHTML(){
   const own=Object.keys(petSt.owned), can=petCanDraw();
   const tkn=petTickets(), tkBtn=tkn?`<button class="btn btn-pri" onclick="petGacha('ticket')"><svg class="ic"><use href="#i-gift"/></svg>보너스 ${tkn}</button>`:'';
-  const draw=`<div class="set-sec pet-draw"><div><b>오늘의 뽑기</b><small>${can?'':'내일 또 만나요'}${tkn?` · 보너스 뽑기 ${tkn}장`:''}</small></div><span class="pd-btns">${tkBtn}<button class="btn ${can?'btn-pri':'btn-out'}" ${can?'':'disabled'} onclick="petGacha()"><svg class="ic"><use href="#i-gift"/></svg>뽑기</button></span>
-    <small class="pd-how">보너스 뽑기: 랩 미션 하나 깰 때마다 · 하루 기록 5건 · 한 주 4일 들르기 · 친화도 Lv.5 · Lv.10 (하루 1장까지) · 주 1번 깜짝 선물 시간(평일 낮 어느 2시간, 그때 앱을 열어 두면) · 도감이 랩 1등보다 ${PET_CU_GAP}칸 넘게 뒤면 날마다 따라잡기 1장(15칸 넘게면 2장)${(()=>{ const c=petCatchUp(); return c&&c.n?` <b>지금 1등과 ${c.gap}칸 차이라 하루 ${c.n}장 받아요</b>`:''; })()}. 친화도는 세포마다 하루 20번까지 올라요</small></div>`;
+  const draw=`<div class="set-sec pet-draw"><div><b>오늘의 뽑기</b><small>${can?'':'내일 또 만나요'}</small></div><span class="pd-btns">${tkBtn}<button class="btn ${can?'btn-pri':'btn-out'}" ${can?'':'disabled'} onclick="petGacha()"><svg class="ic"><use href="#i-gift"/></svg>뽑기</button></span></div>`;
   const got=plazaGotHTML();
   const dex=`<div class="set-sec"><h4 class="dex-hd">도감 <span class="mail-n">${petDexCount()} / ${PET_KINDS.filter(k=>!k.gift).length}</span>${own.length?`<span class="dex-all"><button class="link-btn" onclick="petWalkAll(true)">모두 산책</button><button class="link-btn" onclick="petWalkAll(false)">모두 쉬기</button></span>`:''}</h4><div class="pet-dex">${PET_KINDS.filter(k=>!k.gift).map(k=>{ const o=petSt.owned[k.id];
       return o ? `<button class="dex${_petSel===k.id?' on':''}${petSt.active.includes(k.id)?' walk':''}" onclick="_petSel='${k.id}';renderSettings('pet')" title="${esc(petName(k.id))}"><canvas data-k="${k.id}" width="48" height="48"></canvas><span>${esc(petName(k.id))}</span></button>`
@@ -11710,7 +11706,7 @@ const NEWS={id:'2026-11-28', date:'2026-11-28', days:5, items:[
   ['<b>MC 주기</b>','설정 › MC 주기에서 라인 종류마다 MC 경고일 · 지연일을 정해요 (기본 3일 · 4일). 라인 수정의 「MC 주기 따로」에 넣으면 그 라인만 다르게. MC 색 · 「MC 할 날」 · 「MC 지연」 숫자 · 한 번에 고르기가 모두 이 값을 따라요'],
   ['<b>라인 Plate map</b>','배양 라인 표에서 Seeding · Split 줄의 Plate 칸 「+ map」을 누르면 그 기록의 Plate map을 만들어요. 지난 맵이 있으면 조건 · 색 · well을 이어받고, P · d는 그 기록 기준(Split이면 한 뒤). 라인 머리의 「Map PPT」는 그 라인 맵을 시간순으로 PPT로. Split을 저장하면 「Plate map」 이어서 만들기가 떠요'],
   ['<b>연구노트 인쇄 묶기</b>','라인별 · 날짜별 · 프로젝트별 · 프로젝트 › 날짜 중 골라서 인쇄해요. 프로젝트로 거르기도 돼요'],
-  ['<b>세포 설정 바로 가기 · 따라잡기</b>','화면의 세포를 누르고 「설정」을 누르면 그 세포 설정이 바로 열려요. 도감이 랩 1등보다 많이 뒤면 날마다 따라잡기 보너스 뽑기를 받아요'],
+  ['<b>세포</b>','친화도 하루 제한이 없어졌어요. 화면의 세포를 누르고 「설정」을 누르면 그 세포 설정이 바로 열려요'],
 ], old:[
   ['<b>다음 Split 예상</b>','지난 Split 간격(최근 3번 평균)으로 라인마다 다음 Split 날을 계산해요. 3일 안이거나 지났으면 배양 현황 라인 이름 옆에 「Split ~11.28」이 뜨고, 누르면 예정 작업에 넣어요. ▾로 펼치면 평균 간격 · 지난번 비율이 보여요'],
   ['<b>라인 찾기</b>','기록 입력의 라인 칸에 번호만 쳐도 돼요(31 → HCC31). ↑↓ · Enter로 고르고, 오늘 작업에서 / 를 누르면 바로 여기로 와요. 아래 「최근」 칩은 방금 기록한 라인 3개'],
