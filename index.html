@@ -11487,12 +11487,15 @@ function mailHTML(){
     : `<div class="set-sec"><h4>보내기</h4><button class="btn btn-pri" onclick="cloudToggle()">Google 로그인</button></div>`;
   return `<h3>우체통</h3>${form}<div id="mailInbox"></div>`;
 }
+const MAIL_HOOK='https://script.google.com/macros/s/AKfycbxkpnCRETLC916EWyypb-XW5kKWjhUiaH137KjgoltiuXBQVFr7F_k1beEW8Sbilwp6xg/exec';
 async function mailSend(){
   const u=mailUser(), tx=(document.getElementById('mailTx').value||'').trim(), msg=document.getElementById('mailMsg');
   if(!u){ msg.textContent='로그인이 필요해요.'; return; }
   if(!tx){ msg.textContent='내용을 적어 주세요.'; return; }
   try{
     await fbDb.collection('mailbox').add({uid:u.uid, name:u.displayName||'', email:u.email||'', kind:_mailKind, text:tx.slice(0,2000), ts:Date.now(), read:false});
+    // 관리자 메일로도 보냄 (Apps Script 웹 앱). 실패해도 편지는 DB에 남아 있음
+    try{ fetch(MAIL_HOOK,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify({kind:_mailKind,name:u.displayName||'',email:u.email||'',text:tx.slice(0,2000)})}).catch(()=>{}); }catch(e){}
     document.getElementById('mailTx').value=''; msg.textContent='보냈어요. 고마워요!';
     mailLoadInbox();
   }catch(e){
