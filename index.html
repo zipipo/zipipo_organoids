@@ -1324,7 +1324,7 @@ body[data-theme][data-art="s-matcha"]{--bg:#E7EDE1;--side:#EFF3EA;--topbar:#E7ED
 body[data-theme][data-art="s-retro"]{--bg:#FFF6E5;--side:#FFFAF0;--topbar:#FFF6E5e0;--hov:#F8EDD6;--psoft:#FFE5B8;--pri:#C2541B;--pri-h:#C2541B;--acc:#C2541B;--acc-bg:#FFEFD6;--acc-bd:#F2C98F;background:#FFF6E5;}
 body[data-art^="s-"] .panel,body[data-art^="s-"] .composer,body[data-art^="s-"] .stats{border-color:rgba(0,0,0,.06);box-shadow:0 2px 14px rgba(40,40,60,.05);border-radius:14px;}
 body[data-art^="s-"] .side{border-right-color:rgba(0,0,0,.05);}
-body[data-art^="s-"] .topbar{background:rgba(255,255,255,.14);}   /* 상단 바가 배경을 덮어 네모로 떠 보이던 것 (11-29 유진): 거의 투명 + 흐림 */
+body[data-art^="s-"] .topbar{background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none;position:relative;}   /* 무드 배경: 상단 바 완전히 투명, 스크롤 따라 내려오지 않게 (11-29 유진: 반만 덮으면 어색) */
 body[data-art="s-white"] .panel,body[data-art="s-white"] .composer,body[data-art="s-white"] .stats{box-shadow:none;border-color:#E4E4E7;border-radius:10px;}
 body[data-art="s-white"] h1,body[data-art="s-white"] .page-title{font-weight:800;letter-spacing:-.02em;}
 body[data-art="s-kraft"] .panel,body[data-art="s-kraft"] .composer,body[data-art="s-kraft"] .stats{--sur:#FFFBF2;background:#FFFBF2;border-color:#D9C6A6;}
