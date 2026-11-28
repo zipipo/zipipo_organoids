@@ -1089,6 +1089,7 @@ body[data-tab="fig"] .pane[data-pane="fig"]{display:block;animation:paneIn .28s 
 .fg-palrow{display:flex;flex-wrap:wrap;gap:5px;} .fg-pal{display:inline-flex;align-items:center;gap:6px;padding:4px 9px 4px 6px;border:1px solid var(--bd);border-radius:999px;background:var(--sur);font:inherit;font-size:.74rem;color:inherit;cursor:pointer;}
 .fg-pal.on{border-color:var(--pri);box-shadow:0 0 0 1.5px var(--pri) inset;font-weight:700;} .fg-paldots{display:inline-flex;} .fg-paldots i{width:12px;height:12px;border-radius:50%;margin-right:-3px;border:1px solid rgba(0,0,0,.12);} .fg-paldots i.rg{background:#fff;border-width:2.5px;margin-left:5px;margin-right:0;}
 .fg-bodyrow{display:flex;flex-wrap:wrap;align-items:center;gap:5px;} .fg-bodyrow small{margin-right:2px;} .fg-bodyb{display:inline-flex;align-items:center;gap:5px;padding:3px 9px 3px 5px;border:1px solid var(--bd);border-radius:999px;background:var(--sur);font:inherit;font-size:.72rem;color:inherit;cursor:pointer;} .fg-bodyb.on{border-color:var(--pri);font-weight:700;} .fg-bodyb i{width:14px;height:14px;border-radius:4px;border:1px solid #B8BEC6;}
+.fg-tpop{min-width:240px;max-height:60vh;overflow:auto;} .fg-trow{display:flex;align-items:center;gap:6px;margin-top:6px;} .fg-tload{flex:1;display:grid;text-align:left;gap:1px;padding:6px 9px;border:1px solid var(--bd);border-radius:9px;background:var(--sur);font:inherit;cursor:pointer;color:var(--ink);} .fg-tload:hover{border-color:var(--pri);} .fg-tload span{font-weight:700;font-size:.84rem;} .fg-tload small{font-size:.7rem;color:var(--mut);}
 .fg-cpop .cc-lab{display:block;font-size:.68rem;color:var(--mut);margin:6px 0 3px;}
 .fg-add .fg-wtxt{flex:1;min-width:0;min-height:52px;resize:vertical;font:inherit;padding:6px 8px;border:1px solid var(--bd);border-radius:8px;background:var(--sur);color:inherit;line-height:1.4;} .fg-add:has(.fg-wtxt){align-items:flex-start;} .fg-add input[type=date]{flex:none;width:136px;}
 .fg-items,.fg-conds{display:flex;flex-direction:column;gap:5px;}
@@ -2608,7 +2609,7 @@ const syncClone = d => JSON.parse(JSON.stringify(d));
 // 펫은 Google 계정에 같이 저장 (펫 코드가 뒤에 있어서 window._petsOut / _petsIn으로 이어 줌)
 function localSync(){ return syncClone(pickSync({lines,logs,stockChecks,trash,plans,shotSets,shotNotes:_slRecentNotes,freeSamples,mediaDefs,mediaTubes,figures,exps,tlCollapsed,typeColors,pptCuts,pets:window._petsOut?window._petsOut():{}, prefs:_prefsOut()})); }
 // 이니셜처럼 기기마다 다시 입력하기 귀찮은 설정은 계정에 같이 저장
-function _prefsOut(){ const o={}; try{ const v=localStorage.getItem('orgInitials'); if(v) o.ini=v; const fz=localStorage.getItem('orgFontSize'); if(fz) o.size=fz; const ft=localStorage.getItem('orgFont'); if(ft&&ft!=='pretendard') o.font=ft; const ml=localStorage.getItem('orgMyLine'); if(ml) o.myLine=ml; const pj=localStorage.getItem('orgProjects'); if(pj&&pj!=='[]') o.projects=pj; const cp=localStorage.getItem('orgCntPurps'); if(cp) o.cntp=cp; const mr=localStorage.getItem('orgMcRule'); if(mr) o.mcr=mr; const chh=localStorage.getItem('orgCntHist'); if(chh&&chh!=='[]') o.cnth=chh;
+function _prefsOut(){ const o={}; try{ const v=localStorage.getItem('orgInitials'); if(v) o.ini=v; const fz=localStorage.getItem('orgFontSize'); if(fz) o.size=fz; const ft=localStorage.getItem('orgFont'); if(ft&&ft!=='pretendard') o.font=ft; const ml=localStorage.getItem('orgMyLine'); if(ml) o.myLine=ml; const pj=localStorage.getItem('orgProjects'); if(pj&&pj!=='[]') o.projects=pj; const cp=localStorage.getItem('orgCntPurps'); if(cp) o.cntp=cp; const mr=localStorage.getItem('orgMcRule'); if(mr) o.mcr=mr; const chh=localStorage.getItem('orgCntHist'); if(chh&&chh!=='[]') o.cnth=chh; const ftp=localStorage.getItem('orgFigTpl'); if(ftp&&ftp!=='[]') o.figt=ftp;
   [['pmsg','orgPlazaMsg'],['pnick','orgNickPlaza'],['prep','orgPlazaRep']].forEach(([k,ls])=>{ const x=localStorage.getItem(ls); if(x!=null) o[k]=x; }); }catch(e){} return o; }
 const syncHas = d => d.lines.length>0 || d.logs.length>0 || d.freeSamples.length>0;
 
@@ -2834,6 +2835,7 @@ function applySyncData(d){
     if(d.prefs&&d.prefs.font&&d.prefs.font!==document.documentElement.dataset.font) try{ setFont(d.prefs.font); }catch(e){}
     if(d.prefs&&d.prefs.myLine) try{ localStorage.setItem('orgMyLine',d.prefs.myLine); }catch(e){}
     if(d.prefs&&d.prefs.projects) try{ localStorage.setItem('orgProjects',d.prefs.projects); }catch(e){}
+    if(d.prefs&&typeof d.prefs.figt==='string'&&d.prefs.figt!==localStorage.getItem('orgFigTpl')) try{ const inc=JSON.parse(d.prefs.figt), cur=JSON.parse(localStorage.getItem('orgFigTpl')||'[]'), m=new Map(); cur.concat(inc).forEach(x=>x&&x.id&&(!m.has(x.id)||(x.ts||0)>(m.get(x.id).ts||0))&&m.set(x.id,x)); localStorage.setItem('orgFigTpl',JSON.stringify([...m.values()].sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,40))); }catch(e){}
     if(d.prefs&&typeof d.prefs.cnth==='string'&&d.prefs.cnth!==localStorage.getItem('orgCntHist')) try{ const inc=JSON.parse(d.prefs.cnth), cur=JSON.parse(localStorage.getItem('orgCntHist')||'[]'), m=new Map(); cur.concat(inc).forEach(x=>x&&x.id&&m.set(x.id,x)); const all=[...m.values()].sort((a,b)=>b.ts-a.ts).slice(0,60); localStorage.setItem('orgCntHist',JSON.stringify(all)); if(typeof cntHist!=='undefined'){ cntHist=all; if(curTab==='cnt') cntHistRender(); } }catch(e){}
     if(d.prefs&&typeof d.prefs.mcr==='string'&&d.prefs.mcr!==localStorage.getItem('orgMcRule')) try{ JSON.parse(d.prefs.mcr); localStorage.setItem('orgMcRule',d.prefs.mcr); }catch(e){}
     if(d.prefs&&d.prefs.cntp&&d.prefs.cntp!==localStorage.getItem('orgCntPurps')) try{ localStorage.setItem('orgCntPurps',d.prefs.cntp); if(typeof cntPurps!=='undefined'){ cntPurps=JSON.parse(d.prefs.cntp); if(curTab==='cnt') renderCnt(); } }catch(e){}
@@ -12149,6 +12151,7 @@ if(!STAMP_ON){ const b=document.querySelector('.set-nav button[data-st="stamp"]'
 // ══════════════════════════════════════════
 const NEWS={id:'2026-11-28d', date:'2026-11-28', days:7, notices:[['꽃 · 응가는 12/4(금)까지예요. 12/5부터는 안 생겨요','2026-12-05'],['12/7(월)부터 새 세포 52종 (시리즈 2, 도감 88마리부터)','2026-12-14']], items:[
   ['<b>세포 풀어주기</b>','겹친 세포를 광장에 풀어 두면 아무나 데려가요 (하루 3마리)'],
+  ['<b>PPT figure</b>','같은 약 농도는 범례 한 줄로 묶어요. Plate map을 틀로 저장해 두고 불러와요'],
   ['<b>게임 이어하기</b>','창을 닫아도 하던 판이 남아요. 10일 판 1 · 2 · 3위는 보너스 뽑기 3 · 2 · 1장'],
   ['<b>미니게임</b>','세포 · 광장 › 게임. 10일마다 바뀌고 광장 순위가 있어요'],
   ['<b>세포 · 광장</b>','한 창으로 합쳤어요. 왼쪽 광장 칸을 누르면 열려요'],
@@ -12842,6 +12845,13 @@ function figPlateUsed(pl){ const [R,C]=FIG_FORMATS[pl.format]||[4,6]; let n=0; f
 function figLnF(x,date,f){ const L=figLn(x,date); if(!L||!f||!f.src||f.src.lineId!==x.id) return L; const lg=logs.find(l=>l.id===f.src.logId); if(!lg) return L;
   const p0=parseP(lg.passage), up=isPassageUp(lg.action), p=up?p0+1:p0, d=up||lmapSeedLike(lg.action)?'d0':(lg.dayInfo||'');
   return Object.assign({},L,{p:`P${p}`,pd:[`P${p}`,d].filter(Boolean).join(' · ')}); }
+// 범례 묶기 (11-29 유진): 이름 + 숫자 + 단위 꼴(Cis 0 · 1 · 10 µM)이 2개 넘는 조건은 한 줄로 → 이름, 그 아래 색 칸 + 숫자. 나머지는 원래처럼 한 줄씩
+function figLegGroups(conds){ const out=[], map={};
+  conds.forEach(cd=>{ const m=String(figSp(cd.name)).match(/^(.*?)\s*(-?\d+(?:\.\d+)?)\s*([^\d\s][^\s]*)?$/), pre=m?m[1].trim():'', key=m?(pre.toLowerCase()+'|'+(m[3]||'')):'';
+    if(m&&!figIsCtrl(cd.name)){ if(!map[key]){ map[key]={type:'series',name:pre,unit:m[3]||'',items:[]}; out.push(map[key]); } map[key].items.push({cd,num:parseFloat(m[2]),lab:m[2]}); }
+    else out.push({type:'one',cd}); });
+  return out.flatMap(g=>g.type==='series'&&g.items.length<2?[{type:'one',cd:g.items[0].cd}]:[g]).map(g=>{ if(g.type==='series') g.items.sort((a,b)=>a.num-b.num); return g; }); }
+const FIG_SW=40;   // 묶은 범례 색 칸 폭
 function figPlateLayout(pm,date,f){
   const F=figFont(), ctx=figMeas(), plates=pm.plates||[];
   const conds=pm.conds||[], lns=(pm.lines||[]).map(x=>({...x,info:figLnF(x,date,f)})).filter(x=>x.info);
@@ -12865,10 +12875,12 @@ function figPlateLayout(pm,date,f){
   const plateH=yy-40;
   let legW=0;
   lns.forEach(x=>{ ctx.font=`700 21px ${F}`; const a=ctx.measureText(x.info.tag).width; ctx.font=`800 18px ${F}`; legW=Math.max(legW,52+a+10+ctx.measureText(x.info.p).width); });   // 범례는 passage만 (맵이라 day 뺌)
-  ctx.font=`600 21px ${F}`; conds.forEach(cd=>{ legW=Math.max(legW,50+ctx.measureText(figSp(cd.name)).width); });
-  const legRows=conds.length+(lns.length?lns.length+1:0)+(conds.length?1:0);
-  const W=rowsW+(legW?50+legW:0), H=Math.max(plateH,legRows*44+10);
-  return {plates,pos,cell,conds,lns,W,H,rowsW,legW};
+  const legG=figLegGroups(conds); let legH=0;
+  legG.forEach(g=>{ if(g.type==='one'){ ctx.font=`600 21px ${F}`; legW=Math.max(legW,50+ctx.measureText(figSp(g.cd.name)).width); legH+=44; }
+    else { ctx.font=`700 21px ${F}`; legW=Math.max(legW,ctx.measureText(`${g.name}${g.unit?` (${g.unit})`:''}`).width+8,g.items.length*FIG_SW); legH+=94; } });
+  const legTot=(lns.length?(lns.length+1)*44+10:0)+(conds.length?40+legH:0)+56;
+  const W=rowsW+(legW?50+legW:0), H=Math.max(plateH,legTot);
+  return {plates,pos,cell,conds,lns,W,H,rowsW,legW,legG};
 }
 // ── 그리는 도구: 같은 그리기 코드로 화면(canvas) · PPT(도형) 둘 다 ──
 // D.text(t,x,y,{size,weight,color,align,base}) · D.line · D.circle · D.rrect · D.plate(오른쪽 위 깎인 판) · D.measure
@@ -13004,7 +13016,11 @@ function figDrawPlates(D,L,ox,oy,f,sel,hl){
   }
   if(conds.length){
     D.text('CONDITION',lx,ly+10,{size:18,weight:700,color:'#6B727B',base:'middle'}); ly+=40;
-    conds.forEach(cd=>{ D.circle(lx+15,ly+8,14,{fill:cd.color,stroke:'rgba(0,0,0,.15)',width:1.5}); D.text(figSp(cd.name),lx+42,ly+8,{size:21,weight:600,base:'middle'}); ly+=44; });
+    (L.legG||figLegGroups(conds)).forEach(g=>{
+      if(g.type==='one'){ const cd=g.cd; D.circle(lx+15,ly+8,14,{fill:cd.color,stroke:'rgba(0,0,0,.15)',width:1.5}); D.text(figSp(cd.name),lx+42,ly+8,{size:21,weight:600,base:'middle'}); ly+=44; return; }
+      D.text(`${g.name}${g.unit?` (${g.unit})`:''}`,lx,ly+8,{size:21,weight:700,base:'middle'}); ly+=24;
+      g.items.forEach((it,i)=>{ const x=lx+i*FIG_SW; D.rrect(x,ly,FIG_SW-4,28,6,{fill:it.cd.color,stroke:'rgba(0,0,0,.15)',width:1.5}); D.text(it.lab,x+(FIG_SW-4)/2,ly+44,{size:17,weight:600,color:'#3A3F45',align:'center',base:'middle'}); });
+      ly+=70; });
   }
   return geo;
 }
@@ -13233,6 +13249,29 @@ function figEditor(f){
   <div class="fg-ed"><div class="fg-side">${body}
   </div><div class="fg-main"><div id="figPrev" class="fg-prev${f.plate?' fg-plate':''}"></div></div></div>`;
 }
+// Plate map 틀 (11-29 유진): 조건 · 색 조합 · plate 배치(칠한 well · 글자 · 줄 조건 · 줄 이름)와 라인 자리(몇 번째 라인)를 저장 → 다른 Figure에서 불러오면 그 Figure의 라인 순서대로 채움
+// localStorage orgFigTpl + 계정 prefs figt (id로 합침)
+function figTpls(){ try{ const a=JSON.parse(localStorage.getItem('orgFigTpl')); return Array.isArray(a)?a:[]; }catch(e){ return []; } }
+function figTplsSave(a){ try{ localStorage.setItem('orgFigTpl',JSON.stringify(a.slice(0,40))); }catch(e){} cloudPushDebounced(); }
+function figTplSave(id){ const f=figById(id); if(!f||!f.plate) return; const pm=f.plate, nm=(prompt('틀 이름',f.name||'')||'').trim(); if(!nm) return;
+  const li=Object.fromEntries((pm.lines||[]).map((x,i)=>[x.id,i]));
+  const plates=JSON.parse(JSON.stringify(pm.plates||[])).map(pl=>{ Object.values(pl.wells||{}).forEach(w=>{ if(w.l!=null){ if(li[w.l]!=null) w.l='#'+li[w.l]; else delete w.l; } }); delete pl.id; return pl; });
+  const t={id:uid(),name:nm,ts:Date.now(),pal:pm.pal||'',body:pm.body||'',conds:JSON.parse(JSON.stringify(pm.conds||[])),lineColors:(pm.lines||[]).map(x=>x.color),plates};
+  const a=figTpls().filter(x=>x.name!==nm); a.unshift(t); figTplsSave(a); toast(`「${nm}」 틀로 저장했어요`); }
+function figTplLoad(id,tid){ const f=figById(id), t=figTpls().find(x=>x.id===tid); if(!f||!t) return; petPopClose();
+  if(f.plate&&(f.plate.plates||[]).some(pl=>Object.keys(pl.wells||{}).length)&&!confirm(`지금 Plate map을 「${t.name}」 틀로 바꿀까요?`)) return;
+  if(!f.plate) figAddPlate(id,true); const pm=f.plate, lines=pm.lines||[];
+  (t.lineColors||[]).forEach((c,i)=>{ if(lines[i]) lines[i].color=c; });
+  pm.pal=t.pal||pm.pal; if(t.body) pm.body=t.body; else delete pm.body;
+  pm.conds=JSON.parse(JSON.stringify(t.conds||[]));
+  pm.plates=JSON.parse(JSON.stringify(t.plates||[])).map(pl=>{ pl.id=uid(); Object.values(pl.wells||{}).forEach(w=>{ if(typeof w.l==='string'&&w.l[0]==='#'){ const L=lines[+w.l.slice(1)]; if(L) w.l=L.id; else delete w.l; } }); return pl; });
+  _figTab='plate:0'; _figSel.clear(); figTouch(f); renderFig(); toast(`「${t.name}」 틀을 불러왔어요`); }
+function figTplDel(tid,btn){ const t=figTpls().find(x=>x.id===tid); if(!t||!confirm(`「${t.name}」 틀을 지울까요?`)) return; figTplsSave(figTpls().filter(x=>x.id!==tid)); const row=btn.closest('.fg-trow'); if(row) row.remove(); }
+function figTplPick(btn,id){ petPopClose(); const ts=figTpls(); if(!ts.length) return toast('저장한 틀이 없어요. 「틀 저장」으로 먼저 저장해요',{warn:true});
+  const m=document.createElement('div'); m.id='petPop'; m.className='pet-pop fg-tpop';
+  m.innerHTML=`<b>틀 불러오기</b>${ts.map(t=>`<div class="fg-trow"><button class="fg-tload" onclick="figTplLoad('${id}','${t.id}')"><span>${esc(t.name)}</span><small>${(t.plates||[]).map(p=>p.format+' well').join(' + ')} · 조건 ${(t.conds||[]).length}</small></button><button class="tbl-btn" onclick="figTplDel('${t.id}',this)">${ic('x','ic-sm')}</button></div>`).join('')}`;
+  document.body.appendChild(m); const rc=btn.getBoundingClientRect(); m.style.left=Math.max(8,Math.min(innerWidth-m.offsetWidth-8,rc.left))+'px'; m.style.top=Math.max(8,Math.min(innerHeight-m.offsetHeight-8,rc.bottom+6))+'px';
+  setTimeout(()=>document.addEventListener('pointerdown',function off(e){ if(!m.contains(e.target)){ petPopClose(); document.removeEventListener('pointerdown',off); } }),0); }
 function figPlateDup(id,pi){ const f=figById(id); if(!f||!f.plate) return; const ps=f.plate.plates;
   if(ps.length>=figMaxPlates(f)) return toast(`한 장에는 plate ${figMaxPlates(f)}장까지예요${f.sched?' (일정이 같이 있어서)':''}.`,{warn:true});
   const c=JSON.parse(JSON.stringify(ps[pi])); c.id=uid(); c.name=c.name?c.name+' (복제)':''; ps.splice(pi+1,0,c); _figTab='plate:'+(pi+1); _figSel.clear(); figTouch(f); renderFig(); toast('plate를 복제했어요'); }
@@ -13338,7 +13377,7 @@ function figPlateEditor(f,pi){
   const used=new Set((pm.lines||[]).map(x=>x.id)), date=f.date||ymdLocal(new Date());
   const st=figSelText(pi), ax=_figAxis&&_figAxis.pi===pi;
   const step=(n,t,extra)=>`<div class="fg-step"><i>${n}</i><b>${t}</b>${extra||''}</div>`;
-  return `<div class="fg-part">${step(1,'Plate',`<span class="fg-phacts"><button class="link-btn" onclick="figPlateDup('${f.id}',${pi})">복제</button><button class="link-btn fg-drop" onclick="${plates.length>1?`figPlateDel('${f.id}',${pi})`:`figDropPart('${f.id}','plate')`}">빼기</button></span>`)}
+  return `<div class="fg-part">${step(1,'Plate',`<span class="fg-phacts"><button class="link-btn" onclick="figTplSave('${f.id}')">틀 저장</button><button class="link-btn" onclick="figTplPick(this,'${f.id}')">틀 불러오기</button><button class="link-btn" onclick="figPlateDup('${f.id}',${pi})">복제</button><button class="link-btn fg-drop" onclick="${plates.length>1?`figPlateDel('${f.id}',${pi})`:`figDropPart('${f.id}','plate')`}">빼기</button></span>`)}
     <div class="fg-pl"><input value="${esc(p.name||'')}" placeholder="Plate ${pi+1}" onchange="figPlateSet('${f.id}',${pi},'name',this.value)">
       <select onchange="figPlateSet('${f.id}',${pi},'format',this.value)">${Object.keys(FIG_FORMATS).map(k=>`<option value="${k}"${k===p.format?' selected':''}>${k} well</option>`).join('')}</select></div>
     <input class="fg-plnote" value="${esc(p.note||'')}" placeholder="설명 (예: 3×10⁴ cells/well)" onchange="figPlateSet('${f.id}',${pi},'note',this.value)"></div>
