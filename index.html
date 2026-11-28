@@ -1512,21 +1512,6 @@ body.pet-on[data-tab="today"] #petLayer{display:block;}
 .pm-bars i{display:block;height:100%;background:var(--pri);opacity:.6;border-radius:9px;}
 .pm-meta{font-size:.72rem;color:var(--sub);margin:6px 0 8px;}
 .pm-btns{display:flex;flex-wrap:wrap;gap:5px;}
-.tm-box{width:min(460px,94vw);display:grid;gap:12px;} .tm-hd{display:flex;justify-content:space-between;align-items:center;font-size:1rem;}
-.tm-new{display:grid;gap:8px;} .tm-new>input{height:34px;padding:0 10px;border:1px solid var(--bd);border-radius:9px;background:var(--sur);color:var(--ink);}
-.tm-pre{display:flex;flex-wrap:wrap;gap:5px;} .tm-cus{display:flex;align-items:center;gap:6px;font-size:.85rem;} .tm-cus input{width:80px;height:34px;text-align:center;border:1px solid var(--bd);border-radius:9px;background:var(--sur);color:var(--ink);}
-.tm-cus .btn{margin-left:auto;} .tm-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;background:var(--psoft);} .tm-row.done{background:#FFE4E8;animation:tmBlink 1s infinite;}
-.tm-big{font-size:1.6rem;font-weight:800;font-variant-numeric:tabular-nums;min-width:92px;} .tm-meta{flex:1;display:grid;gap:4px;min-width:0;} .tm-meta b{font-size:.84rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.tm-bar{height:6px;border-radius:3px;background:var(--sur);overflow:hidden;} .tm-bar i{display:block;height:100%;background:var(--pri);border-radius:3px;transition:width .5s linear;}
-@keyframes tmBlink{50%{background:#FFF3F5;}}
-.tm-play{position:relative;aspect-ratio:16/10;border-radius:14px;background:var(--sur2,#F6F7F9);border:1px solid var(--bd);overflow:hidden;} .tm-pn{position:absolute;right:10px;bottom:6px;font-weight:800;color:var(--mut);font-size:.9rem;}
-.tm-cell{position:absolute;aspect-ratio:1;border-radius:50%;border:2px solid rgba(0,0,0,.12);transform:translate(-50%,-50%);cursor:pointer;padding:0;transition:left .35s,top .35s,width .35s;box-shadow:inset -3px -3px 0 rgba(0,0,0,.05);}
-.tm-cell::after{content:'';position:absolute;left:38%;top:38%;width:24%;height:24%;border-radius:50%;background:rgba(0,0,0,.12);}
-.tm-cell.nw{animation:tmPop .35s ease-out;} @keyframes tmPop{0%{transform:translate(-50%,-50%) scale(.6);}100%{transform:translate(-50%,-50%) scale(1);}}
-.tm-pill{position:fixed;right:16px;bottom:16px;z-index:900;display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;border:1px solid var(--bd);background:var(--sur);box-shadow:0 6px 20px rgba(0,0,0,.12);font:inherit;color:var(--ink);cursor:pointer;}
-.tm-pill b{font-variant-numeric:tabular-nums;} .tm-pill span{font-size:.78rem;color:var(--mut);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;} .tm-pill i{font-style:normal;font-size:.72rem;color:var(--mut);}
-.tm-pill.done{background:#FFE4E8;border-color:#F4A6B4;animation:tmBlink 1s infinite;}
-@media (max-width:900px){ .tm-pill{bottom:78px;} }
 .stp-card{display:grid;gap:12px;} .stp-hd{display:flex;align-items:baseline;justify-content:space-between;} .stp-hd span{font-weight:700;color:#D9485F;}
 .stp-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;} .stp-cell{aspect-ratio:1;border:2px dashed var(--bd);border-radius:50%;display:grid;place-items:center;background:var(--sur);}
 .stp-cell i{font-style:normal;font-size:.8rem;color:var(--mut);font-weight:600;}
@@ -2024,7 +2009,6 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
   <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M11 3l1.8 5.2L18 10l-5.2 1.8L11 17l-1.8-5.2L4 10l5.2-1.8z"/><path d="M19 15v5M16.5 17.5h5"/></symbol>
   <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7.5-4.6-7.5-10.2A4.2 4.2 0 0 1 12 7.2a4.2 4.2 0 0 1 7.5 2.6C19.5 15.4 12 20 12 20z"/></symbol>
   <symbol id="i-flower" viewBox="0 0 24 24"><circle cx="12" cy="6.2" r="2.6"/><circle cx="16.2" cy="10" r="2.6"/><circle cx="12" cy="13.8" r="2.6"/><circle cx="7.8" cy="10" r="2.6"/><path d="M12 16.4V22M12 19c-1.5-1.6-3.2-2-4.5-1.6"/></symbol>
-  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9.5 2.5h5"/></symbol>
   <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8.2 8.2 0 1 1 9.5 4a6.6 6.6 0 0 0 10.5 10.5z"/><path d="M17 4.5v2M16 5.5h2"/></symbol>
   <symbol id="i-wave" viewBox="0 0 24 24"><path d="M2 9c2.5-2.2 4.5-2.2 7 0s4.5 2.2 7 0 4.2-2.2 6 0M2 15c2.5-2.2 4.5-2.2 7 0s4.5 2.2 7 0 4.2-2.2 6 0"/></symbol>
   <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M5 19c0-8.5 5.8-14 15-14 0 9.2-5.4 15-14 15z"/><path d="M5 19l7.5-7.5"/></symbol>
@@ -2062,7 +2046,6 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
     <button class="nav-i" onclick="openNoteModal()"><svg class="ic"><use href="#i-print"/></svg><span>연구노트 인쇄</span></button>
     <button class="nav-i tab" data-tab="ln2" onclick="setTab('ln2')"><svg class="ic"><use href="#i-tank"/></svg><span>LN2 탱크</span></button>
     <button class="nav-i tab" data-tab="cnt" onclick="setTab('cnt')"><svg class="ic"><use href="#i-scope"/></svg><span>셀 카운터</span></button>
-    <button class="nav-i" onclick="tmOpen()"><svg class="ic"><use href="#i-clock"/></svg><span>타이머</span><em id="tmNavN"></em></button>
     <button class="nav-i tab" data-tab="media" onclick="setTab('media')"><svg class="ic"><use href="#i-drop"/></svg><span>Media</span></button>
     <button class="nav-i tab" data-tab="fig" onclick="setTab('fig')"><svg class="ic"><use href="#i-slides"/></svg><span>PPT figure</span></button>
   </nav>
@@ -11762,56 +11745,6 @@ function mailBadge(n){ const b=document.querySelector('.set-nav button[data-st="
 // 관리자가 로그인하면 안 읽은 편지 수를 사이드바 「설정」 옆에 보여준다
 setTimeout(async()=>{ if(!mailUser()||!fbDb) return; try{ const q=await fbDb.collection('mailbox').where('read','==',false).limit(50).get(); mailBadge(q.size); }catch(e){} }, 4000);
 // ══════════════════════════════════════════
-//  타이머 (11-28 유진): 원심 · TrypLE · incubation 기다릴 때. 여러 개 같이, 새로고침해도 이어짐 (orgTimers = [{id, label, end, dur}])
-//  돌아가는 동안 화면 아래 작은 알약, 끝나면 소리 · 진동 · 알림. 창 안에서는 세포를 눌러 분열시키는 놀이
-// ══════════════════════════════════════════
-const TM_PRESETS=[1,2,3,5,10,15,20,30,60];
-let tmList=(()=>{ try{ return JSON.parse(localStorage.getItem('orgTimers'))||[]; }catch(e){ return []; } })(), _tmTick=null, _tmLabel='', _tmMin=5;
-function tmSave(){ try{ localStorage.setItem('orgTimers',JSON.stringify(tmList)); }catch(e){} }
-const tmFmt=ms=>{ const s=Math.max(0,Math.ceil(ms/1000)), m=Math.floor(s/60); return m>=60?`${Math.floor(m/60)}:${String(m%60).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`:`${m}:${String(s%60).padStart(2,'0')}`; };
-function tmStart(min,label){ min=+min; if(!(min>0)) return; tmList.push({id:uid(),label:(label||'').trim(),end:Date.now()+min*60000,dur:min*60000}); tmSave(); _tmLabel=''; tmRun(); tmRender();
-  try{ if(window.Notification&&Notification.permission==='default') Notification.requestPermission(); }catch(e){} }
-function tmStop(id){ tmList=tmList.filter(t=>t.id!==id); tmSave(); tmRun(); tmRender(); }
-function tmAdd(id,min){ const t=tmList.find(x=>x.id===id); if(!t) return; t.end=Math.max(t.end,Date.now())+min*60000; t.dur+=min*60000; delete t.rang; tmSave(); tmRun(); tmRender(); }
-function tmBeep(){ try{ const A=new (window.AudioContext||window.webkitAudioContext)(); [0,.35,.7,1.05].forEach(t=>{ const o=A.createOscillator(), g=A.createGain(); o.type='sine'; o.frequency.value=t%0.7?1046:880; g.gain.setValueAtTime(.0001,A.currentTime+t); g.gain.exponentialRampToValueAtTime(.3,A.currentTime+t+.02); g.gain.exponentialRampToValueAtTime(.0001,A.currentTime+t+.3); o.connect(g).connect(A.destination); o.start(A.currentTime+t); o.stop(A.currentTime+t+.32); }); setTimeout(()=>A.close(),1800); }catch(e){} try{ navigator.vibrate&&navigator.vibrate([300,150,300]); }catch(e){} }
-function tmRing(t){ t.rang=true; tmSave(); tmBeep(); const nm=t.label||tmFmt(t.dur);
-  try{ if(window.Notification&&Notification.permission==='granted') new Notification('타이머 끝',{body:nm,tag:'tm'+t.id}); }catch(e){}
-  toast(`${nm} 끝`); }
-function tmRun(){ clearInterval(_tmTick); if(!tmList.length){ tmPill(); return; } const step=()=>{ const now=Date.now(); tmList.forEach(t=>{ if(!t.rang&&t.end<=now) tmRing(t); }); tmPill(); const b=document.getElementById('tmBody'); if(b) tmRenderList(); }; step(); _tmTick=setInterval(step,500); }
-// 화면 아래 작은 알약 (누르면 창)
-function tmPill(){ let el=document.getElementById('tmPill'); const nav=document.getElementById('tmNavN');
-  if(!tmList.length){ if(el) el.remove(); if(nav) nav.textContent=''; return; }
-  if(!el){ el=document.createElement('button'); el.id='tmPill'; el.className='tm-pill'; el.onclick=tmOpen; document.body.appendChild(el); }
-  const now=Date.now(), ts=tmList.slice().sort((a,b)=>a.end-b.end), t=ts[0], done=t.end<=now;
-  el.classList.toggle('done',done); el.innerHTML=`<svg class="ic"><use href="#i-clock"/></svg><b>${done?'끝!':tmFmt(t.end-now)}</b>${t.label?`<span>${esc(t.label)}</span>`:''}${ts.length>1?`<i>+${ts.length-1}</i>`:''}`;
-  if(nav) nav.textContent=done?'끝':tmFmt(t.end-now); }
-function tmOpen(){ let m=document.getElementById('tmModal');
-  if(!m){ m=document.createElement('div'); m.id='tmModal'; m.className='modal open tm-modal'; m.onclick=e=>{ if(e.target===m) tmClose(); }; m.innerHTML='<div class="mbox tm-box"></div>'; document.body.appendChild(m); }
-  m.classList.add('open'); tmRender(); tmPlayInit(); }
-function tmClose(){ const m=document.getElementById('tmModal'); if(m) m.remove(); }
-function tmRender(){ const m=document.getElementById('tmModal'); if(!m) return; const box=m.querySelector('.tm-box');
-  if(!box.querySelector('#tmBody')) box.innerHTML=`<div class="tm-hd"><b>타이머</b><button class="tbl-btn" onclick="tmClose()">${ic('x','ic-sm')}</button></div>
-    <div class="tm-new"><input id="tmLab" placeholder="이름 (예: 원심, TrypLE)" value="${esc(_tmLabel)}" oninput="_tmLabel=this.value">
-      <div class="tm-pre">${TM_PRESETS.map(n=>`<button class="cnt-chip" onclick="tmStart(${n},document.getElementById('tmLab').value)">${n<60?n+'분':'1시간'}</button>`).join('')}</div>
-      <div class="tm-cus"><input id="tmMin" type="number" min="0.1" step="any" inputmode="decimal" value="${_tmMin}" oninput="_tmMin=this.value">분<button class="btn btn-pri" onclick="tmStart(document.getElementById('tmMin').value,document.getElementById('tmLab').value)">${ic('clock','ic-sm')}시작</button></div></div>
-    <div id="tmBody"></div><div class="tm-play" id="tmPlay"><span class="tm-pn" id="tmPn"></span></div>`;
-  tmRenderList(); }
-function tmRenderList(){ const b=document.getElementById('tmBody'); if(!b) return; const now=Date.now();
-  b.innerHTML=tmList.slice().sort((a,b)=>a.end-b.end).map(t=>{ const left=t.end-now, done=left<=0, pc=done?100:Math.min(100,(1-left/t.dur)*100);
-    return `<div class="tm-row${done?' done':''}"><div class="tm-big">${done?'끝!':tmFmt(left)}</div><div class="tm-meta"><b>${esc(t.label||'')}</b><span class="tm-bar"><i style="width:${pc}%"></i></span></div>
-      <button class="tbl-btn" onclick="tmAdd('${t.id}',1)">+1분</button><button class="tbl-btn" onclick="tmStop('${t.id}')">${done?'확인':ic('x','ic-sm')}</button></div>`; }).join(''); }
-// 기다리는 동안: 세포를 누르면 둘로 나뉨. 64개가 되면 confluent → 처음부터
-let _tmCells=[];
-function tmPlayInit(){ const box=document.getElementById('tmPlay'); if(!box) return; if(!_tmCells.length) _tmCells=[{x:.5,y:.5,r:.16}]; tmPlayDraw(); }
-function tmPlayDraw(){ const box=document.getElementById('tmPlay'); if(!box) return; box.querySelectorAll('.tm-cell').forEach(x=>x.remove());
-  const cols=['#FBCFDC','#C7E3F7','#D4EDC6','#FFE2B0','#DCD2F4','#BFE7DF'];
-  _tmCells.forEach((c,i)=>{ const d=document.createElement('button'); d.className='tm-cell'+(c.nw?' nw':''); d.style.cssText=`left:${c.x*100}%;top:${c.y*100}%;width:${c.r*2*100}%;background:${cols[i%cols.length]};`; d.onclick=e=>{ e.stopPropagation(); tmSplit(i); }; box.appendChild(d); c.nw=false; });
-  const pn=document.getElementById('tmPn'); if(pn) pn.textContent=_tmCells.length>=64?'confluent!':_tmCells.length; }
-function tmSplit(i){ if(_tmCells.length>=64){ _tmCells=[{x:.5,y:.5,r:.16}]; tmPlayDraw(); return; }
-  const c=_tmCells[i], r=Math.max(.035,c.r*.74), a=Math.random()*Math.PI, dx=Math.cos(a)*r*.95, dy=Math.sin(a)*r*.95, cl=v=>Math.min(1-r,Math.max(r,v));
-  _tmCells.splice(i,1,{x:cl(c.x-dx),y:cl(c.y-dy),r,nw:1},{x:cl(c.x+dx),y:cl(c.y+dy),r,nw:1}); tmPlayDraw(); }
-tmRun();
-// ══════════════════════════════════════════
 //  칭찬 도장판 (11-28 유진): 기록(배양 · 실험)을 남긴 날마다 도장 하나, 10칸 채우면 보너스 뽑기
 //  기록에서 바로 셈 (따로 저장 안 함, 기기끼리 기록만 맞으면 같음). 시작일 petSt.stampStart부터. 새 도장은 저장할 때 찍히는 모습
 // ══════════════════════════════════════════
@@ -11845,7 +11778,6 @@ const NEWS={id:'2026-11-28', date:'2026-11-28', days:5, items:[
   ['<b>PPT figure 색 조합</b>','Plate map 조건 아래 색 조합(파스텔 · 바다 · 노을 · 숲 · 라벤더 · 차분한 · 색약 배려 · 흑백)을 누르면 조건 · 라인 색이 한 번에 바뀌어요. Control · DMSO는 회색, 같은 약 농도는 한 색의 진하기로. 판 색은 연한 회색 · 흰색 · 옅은 조합 색'],
   ['<b>PPT figure well 글자 줄바꿈</b>','well 글자 칸에서 엔터로 줄을 나눠요 (Ctrl+Enter로 쓰기). 글자가 길면 작게 줄이기보다 먼저 줄을 바꿔요. 편집 창은 이제 「닫기」를 눌러야만 닫혀요'],
   ['<b>칭찬 도장판</b>','기록을 남긴 날마다 도장 하나, 10칸 채우면 보너스 뽑기. 설정 › 도장판'],
-  ['<b>타이머</b>','도구 › 타이머. 원심 · TrypLE 기다릴 때 켜 두면 끝날 때 소리로 알려 줘요. 여러 개 같이'],
   ['<b>사진 폴더 나누기</b>','이름 · 스케일바에서 저장하면 라인 › 날짜 폴더로 나눠 저장해요. 이미 저장한 사진은 「이미 저장한 사진 정리」로'],
   ['<b>오늘 작업에서 실험 기록</b>','기록 입력 위 「실험 기록」'],
   ['<b>MC 주기</b>','설정 › MC 주기에서 라인 종류마다 MC 경고일 · 지연일을 정해요 (기본 3일 · 4일). 라인 수정의 「MC 주기 따로」에 넣으면 그 라인만 다르게. MC 색 · 「MC 할 날」 · 「MC 지연」 숫자 · 한 번에 고르기가 모두 이 값을 따라요'],
