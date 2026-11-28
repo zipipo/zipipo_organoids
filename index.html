@@ -12111,11 +12111,12 @@ const mdCap=t=>{ const v=+t.size||50; return v>250?500:v>50?250:v>15?50:15; };
 const mdIsBottle=t=>mdCap(t)>=250;
 // 배지 병: 동글한 어깨 · 뚜껑 홈 · 웃는 얼굴 라벨, 양만큼 채움
 function mdBottleSVG(x,color){
-  const big=mdCap(x.t)===500, W=big?64:54, H=big?132:116, capH=13, neckH=6, sh=big?18:15, nw=Math.round(W*.42), nx0=(W-nw)/2, nx1=nx0+nw, bt=capH+neckH, r=10;
+  const big=mdCap(x.t)===500, W=big?80:64, H=big?178:150, capH=big?15:14, neckH=big?8:7, sh=big?22:18,   // 50 ml 튜브(40×132)보다 크게, 500이 제일 크게 (11-28 유진)
+    nw=Math.round(W*.42), nx0=(W-nw)/2, nx1=nx0+nw, bt=capH+neckH, r=10;
   const frac=Math.max(0,Math.min(1,x.left/mdCap(x.t))), tot=H-1-bt, fillH=tot*frac, y0=H-1-fillH;
   const id='mdb'+x.t.id.replace(/[^a-z0-9]/gi,'');
   const shape=`M${nx0} ${bt} Q2 ${bt} 2 ${bt+sh} V${H-1-r} Q2 ${H-1} ${2+r} ${H-1} H${W-2-r} Q${W-2} ${H-1} ${W-2} ${H-1-r} V${bt+sh} Q${W-2} ${bt} ${nx1} ${bt} Z`;
-  const ly=bt+sh+(H-1-bt-sh)*.32, lw=W*.62, lh=big?30:26, lx=(W-lw)/2, cx=W/2, cy=ly+lh/2;
+  const ly=bt+sh+(H-1-bt-sh)*.32, lw=W*.62, lh=big?38:32, lx=(W-lw)/2, cx=W/2, cy=ly+lh/2;
   const ticks=[.25,.5,.75].map(f=>{ const y=H-1-tot*f; return `<line x1="${W-12}" x2="${W-4}" y1="${y}" y2="${y}" class="md-tick"/>`; }).join('');
   return `<svg class="md-tube md-bottle" width="${W}" height="${H+2}" viewBox="0 0 ${W} ${H+2}" aria-hidden="true">
     <defs><clipPath id="${id}"><path d="${shape}"/></clipPath></defs>
