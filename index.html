@@ -984,6 +984,28 @@ body[data-tab="fig"] .pane[data-pane="fig"]{display:block;animation:paneIn .28s 
 .cnt-done{justify-self:start;} .cnt-left{font-size:.84rem;padding:4px 4px 0;color:var(--sub,var(--mut));} .cnt-left.short{color:#B42318;font-weight:700;}
 .cnt-addp{display:flex;gap:6px;align-items:center;flex-wrap:wrap;} .cnt-addp input{flex:1;min-width:180px;height:34px;padding:0 10px;border:1px solid var(--bd);border-radius:9px;background:var(--sur);color:var(--ink);}
 @media (max-width:760px){ .cnt .cnt-wrap{grid-template-columns:1fr;padding:12px;} .cnt-pname{width:120px;} .cnt-res{margin-left:0;width:100%;justify-items:start;text-align:left;} .cnt-p{position:relative;} .cnt-pr>.tbl-btn{position:absolute;top:8px;right:8px;} .cnt-pr{padding-right:44px;} }
+
+/* 셀 카운터 촘촘하게 (11-28 유진: 폰에서 스크롤 적게) */
+.cnt .cnt-wrap{gap:12px;padding:12px 14px;} .cnt-in{gap:8px;}
+.cnt-name{height:36px;padding:0 10px;border:1px solid var(--bd);border-radius:9px;background:var(--sur);color:var(--ink);font-size:.92rem;min-width:0;}
+.cnt-opts{display:flex;align-items:center;gap:8px;flex-wrap:wrap;} .cnt-opts .seg{padding:5px 11px;} .cnt-tb{font-style:normal;font-size:.72rem;color:var(--mut);margin-left:auto;}
+.cnt-row3{display:grid;grid-template-columns:1fr 1fr 1.15fr;gap:8px;} .cnt-row3 .cnt-f{gap:3px;} .cnt-row3 input{height:40px;font-size:1.05rem;}
+.cnt-volw{position:relative;display:block;} .cnt-volw input{width:100%;padding-right:42px;} .cnt-vu{position:absolute;right:5px;top:50%;transform:translateY(-50%);height:28px;min-width:32px;border:1px solid var(--bd);border-radius:7px;background:var(--psoft);font:inherit;font-size:.74rem;font-weight:700;color:var(--pri);cursor:pointer;}
+.cnt-rs{margin-left:2px;} .cnt-bt{margin-left:auto;display:flex;gap:4px;align-self:center;} .cnt-big{align-items:center;}
+.cnt-out{padding:12px;gap:8px;} .cnt-big b{font-size:1.7rem;} .cnt-kv{grid-template-columns:repeat(4,1fr);gap:6px;} .cnt-kv div{padding:6px 8px;} .cnt-kv b{font-size:.92rem;}
+.cnt-split{padding:10px 14px 12px;gap:6px;} .cnt-pr{padding:6px 8px;gap:6px;} .cnt-step button{width:26px;height:26px;} .cnt-step .cnt-n{width:46px;height:28px;}
+@media (max-width:760px){
+  .cnt .cnt-wrap{padding:10px;gap:10px;} .cnt-kv{grid-template-columns:repeat(4,1fr);gap:4px;} .cnt-kv div{padding:5px 6px;} .cnt-kv small{font-size:.6rem;} .cnt-kv b{font-size:.8rem;} .cnt-big b{font-size:1.45rem;} .cnt-big small,.cnt-big span{font-size:.72rem;}
+  .cnt-opts{gap:5px;} .cnt-opts .seg{padding:5px 9px;font-size:.78rem;} .cnt-out{padding:10px;}
+  .cnt-tb{display:none;} .cnt-rs{margin-left:auto;}
+  .cnt-h{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:2px 8px;padding:6px 8px;} .cnt-h .d{width:auto;font-size:.72rem;} .cnt-h b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;} .cnt-h span:not(.d){grid-column:1/-1;grid-row:2;font-size:.74rem;}
+  .cnt-p{position:relative;} .cnt-pr{display:grid;grid-template-columns:auto 1fr auto;grid-template-areas:"name name x" "per per per" "step step max" "res res res";row-gap:4px;padding:6px 8px;}
+  .cnt-pmove{display:none;} .cnt-pname{grid-area:name;width:100%;height:28px;} .cnt-per{grid-area:per;justify-self:start;padding:3px 10px;font-size:.86rem;} .cnt-step{grid-area:step;} .cnt-max{grid-area:max;justify-self:end;} .cnt-res{grid-area:res;}
+  .cnt-pr>.tbl-btn{grid-area:x;position:static;width:auto;justify-self:end;} .cnt-pr{padding-right:8px;}
+  .cnt-pr{grid-template-areas:"name per x" "step max res";grid-template-columns:minmax(0,1fr) auto auto;}
+  .cnt-res{justify-items:end;text-align:right;margin:0;width:auto;}
+  .cnt-addp input{min-width:0;flex-basis:100%;}
+}
 /* ═══ PPT figure ═══ */
 .fg-saved{display:inline-flex;align-items:center;gap:4px;font-size:.72rem;color:var(--ok);white-space:nowrap;}
 .fg-part{border:1px solid var(--bd2);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px;background:var(--sur);}
@@ -2556,7 +2578,7 @@ const syncClone = d => JSON.parse(JSON.stringify(d));
 // 펫은 Google 계정에 같이 저장 (펫 코드가 뒤에 있어서 window._petsOut / _petsIn으로 이어 줌)
 function localSync(){ return syncClone(pickSync({lines,logs,stockChecks,trash,plans,shotSets,shotNotes:_slRecentNotes,freeSamples,mediaDefs,mediaTubes,figures,exps,tlCollapsed,typeColors,pptCuts,pets:window._petsOut?window._petsOut():{}, prefs:_prefsOut()})); }
 // 이니셜처럼 기기마다 다시 입력하기 귀찮은 설정은 계정에 같이 저장
-function _prefsOut(){ const o={}; try{ const v=localStorage.getItem('orgInitials'); if(v) o.ini=v; const fz=localStorage.getItem('orgFontSize'); if(fz) o.size=fz; const ft=localStorage.getItem('orgFont'); if(ft&&ft!=='pretendard') o.font=ft; const ml=localStorage.getItem('orgMyLine'); if(ml) o.myLine=ml; const pj=localStorage.getItem('orgProjects'); if(pj&&pj!=='[]') o.projects=pj; const cp=localStorage.getItem('orgCntPurps'); if(cp) o.cntp=cp; const mr=localStorage.getItem('orgMcRule'); if(mr) o.mcr=mr;
+function _prefsOut(){ const o={}; try{ const v=localStorage.getItem('orgInitials'); if(v) o.ini=v; const fz=localStorage.getItem('orgFontSize'); if(fz) o.size=fz; const ft=localStorage.getItem('orgFont'); if(ft&&ft!=='pretendard') o.font=ft; const ml=localStorage.getItem('orgMyLine'); if(ml) o.myLine=ml; const pj=localStorage.getItem('orgProjects'); if(pj&&pj!=='[]') o.projects=pj; const cp=localStorage.getItem('orgCntPurps'); if(cp) o.cntp=cp; const mr=localStorage.getItem('orgMcRule'); if(mr) o.mcr=mr; const chh=localStorage.getItem('orgCntHist'); if(chh&&chh!=='[]') o.cnth=chh;
   [['pmsg','orgPlazaMsg'],['pnick','orgNickPlaza'],['prep','orgPlazaRep']].forEach(([k,ls])=>{ const x=localStorage.getItem(ls); if(x!=null) o[k]=x; }); }catch(e){} return o; }
 const syncHas = d => d.lines.length>0 || d.logs.length>0 || d.freeSamples.length>0;
 
@@ -2782,6 +2804,7 @@ function applySyncData(d){
     if(d.prefs&&d.prefs.font&&d.prefs.font!==document.documentElement.dataset.font) try{ setFont(d.prefs.font); }catch(e){}
     if(d.prefs&&d.prefs.myLine) try{ localStorage.setItem('orgMyLine',d.prefs.myLine); }catch(e){}
     if(d.prefs&&d.prefs.projects) try{ localStorage.setItem('orgProjects',d.prefs.projects); }catch(e){}
+    if(d.prefs&&typeof d.prefs.cnth==='string'&&d.prefs.cnth!==localStorage.getItem('orgCntHist')) try{ const inc=JSON.parse(d.prefs.cnth), cur=JSON.parse(localStorage.getItem('orgCntHist')||'[]'), m=new Map(); cur.concat(inc).forEach(x=>x&&x.id&&m.set(x.id,x)); const all=[...m.values()].sort((a,b)=>b.ts-a.ts).slice(0,60); localStorage.setItem('orgCntHist',JSON.stringify(all)); if(typeof cntHist!=='undefined'){ cntHist=all; if(curTab==='cnt') cntHistRender(); } }catch(e){}
     if(d.prefs&&typeof d.prefs.mcr==='string'&&d.prefs.mcr!==localStorage.getItem('orgMcRule')) try{ JSON.parse(d.prefs.mcr); localStorage.setItem('orgMcRule',d.prefs.mcr); }catch(e){}
     if(d.prefs&&d.prefs.cntp&&d.prefs.cntp!==localStorage.getItem('orgCntPurps')) try{ localStorage.setItem('orgCntPurps',d.prefs.cntp); if(typeof cntPurps!=='undefined'){ cntPurps=JSON.parse(d.prefs.cntp); if(curTab==='cnt') renderCnt(); } }catch(e){}
     // 광장 별명 · 한 줄 상태 · 대표 세포: 폰 · 노트북이 같은 값 (예전엔 기기마다 따로라 나중에 연 쪽 값으로 뒤집힘)
@@ -11935,7 +11958,7 @@ const NEWS={id:'2026-11-28c', date:'2026-11-28', days:7, notice:'꽃 · 응가�
   ['<b>MC 주기</b>','배양 라인 종류 이름 옆 칩에서'],
   ['<b>사진 폴더</b>','이름 · 스케일바 저장 때 환자_종류 폴더로. 이미 있는 폴더를 골라 둘 수도 있어요'],
   ['<b>실험 기록</b>','오늘 작업 기록 입력 위에서 바로'],
-  ['<b>셀 카운터</b>','개수 직접 입력 · 개수 0으로 · 센 값 1시간 자동 저장'],
+  ['<b>셀 카운터</b>','폰에서 한 화면에 · 저장 목록 · 개수 직접 입력'],
   ['<b>Media 병</b>','250 · 500 ml 병도 넣을 수 있어요'],
 ]};
 function newsShow(force){
@@ -12102,16 +12125,30 @@ let _mdAdd=null, _mdOpenCalc={};
 //  계산: cells/mL = 합계 ÷ 센 칸 수 × 2 (Trypan blue 1:1) × 10⁴,  총 세포 = cells/mL × 부피(mL),  뜰 부피(µL) = 세포 수 ÷ (cells/mL ÷ 1000)
 //  용도는 위에서부터 차례로 떼어 감. 부피는 µL 올림 (목표보다 적게 뜨지 않게)
 // ══════════════════════════════════════════
-const CNT_DIL=2, CNT_SQ=[1,2,4,5,8,9], CNT_MAN=[1,1.5,2,2.5,3,4,5,6,7,8,9], CNT_EXP=[3,4,5,6,7], CNT_UNITS=['vial','tube','well','dish','plate','장'];
+const CNT_DIL=2, CNT_SQ=[1,2,3,4], CNT_MAN=[1,1.5,2,2.5,3,4,5,6,7,8,9], CNT_EXP=[3,4,5,6,7], CNT_UNITS=['vial','tube','well','dish','plate','장'];
 const CNT_DEF=[{id:'stock',name:'Stock',unit:'vial',m:1,e:6,n:1},{id:'pellet',name:'Pellet',unit:'tube',m:1,e:6,n:1},{id:'seed',name:'Seeding',unit:'well',m:1,e:5,n:1}];
 let cntSt=(()=>{ try{ return JSON.parse(localStorage.getItem('orgCnt'))||{}; }catch(e){ return {}; } })();
-cntSt=Object.assign({sq:4,mode:'ld',live:'',dead:'',total:'',vol:'',vu:'mL',name:''},cntSt);
+cntSt=Object.assign({sq:4,mode:'ld',live:'',dead:'',total:'',vol:'',vu:'mL',name:''},cntSt); if(!(+cntSt.sq>=1&&+cntSt.sq<=4)) cntSt.sq=4;   // 큰 칸은 4칸까지 (11-28 유진)
 // 센 값은 이 페이지에만 1시간 동안 자동으로 남음 (11-28 유진). 마지막으로 고친 지 1시간 지나면 비움 (칸 수 · 입력 방식 · 용도는 그대로)
 const CNT_KEEP=3600e3;
 function cntExpire(){ if(cntSt.ts&&Date.now()-cntSt.ts>CNT_KEEP){ Object.assign(cntSt,{live:'',dead:'',total:'',vol:'',name:''}); delete cntSt.ts; try{ localStorage.setItem('orgCnt',JSON.stringify(cntSt)); }catch(e){} return true; } return false; }
 cntExpire();
 let cntPurps=(()=>{ try{ const a=JSON.parse(localStorage.getItem('orgCntPurps')); if(Array.isArray(a)&&a.length) return a; }catch(e){} return JSON.parse(JSON.stringify(CNT_DEF)); })();
 let _cntOpen=null;   // 세포 수를 고르는 중인 용도 id
+// 저장 목록 (11-28 유진: 촬영 순서처럼 목록이 남게). 이 페이지에만 보이고 계정에 동기화 (prefs.cnth), 최근 60개
+let cntHist=(()=>{ try{ const a=JSON.parse(localStorage.getItem('orgCntHist')); return Array.isArray(a)?a:[]; }catch(e){ return []; } })();
+function cntHistSave(){ cntHist=cntHist.sort((a,b)=>b.ts-a.ts).slice(0,60); try{ localStorage.setItem('orgCntHist',JSON.stringify(cntHist)); }catch(e){} cloudPushDebounced(); }
+function cntHistAdd(){ const r=cntCompute(cntSt,cntPurps); if(!r.ok) return toast('Live 합계를 넣어 주세요.',{warn:true});
+  cntHist.unshift({id:uid(),ts:Date.now(),name:(cntSt.name||'').trim(),sq:cntSt.sq,mode:cntSt.mode,live:cntSt.live,dead:cntSt.dead,total:cntSt.total,vol:cntSt.vol,vu:cntSt.vu,purps:cntPurps.filter(p=>+p.n>0).map(p=>({id:p.id,name:p.name,unit:p.unit,m:p.m,e:p.e,n:p.n}))});
+  cntHistSave(); cntHistRender(); toast('목록에 저장했어요'); }
+function cntHistLoad(id){ const h=cntHist.find(x=>x.id===id); if(!h) return; Object.assign(cntSt,{sq:h.sq,mode:h.mode,live:h.live||'',dead:h.dead||'',total:h.total||'',vol:h.vol||'',vu:h.vu||'mL',name:h.name||''});
+  (h.purps||[]).length&&cntPurps.forEach(p=>{ const q=h.purps.find(x=>x.id===p.id||x.name===p.name); p.n=q?q.n:0; if(q){ p.m=q.m; p.e=q.e; p.unit=q.unit; } });
+  (h.purps||[]).forEach(q=>{ if(!cntPurps.some(p=>p.id===q.id||p.name===q.name)) cntPurps.push(Object.assign({},q,{id:q.id||uid()})); });
+  cntSave(); cntSavePurps(); renderCnt(); window.scrollTo({top:0,behavior:'smooth'}); }
+function cntHistDel(id){ cntHist=cntHist.filter(x=>x.id!==id); cntHistSave(); cntHistRender(); }
+function cntHistRender(){ const el=document.getElementById('cntHist'); if(!el) return; if(!cntHist.length){ el.innerHTML=''; return; }
+  el.innerHTML=`<div class="cnt-sh"><b>저장 목록</b></div>`+cntHist.map(h=>{ const r=cntCompute(h,[]), d=new Date(h.ts);
+    return `<div class="cnt-h"><span class="d">${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}</span><b>${esc(h.name||'-')}</b><span>${r.ok?cntSci(r.conc)+'/mL':''}${r.ok&&r.hasVol?' · '+cntSci(r.total):''}${r.ok&&isFinite(r.via)?' · '+r.via.toFixed(1)+'%':''}${(h.purps||[]).length?' · '+h.purps.map(q=>`${esc(q.name)} ${q.n}`).join(', '):''}</span><button class="tbl-btn" onclick="cntHistLoad('${h.id}')">불러오기</button><button class="tbl-btn" onclick="cntHistDel('${h.id}')">${ic('x','ic-sm')}</button></div>`; }).join(''); }
 function cntSave(){ cntSt.ts=Date.now(); try{ localStorage.setItem('orgCnt',JSON.stringify(cntSt)); }catch(e){} }
 function cntSavePurps(){ try{ localStorage.setItem('orgCntPurps',JSON.stringify(cntPurps)); }catch(e){} cloudPushDebounced(); }
 const CNT_SUP={'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','-':'⁻'};
@@ -12171,22 +12208,20 @@ function renderCnt(){
   const el=document.getElementById('cntContent'); if(!el) return; cntExpire(); const s=cntSt;
   const seg=(k,v,t,on)=>`<button class="seg${on?' on':''}" onclick="cntSet('${k}',${JSON.stringify(v).replace(/"/g,'&quot;')})">${t}</button>`;
   const lineOpts=lines.filter(l=>!l.isCompleted).map(l=>`<option value="${esc(lineTag(l))}">`).join('');
-  el.innerHTML=`<section class="panel sec cnt"><div class="panel-hd"><span><i class="sec-ic">${ic('scope')}</i>셀 카운터</span><span class="panel-act"><button class="btn btn-out" onclick="cntReset()">${ic('refresh','ic-sm')}새로 세기</button></span></div>
+  el.innerHTML=`<section class="panel sec cnt">
     <div class="cnt-wrap"><div class="cnt-in">
-      <label class="cnt-f">샘플 <small>(선택)</small><input list="cntLines" value="${esc(s.name)}" placeholder="예: HCC41 Tumor-CAF" oninput="cntSt.name=this.value;cntSave();cntOut()"><datalist id="cntLines">${lineOpts}</datalist></label>
-      <div class="cnt-f"><span>센 칸 수 <small>큰 칸 몇 개 합계인지</small></span><div class="cnt-segs">${CNT_SQ.map(n=>seg('sq',n,n+'칸',+s.sq===n)).join('')}</div></div>
-      <div class="cnt-f"><span>입력 방식</span><div class="cnt-segs">${seg('mode','ld','Live · Dead',s.mode!=='lt')}${seg('mode','lt','Live · 전체 합계',s.mode==='lt')}</div></div>
-      <div class="cnt-row2"><label class="cnt-f">Live 합계<input id="cntLive" type="number" inputmode="numeric" min="0" value="${esc(s.live)}" placeholder="예: 169" oninput="cntSt.live=this.value;cntSave();cntOut()"></label>
-        ${s.mode==='lt'?`<label class="cnt-f">전체 합계 <small>(live + dead)</small><input type="number" inputmode="numeric" min="0" value="${esc(s.total)}" placeholder="예: 179" oninput="cntSt.total=this.value;cntSave();cntOut()"></label>`
-          :`<label class="cnt-f">Dead 합계<input type="number" inputmode="numeric" min="0" value="${esc(s.dead)}" placeholder="예: 10" oninput="cntSt.dead=this.value;cntSave();cntOut()"></label>`}</div>
-      <div class="cnt-row2"><label class="cnt-f">총 부피 <small>(세포를 푼 부피)</small><span class="cnt-vol"><input type="number" inputmode="decimal" min="0" step="any" value="${esc(s.vol)}" placeholder="예: 2" oninput="cntSt.vol=this.value;cntSave();cntOut()"><span class="cnt-segs sm">${seg('vu','mL','mL',s.vu!=='µL')}${seg('vu','µL','µL',s.vu==='µL')}</span></span></label>
-        <div class="cnt-f cnt-fix"><span>Trypan blue</span><b>1 : 1 고정 (×2)</b></div></div>
-      <div class="cnt-how">cells/mL = 합계 ÷ ${s.sq}칸 × 2 × 10⁴ · 총 세포 = cells/mL × 부피</div>
+      <input class="cnt-name" list="cntLines" value="${esc(s.name)}" placeholder="샘플 (선택)" oninput="cntSt.name=this.value;cntSave();cntOut()"><datalist id="cntLines">${lineOpts}</datalist>
+      <div class="cnt-opts"><span class="cnt-segs">${CNT_SQ.map(n=>seg('sq',n,n+'칸',+s.sq===n)).join('')}</span><span class="cnt-segs">${seg('mode','ld','Dead',s.mode!=='lt')}${seg('mode','lt','전체',s.mode==='lt')}</span><em class="cnt-tb">TB 1:1</em><button class="tbl-btn cnt-rs" onclick="cntReset()" title="새로 세기">${ic('refresh','ic-sm')}</button></div>
+      <div class="cnt-row3"><label class="cnt-f">Live<input id="cntLive" type="number" inputmode="numeric" min="0" value="${esc(s.live)}" placeholder="169" oninput="cntSt.live=this.value;cntSave();cntOut()"></label>
+        ${s.mode==='lt'?`<label class="cnt-f">전체<input type="number" inputmode="numeric" min="0" value="${esc(s.total)}" placeholder="179" oninput="cntSt.total=this.value;cntSave();cntOut()"></label>`
+          :`<label class="cnt-f">Dead<input type="number" inputmode="numeric" min="0" value="${esc(s.dead)}" placeholder="10" oninput="cntSt.dead=this.value;cntSave();cntOut()"></label>`}
+        <div class="cnt-f"><span>부피</span><span class="cnt-volw"><input type="number" inputmode="decimal" min="0" step="any" value="${esc(s.vol)}" placeholder="2" oninput="cntSt.vol=this.value;cntSave();cntOut()"><button class="cnt-vu" onclick="cntSet('vu','${s.vu==='µL'?'mL':'µL'}')">${s.vu==='µL'?'µL':'mL'}</button></span></div></div>
     </div><div class="cnt-out" id="cntOut"></div></div>
-    <div class="cnt-split"><div class="cnt-sh"><b>나누기</b><small>위에서부터 차례로 떼어 가요. 숫자를 눌러 고르기</small></div><div id="cntRows"></div>
+    <div class="cnt-split"><div class="cnt-sh"><b>나누기</b></div><div id="cntRows"></div>
       <div class="cnt-addp"><input id="cntNewP" placeholder="용도 추가 (예: Seeding Tumor-org, Seeding CAF)" onkeydown="if(event.key==='Enter')cntAddPurp()"><button class="btn btn-out" onclick="cntAddPurp()">${ic('plus','ic-sm')}추가</button><button class="link-btn" onclick="cntZero()">개수 0으로</button><button class="link-btn" onclick="cntResetPurps()">기본으로</button></div></div>
+    <div class="cnt-split" id="cntHist"></div>
   </section>`;
-  cntOut();
+  cntOut(); cntHistRender();
 }
 function cntSet(k,v){ cntSt[k]=v; cntSave(); renderCnt(); }
 function cntReset(){ Object.assign(cntSt,{live:'',dead:'',total:'',vol:'',name:''}); cntSave(); renderCnt(); setTimeout(()=>{ const x=document.getElementById('cntLive'); if(x) x.focus(); },30); }
@@ -12194,12 +12229,12 @@ function cntOut(){
   const box=document.getElementById('cntOut'), rows=document.getElementById('cntRows'); if(!box) return;
   const r=cntCompute(cntSt,cntPurps); window._cntLast=r;
   if(r.err) box.innerHTML=`<div class="cnt-err">${ic('alert','ic-sm')}${esc(r.err)}</div>`;
-  else if(!r.ok) box.innerHTML=`<div class="cnt-empty">Live 합계를 넣으면 여기서 계산돼요.<br><small>예: 4칸 합 live 169 / dead 10, 2 mL → 8.45×10⁵ cells/mL, 총 1.69×10⁶, viability 94.4%</small></div>`;
-  else box.innerHTML=`<div class="cnt-big"><small>Live</small><b>${cntSci(r.conc)}</b><span>cells/mL</span></div>
+  else if(!r.ok) box.innerHTML=`<div class="cnt-empty">- cells/mL</div>`;
+  else box.innerHTML=`<div class="cnt-big"><small>Live</small><b>${cntSci(r.conc)}</b><span>cells/mL</span><span class="cnt-bt"><button class="tbl-btn" onclick="cntHistAdd()" title="목록에 저장">${ic('check','ic-sm')}저장</button><button class="tbl-btn" onclick="cntCopy()" title="글로 복사">${ic('list','ic-sm')}복사</button></span></div>
     <div class="cnt-kv"><div><small>총 live 세포</small><b>${r.hasVol?cntSci(r.total):'<i>부피를 넣으면</i>'}</b></div><div><small>Viability</small><b>${isFinite(r.via)?r.via.toFixed(1)+'%':'-'}</b></div>
       <div><small>µL당</small><b>${cntSci(r.perUL)}</b></div><div><small>Dead</small><b>${isFinite(r.deadConc)?cntSci(r.deadConc)+'/mL':'-'}</b></div></div>
     ${r.warn.map(w=>`<div class="cnt-warn">${esc(w)}</div>`).join('')}
-    <span class="cnt-acts"><button class="btn btn-out" onclick="cntCopy()">${ic('list','ic-sm')}글로 복사</button></span>`;
+`;
   if(rows) rows.innerHTML=cntRowsHtml(r);
 }
 function cntRowsHtml(r){
