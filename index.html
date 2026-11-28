@@ -11140,7 +11140,7 @@ function petWalk(id){
 function petRename(id){ const v=prompt('세포 이름', petSt.owned[id].name||''); if(v===null) return; petSt.owned[id].name=v.trim().slice(0,12); savePets(); PETS.forEach(p=>{ if(p.id===id&&p.nm) p.nm.textContent=petName(id); }); _petRefresh(); }
 function petHide(){ petSt.hidden=!petSt.hidden; savePets(); petSync(); _petRefresh(); }
 // 2번째 시리즈: S2_START부터, 1번째 시리즈 도감을 S2_NEED마리 넘게 모은 사람에게만 뽑기에 나옴. 그때부터 보너스 뽑기는 덜 줌 (petTicketGive)
-const S2_START='2026-11-30', S2_NEED=88;
+const S2_START='2026-12-07', S2_NEED=88;   // 11-28 유진: 12/7부터
 const petS1Dex=()=>Object.keys(petSt.owned).filter(id=>{ const k=petKind(id); return k&&!k.gift&&k.s!==2; }).length;
 function petS2On(){ return ymdLocal(new Date())>=S2_START&&petS1Dex()>=S2_NEED; }
 function petPick(){
@@ -12152,7 +12152,7 @@ if(!STAMP_ON){ const b=document.querySelector('.set-nav button[data-st="stamp"]'
 //  업데이트 안내: 올린 날부터 5일 동안 열 때마다 보여줌 (「다시 보지 않기」 체크하면 이 버전은 끝)
 //  새 기능을 올릴 때 NEWS의 id · date · items만 바꾸면 됨
 // ══════════════════════════════════════════
-const NEWS={id:'2026-11-28d', date:'2026-11-28', days:7, notices:[['꽃 · 응가는 12/4(금)까지예요. 12/5부터는 안 생겨요','2026-12-05'],['11/30(월)부터 새 세포 52종 (시리즈 2, 도감 88마리부터)','2026-12-07']], items:[
+const NEWS={id:'2026-11-28d', date:'2026-11-28', days:7, notices:[['꽃 · 응가는 12/4(금)까지예요. 12/5부터는 안 생겨요','2026-12-05'],['12/7(월)부터 새 세포 52종 (시리즈 2, 도감 88마리부터)','2026-12-14']], items:[
   ['<b>세포 풀어주기</b>','겹친 세포를 광장에 풀어 두면 아무나 데려가요 (하루 3마리)'],
   ['<b>게임 이어하기</b>','창을 닫아도 하던 판이 남아요. 10일 판 1위는 보너스 뽑기 3장'],
   ['<b>미니게임</b>','세포 · 광장 › 게임. 10일마다 바뀌고 광장 순위가 있어요'],
