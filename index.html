@@ -11649,7 +11649,7 @@ setInterval(()=>{ try{ if(mailUser()) plazaMiniLoad(); }catch(e){} },300000);
 const MAIL_KINDS=['배경 아이디어','기능 요청','불편한 점','기타'];
 // 메일 알림 (유진 11-28: 우체통에 써도 메일로 안 옴): 편지는 Firestore에만 쌓이고 메일은 따로 보내야 함.
 // 관리자가 만든 Google Apps Script 웹 앱 주소를 여기 넣으면, 편지를 보낼 때 그 주소로도 보내서 관리자 Gmail로 옴 (docs/HANDOVER.md 「우체통 메일 알림」)
-const MAIL_HOOK='';
+const MAIL_HOOK='https://script.google.com/macros/s/AKfycbxkpnCRETLC916EWyypb-XW5kKWjhUiaH137KjgoltiuXBQVFr7F_k1beEW8Sbilwp6xg/exec';   // 유진 계정 Apps Script 웹 앱 (11-28 다른 세션에서 연결)
 function mailHook(d){ if(!MAIL_HOOK) return Promise.resolve(false);
   // text/plain + no-cors: 브라우저가 미리 묻기(preflight) 없이 보냄. 답은 못 읽으니 보낸 것까지만
   return fetch(MAIL_HOOK,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(d)}).then(()=>true).catch(()=>false); }
