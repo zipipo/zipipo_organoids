@@ -588,6 +588,7 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.92em;bac
 .dd-dot{width:6px;height:6px;border-radius:50%;background:var(--due);}
 .bk-ok{color:var(--ok);font-weight:600;} .bk-warn{color:var(--due);font-weight:600;} .bk-sub{color:var(--mut);}
 .bk-mini{background:var(--due-bg);color:var(--due);border:none;border-radius:4px;padding:2px 7px;font-size:.7rem;font-weight:600;cursor:pointer;}
+.sb-sort{display:inline-flex;align-items:center;gap:5px;margin-left:10px;} .sb-sort select{height:24px;font-size:.72rem;padding:0 4px;border:1px solid var(--bd);border-radius:6px;background:var(--sur);color:var(--ink);}
 
 /* 상단 바 */
 .topbar{position:sticky;top:0;z-index:150;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
@@ -767,6 +768,8 @@ label{font-size:.74rem;font-weight:550;color:var(--sub);}
 /* 기록 입력 패널 */
 .composer{position:sticky;top:76px;background:var(--sur);border:1px solid var(--bd);border-radius:8px;display:flex;flex-direction:column;max-height:calc(100vh - 92px);overflow:hidden;}
 .cp-hd{display:flex;align-items:center;justify-content:space-between;height:42px;padding:0 14px;border-bottom:1px solid var(--bd2);font-size:.84rem;font-weight:650;flex:none;}
+.cp-exp{margin-left:auto;margin-right:8px;display:inline-flex;align-items:center;gap:3px;height:26px;padding:0 10px;border:1px solid var(--bd);border-radius:999px;background:var(--sur);font:inherit;font-size:.74rem;font-weight:600;color:#7C6FB0;cursor:pointer;} .cp-exp .ic{width:12px;height:12px;} .cp-exp:hover{border-color:#7C6FB0;}
+body[data-theme="mono"] .cp-exp{color:var(--ch);}
 .plan-link{align-items:center;justify-content:space-between;gap:8px;padding:4px 6px 4px 14px;background:var(--acc-bg);color:var(--acc);font-size:.76rem;font-weight:550;border-bottom:1px solid var(--acc-bd);}
 .plan-link > span{display:flex;align-items:center;gap:6px;}
 .eform{padding:14px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;flex:1;min-height:0;background:none;}
@@ -1509,6 +1512,33 @@ body.pet-on[data-tab="today"] #petLayer{display:block;}
 .pm-bars i{display:block;height:100%;background:var(--pri);opacity:.6;border-radius:9px;}
 .pm-meta{font-size:.72rem;color:var(--sub);margin:6px 0 8px;}
 .pm-btns{display:flex;flex-wrap:wrap;gap:5px;}
+.tm-box{width:min(460px,94vw);display:grid;gap:12px;} .tm-hd{display:flex;justify-content:space-between;align-items:center;font-size:1rem;}
+.tm-new{display:grid;gap:8px;} .tm-new>input{height:34px;padding:0 10px;border:1px solid var(--bd);border-radius:9px;background:var(--sur);color:var(--ink);}
+.tm-pre{display:flex;flex-wrap:wrap;gap:5px;} .tm-cus{display:flex;align-items:center;gap:6px;font-size:.85rem;} .tm-cus input{width:80px;height:34px;text-align:center;border:1px solid var(--bd);border-radius:9px;background:var(--sur);color:var(--ink);}
+.tm-cus .btn{margin-left:auto;} .tm-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;background:var(--psoft);} .tm-row.done{background:#FFE4E8;animation:tmBlink 1s infinite;}
+.tm-big{font-size:1.6rem;font-weight:800;font-variant-numeric:tabular-nums;min-width:92px;} .tm-meta{flex:1;display:grid;gap:4px;min-width:0;} .tm-meta b{font-size:.84rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.tm-bar{height:6px;border-radius:3px;background:var(--sur);overflow:hidden;} .tm-bar i{display:block;height:100%;background:var(--pri);border-radius:3px;transition:width .5s linear;}
+@keyframes tmBlink{50%{background:#FFF3F5;}}
+.tm-play{position:relative;aspect-ratio:16/10;border-radius:14px;background:var(--sur2,#F6F7F9);border:1px solid var(--bd);overflow:hidden;} .tm-pn{position:absolute;right:10px;bottom:6px;font-weight:800;color:var(--mut);font-size:.9rem;}
+.tm-cell{position:absolute;aspect-ratio:1;border-radius:50%;border:2px solid rgba(0,0,0,.12);transform:translate(-50%,-50%);cursor:pointer;padding:0;transition:left .35s,top .35s,width .35s;box-shadow:inset -3px -3px 0 rgba(0,0,0,.05);}
+.tm-cell::after{content:'';position:absolute;left:38%;top:38%;width:24%;height:24%;border-radius:50%;background:rgba(0,0,0,.12);}
+.tm-cell.nw{animation:tmPop .35s ease-out;} @keyframes tmPop{0%{transform:translate(-50%,-50%) scale(.6);}100%{transform:translate(-50%,-50%) scale(1);}}
+.tm-pill{position:fixed;right:16px;bottom:16px;z-index:900;display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;border:1px solid var(--bd);background:var(--sur);box-shadow:0 6px 20px rgba(0,0,0,.12);font:inherit;color:var(--ink);cursor:pointer;}
+.tm-pill b{font-variant-numeric:tabular-nums;} .tm-pill span{font-size:.78rem;color:var(--mut);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;} .tm-pill i{font-style:normal;font-size:.72rem;color:var(--mut);}
+.tm-pill.done{background:#FFE4E8;border-color:#F4A6B4;animation:tmBlink 1s infinite;}
+@media (max-width:900px){ .tm-pill{bottom:78px;} }
+.stp-card{display:grid;gap:12px;} .stp-hd{display:flex;align-items:baseline;justify-content:space-between;} .stp-hd span{font-weight:700;color:#D9485F;}
+.stp-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;} .stp-cell{aspect-ratio:1;border:2px dashed var(--bd);border-radius:50%;display:grid;place-items:center;background:var(--sur);}
+.stp-cell i{font-style:normal;font-size:.8rem;color:var(--mut);font-weight:600;}
+.stp{--sc:#E0566B;display:grid;place-items:center;align-content:center;width:86%;aspect-ratio:1;border-radius:50%;border:3px double var(--sc);color:var(--sc);transform:rotate(var(--r));background:rgba(224,86,107,.06);text-align:center;line-height:1.1;}
+.stp b{font-size:clamp(.56rem,1.6vw,.74rem);font-weight:800;letter-spacing:-.02em;word-break:keep-all;padding:0 3px;} .stp small{font-size:.55rem;opacity:.8;margin-top:2px;}
+.stp.big{width:150px;border-width:6px;} .stp.big b{font-size:1.5rem;} .stp.big small{font-size:.8rem;}
+.stp-done{display:flex;flex-wrap:wrap;align-items:center;gap:4px;} .stp-mini{width:14px;height:14px;border-radius:50%;border:2px double #E0566B;} .stp-done small{margin-left:6px;color:var(--mut);font-size:.74rem;}
+.stp-ov{position:fixed;inset:0;z-index:5000;display:grid;place-items:center;background:rgba(255,255,255,.35);transition:opacity .35s;} .stp-ov.out{opacity:0;}
+.stp-pop{display:grid;justify-items:center;gap:12px;} .stp-pop .stp{animation:stpIn .45s cubic-bezier(.2,1.6,.4,1) both;background:rgba(255,255,255,.9);box-shadow:0 8px 30px rgba(224,86,107,.18);}
+.stp-n{font-weight:800;color:#D9485F;background:var(--sur);padding:4px 12px;border-radius:999px;box-shadow:0 2px 10px rgba(0,0,0,.08);}
+@keyframes stpIn{0%{transform:scale(2.4) rotate(var(--r));opacity:0;}60%{transform:scale(.92) rotate(var(--r));opacity:1;}100%{transform:scale(1) rotate(var(--r));}}
+@media (prefers-reduced-motion:reduce){ .stp-pop .stp{animation:none;} }
 .el-mc{display:flex;align-items:center;gap:10px;margin-bottom:9px;flex-wrap:wrap;} .el-mc label{margin:0;} .el-mc span{display:inline-flex;align-items:center;gap:5px;font-size:.8rem;color:var(--sub);} .el-mc input{width:64px;height:32px;text-align:center;}
 .mc-rules{display:grid;gap:6px;} .mc-rh,.mc-rule{display:grid;grid-template-columns:minmax(0,1fr) 92px 92px;align-items:center;gap:8px;} .mc-rh{font-size:.72rem;color:var(--mut);font-weight:600;} .mc-rh span{display:flex;align-items:center;gap:5px;}
 .mc-rule{padding:6px 8px;border-radius:10px;background:var(--tf,var(--sur2));} .mc-rule .type-chip{justify-self:start;} .mc-rule em{display:none;}
@@ -1994,6 +2024,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
   <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M11 3l1.8 5.2L18 10l-5.2 1.8L11 17l-1.8-5.2L4 10l5.2-1.8z"/><path d="M19 15v5M16.5 17.5h5"/></symbol>
   <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7.5-4.6-7.5-10.2A4.2 4.2 0 0 1 12 7.2a4.2 4.2 0 0 1 7.5 2.6C19.5 15.4 12 20 12 20z"/></symbol>
   <symbol id="i-flower" viewBox="0 0 24 24"><circle cx="12" cy="6.2" r="2.6"/><circle cx="16.2" cy="10" r="2.6"/><circle cx="12" cy="13.8" r="2.6"/><circle cx="7.8" cy="10" r="2.6"/><path d="M12 16.4V22M12 19c-1.5-1.6-3.2-2-4.5-1.6"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9.5 2.5h5"/></symbol>
   <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8.2 8.2 0 1 1 9.5 4a6.6 6.6 0 0 0 10.5 10.5z"/><path d="M17 4.5v2M16 5.5h2"/></symbol>
   <symbol id="i-wave" viewBox="0 0 24 24"><path d="M2 9c2.5-2.2 4.5-2.2 7 0s4.5 2.2 7 0 4.2-2.2 6 0M2 15c2.5-2.2 4.5-2.2 7 0s4.5 2.2 7 0 4.2-2.2 6 0"/></symbol>
   <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M5 19c0-8.5 5.8-14 15-14 0 9.2-5.4 15-14 15z"/><path d="M5 19l7.5-7.5"/></symbol>
@@ -2031,6 +2062,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
     <button class="nav-i" onclick="openNoteModal()"><svg class="ic"><use href="#i-print"/></svg><span>연구노트 인쇄</span></button>
     <button class="nav-i tab" data-tab="ln2" onclick="setTab('ln2')"><svg class="ic"><use href="#i-tank"/></svg><span>LN2 탱크</span></button>
     <button class="nav-i tab" data-tab="cnt" onclick="setTab('cnt')"><svg class="ic"><use href="#i-scope"/></svg><span>셀 카운터</span></button>
+    <button class="nav-i" onclick="tmOpen()"><svg class="ic"><use href="#i-clock"/></svg><span>타이머</span><em id="tmNavN"></em></button>
     <button class="nav-i tab" data-tab="media" onclick="setTab('media')"><svg class="ic"><use href="#i-drop"/></svg><span>Media</span></button>
     <button class="nav-i tab" data-tab="fig" onclick="setTab('fig')"><svg class="ic"><use href="#i-slides"/></svg><span>PPT figure</span></button>
   </nav>
@@ -2108,7 +2140,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
       </div>
 
       <aside class="composer" id="logCard">
-        <div class="cp-hd"><span>기록 입력</span><kbd>Ctrl ↵</kbd></div>
+        <div class="cp-hd"><span>기록 입력</span><button class="cp-exp" onclick="expFromToday()"><svg class="ic"><use href="#i-plus"/></svg>실험 기록</button><kbd>Ctrl ↵</kbd></div>
         <div id="planLinkBar" class="plan-link" style="display:none;"></div>
         <div class="eform">
           <div class="ef-row">
@@ -2280,6 +2312,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
       <button data-st="home" onclick="renderSettings('home')"><svg class="ic"><use href="#i-today"/></svg>홈 화면</button>
       <button data-st="mc" onclick="renderSettings('mc')"><svg class="ic"><use href="#i-drop"/></svg>MC 주기</button>
       <button data-st="pet" onclick="renderSettings('pet')"><svg class="ic"><use href="#i-paw"/></svg>세포</button>
+      <button data-st="stamp" onclick="renderSettings('stamp')"><svg class="ic"><use href="#i-flower"/></svg>도장판</button>
       <button data-st="ln2" onclick="renderSettings('ln2')"><svg class="ic"><use href="#i-tank"/></svg>LN2</button>
       <button data-st="plaza" onclick="renderSettings('plaza')"><svg class="ic"><use href="#i-heart"/></svg>광장</button>
       <button data-st="mail" onclick="renderSettings('mail')"><svg class="ic"><use href="#i-mail"/></svg>우체통</button>
@@ -4835,7 +4868,7 @@ function saveDailyLog(){
   updateUI();previewDay();
   const n=lineIds.length*dates.length;
   let mdMsg=''; try{ mdMsg=mdUseNote(logs.filter(l=>(l.seq||0)>seq0)); }catch(e){}
-  toast(`${action} ${n}건 기록했어요${planMsg}${mdMsg}`,{undo:snap});
+  toast(`${action} ${n}건 기록했어요${planMsg}${mdMsg}`,{undo:snap}); try{ stampCheck(true); }catch(e){}
   // 이 라인에 Plate map이 있었고 Split · Seeding 같은 기록이면: 지난 맵을 이어서 새 맵 만들기
   try{ const nl=logs.filter(l=>(l.seq||0)>seq0&&lmapSeedLike(l.action)&&lmapsOfLine(l.lineId).length&&!lmapFor(l.id))[0];
     if(nl){ const ln=lineById(nl.lineId), p=parseP(nl.passage); setTimeout(()=>toast(`${ln?lineTag(ln):''} Plate map도 이어서 만들까요? (P${p} → P${isPassageUp(nl.action)?p+1:p})`,{act:['Plate map',()=>lmapOpen(nl.id)]}),400); } }catch(e){}
@@ -6645,7 +6678,36 @@ async function sbGetDir(){
 // 폴더가 아직 있는지: 지워지거나 옮겨진 폴더는 권한이 남아 있어도 쓰기에서 NotFoundError가 난다
 async function sbDirAlive(h){ try{ await h.values().next(); return true; }catch(e){ return !(e&&e.name==='NotFoundError'); } }
 async function sbChangeDir(){ try{ const h=await window.showDirectoryPicker({mode:'readwrite',id:'orgSbarDir'}); sbDirHandle=h; await idbSet('sbDir',h); renderSbDir(); }catch(e){} }
-function renderSbDir(){ const el=document.getElementById('sbDirInfo'); if(!el) return; el.innerHTML = sbDirHandle? `저장 폴더: <b>${esc(sbDirHandle.name)}</b> <button class="bk-mini" onclick="sbChangeDir()">변경</button>` : `저장 폴더: 저장할 때 선택 <button class="bk-mini" onclick="sbChangeDir()">지금 지정</button>`; }
+function renderSbDir(){ const el=document.getElementById('sbDirInfo'); if(!el) return; el.innerHTML = (sbDirHandle? `저장 폴더: <b>${esc(sbDirHandle.name)}</b> <button class="bk-mini" onclick="sbChangeDir()">변경</button>` : `저장 폴더: 저장할 때 선택 <button class="bk-mini" onclick="sbChangeDir()">지금 지정</button>`)
+  +(window.showDirectoryPicker?` <span class="sb-sort">폴더 나누기 <select onchange="sbSetSort(this.value)">${SB_SORTS.map(([k,t])=>`<option value="${k}"${sbSort()===k?' selected':''}>${t}</option>`).join('')}</select><button class="bk-mini" onclick="sbSortExisting()">이미 저장한 사진 정리</button></span>`:''); }
+// 사진 폴더 나누기 (11-28 랩 사람들: 저장한 사진을 라인 · 날짜 폴더로 다시 옮기는 게 힘듦)
+// ld = 라인/날짜, dl = 날짜/라인, l = 라인만, d = 날짜만, '' = 나누지 않음. 라인 폴더 = 환자_종류[_세부명], 날짜 폴더 = YYMMDD
+const SB_SORTS=[['ld','라인 › 날짜'],['dl','날짜 › 라인'],['l','라인'],['d','날짜'],['none','안 나눔']];
+function sbSort(){ try{ return localStorage.getItem('orgSbSort')||'ld'; }catch(e){ return 'ld'; } }
+function sbSetSort(v){ try{ localStorage.setItem('orgSbSort',v); }catch(e){} }
+function sbSortParts(lineDir,d6,mode){ mode=mode||sbSort(); return mode==='ld'?[lineDir,d6]:mode==='dl'?[d6,lineDir]:mode==='l'?[lineDir]:mode==='d'?[d6]:[]; }
+function sbLineDir(line){ if(line.free) return safeFileName(line.sample.name.trim().replace(/[\s\/]+/g,'-')); return safeFileName(`${line.patientId}_${line.type}${line.detail?'_'+line.detail.trim().replace(/[_\s\/]+/g,'-'):''}`); }
+async function sbSubDir(root,parts,cache){ let h=root, key=''; for(const p of parts.filter(Boolean)){ key+='/'+p; if(!cache[key]) cache[key]=await h.getDirectoryHandle(p,{create:true}); h=cache[key]; } return h; }
+// 이미 저장한 사진 정리: 고른 폴더 바로 안의 「YYMMDD_라인_…」 이름 사진을 하위 폴더로 옮김 (복사 → 원본 지움)
+async function sbSortExisting(){
+  if(!window.showDirectoryPicker) return;
+  let root; try{ root=await window.showDirectoryPicker({mode:'readwrite',id:'orgSbarDir'}); }catch(e){ return; }
+  const mode=sbSort()==='none'?'ld':sbSort(), keys=lines.map(l=>({l,k:sbLineDir(l)})).concat((typeof freeSamples!=='undefined'?freeSamples:[]).map(x=>({l:null,k:safeFileName(String(x.name||'').trim().replace(/[\s\/]+/g,'-'))}))).filter(x=>x.k).sort((a,b)=>b.k.length-a.k.length);
+  const jobs=[];
+  for await (const [name,h] of root.entries()){ if(h.kind!=='file'||!/\.(png|jpe?g|tiff?|bmp)$/i.test(name)) continue;
+    const m=name.match(/^(\d{6})_(.+)$/); if(!m) continue;
+    const rest=m[2], hit=keys.find(x=>rest.startsWith(x.k+'_')||rest.startsWith(x.k+'.')), ld=hit?hit.k:rest.split('_').slice(0,2).join('_').replace(/\.[^.]+$/,'');
+    jobs.push({name,h,parts:sbSortParts(ld,m[1],mode)}); }
+  if(!jobs.length) return alert('정리할 사진이 없어요.');
+  const nDir=new Set(jobs.map(j=>j.parts.join('/'))).size;
+  if(!confirm(`${jobs.length}장 → 폴더 ${nDir}개`)) return;
+  sbLoading(true,'정리 중…'); const cache={}; let moved=0, fail=0;
+  for(const j of jobs){ try{ const dir=await sbSubDir(root,j.parts,cache);
+      let exists=false; try{ await dir.getFileHandle(j.name); exists=true; }catch(e){}
+      if(exists){ fail++; continue; }
+      const file=await j.h.getFile(), fh=await dir.getFileHandle(j.name,{create:true}), w=await fh.createWritable(); await w.write(file); await w.close();
+      await root.removeEntry(j.name); moved++; sbLoading(true,`정리 중… (${moved}/${jobs.length})`); }catch(e){ fail++; } }
+  sbLoading(false); alert(`${moved}장 정리${fail?`, ${fail}장은 그대로 (같은 이름이 이미 있거나 못 옮김)`:''}`); }
 
 function renderSbarList(){
   renderSbFree();
@@ -6834,8 +6896,9 @@ async function sbarSaveAll(btn){
       let base=sbFullName(line,sbEffDate(f),f);
       // 같은 샘플·배율로 또 촬영해 이름이 겹치면 뒤에 (1), (2)…를 붙여 저장 (덮어쓰기 방지)
       if(cnt[base]==null){ cnt[base]=0; } else { cnt[base]++; base=base+' ('+cnt[base]+')'; }
-      jobs.push({f,folder:dir,fname:safeFileName(base)+ext,bar:true});
+      jobs.push({f,folder:dir,fname:safeFileName(base)+ext,bar:true,parts:dir?sbSortParts(sbLineDir(line),ymd6(sbEffDate(f))):[]});
     });
+    const dcache={}; for(const j of jobs) if(j.parts&&j.parts.length&&j.folder) j.folder=await sbSubDir(j.folder,j.parts,dcache);   // 라인 · 날짜 하위 폴더
     const N=Math.max(2,(sbPool()||{ws:[0,0]}).ws.length);
     let next=0, firstErr=null; const failed=[];
     const runOne=async j=>{
@@ -10436,7 +10499,7 @@ function petStMergeTab(o){
   const m=Object.assign({}, o, {owned, tkKeys:[...keys], tkUsed:Math.max(+o.tkUsed||0, +petSt.tkUsed||0), patsAll:Math.max(+o.patsAll||0, +petSt.patsAll||0), lvTk:[o.lvTk||'', petSt.lvTk||''].sort().pop()});
   return {m, lost};
 }
-window._petsOut=()=>{ const o={active:petSt.active.slice(), lastDraw:petSt.lastDraw||'', hidden:!!petSt.hidden, giftStart:petSt.giftStart||'', labDone:petSt.labDone||'', labWins:(petSt.labWins||[]).slice(-120), wkc:petSt.wkc||{}, tkKeys:(petSt.tkKeys||[]).slice(), tkUsed:petSt.tkUsed||0, cleaned:petSt.cleaned||0, flowersAll:petSt.flowersAll||0, patsAll:petSt.patsAll||0, fedAll:petSt.fedAll||0, visitOpens:petSt.visitOpens||0, visitDays:petSt.visitDays||0, visitLast:petSt.visitLast||'', lvTk:petSt.lvTk||''};
+window._petsOut=()=>{ const o={active:petSt.active.slice(), lastDraw:petSt.lastDraw||'', hidden:!!petSt.hidden, giftStart:petSt.giftStart||'', stampStart:petSt.stampStart||'', labDone:petSt.labDone||'', labWins:(petSt.labWins||[]).slice(-120), wkc:petSt.wkc||{}, tkKeys:(petSt.tkKeys||[]).slice(), tkUsed:petSt.tkUsed||0, cleaned:petSt.cleaned||0, flowersAll:petSt.flowersAll||0, patsAll:petSt.patsAll||0, fedAll:petSt.fedAll||0, visitOpens:petSt.visitOpens||0, visitDays:petSt.visitDays||0, visitLast:petSt.visitLast||'', lvTk:petSt.lvTk||''};
   Object.entries(petSt.owned).forEach(([id,v])=>{ const x={}; PET_SYNC_F.forEach(f=>{ if(v[f]!=null) x[f]=v[f]; }); o['o:'+id]=x; });
   return o; };
 window._petsIn=p=>{
@@ -10449,6 +10512,7 @@ window._petsIn=p=>{
   if(p.hidden!=null) petSt.hidden=!!p.hidden;
   if(p.giftStart&&p.giftStart!==petSt.giftStart){ if(!petSt.giftStart||p.giftStart>petSt.giftStart){ petSt.giftStart=p.giftStart; petSt.cleaned=p.cleaned||0; petSt.flowersAll=p.flowersAll||0; petSt.patsAll=p.patsAll||0; petSt.fedAll=p.fedAll||0; } }
   if(p.labDone) petSt.labDone=p.labDone;
+  if(p.stampStart&&(!petSt.stampStart||p.stampStart<petSt.stampStart)) petSt.stampStart=p.stampStart;   // 도장판 시작일: 먼저 시작한 기기 날짜
   if(p.lvTk&&p.lvTk>(petSt.lvTk||'')) petSt.lvTk=p.lvTk;
   if(Array.isArray(p.labWins)) labWinsAdd(p.labWins);
   if(Array.isArray(p.tkKeys)){ const a=petSt.tkKeys||(petSt.tkKeys=[]); p.tkKeys.forEach(k=>{ if(typeof k==='string'&&!a.includes(k)) a.push(k); }); }
@@ -10978,6 +11042,8 @@ function renderSettings(tab){
     h=`<h3>홈 화면</h3><div class="set-sec"><label class="set-row"><span><b>Incubator 보이기</b></span><input type="checkbox" class="set-tg" ${incuOn()?'checked':''} onchange="setIncu(this.checked)"></label>
       <label class="set-row" onclick="event.preventDefault();openIncuWindow()"><span><b>인큐베이터 작은 창 열기</b><small>바탕화면 구석에 띄워 두기</small></span><svg class="ic"><use href="#i-right"/></svg></label>
       <label class="set-row"><span><b>세포 보이기</b></span><input type="checkbox" class="set-tg" ${!petSt.hidden?'checked':''} onchange="petHide()"></label></div>`;
+  } else if(_setTab==='stamp'){
+    h=`<h3>도장판</h3>`+stampHTML();
   } else if(_setTab==='mc'){
     const R=mcRules(), types=[...new Set(lines.map(l=>l.type).filter(Boolean).concat(Object.keys(R)))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
     const own=types.map(t=>{ const r=R[t]||{}, n=lines.filter(l=>l.type===t&&!l.isCompleted).length, c=getC(t,false);
@@ -11696,6 +11762,81 @@ function mailBadge(n){ const b=document.querySelector('.set-nav button[data-st="
 // 관리자가 로그인하면 안 읽은 편지 수를 사이드바 「설정」 옆에 보여준다
 setTimeout(async()=>{ if(!mailUser()||!fbDb) return; try{ const q=await fbDb.collection('mailbox').where('read','==',false).limit(50).get(); mailBadge(q.size); }catch(e){} }, 4000);
 // ══════════════════════════════════════════
+//  타이머 (11-28 유진): 원심 · TrypLE · incubation 기다릴 때. 여러 개 같이, 새로고침해도 이어짐 (orgTimers = [{id, label, end, dur}])
+//  돌아가는 동안 화면 아래 작은 알약, 끝나면 소리 · 진동 · 알림. 창 안에서는 세포를 눌러 분열시키는 놀이
+// ══════════════════════════════════════════
+const TM_PRESETS=[1,2,3,5,10,15,20,30,60];
+let tmList=(()=>{ try{ return JSON.parse(localStorage.getItem('orgTimers'))||[]; }catch(e){ return []; } })(), _tmTick=null, _tmLabel='', _tmMin=5;
+function tmSave(){ try{ localStorage.setItem('orgTimers',JSON.stringify(tmList)); }catch(e){} }
+const tmFmt=ms=>{ const s=Math.max(0,Math.ceil(ms/1000)), m=Math.floor(s/60); return m>=60?`${Math.floor(m/60)}:${String(m%60).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`:`${m}:${String(s%60).padStart(2,'0')}`; };
+function tmStart(min,label){ min=+min; if(!(min>0)) return; tmList.push({id:uid(),label:(label||'').trim(),end:Date.now()+min*60000,dur:min*60000}); tmSave(); _tmLabel=''; tmRun(); tmRender();
+  try{ if(window.Notification&&Notification.permission==='default') Notification.requestPermission(); }catch(e){} }
+function tmStop(id){ tmList=tmList.filter(t=>t.id!==id); tmSave(); tmRun(); tmRender(); }
+function tmAdd(id,min){ const t=tmList.find(x=>x.id===id); if(!t) return; t.end=Math.max(t.end,Date.now())+min*60000; t.dur+=min*60000; delete t.rang; tmSave(); tmRun(); tmRender(); }
+function tmBeep(){ try{ const A=new (window.AudioContext||window.webkitAudioContext)(); [0,.35,.7,1.05].forEach(t=>{ const o=A.createOscillator(), g=A.createGain(); o.type='sine'; o.frequency.value=t%0.7?1046:880; g.gain.setValueAtTime(.0001,A.currentTime+t); g.gain.exponentialRampToValueAtTime(.3,A.currentTime+t+.02); g.gain.exponentialRampToValueAtTime(.0001,A.currentTime+t+.3); o.connect(g).connect(A.destination); o.start(A.currentTime+t); o.stop(A.currentTime+t+.32); }); setTimeout(()=>A.close(),1800); }catch(e){} try{ navigator.vibrate&&navigator.vibrate([300,150,300]); }catch(e){} }
+function tmRing(t){ t.rang=true; tmSave(); tmBeep(); const nm=t.label||tmFmt(t.dur);
+  try{ if(window.Notification&&Notification.permission==='granted') new Notification('타이머 끝',{body:nm,tag:'tm'+t.id}); }catch(e){}
+  toast(`${nm} 끝`); }
+function tmRun(){ clearInterval(_tmTick); if(!tmList.length){ tmPill(); return; } const step=()=>{ const now=Date.now(); tmList.forEach(t=>{ if(!t.rang&&t.end<=now) tmRing(t); }); tmPill(); const b=document.getElementById('tmBody'); if(b) tmRenderList(); }; step(); _tmTick=setInterval(step,500); }
+// 화면 아래 작은 알약 (누르면 창)
+function tmPill(){ let el=document.getElementById('tmPill'); const nav=document.getElementById('tmNavN');
+  if(!tmList.length){ if(el) el.remove(); if(nav) nav.textContent=''; return; }
+  if(!el){ el=document.createElement('button'); el.id='tmPill'; el.className='tm-pill'; el.onclick=tmOpen; document.body.appendChild(el); }
+  const now=Date.now(), ts=tmList.slice().sort((a,b)=>a.end-b.end), t=ts[0], done=t.end<=now;
+  el.classList.toggle('done',done); el.innerHTML=`<svg class="ic"><use href="#i-clock"/></svg><b>${done?'끝!':tmFmt(t.end-now)}</b>${t.label?`<span>${esc(t.label)}</span>`:''}${ts.length>1?`<i>+${ts.length-1}</i>`:''}`;
+  if(nav) nav.textContent=done?'끝':tmFmt(t.end-now); }
+function tmOpen(){ let m=document.getElementById('tmModal');
+  if(!m){ m=document.createElement('div'); m.id='tmModal'; m.className='modal open tm-modal'; m.onclick=e=>{ if(e.target===m) tmClose(); }; m.innerHTML='<div class="mbox tm-box"></div>'; document.body.appendChild(m); }
+  m.classList.add('open'); tmRender(); tmPlayInit(); }
+function tmClose(){ const m=document.getElementById('tmModal'); if(m) m.remove(); }
+function tmRender(){ const m=document.getElementById('tmModal'); if(!m) return; const box=m.querySelector('.tm-box');
+  if(!box.querySelector('#tmBody')) box.innerHTML=`<div class="tm-hd"><b>타이머</b><button class="tbl-btn" onclick="tmClose()">${ic('x','ic-sm')}</button></div>
+    <div class="tm-new"><input id="tmLab" placeholder="이름 (예: 원심, TrypLE)" value="${esc(_tmLabel)}" oninput="_tmLabel=this.value">
+      <div class="tm-pre">${TM_PRESETS.map(n=>`<button class="cnt-chip" onclick="tmStart(${n},document.getElementById('tmLab').value)">${n<60?n+'분':'1시간'}</button>`).join('')}</div>
+      <div class="tm-cus"><input id="tmMin" type="number" min="0.1" step="any" inputmode="decimal" value="${_tmMin}" oninput="_tmMin=this.value">분<button class="btn btn-pri" onclick="tmStart(document.getElementById('tmMin').value,document.getElementById('tmLab').value)">${ic('clock','ic-sm')}시작</button></div></div>
+    <div id="tmBody"></div><div class="tm-play" id="tmPlay"><span class="tm-pn" id="tmPn"></span></div>`;
+  tmRenderList(); }
+function tmRenderList(){ const b=document.getElementById('tmBody'); if(!b) return; const now=Date.now();
+  b.innerHTML=tmList.slice().sort((a,b)=>a.end-b.end).map(t=>{ const left=t.end-now, done=left<=0, pc=done?100:Math.min(100,(1-left/t.dur)*100);
+    return `<div class="tm-row${done?' done':''}"><div class="tm-big">${done?'끝!':tmFmt(left)}</div><div class="tm-meta"><b>${esc(t.label||'')}</b><span class="tm-bar"><i style="width:${pc}%"></i></span></div>
+      <button class="tbl-btn" onclick="tmAdd('${t.id}',1)">+1분</button><button class="tbl-btn" onclick="tmStop('${t.id}')">${done?'확인':ic('x','ic-sm')}</button></div>`; }).join(''); }
+// 기다리는 동안: 세포를 누르면 둘로 나뉨. 64개가 되면 confluent → 처음부터
+let _tmCells=[];
+function tmPlayInit(){ const box=document.getElementById('tmPlay'); if(!box) return; if(!_tmCells.length) _tmCells=[{x:.5,y:.5,r:.16}]; tmPlayDraw(); }
+function tmPlayDraw(){ const box=document.getElementById('tmPlay'); if(!box) return; box.querySelectorAll('.tm-cell').forEach(x=>x.remove());
+  const cols=['#FBCFDC','#C7E3F7','#D4EDC6','#FFE2B0','#DCD2F4','#BFE7DF'];
+  _tmCells.forEach((c,i)=>{ const d=document.createElement('button'); d.className='tm-cell'+(c.nw?' nw':''); d.style.cssText=`left:${c.x*100}%;top:${c.y*100}%;width:${c.r*2*100}%;background:${cols[i%cols.length]};`; d.onclick=e=>{ e.stopPropagation(); tmSplit(i); }; box.appendChild(d); c.nw=false; });
+  const pn=document.getElementById('tmPn'); if(pn) pn.textContent=_tmCells.length>=64?'confluent!':_tmCells.length; }
+function tmSplit(i){ if(_tmCells.length>=64){ _tmCells=[{x:.5,y:.5,r:.16}]; tmPlayDraw(); return; }
+  const c=_tmCells[i], r=Math.max(.035,c.r*.74), a=Math.random()*Math.PI, dx=Math.cos(a)*r*.95, dy=Math.sin(a)*r*.95, cl=v=>Math.min(1-r,Math.max(r,v));
+  _tmCells.splice(i,1,{x:cl(c.x-dx),y:cl(c.y-dy),r,nw:1},{x:cl(c.x+dx),y:cl(c.y+dy),r,nw:1}); tmPlayDraw(); }
+tmRun();
+// ══════════════════════════════════════════
+//  칭찬 도장판 (11-28 유진): 기록(배양 · 실험)을 남긴 날마다 도장 하나, 10칸 채우면 보너스 뽑기
+//  기록에서 바로 셈 (따로 저장 안 함, 기기끼리 기록만 맞으면 같음). 시작일 petSt.stampStart부터. 새 도장은 저장할 때 찍히는 모습
+// ══════════════════════════════════════════
+const STAMP_N=10, STAMP_WORDS=['참 잘했어요','최고예요','수고했어요','멋져요','대단해요','훌륭해요','잘했어요','고마워요'];
+function stampStartDay(){ if(!petSt.stampStart){ petSt.stampStart=ymdLocal(new Date()); savePets(); } return petSt.stampStart; }
+function stampDays(){ const st=stampStartDay(), t=ymdLocal(new Date()), s=new Set();
+  logs.forEach(l=>{ if(l.date>=st&&l.date<=t) s.add(l.date); }); (exps||[]).forEach(e=>{ if(e.date>=st&&e.date<=t) s.add(e.date); });
+  return [...s].sort(); }
+const stampWord=d=>STAMP_WORDS[pmHash('stamp|'+d)%STAMP_WORDS.length];
+const stampRot=d=>((pmHash('rot|'+d)%25)-12);
+function stampOne(d,big){ return `<span class="stp${big?' big':''}" style="--r:${stampRot(d)}deg"><b>${esc(stampWord(d))}</b><small>${d.slice(5).replace('-','.')}</small></span>`; }
+function stampHTML(){ const ds=stampDays(), full=Math.floor(ds.length/STAMP_N), cur=ds.slice(full*STAMP_N);
+  return `<div class="set-sec stp-card"><div class="stp-hd"><b>${full+1}번째 판</b><span>${cur.length} / ${STAMP_N}</span></div>
+    <div class="stp-grid">${Array.from({length:STAMP_N},(_,i)=>`<div class="stp-cell">${cur[i]?stampOne(cur[i]):`<i>${i+1}</i>`}</div>`).join('')}</div>
+    ${full?`<div class="stp-done">${Array.from({length:Math.min(full,12)},()=>'<span class="stp-mini"></span>').join('')}<small>다 채운 판 ${full}</small></div>`:''}</div>`; }
+// 새 도장 확인: show면 찍히는 모습 (저장 직후), 아니면 조용히 셈만 (앱 열 때). 판을 다 채우면 보너스 뽑기
+function stampCheck(show){ if(typeof petSt==='undefined'||!petSt) return; const ds=stampDays(); let seen=0; try{ seen=+localStorage.getItem('orgStampSeen')||0; }catch(e){}
+  const full=Math.floor(ds.length/STAMP_N); for(let k=1;k<=full;k++) petTicketGive('stamp:'+k,'',true);
+  if(ds.length>seen&&show){ const d=ds.filter(x=>x===ymdLocal(new Date())).pop()||ds[ds.length-1]; stampPop(d,ds.length); }
+  try{ localStorage.setItem('orgStampSeen',ds.length); }catch(e){} }
+function stampPop(d,n){ document.querySelector('.stp-ov')?.remove(); const k=n%STAMP_N||STAMP_N, done=k===STAMP_N;
+  const ov=document.createElement('div'); ov.className='stp-ov'; ov.innerHTML=`<div class="stp-pop">${stampOne(d,true)}<div class="stp-n">${done?'한 판 다 채웠어요 · 보너스 뽑기':`${k} / ${STAMP_N}`}</div></div>`;
+  ov.onclick=()=>ov.remove(); document.body.appendChild(ov); setTimeout(()=>{ ov.classList.add('out'); setTimeout(()=>ov.remove(),400); },done?2600:1700); }
+setTimeout(()=>{ try{ stampCheck(false); }catch(e){} },5000);
+// ══════════════════════════════════════════
 //  업데이트 안내: 올린 날부터 5일 동안 열 때마다 보여줌 (「다시 보지 않기」 체크하면 이 버전은 끝)
 //  새 기능을 올릴 때 NEWS의 id · date · items만 바꾸면 됨
 // ══════════════════════════════════════════
@@ -11703,6 +11844,10 @@ const NEWS={id:'2026-11-28', date:'2026-11-28', days:5, items:[
   ['<b>셀 카운터</b>','도구 › 셀 카운터. 큰 칸 몇 칸 합계인지 고르고 Live · Dead(또는 전체) 합계와 부피를 넣으면 cells/mL · 총 세포 · viability가 나와요 (Trypan blue 1:1). 아래 Stock · Pellet · Seeding마다 세포 수를 숫자 눌러 고르면 뜰 부피(µL)가 나오고, 용도는 직접 더할 수 있어요'],
   ['<b>PPT figure 색 조합</b>','Plate map 조건 아래 색 조합(파스텔 · 바다 · 노을 · 숲 · 라벤더 · 차분한 · 색약 배려 · 흑백)을 누르면 조건 · 라인 색이 한 번에 바뀌어요. Control · DMSO는 회색, 같은 약 농도는 한 색의 진하기로. 판 색은 연한 회색 · 흰색 · 옅은 조합 색'],
   ['<b>PPT figure well 글자 줄바꿈</b>','well 글자 칸에서 엔터로 줄을 나눠요 (Ctrl+Enter로 쓰기). 글자가 길면 작게 줄이기보다 먼저 줄을 바꿔요. 편집 창은 이제 「닫기」를 눌러야만 닫혀요'],
+  ['<b>칭찬 도장판</b>','기록을 남긴 날마다 도장 하나, 10칸 채우면 보너스 뽑기. 설정 › 도장판'],
+  ['<b>타이머</b>','도구 › 타이머. 원심 · TrypLE 기다릴 때 켜 두면 끝날 때 소리로 알려 줘요. 여러 개 같이'],
+  ['<b>사진 폴더 나누기</b>','이름 · 스케일바에서 저장하면 라인 › 날짜 폴더로 나눠 저장해요. 이미 저장한 사진은 「이미 저장한 사진 정리」로'],
+  ['<b>오늘 작업에서 실험 기록</b>','기록 입력 위 「실험 기록」'],
   ['<b>MC 주기</b>','설정 › MC 주기에서 라인 종류마다 MC 경고일 · 지연일을 정해요 (기본 3일 · 4일). 라인 수정의 「MC 주기 따로」에 넣으면 그 라인만 다르게. MC 색 · 「MC 할 날」 · 「MC 지연」 숫자 · 한 번에 고르기가 모두 이 값을 따라요'],
   ['<b>라인 Plate map</b>','배양 라인 표에서 Seeding · Split 줄의 Plate 칸 「+ map」을 누르면 그 기록의 Plate map을 만들어요. 지난 맵이 있으면 조건 · 색 · well을 이어받고, P · d는 그 기록 기준(Split이면 한 뒤). 라인 머리의 「Map PPT」는 그 라인 맵을 시간순으로 PPT로. Split을 저장하면 「Plate map」 이어서 만들기가 떠요'],
   ['<b>연구노트 인쇄 묶기</b>','라인별 · 날짜별 · 프로젝트별 · 프로젝트 › 날짜 중 골라서 인쇄해요. 프로젝트로 거르기도 돼요'],
@@ -13049,6 +13194,9 @@ const expShort=e=>{ const fv=(e.fields||[]).filter(f=>f.v).slice(0,2).map(f=>f.v
 
 // ── 입력 창 ──
 let _expD=null;   // 고치는 중인 사본
+// 오늘 작업에서 실험 기록: 입력 칸에 고른 라인 · 날짜 그대로
+function expFromToday(){ const d=(typeof bulkDates!=='undefined'&&bulkDates.length===1?bulkDates[0]:'')||document.getElementById('logDate').value||ymdLocal(new Date());
+  expOpen('',d); if(_expD){ _expD.lineIds=(bulkLines||[]).filter(id=>lineById(id)); expRender(); } }
 function expOpen(id,date,lineId){
   const e=id&&expById(id);
   _expD=e?JSON.parse(JSON.stringify(e)):{id:'',date:date||ymdLocal(new Date()),name:'',lineIds:lineId?[lineId]:[],fields:[],memo:''};
@@ -13105,7 +13253,7 @@ function expSave(){
   d.fields=d.fields.filter(f=>f.k); d.updated=Date.now();
   if(d.id){ const i=exps.findIndex(e=>e.id===d.id); if(i>=0) exps[i]=d; else exps.push(d); }
   else { d.id=uid(); d.created=d.updated; exps.push(d); }
-  saveExps(); expClose(); updateUI(); toast('실험 기록을 저장했어요');
+  saveExps(); expClose(); updateUI(); toast('실험 기록을 저장했어요'); stampCheck(true);
 }
 function expDel(id){ const e=expById(id); if(!e||!confirm(`${e.date} 「${e.name}」 기록을 지울까요?`)) return; exps=exps.filter(x=>x.id!==id); saveExps(); expClose(); updateUI(); }
 const expOnDay=ds=>exps.filter(e=>e.date===ds).sort((a,b)=>(a.created||0)-(b.created||0));
