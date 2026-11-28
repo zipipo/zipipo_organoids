@@ -4969,6 +4969,9 @@ function projListFill(){ const d=document.getElementById('projList'); if(d) d.in
 // 프로젝트 색 (2026-11-22, 유진: 칙칙함): 예전엔 테두리용 중간 톤을 칩 바탕으로 써서 탁했음 → 종류 색과 같은 파스텔 12색(AUTO_PAL)
 // 이름으로 자리를 정하고, 다른 프로젝트와 겹치면 다음 빈 색으로 (이름순으로 정해서 기기마다 같음)
 let _pjColKey='', _pjColMap={};
+// 다이어리 실험 기록 하트 색 (11-29 유진: 프로젝트에 쓰는 파스텔 색으로): 라인 프로젝트가 있으면 그 프로젝트 색, 없으면 실험 이름으로 같은 파스텔 12색 중 하나
+function dyExpColor(e){ const pj=(e.lineIds||[]).map(id=>((lineById(id)||{}).project||'').trim()).find(Boolean); if(pj) return projColor(pj).bd;
+  return PAL[AUTO_PAL[pmHash('exp|'+String(e.name||'').trim())%AUTO_PAL.length]].bd; }
 function projColor(p){
   if(!p) return {bg:'#E5E7EB',tx:'#4B5563',bd:'#D1D5DB',hbg:'#F3F4F6',ht:'#4B5563'};
   let all=[]; try{ all=projectsAll(); }catch(e){} if(!all.includes(p)) all=all.concat([p]);
@@ -9902,7 +9905,7 @@ function renderDiary(){
       const pl=ds>=t0?plans.filter(p=>!p.done&&p.date===ds).map(p=>`<div class="dy-rec plan"><i class="dot"></i><b>${esc(p.action)}</b><small>예정 · ${(p.lineIds||[]).length}라인</small></div>`).join(''):'';
       // 실험 기록: 이름 굵게 · 라인 · 주요 칸 값 (누르면 고치기)
       const ex=expOnDay(ds).map(e=>{ const sub=[expLineNames(e).join(' · '),expShort(e)].filter(Boolean).join(' / ');
-        return `<div class="dy-rec exp" onclick="expOpen('${e.id}')" title="${esc([e.name,...(e.fields||[]).filter(f=>f.v).map(f=>f.k+': '+f.v),e.memo||''].filter(Boolean).join('\n'))}"><i class="dot"></i><b>${esc(e.name)}</b><small>${esc(sub)}</small></div>`; }).join('');
+        return `<div class="dy-rec exp" onclick="expOpen('${e.id}')" title="${esc([e.name,...(e.fields||[]).filter(f=>f.v).map(f=>f.k+': '+f.v),e.memo||''].filter(Boolean).join('\n'))}"><i class="dot" style="background:${dyExpColor(e)}"></i><b>${esc(e.name)}</b><small>${esc(sub)}</small></div>`; }).join('');
       return `<div class="dy-wd${ds===t0?' now':''}${dow===6?' sat':dow===0?' sun':''}"><h4><span>${c.getMonth()+1}/${c.getDate()}</span><small>${wd[i]}</small><button class="dy-add" onclick="expOpen('','${ds}')" title="이 날 실험 기록 추가">+</button></h4>${ex+rows+pl||(ds<t0?'<div class="dy-empty">쉬는 날</div>':ds===t0?'<div class="dy-empty">아직 기록 없음</div>':'')}</div>`;
     };
     const from=ymdLocal(days[0]), to=ymdLocal(days[6]), st=_twStats(from,to);
