@@ -458,6 +458,10 @@ body[data-theme="dark"] .fs-chip button{color:var(--tx);}
 
 /* ═══ NOTEBOOK PRINT (실제 작업 기록 표를 그대로, 폭만 줄여서 인쇄) ═══ */
 #notePrintArea{display:none;}
+.note-by{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:-2px 0 10px;font-size:.78rem;} .note-by>span{font-weight:700;color:var(--sub);} .note-by small{color:var(--mut);font-size:.72rem;}
+#noteBy{display:flex;gap:4px;flex-wrap:wrap;} #noteBy button{padding:5px 11px;border:1px solid var(--bd);border-radius:999px;background:var(--sur);font:inherit;font-size:.78rem;cursor:pointer;color:inherit;} #noteBy button.on{background:var(--pri);border-color:var(--pri);color:#fff;font-weight:700;}
+.note-proj{font-weight:800;font-size:11pt;margin:2px 0 4px;padding:2px 0 3px;border-bottom:2px solid #27272A;color:#27272A;}
+.note-proj small{font-size:7pt;font-weight:500;margin-left:8px;color:#71717A;}
 .note-group{page-break-inside:avoid;margin-bottom:10px;}
 .note-group-hd{font-weight:700;font-size:10pt;margin-bottom:2px;}
 #notePrintArea .note-tree .note-group-hd{border-bottom:1px solid var(--nb,#D4D4D8);border-radius:4px;margin-bottom:3px;}
@@ -928,6 +932,7 @@ body[data-tab="ana"] .pane[data-pane="ana"],
 body[data-tab="diary"] .pane[data-pane="diary"],
 body[data-tab="ln2"] .pane[data-pane="ln2"],
 body[data-tab="media"] .pane[data-pane="media"],
+body[data-tab="cnt"] .pane[data-pane="cnt"],
 body[data-tab="fig"] .pane[data-pane="fig"]{display:block;animation:paneIn .28s var(--ease);}
 
 
@@ -951,6 +956,30 @@ body[data-tab="fig"] .pane[data-pane="fig"]{display:block;animation:paneIn .28s 
 .st-bar{height:8px;border-radius:99px;background:var(--hov);overflow:hidden;margin-bottom:10px;} .st-bar i{display:block;height:100%;background:var(--tx);border-radius:99px;}
 .st-note{font-size:.76rem;color:var(--sub);line-height:1.6;margin:8px 0;}
 .st-tbl{width:100%;font-size:.78rem;border-collapse:collapse;} .st-tbl td{padding:4px 2px;border-bottom:1px solid var(--bd2);} .st-tbl td:nth-child(2),.st-tbl td:nth-child(3){text-align:right;color:var(--sub);}
+.cnt .cnt-wrap{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:18px;padding:16px;}
+.cnt-in{display:grid;gap:12px;align-content:start;} .cnt-f{display:grid;gap:5px;font-size:.78rem;font-weight:600;color:var(--sub,var(--mut));} .cnt-f small{font-weight:400;color:var(--mut);}
+.cnt-f input{height:38px;font-size:1rem;padding:0 10px;border:1px solid var(--bd);border-radius:9px;background:var(--sur);color:var(--ink);min-width:0;}
+.cnt-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;} .cnt-segs{display:flex;flex-wrap:wrap;gap:4px;} .cnt-segs .seg{padding:6px 12px;border:1px solid var(--bd);border-radius:999px;background:var(--sur);font:inherit;font-size:.82rem;color:inherit;cursor:pointer;} .cnt-segs .seg.on{background:var(--pri);border-color:var(--pri);color:#fff;font-weight:700;}
+.cnt-segs.sm .seg{padding:4px 9px;font-size:.74rem;} .cnt-vol{display:flex;gap:6px;align-items:center;} .cnt-vol input{flex:1;}
+.cnt-fix b{font-size:.9rem;color:var(--ink);padding-top:9px;} .cnt-how{font-size:.72rem;color:var(--mut);}
+.cnt-out{background:var(--psoft,var(--sur2));border-radius:14px;padding:16px;display:grid;gap:10px;align-content:start;}
+.cnt-big{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;} .cnt-big small{font-size:.8rem;color:var(--mut);font-weight:600;} .cnt-big b{font-size:2rem;letter-spacing:-.01em;color:var(--ink);} .cnt-big span{font-size:.85rem;color:var(--mut);}
+.cnt-kv{display:grid;grid-template-columns:1fr 1fr;gap:8px;} .cnt-kv div{background:var(--sur);border-radius:10px;padding:8px 10px;display:grid;gap:2px;} .cnt-kv small{font-size:.7rem;color:var(--mut);} .cnt-kv b{font-size:1.05rem;} .cnt-kv i{font-style:normal;font-size:.78rem;color:var(--mut);font-weight:500;}
+.cnt-warn{font-size:.76rem;color:#9A5B00;background:#FFF5E0;border-radius:8px;padding:6px 9px;} .cnt-err{color:#B42318;font-weight:600;font-size:.85rem;display:flex;gap:6px;align-items:center;} .cnt-empty{font-size:.85rem;color:var(--mut);line-height:1.6;}
+.cnt-copy{justify-self:start;}
+.cnt-split{border-top:1px solid var(--bd);padding:14px 16px 16px;display:grid;gap:8px;} .cnt-sh{display:flex;gap:8px;align-items:baseline;} .cnt-sh small{color:var(--mut);font-size:.74rem;}
+.cnt-p{border:1px solid var(--bd);border-radius:12px;background:var(--sur);} .cnt-p.open{border-color:var(--pri);}
+.cnt-pr{display:flex;align-items:center;gap:8px;padding:8px 10px;flex-wrap:wrap;}
+.cnt-pmove{display:flex;flex-direction:column;} .cnt-pmove button{border:none;background:none;font-size:.55rem;color:var(--mut);cursor:pointer;padding:0 2px;line-height:1.2;} .cnt-pmove button:disabled{opacity:.25;cursor:default;}
+.cnt-pname{width:150px;height:32px;border:1px solid transparent;border-radius:8px;background:transparent;font:inherit;font-weight:700;color:var(--ink);padding:0 6px;} .cnt-pname:hover,.cnt-pname:focus{border-color:var(--bd);background:var(--sur2,var(--bg));}
+.cnt-per{border:1px solid var(--bd);background:var(--psoft,var(--sur2));border-radius:999px;padding:5px 12px;font:inherit;font-weight:700;font-size:.92rem;cursor:pointer;color:var(--ink);} .cnt-per small{font-weight:500;color:var(--mut);margin-left:4px;font-size:.74rem;}
+.cnt-step{display:inline-flex;align-items:center;gap:4px;} .cnt-step button{width:28px;height:28px;border-radius:50%;border:1px solid var(--bd);background:var(--sur);font-size:1rem;cursor:pointer;color:var(--ink);} .cnt-step b{min-width:22px;text-align:center;} .cnt-step i{font-style:normal;font-size:.74rem;color:var(--mut);}
+.cnt-max{font-size:.74rem;} .cnt-res{margin-left:auto;display:grid;justify-items:end;text-align:right;} .cnt-res b{font-size:1.02rem;} .cnt-res small{font-size:.7rem;color:var(--mut);} .cnt-res.short b,.cnt-res.short small{color:#B42318;} .cnt-res.nil{color:var(--mut);}
+.cnt-pick{border-top:1px dashed var(--bd);padding:10px;display:grid;gap:8px;} .cnt-pick>div{display:flex;flex-wrap:wrap;gap:5px;align-items:center;} .cnt-pick small{width:52px;font-size:.72rem;color:var(--mut);}
+.cnt-chip{min-width:40px;height:36px;padding:0 10px;border:1px solid var(--bd);border-radius:10px;background:var(--sur);font:inherit;font-size:.95rem;font-weight:600;cursor:pointer;color:var(--ink);} .cnt-chip.on{background:var(--pri);border-color:var(--pri);color:#fff;}
+.cnt-done{justify-self:start;} .cnt-left{font-size:.84rem;padding:4px 4px 0;color:var(--sub,var(--mut));} .cnt-left.short{color:#B42318;font-weight:700;}
+.cnt-addp{display:flex;gap:6px;align-items:center;flex-wrap:wrap;} .cnt-addp input{flex:1;min-width:180px;height:34px;padding:0 10px;border:1px solid var(--bd);border-radius:9px;background:var(--sur);color:var(--ink);}
+@media (max-width:760px){ .cnt .cnt-wrap{grid-template-columns:1fr;padding:12px;} .cnt-pname{width:120px;} .cnt-res{margin-left:0;width:100%;justify-items:start;text-align:left;} .cnt-p{position:relative;} .cnt-pr>.tbl-btn{position:absolute;top:8px;right:8px;} .cnt-pr{padding-right:44px;} }
 /* ═══ PPT figure ═══ */
 .fg-saved{display:inline-flex;align-items:center;gap:4px;font-size:.72rem;color:var(--ok);white-space:nowrap;}
 .fg-part{border:1px solid var(--bd2);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px;background:var(--sur);}
@@ -1030,7 +1059,12 @@ body[data-tab="fig"] .pane[data-pane="fig"]{display:block;animation:paneIn .28s 
 .fg-lg:first-child{border-top:none;} .fg-lg.on{background:var(--hov);font-weight:600;}
 .fg-lg{align-items:flex-start;} .fg-lg input{width:auto;margin-top:2px;} .fg-lg span{color:var(--mut);width:38px;flex:none;font-size:.7rem;margin-top:2px;} .fg-lg i{width:8px;height:8px;border-radius:50%;flex:none;margin-top:5px;}
 .fg-lgt{display:flex;flex-direction:column;gap:1px;min-width:0;} .fg-lgt b{font-weight:600;} .fg-lgt small{color:var(--mut);font-size:.68rem;font-weight:400;line-height:1.35;word-break:break-all;}
-.fg-add{display:flex;gap:6px;} .fg-add input{height:32px;min-width:0;flex:1;} .fg-add input[type=date]{flex:none;width:136px;}
+.fg-add{display:flex;gap:6px;} .fg-add input{height:32px;min-width:0;flex:1;} .fg-pals{margin-top:10px;display:grid;gap:6px;} .fg-pals small{font-size:.72rem;color:var(--mut);font-weight:600;} .fg-pals small span{font-weight:400;margin-left:4px;}
+.fg-palrow{display:flex;flex-wrap:wrap;gap:5px;} .fg-pal{display:inline-flex;align-items:center;gap:6px;padding:4px 9px 4px 6px;border:1px solid var(--bd);border-radius:999px;background:var(--sur);font:inherit;font-size:.74rem;color:inherit;cursor:pointer;}
+.fg-pal.on{border-color:var(--pri);box-shadow:0 0 0 1.5px var(--pri) inset;font-weight:700;} .fg-paldots{display:inline-flex;} .fg-paldots i{width:12px;height:12px;border-radius:50%;margin-right:-3px;border:1px solid rgba(0,0,0,.12);} .fg-paldots i.rg{background:#fff;border-width:2.5px;margin-left:5px;margin-right:0;}
+.fg-bodyrow{display:flex;flex-wrap:wrap;align-items:center;gap:5px;} .fg-bodyrow small{margin-right:2px;} .fg-bodyb{display:inline-flex;align-items:center;gap:5px;padding:3px 9px 3px 5px;border:1px solid var(--bd);border-radius:999px;background:var(--sur);font:inherit;font-size:.72rem;color:inherit;cursor:pointer;} .fg-bodyb.on{border-color:var(--pri);font-weight:700;} .fg-bodyb i{width:14px;height:14px;border-radius:4px;border:1px solid #B8BEC6;}
+.fg-cpop .cc-lab{display:block;font-size:.68rem;color:var(--mut);margin:6px 0 3px;}
+.fg-add .fg-wtxt{flex:1;min-width:0;min-height:52px;resize:vertical;font:inherit;padding:6px 8px;border:1px solid var(--bd);border-radius:8px;background:var(--sur);color:inherit;line-height:1.4;} .fg-add:has(.fg-wtxt){align-items:flex-start;} .fg-add input[type=date]{flex:none;width:136px;}
 .fg-items,.fg-conds{display:flex;flex-direction:column;gap:5px;}
 .fg-it,.fg-cd{display:flex;align-items:center;gap:6px;} .fg-it span{font-size:.7rem;color:var(--mut);width:38px;flex:none;}
 .fg-it input,.fg-cd input{height:30px;flex:1;min-width:0;}
@@ -1475,6 +1509,7 @@ body.pet-on[data-tab="today"] #petLayer{display:block;}
 .pm-bars i{display:block;height:100%;background:var(--pri);opacity:.6;border-radius:9px;}
 .pm-meta{font-size:.72rem;color:var(--sub);margin:6px 0 8px;}
 .pm-btns{display:flex;flex-wrap:wrap;gap:5px;}
+.pet-det{transition:box-shadow .4s;border-radius:12px;} .pet-det.pd-flash{box-shadow:0 0 0 3px var(--pri);}
 .pm-btns .btn{height:28px;font-size:.72rem;}
 .pet-gacha{position:fixed;inset:0;z-index:700;background:rgba(30,30,40,.25);display:grid;place-items:center;}
 .pg-card{background:var(--sur);border-radius:18px;padding:22px 24px;text-align:center;width:270px;box-shadow:0 20px 50px rgba(0,0,0,.18);}
@@ -1989,6 +2024,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
   <nav class="nav">
     <button class="nav-i" onclick="openNoteModal()"><svg class="ic"><use href="#i-print"/></svg><span>연구노트 인쇄</span></button>
     <button class="nav-i tab" data-tab="ln2" onclick="setTab('ln2')"><svg class="ic"><use href="#i-tank"/></svg><span>LN2 탱크</span></button>
+    <button class="nav-i tab" data-tab="cnt" onclick="setTab('cnt')"><svg class="ic"><use href="#i-scope"/></svg><span>셀 카운터</span></button>
     <button class="nav-i tab" data-tab="media" onclick="setTab('media')"><svg class="ic"><use href="#i-drop"/></svg><span>Media</span></button>
     <button class="nav-i tab" data-tab="fig" onclick="setTab('fig')"><svg class="ic"><use href="#i-slides"/></svg><span>PPT figure</span></button>
   </nav>
@@ -2157,6 +2193,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
   <div class="pane" data-pane="diary"><div id="diaryContent"></div></div>
   <div class="pane" data-pane="ln2"><div id="ln2Wrap"></div></div>
   <div class="pane" data-pane="media"><div id="mediaContent"></div></div>
+  <div class="pane" data-pane="cnt"><div id="cntContent"></div></div>
   <div class="pane" data-pane="fig"><div id="figContent"></div></div>
 </main>
 </div>
@@ -2281,6 +2318,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
         선택한 작업 기록을 화면에 보이는 표 그대로(라인별 Date/Action/P·D/Plate/Ratio/Well/Stock/Memo), 실험노트에 오려 붙이기 좋게 폭만 줄여서 인쇄합니다. 인쇄(또는 PDF 저장) 후에는 자동으로 "인쇄됨"으로 표시되어, 다음번엔 아직 안 붙인 기록만 골라 이어서 뽑을 수 있어요.
       </div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:6px;padding:11px 13px;margin-bottom:11px;">
+        <div><label>프로젝트</label><select id="noteProj" onchange="renderNoteList()" style="height:32px;"></select></div>
         <div><label>라인</label><select id="noteLine" onchange="renderNoteList()" style="height:32px;"></select></div>
         <div><label>시작일</label><input type="date" id="noteFrom" onchange="renderNoteList()" style="height:32px;"></div>
         <div><label>종료일</label><input type="date" id="noteTo" onchange="renderNoteList()" style="height:32px;"></div>
@@ -2288,6 +2326,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
         <div style="padding-bottom:6px;"><label style="display:flex;align-items:center;gap:5px;cursor:pointer;margin:0;font-size:.78rem;"><input type="checkbox" id="noteTree" checked style="width:auto;"> Tree 같이 인쇄</label></div>
         <div style="padding-bottom:6px;"><label style="display:flex;align-items:center;gap:5px;cursor:pointer;margin:0;font-size:.78rem;"><input type="checkbox" id="noteOnlyUnprinted" checked onchange="renderNoteList()" style="width:auto;"> 미인쇄만 보기</label></div>
       </div>
+      <div class="note-by"><span>묶어서 출력</span><div id="noteBy"></div><small id="noteByHint"></small></div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
         <span id="noteCount" style="font-size:.78rem;color:var(--sub);"></span>
         <div style="display:flex;gap:6px;">
@@ -2473,7 +2512,7 @@ const syncClone = d => JSON.parse(JSON.stringify(d));
 // 펫은 Google 계정에 같이 저장 (펫 코드가 뒤에 있어서 window._petsOut / _petsIn으로 이어 줌)
 function localSync(){ return syncClone(pickSync({lines,logs,stockChecks,trash,plans,shotSets,shotNotes:_slRecentNotes,freeSamples,mediaDefs,mediaTubes,figures,exps,tlCollapsed,typeColors,pptCuts,pets:window._petsOut?window._petsOut():{}, prefs:_prefsOut()})); }
 // 이니셜처럼 기기마다 다시 입력하기 귀찮은 설정은 계정에 같이 저장
-function _prefsOut(){ const o={}; try{ const v=localStorage.getItem('orgInitials'); if(v) o.ini=v; const fz=localStorage.getItem('orgFontSize'); if(fz) o.size=fz; const ft=localStorage.getItem('orgFont'); if(ft&&ft!=='pretendard') o.font=ft; const ml=localStorage.getItem('orgMyLine'); if(ml) o.myLine=ml; const pj=localStorage.getItem('orgProjects'); if(pj&&pj!=='[]') o.projects=pj;
+function _prefsOut(){ const o={}; try{ const v=localStorage.getItem('orgInitials'); if(v) o.ini=v; const fz=localStorage.getItem('orgFontSize'); if(fz) o.size=fz; const ft=localStorage.getItem('orgFont'); if(ft&&ft!=='pretendard') o.font=ft; const ml=localStorage.getItem('orgMyLine'); if(ml) o.myLine=ml; const pj=localStorage.getItem('orgProjects'); if(pj&&pj!=='[]') o.projects=pj; const cp=localStorage.getItem('orgCntPurps'); if(cp) o.cntp=cp;
   [['pmsg','orgPlazaMsg'],['pnick','orgNickPlaza'],['prep','orgPlazaRep']].forEach(([k,ls])=>{ const x=localStorage.getItem(ls); if(x!=null) o[k]=x; }); }catch(e){} return o; }
 const syncHas = d => d.lines.length>0 || d.logs.length>0 || d.freeSamples.length>0;
 
@@ -2699,6 +2738,7 @@ function applySyncData(d){
     if(d.prefs&&d.prefs.font&&d.prefs.font!==document.documentElement.dataset.font) try{ setFont(d.prefs.font); }catch(e){}
     if(d.prefs&&d.prefs.myLine) try{ localStorage.setItem('orgMyLine',d.prefs.myLine); }catch(e){}
     if(d.prefs&&d.prefs.projects) try{ localStorage.setItem('orgProjects',d.prefs.projects); }catch(e){}
+    if(d.prefs&&d.prefs.cntp&&d.prefs.cntp!==localStorage.getItem('orgCntPurps')) try{ localStorage.setItem('orgCntPurps',d.prefs.cntp); if(typeof cntPurps!=='undefined'){ cntPurps=JSON.parse(d.prefs.cntp); if(curTab==='cnt') renderCnt(); } }catch(e){}
     // 광장 별명 · 한 줄 상태 · 대표 세포: 폰 · 노트북이 같은 값 (예전엔 기기마다 따로라 나중에 연 쪽 값으로 뒤집힘)
     if(d.prefs) try{ let ch=false; [['pmsg','orgPlazaMsg'],['pnick','orgNickPlaza'],['prep','orgPlazaRep']].forEach(([k,ls])=>{ const v=d.prefs[k]; if(typeof v==='string'&&localStorage.getItem(ls)!==v){ localStorage.setItem(ls,v); ch=true; } });
       if(ch) setTimeout(()=>{ try{ plazaPublish(true); plazaMiniSync(); _plazaFormSync(); }catch(e){} },0); }catch(e){}
@@ -5748,7 +5788,7 @@ try{ curTab=localStorage.getItem('orgTab')||'today'; }catch(e){}
 function recTab(){ try{ return localStorage.getItem('orgRecTab')||'diary'; }catch(e){ return 'diary'; } }
 function setTab(t, instant){
   if(t==='arch'){ t='tl'; setLineFilter('done',true); }   // 예전 [완료된 배양] 탭은 배양 라인의 '완료' 필터로
-  if(!['today','tl','ana','diary','ln2','media','fig'].includes(t)) t='today';
+  if(!['today','tl','ana','diary','ln2','media','fig','cnt'].includes(t)) t='today';
   // 새 라인/라인 수정 창은 다른 탭에 갔다 오면 닫혀 있게
   if(t!=='tl'){ const lf=document.getElementById('lineFormPanel'); if(lf&&lf.style.display!=='none') closeLineModal(); }
   const apply=()=>{
@@ -5758,10 +5798,11 @@ function setTab(t, instant){
     document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.tab===t||(rec&&!!b.dataset.rec)));
     document.querySelectorAll('.rec-sw .seg').forEach(b=>b.classList.toggle('on',b.dataset.r===t));
     if(rec) try{ localStorage.setItem('orgRecTab',t); }catch(e){}
-    document.getElementById('pageTitle').textContent={today:'오늘 작업',tl:'배양 라인',ana:'기록',diary:'기록',ln2:'LN2 탱크',media:'Media',fig:'PPT figure'}[t];
+    document.getElementById('pageTitle').textContent={today:'오늘 작업',tl:'배양 라인',ana:'기록',diary:'기록',ln2:'LN2 탱크',media:'Media',fig:'PPT figure',cnt:'셀 카운터'}[t];
     if(t==='ln2') openLn2();
     if(t==='media' && window._lateReady) renderMedia();
     if(t==='fig' && window._lateReady) renderFig();
+    if(t==='cnt' && window._lateReady) renderCnt();
     if(t!=='fig'){ const fm=document.getElementById('figModal'); if(fm){ fm.remove(); _figEdit=null; } }   // 다른 페이지로 가면 Figure 편집 창 닫기
     // 분석 · 다이어리 코드는 스크립트 뒤쪽에 있어서, 첫 로딩 때는 스크립트 끝(_lateReady)에서 다시 그린다
     if(t==='ana'){ if(window._lateReady) renderAnalytics(); } else anaTipHide();
@@ -5958,7 +5999,7 @@ document.addEventListener('keydown',e=>{
   // Esc: 가장 위에 열린 창부터 닫기
   if(e.key==='Escape'){
     if(document.querySelector('.dd.open')){ closeDd(); return; }
-    const open=[...document.querySelectorAll('.modal.open:not(#syncModal)')];   // 동기화 선택 창은 골라야만 닫힌다
+    const open=[...document.querySelectorAll('.modal.open:not(#syncModal):not(#figModal)')];   // 동기화 선택 창은 골라야만, PPT figure 편집 창은 「닫기」로만 닫힌다
     if(open.length){ open[open.length-1].classList.remove('open'); return; }
     if(document.body.classList.contains('side-open')){ closeSide(); return; }
     const lf=document.getElementById('lineFormPanel');
@@ -8977,6 +9018,19 @@ function noteLineOptions(){
   sel.value=prev||'';
 }
 
+// 연구노트 묶기 (유진 11-28): line = 라인별(예전 그대로) · date = 날짜별 · proj = 프로젝트별(안은 라인별) · projdate = 프로젝트 안에서 날짜별
+let noteBy=(()=>{ try{ return localStorage.getItem('orgNoteBy')||'line'; }catch(e){ return 'line'; } })();
+const NOTE_BY=[['line','라인별'],['date','날짜별'],['proj','프로젝트별'],['projdate','프로젝트 › 날짜']];
+function noteByRender(){ const el=document.getElementById('noteBy'); if(!el) return; el.innerHTML=NOTE_BY.map(([k,t])=>`<button class="${noteBy===k?'on':''}" onclick="noteSetBy('${k}')">${t}</button>`).join('');
+  const h=document.getElementById('noteByHint'); if(h) h.textContent={line:'라인마다 표 하나 (Tree 같이)',date:'날짜마다 표 하나, 그날 한 일을 라인 · 실험 모두',proj:'프로젝트 제목 아래 라인마다 표',projdate:'프로젝트 제목 아래 날짜마다 표'}[noteBy]; }
+function noteSetBy(k){ noteBy=k; try{ localStorage.setItem('orgNoteBy',k); }catch(e){} noteByRender(); }
+const noteProjOfLine=id=>((lineById(id)||{}).project||'').trim();
+const noteProjOfExp=e=>{ const ps=(e.lineIds||[]).map(noteProjOfLine).filter(Boolean); return ps[0]||''; };
+function noteProjOptions(){ const sel=document.getElementById('noteProj'); if(!sel) return; const prev=sel.value;
+  const ps=[...new Set(lines.map(l=>(l.project||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
+  sel.innerHTML='<option value="">전체 프로젝트</option>'+ps.map(p=>`<option value="${esc(p)}">${esc(p)}</option>`).join('')+'<option value="__none">프로젝트 없음</option>';
+  sel.value=[...sel.options].some(o=>o.value===prev)?prev:''; }
+const noteProjOk=(pj)=>{ const v=(document.getElementById('noteProj')||{}).value||''; return !v||(v==='__none'?!pj:pj===v); };
 function noteFilteredLogs(){
   const lineId=document.getElementById('noteLine').value;
   const from=document.getElementById('noteFrom').value;
@@ -8987,6 +9041,7 @@ function noteFilteredLogs(){
     if(from && lg.date<from) return false;
     if(to && lg.date>to) return false;
     if(onlyUn && lg.printedToNotebook) return false;
+    if(!noteProjOk(noteProjOfLine(lg.lineId))) return false;
     return true;
   }).sort((a,b)=> a.date.localeCompare(b.date) || (a.seq||0)-(b.seq||0));
 }
@@ -8994,7 +9049,7 @@ function noteFilteredLogs(){
 // 실험 기록도 같은 조건(라인 · 기간 · 안 찍은 것만)으로
 function noteFilteredExps(){
   const lineId=document.getElementById('noteLine').value, from=document.getElementById('noteFrom').value, to=document.getElementById('noteTo').value, onlyUn=document.getElementById('noteOnlyUnprinted').checked;
-  return exps.filter(e=>!(lineId&&!(e.lineIds||[]).includes(lineId))&&!(from&&e.date<from)&&!(to&&e.date>to)&&!(onlyUn&&e.printed)).sort((a,b)=>a.date.localeCompare(b.date)||(a.created||0)-(b.created||0));
+  return exps.filter(e=>!(lineId&&!(e.lineIds||[]).includes(lineId))&&!(from&&e.date<from)&&!(to&&e.date>to)&&!(onlyUn&&e.printed)&&noteProjOk(noteProjOfExp(e))).sort((a,b)=>a.date.localeCompare(b.date)||(a.created||0)-(b.created||0));
 }
 function noteExpToggle(id){ const e=expById(id); if(!e) return; e.printed=!e.printed; saveExps(); renderNoteList(); }
 function renderNoteList(){
@@ -9032,6 +9087,7 @@ function noteToggleManual(id){
 }
 
 function openNoteModal(){
+  noteProjOptions(); noteByRender();
   noteLineOptions();
   renderNoteList();
   document.getElementById('noteModal').classList.add('open');
@@ -9104,7 +9160,45 @@ function noteDoPrint(){
         <td>${esc(e.date)}</td><td><b>${esc(e.name)}</b></td><td>${esc(expLineNames(e).join(', '))||'<span class="nil">-</span>'}</td>
         <td>${(e.fields||[]).filter(f=>f.v).map(f=>`<span class="nd">${esc(f.k)}</span> ${esc(f.v)}`).join('<br>')||'<span class="nil">-</span>'}</td>
         <td>${e.memo?esc(e.memo).replace(/\n/g,'<br>'):'<span class="nil">-</span>'}</td></tr>`).join('')}</tbody></table></div>`:'';
-  const pa=document.getElementById('notePrintArea'); pa.innerHTML=exTable+html;
+  const xsAll=xs;
+  // 날짜별 표: 그날 한 배양 기록 + 실험 기록을 한 표에 (라인 이름순)
+  const W=`width:${widthCm}cm;`, wd=['일','월','화','수','목','금','토'];
+  const dateTables=(lgs,xl)=>{ const ds=[...new Set(lgs.map(l=>l.date).concat(xl.map(e=>e.date)))].sort();
+    const pill=(t,k)=>{ const v=k&&NOTE_CLR[k]; return v?`<span class="np" style="background:${v[0]};color:${v[1]};border-color:${v[2]};">${t}</span>`:t; }, dash='<span class="nil">-</span>';
+    return ds.map(d=>{ const L=lgs.filter(l=>l.date===d).sort((a,b)=>{ const la=lineById(a.lineId), lb=lineById(b.lineId); return (la?lineTag(la):'').localeCompare(lb?lineTag(lb):'',undefined,{numeric:true})||(a.seq||0)-(b.seq||0); }), X=xl.filter(e=>e.date===d);
+      const rows=L.map(lg=>{ const ln=lineById(lg.lineId), c=ln?getC(ln.type,false):null; return `<tr>
+        <td style="text-align:left;"><b${c?` style="border-left:3px solid ${c.bd};padding-left:4px;"`:''}>${ln?esc(lineTag(ln)):'(삭제된 라인)'}</b></td>
+        <td>${pill(esc(actLabel(lg.action)),badgeCls(lg.action))}</td>
+        <td>${pill('P'+esc(String(lg.passage)),pCls(lg.passage))}<span class="nd">${esc(lg.dayInfo||'-')}</span></td>
+        <td>${lg.plate?esc(lg.plate):dash}</td><td>${lg.details?esc(lg.details):dash}</td>
+        <td>${lg.finalWells?esc(wellTxt(lg.finalWells,lg.domes)):dash}</td><td>${lg.stocks?esc(String(lg.stocks))+' vial':dash}</td>
+        <td>${lg.memo?esc(lg.memo):dash}</td></tr>`; }).join('')+X.map(e=>`<tr>
+        <td style="text-align:left;">${esc(expLineNames(e).join(', '))||dash}</td><td><span class="np" style="background:#EFEBFA;color:#4B3F86;border-color:#CFC6EC;">${esc(e.name)}</span></td>
+        <td colspan="5" style="text-align:left;">${(e.fields||[]).filter(f=>f.v).map(f=>`<span class="nd">${esc(f.k)}</span> ${esc(f.v)}`).join(' · ')||''}</td>
+        <td style="text-align:left;">${e.memo?esc(e.memo).replace(/\n/g,'<br>'):dash}</td></tr>`).join('');
+      const dt=new Date(d+'T00:00:00');
+      return `<div class="note-group" style="${W}"><div class="note-group-hd">${esc(d.replace(/-/g,'.'))} (${wd[dt.getDay()]})<small>${[L.length?`배양 ${L.length}건`:'',X.length?`실험 ${X.length}건`:''].filter(Boolean).join(' · ')}</small></div>
+        <table style="table-layout:fixed;"><colgroup>${[21,13,10,12,7,9,8,20].map(w=>`<col style="width:${w}%">`).join('')}</colgroup><thead><tr><th>Line</th><th>Action</th><th>P / D</th><th>Plate</th><th>Ratio</th><th>Well</th><th>Stock</th><th>Memo</th></tr></thead><tbody>${rows}</tbody></table></div>`; }).join(''); };
+  // 라인별 표 (Tree 묶음 그대로), 고른 라인만
+  const lineTables=ids0=>{ const keep=_lgSel; _lgSel=null; const out=groups.map(g=>{ const gid=g.ids.filter(x=>ids0.includes(x)); if(!gid.length) return '';
+      const r=g.root, showTree=withTree&&r&&(lineHasKin(r)||lineSegs(r).length>1);
+      return (showTree?`<div class="note-group note-tree" style="${W}"><div class="note-group-hd">Tree · ${esc(r.patientId+'_'+r.type)}</div><div class="note-tree-in">${lineageNode(r,true)}</div></div>`:'')+gid.map(tableOf).join(''); }).join(''); _lgSel=keep; return out; };
+  const expTable=xl=>xl.length?`<div class="note-group" style="${W}--nh:#EFEBFA;--nt:#4B3F86;--nb:#CFC6EC;--nl:#EFEBFA;">
+      <div class="note-group-hd">실험 기록<small>${esc(xl[0].date===xl[xl.length-1].date?xl[0].date:xl[0].date+' ~ '+xl[xl.length-1].date)} · ${xl.length}건</small></div>
+      <table><thead><tr><th>Date</th><th>실험</th><th>Line</th><th>내용</th><th>Memo</th></tr></thead><tbody>${xl.map(e=>`<tr>
+        <td>${esc(e.date)}</td><td><b>${esc(e.name)}</b></td><td>${esc(expLineNames(e).join(', '))||'<span class="nil">-</span>'}</td>
+        <td>${(e.fields||[]).filter(f=>f.v).map(f=>`<span class="nd">${esc(f.k)}</span> ${esc(f.v)}`).join('<br>')||'<span class="nil">-</span>'}</td>
+        <td>${e.memo?esc(e.memo).replace(/\n/g,'<br>'):'<span class="nil">-</span>'}</td></tr>`).join('')}</tbody></table></div>`:'';
+  let body;
+  if(noteBy==='date') body=dateTables(list,xsAll);
+  else if(noteBy==='proj'||noteBy==='projdate'){
+    const pjs=[...new Set(list.map(lg=>noteProjOfLine(lg.lineId)).concat(xsAll.map(noteProjOfExp)))].sort((a,b)=>(a?0:1)-(b?0:1)||a.localeCompare(b,undefined,{numeric:true}));
+    body=pjs.map(pj=>{ const L=list.filter(lg=>noteProjOfLine(lg.lineId)===pj), X=xsAll.filter(e=>noteProjOfExp(e)===pj);
+      const ds=[...new Set(L.map(l=>l.date).concat(X.map(e=>e.date)))].sort(), span=ds.length?(ds[0]===ds[ds.length-1]?ds[0]:ds[0]+' ~ '+ds[ds.length-1]):'';
+      const hd=`<div class="note-proj" style="${W}">${esc(pj||'프로젝트 없음')}<small>${esc(span)} · ${[L.length?`배양 ${L.length}건`:'',X.length?`실험 ${X.length}건`:''].filter(Boolean).join(' · ')}</small></div>`;
+      return hd+(noteBy==='projdate'?dateTables(L,X):lineTables([...new Set(L.map(l=>l.lineId))])+expTable(X)); }).join('');
+  } else body=exTable+html;
+  const pa=document.getElementById('notePrintArea'); pa.innerHTML=body;
   // Tree가 폭보다 넓으면 줄여서 한 줄에 맞춤 (재려고 잠깐 화면 밖에 펼침)
   pa.style.cssText='display:block;position:absolute;left:-99999px;top:0;';
   pa.querySelectorAll('.note-tree-in').forEach(t=>{ const w=t.parentElement.clientWidth, sw=t.scrollWidth; if(sw>w) t.style.zoom=(w/sw).toFixed(3); });
@@ -10183,7 +10277,7 @@ function petGrid(shape, frame){
       if(P.len){ rect(2,6,3,P.len,'a'); rect(13,6,14,P.len,'a'); if(P.wave){ set(1,P.len-2,'a'); set(15,P.len-3,'a'); set(1,P.len-6,'a'); set(15,P.len-7,'a'); } }
       ell(8,9.8,5.2,4.8,'b');
       for(let y=0;y<=6;y++) for(let x=0;x<PET_N;x++){ const dx=(x+.5-8)/6.4, dy=(y+.5-6.4)/3.9; if(dx*dx+dy*dy<=1) g[y][x]='a'; }
-      if(P.part==='mid'){ set(8,3,'b'); set(8,4,'b'); } if(P.part==='side'){ set(6,3,'b'); set(6,4,'b'); set(5,5,'b'); }
+      if(P.part==='mid'){ set(8,3,'h'); set(8,4,'h'); } if(P.part==='side'){ set(6,3,'h'); set(6,4,'h'); set(5,5,'h'); }
       if(P.bang==='full') rect(4,7,12,7,'a');
       if(P.bang==='bowl'){ rect(3,7,13,7,'a'); set(3,8,'a'); set(13,8,'a'); }
       if(P.bang==='wispy'){ [4,5,7,9,11,12].forEach(x=>set(x,7,'a')); }
@@ -10231,7 +10325,7 @@ function drawPet(cv, kindId, st){
   const P=(x,y,c)=>{ ctx.fillStyle=c; ctx.fillRect(Math.round(x)*PET_PX,(Math.round(y)-oy)*PET_PX,PET_PX,PET_PX); };
   for(let y=0;y<PET_N;y++) for(let x=0;x<PET_N;x++){
     const v=g[y][x];
-    if(v){ P(x,y, v==='a'?K.a:v==='n'?K.d:K.c); continue; }
+    if(v){ P(x,y, v==='a'?K.a:v==='n'?K.d:v==='h'?_mix(K.a,'#FFFFFF',.32):K.c); continue; }   // h = 가르마 (머리색보다 조금 밝게, 살색이면 탈모처럼 보임)
     if([[1,0],[-1,0],[0,1],[0,-1]].some(([dx,dy])=>{ const yy=y+dy, xx=x+dx; return yy>=0&&yy<PET_N&&xx>=0&&xx<PET_N&&g[yy][xx]; })) P(x,y,K.d);
   }
   if(st.silhouette){ ctx.globalCompositeOperation='source-in'; ctx.fillStyle='#CBD2DC'; ctx.fillRect(0,0,cv.width,cv.height); ctx.globalCompositeOperation='source-over'; return; }
@@ -10339,9 +10433,22 @@ function petTicketScan(){
   if(logs.filter(l=>l.date===t0).length>=5) petTicketGive('work:'+t0,'오늘 기록 5건, 열일했어요');
   if((petWk().visit||0)>=4) petTicketGive('visit:'+wk,'이번 주 4일 들렀어요');
   petLvTicketScan();
+  petCatchUpScan();
   const S=petSurpriseOf(wk);
   if(S.date===t0 && now.getHours()>=S.st && now.getHours()<S.en && petTicketGive('sp:'+wk,'',true)) petSurprisePop();
 }
+// 따라잡기 (유진 11-28): 쓰다듬기 막기 전에 도감을 다 채운 사람이 있어 다른 사람은 못 따라감 → 도감이 광장 1등보다
+// PET_CU_GAP칸 넘게 뒤면 하루 1장, 15칸 넘게 뒤면 하루 2장 보너스 뽑기. 1등 · 다 채운 사람은 안 받음 (아무것도 안 뺏음)
+// 뽑기는 원래 아직 없는 친구가 먼저 나와서, 받은 만큼 도감이 참. 광장 목록(_plaza 또는 저장해 둔 orgPlazaCache)이 있을 때만
+const PET_CU_GAP=3;
+function petCatchUp(){
+  let list=(typeof _plaza!=='undefined'&&Array.isArray(_plaza))?_plaza:null;
+  if(!list) try{ const c=JSON.parse(localStorage.getItem('orgPlazaCache')); list=c&&Array.isArray(c.list)?c.list:null; }catch(e){}
+  if(!list||!list.length) return null;
+  const me=petDexCount(), all=PET_KINDS.filter(k=>!k.gift).length, top=Math.max(me,...list.map(p=>+p.dex||0)), gap=top-me;
+  return {me,top,gap,all,n:me>=all?0:gap>15?2:gap>PET_CU_GAP?1:0}; }
+function petCatchUpScan(){ const c=petCatchUp(); if(!c||!c.n) return; const d=ymdLocal(new Date());
+  for(let i=1;i<=c.n;i++) petTicketGive(`cu:${d}:${i}`,`도감 따라잡기 (1등과 ${c.gap}칸 차이)`); }
 function petSurprisePop(){
   const ov=document.createElement('div'); ov.className='pet-gacha';
   ov.innerHTML=`<div class="pg-card"><div class="pg-ball"><canvas width="48" height="48"></canvas></div><b>깜짝 선물 시간!</b><small>이번 주 딱 2시간, 이때 들른 사람만 받아요</small><div class="pm-btns"><button class="btn btn-pri">열어 보기</button><button class="btn btn-out">나중에</button></div></div>`;
@@ -10431,7 +10538,7 @@ function petPop(a){
     <button onclick="petFeedAll();petPopClose()"><svg class="ic"><use href="#i-cookie"/></svg>모두 밥 주기</button>
     <button onclick="petPatMany('${a.id}');petPopClose()"><svg class="ic"><use href="#i-heart"/></svg>쓰다듬기</button>
     <button onclick="petPopClose();petWalk('${a.id}')"><svg class="ic"><use href="#i-moon"/></svg>쉬게 하기</button>
-    <button onclick="petPopClose();openSettings('pet')"><svg class="ic"><use href="#i-sliders"/></svg>설정</button>`;
+    <button onclick="petOpenSet('${a.id}')"><svg class="ic"><use href="#i-sliders"/></svg>설정</button>`;
   document.body.appendChild(m);
   const mw=m.offsetWidth, mh=m.offsetHeight;
   m.style.left=Math.max(8,Math.min(innerWidth-mw-8, r.left+r.width/2-mw/2))+'px';
@@ -10598,7 +10705,7 @@ function petPanelHTML(){
   const own=Object.keys(petSt.owned), can=petCanDraw();
   const tkn=petTickets(), tkBtn=tkn?`<button class="btn btn-pri" onclick="petGacha('ticket')"><svg class="ic"><use href="#i-gift"/></svg>보너스 ${tkn}</button>`:'';
   const draw=`<div class="set-sec pet-draw"><div><b>오늘의 뽑기</b><small>${can?'':'내일 또 만나요'}${tkn?` · 보너스 뽑기 ${tkn}장`:''}</small></div><span class="pd-btns">${tkBtn}<button class="btn ${can?'btn-pri':'btn-out'}" ${can?'':'disabled'} onclick="petGacha()"><svg class="ic"><use href="#i-gift"/></svg>뽑기</button></span>
-    <small class="pd-how">보너스 뽑기: 랩 미션 하나 깰 때마다 · 하루 기록 5건 · 한 주 4일 들르기 · 친화도 Lv.5 · Lv.10 (하루 1장까지) · 주 1번 깜짝 선물 시간(평일 낮 어느 2시간, 그때 앱을 열어 두면). 친화도는 세포마다 하루 20번까지 올라요</small></div>`;
+    <small class="pd-how">보너스 뽑기: 랩 미션 하나 깰 때마다 · 하루 기록 5건 · 한 주 4일 들르기 · 친화도 Lv.5 · Lv.10 (하루 1장까지) · 주 1번 깜짝 선물 시간(평일 낮 어느 2시간, 그때 앱을 열어 두면) · 도감이 랩 1등보다 ${PET_CU_GAP}칸 넘게 뒤면 날마다 따라잡기 1장(15칸 넘게면 2장)${(()=>{ const c=petCatchUp(); return c&&c.n?` <b>지금 1등과 ${c.gap}칸 차이라 하루 ${c.n}장 받아요</b>`:''; })()}. 친화도는 세포마다 하루 20번까지 올라요</small></div>`;
   const got=plazaGotHTML();
   const dex=`<div class="set-sec"><h4 class="dex-hd">도감 <span class="mail-n">${petDexCount()} / ${PET_KINDS.filter(k=>!k.gift).length}</span>${own.length?`<span class="dex-all"><button class="link-btn" onclick="petWalkAll(true)">모두 산책</button><button class="link-btn" onclick="petWalkAll(false)">모두 쉬기</button></span>`:''}</h4><div class="pet-dex">${PET_KINDS.filter(k=>!k.gift).map(k=>{ const o=petSt.owned[k.id];
       return o ? `<button class="dex${_petSel===k.id?' on':''}${petSt.active.includes(k.id)?' walk':''}" onclick="_petSel='${k.id}';renderSettings('pet')" title="${esc(petName(k.id))}"><canvas data-k="${k.id}" width="48" height="48"></canvas><span>${esc(petName(k.id))}</span></button>`
@@ -10619,7 +10726,7 @@ function petPanelHTML(){
         return `<div class="pm-bars"><label>친화도 <b class="pm-lv">Lv.${l}</b><span><i style="width:${pc}%"></i></span></label><label>배부름 <span><i style="width:${full}%"></i></span></label></div>
         <div class="pm-meta">${l>=10?'최고로 친해요!':`쓰다듬기 ${a1-pts}번 더 하면 Lv.${l+1}`}${nx?` · Lv.${nx}에 ${PET_LV_GIFT[nx]}`:''}</div>`; })()}
       <div class="pm-meta"><svg class="ic"><use href="#i-flower"/></svg> 받은 꽃 ${o.flowers||0}　<svg class="ic"><use href="#i-heart"/></svg> 쓰다듬기 ${o.pats||0}</div>
-      <div class="pm-btns"><button class="btn ${walking?'btn-out':'btn-pri'}" onclick="petWalk('${id}')"><svg class="ic"><use href="#i-paw"/></svg>${walking?'쉬게 하기':'산책 보내기'}</button><button class="btn btn-out" onclick="petFeedAll()"><svg class="ic"><use href="#i-cookie"/></svg>모두 밥 주기</button><button class="btn btn-out" onclick="petRename('${id}')"><svg class="ic"><use href="#i-edit"/></svg>이름 짓기</button></div></div>`;
+      <div class="pm-btns"><button class="btn ${walking?'btn-out':'btn-pri'}" onclick="petWalk('${id}')"><svg class="ic"><use href="#i-paw"/></svg>${walking?'쉬게 하기':'산책 보내기'}</button><button class="btn btn-out" onclick="petFeedAll()"><svg class="ic"><use href="#i-cookie"/></svg>모두 밥 주기</button>${walking?`<button class="btn btn-out" onclick="petPin('${id}');renderSettings('pet')"><svg class="ic"><use href="#i-${(PETS.find(p=>p.id===id)||{}).pinned?'paw':'pin'}"/></svg>${(PETS.find(p=>p.id===id)||{}).pinned?'움직이기':'멈추기'}</button>`:''}<button class="btn btn-out" onclick="petRename('${id}')"><svg class="ic"><use href="#i-edit"/></svg>이름 짓기</button></div></div>`;
   }
   const tg=`<div class="set-sec"><label class="set-row"><span><b>홈 화면에 세포 보이기</b></span><input type="checkbox" class="set-tg" ${petSt.hidden?'':'checked'} onchange="petHide()"></label></div>`;
   return got+draw+det+dex+tg;
@@ -10629,6 +10736,9 @@ function petPanelDraw(){
   document.querySelectorAll('.pet-dex canvas[data-k]').forEach(c=>drawPet(c,c.dataset.k,{frame:0,mode:'idle'}));
 }
 function petMenu(){ openSettings('pet'); }
+// 화면에서 누른 세포의 설정을 바로: 설정 › 세포에서 그 세포를 골라 둔 채로 열고, 그 칸으로 내려가 잠깐 빛나게
+function petOpenSet(id){ petPopClose(); if(id&&petSt.owned[id]) _petSel=id; openSettings('pet');
+  setTimeout(()=>{ const d=document.querySelector('.pet-det'); if(!d) return; d.scrollIntoView({block:'nearest',behavior:'smooth'}); d.classList.add('pd-flash'); setTimeout(()=>d.classList.remove('pd-flash'),1400); },60); }
 function _petRefresh(){ if(typeof _setTab!=='undefined' && _setTab==='pet' && document.getElementById('setModal').classList.contains('open')) renderSettings('pet'); }
 // 선물: 조건을 채우면 그 친구가 도감에 들어오고 바로 산책. 작은 축하 창
 const petDexCount=()=>Object.keys(petSt.owned).filter(id=>{ const k=petKind(id); return k&&!k.gift; }).length;
@@ -11476,6 +11586,12 @@ setInterval(()=>{ try{ if(mailUser()) plazaMiniLoad(); }catch(e){} },300000);
 //  규칙 예시는 docs/HANDOVER.md 「우체통」 참고
 // ══════════════════════════════════════════
 const MAIL_KINDS=['배경 아이디어','기능 요청','불편한 점','기타'];
+// 메일 알림 (유진 11-28: 우체통에 써도 메일로 안 옴): 편지는 Firestore에만 쌓이고 메일은 따로 보내야 함.
+// 관리자가 만든 Google Apps Script 웹 앱 주소를 여기 넣으면, 편지를 보낼 때 그 주소로도 보내서 관리자 Gmail로 옴 (docs/HANDOVER.md 「우체통 메일 알림」)
+const MAIL_HOOK='';
+function mailHook(d){ if(!MAIL_HOOK) return Promise.resolve(false);
+  // text/plain + no-cors: 브라우저가 미리 묻기(preflight) 없이 보냄. 답은 못 읽으니 보낸 것까지만
+  return fetch(MAIL_HOOK,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(d)}).then(()=>true).catch(()=>false); }
 let _mailKind=MAIL_KINDS[0], _mailInbox=null, _mailErr='';
 function mailUser(){ return fbAuth&&fbAuth.currentUser ? fbAuth.currentUser : null; }
 function mailHTML(){
@@ -11491,11 +11607,15 @@ async function mailSend(){
   const u=mailUser(), tx=(document.getElementById('mailTx').value||'').trim(), msg=document.getElementById('mailMsg');
   if(!u){ msg.textContent='로그인이 필요해요.'; return; }
   if(!tx){ msg.textContent='내용을 적어 주세요.'; return; }
+  const d={uid:u.uid, name:u.displayName||'', email:u.email||'', kind:_mailKind, text:tx.slice(0,2000), ts:Date.now(), read:false};
+  const hooked=mailHook(d);
   try{
-    await fbDb.collection('mailbox').add({uid:u.uid, name:u.displayName||'', email:u.email||'', kind:_mailKind, text:tx.slice(0,2000), ts:Date.now(), read:false});
+    await fbDb.collection('mailbox').add(d);
     document.getElementById('mailTx').value=''; msg.textContent='보냈어요. 고마워요!';
     mailLoadInbox();
   }catch(e){
+    // 우체통(Firestore)이 안 열려 있어도 메일 알림이 갔으면 보낸 걸로
+    if(await hooked){ document.getElementById('mailTx').value=''; msg.textContent='보냈어요. 고마워요!'; return; }
     msg.textContent = /permission/i.test(e.code||e.message||'') ? '아직 우체통이 열리지 않았어요 (관리자 설정 필요).' : '보내지 못했어요. 인터넷 연결을 확인해 주세요.';
   }
 }
@@ -11522,7 +11642,13 @@ setTimeout(async()=>{ if(!mailUser()||!fbDb) return; try{ const q=await fbDb.col
 //  업데이트 안내: 올린 날부터 5일 동안 열 때마다 보여줌 (「다시 보지 않기」 체크하면 이 버전은 끝)
 //  새 기능을 올릴 때 NEWS의 id · date · items만 바꾸면 됨
 // ══════════════════════════════════════════
-const NEWS={id:'2026-11-26', date:'2026-11-26', days:5, items:[
+const NEWS={id:'2026-11-28', date:'2026-11-28', days:5, items:[
+  ['<b>셀 카운터</b>','도구 › 셀 카운터. 큰 칸 몇 칸 합계인지 고르고 Live · Dead(또는 전체) 합계와 부피를 넣으면 cells/mL · 총 세포 · viability가 나와요 (Trypan blue 1:1). 아래 Stock · Pellet · Seeding마다 세포 수를 숫자 눌러 고르면 뜰 부피(µL)가 나오고, 용도는 직접 더할 수 있어요'],
+  ['<b>PPT figure 색 조합</b>','Plate map 조건 아래 색 조합(파스텔 · 바다 · 노을 · 숲 · 라벤더 · 차분한 · 색약 배려 · 흑백)을 누르면 조건 · 라인 색이 한 번에 바뀌어요. Control · DMSO는 회색, 같은 약 농도는 한 색의 진하기로. 판 색은 연한 회색 · 흰색 · 옅은 조합 색'],
+  ['<b>PPT figure well 글자 줄바꿈</b>','well 글자 칸에서 엔터로 줄을 나눠요 (Ctrl+Enter로 쓰기). 글자가 길면 작게 줄이기보다 먼저 줄을 바꿔요. 편집 창은 이제 「닫기」를 눌러야만 닫혀요'],
+  ['<b>연구노트 인쇄 묶기</b>','라인별 · 날짜별 · 프로젝트별 · 프로젝트 › 날짜 중 골라서 인쇄해요. 프로젝트로 거르기도 돼요'],
+  ['<b>세포 설정 바로 가기 · 따라잡기</b>','화면의 세포를 누르고 「설정」을 누르면 그 세포 설정이 바로 열려요. 도감이 랩 1등보다 많이 뒤면 날마다 따라잡기 보너스 뽑기를 받아요'],
+], old:[
   ['<b>다음 Split 예상</b>','지난 Split 간격(최근 3번 평균)으로 라인마다 다음 Split 날을 계산해요. 3일 안이거나 지났으면 배양 현황 라인 이름 옆에 「Split ~11.28」이 뜨고, 누르면 예정 작업에 넣어요. ▾로 펼치면 평균 간격 · 지난번 비율이 보여요'],
   ['<b>라인 찾기</b>','기록 입력의 라인 칸에 번호만 쳐도 돼요(31 → HCC31). ↑↓ · Enter로 고르고, 오늘 작업에서 / 를 누르면 바로 여기로 와요. 아래 「최근」 칩은 방금 기록한 라인 3개'],
   ['<b>저장해도 액션 그대로</b>','Split을 라인마다 이어서 적을 때 다시 고르지 않게, 저장하면 라인 · 비율 · Well · 메모만 비우고 액션 · Plate는 남겨요'],
@@ -11564,7 +11690,6 @@ const NEWS={id:'2026-11-26', date:'2026-11-26', days:5, items:[
   ['<b>Experiment Schedule</b>','줄(라인)마다 탭, Day 0 = 그 라인 seeding 날. Day 숫자만 적으면 날짜가 계산돼요. 메모는 엔터로 줄바꿈'],
   ['<b>PPT 슬라이드 고치기</b>','되돌리기 · 다시 하기(Ctrl+Z · Ctrl+Y), 한 줄에 몇 장, 같은 실험 다른 장 사진 가져오기, 같은 날짜 배율 행 묶기. 다 고친 뒤 아래 「닫기」'],
   ['<b>PPT 만들기 figure</b>','썸네일 돋보기로 크게 보기, 「숨기기」, 2주 지난 건 아래로 접힘'],
-], old:[
   ['<b>PPT figure</b>','Experiment Schedule · Plate map · 메모를 한 Figure에, PPT에서 글자 · 도형 고치기'],
   ['<b>LN2 해동</b>','vial의 「해동 → 새 라인」'],
   ['<b>Media</b>','배지 튜브에서 쓴 만큼 자동으로 빠짐'],
@@ -11704,6 +11829,136 @@ function mdTubeSVG(x,color){
 }
 
 let _mdAdd=null, _mdOpenCalc={};
+// ══════════════════════════════════════════
+//  셀 카운터 (유진 11-28): hemocytometer 합계 → cells/mL · 총 세포 · viability → 용도별(Stock · Pellet · Seeding …)로 나눌 때 뜰 부피
+//  계산: cells/mL = 합계 ÷ 센 칸 수 × 2 (Trypan blue 1:1) × 10⁴,  총 세포 = cells/mL × 부피(mL),  뜰 부피(µL) = 세포 수 ÷ (cells/mL ÷ 1000)
+//  용도는 위에서부터 차례로 떼어 감. 부피는 µL 올림 (목표보다 적게 뜨지 않게)
+// ══════════════════════════════════════════
+const CNT_DIL=2, CNT_SQ=[1,2,4,5,8,9], CNT_MAN=[1,1.5,2,2.5,3,4,5,6,7,8,9], CNT_EXP=[3,4,5,6,7], CNT_UNITS=['vial','tube','well','dish','plate','장'];
+const CNT_DEF=[{id:'stock',name:'Stock',unit:'vial',m:1,e:6,n:1},{id:'pellet',name:'Pellet',unit:'tube',m:1,e:6,n:1},{id:'seed',name:'Seeding',unit:'well',m:1,e:5,n:1}];
+let cntSt=(()=>{ try{ return JSON.parse(localStorage.getItem('orgCnt'))||{}; }catch(e){ return {}; } })();
+cntSt=Object.assign({sq:4,mode:'ld',live:'',dead:'',total:'',vol:'',vu:'mL',name:''},cntSt);
+let cntPurps=(()=>{ try{ const a=JSON.parse(localStorage.getItem('orgCntPurps')); if(Array.isArray(a)&&a.length) return a; }catch(e){} return JSON.parse(JSON.stringify(CNT_DEF)); })();
+let _cntOpen=null;   // 세포 수를 고르는 중인 용도 id
+function cntSave(){ try{ localStorage.setItem('orgCnt',JSON.stringify(cntSt)); }catch(e){} }
+function cntSavePurps(){ try{ localStorage.setItem('orgCntPurps',JSON.stringify(cntPurps)); }catch(e){} cloudPushDebounced(); }
+const CNT_SUP={'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','-':'⁻'};
+const cntPow=e=>'10'+String(e).split('').map(c=>CNT_SUP[c]||c).join('');
+// 8.45×10⁵ 모양 (유효숫자 3자리, 1만보다 작으면 그냥 숫자)
+function cntSci(x){ if(!isFinite(x)) return '-'; if(x===0) return '0'; if(Math.abs(x)<1e4) return Math.abs(x)>=100?Math.round(x).toLocaleString('en-US'):String(+x.toPrecision(3));
+  let e=Math.floor(Math.log10(Math.abs(x))), m=+(x/Math.pow(10,e)).toPrecision(3); if(Math.abs(m)>=10){ m=+(m/10).toPrecision(3); e++; } return `${m}×${cntPow(e)}`; }
+const cntNum=v=>{ const t=String(v==null?'':v).replace(/,/g,'').trim(); if(t==='') return NaN; const n=Number(t); return isFinite(n)?n:NaN; };
+// µL 표시: 올림, 10 µL 미만은 소수 1자리 올림
+function cntUL(v){ if(!isFinite(v)) return '-'; return cntULn(v).toLocaleString('en-US',{maximumFractionDigits:1}); }
+const cntULn=v=>v<=0?0:v<10?Math.ceil(v*10-1e-9)/10:Math.ceil(v-1e-9);
+// ── 계산 (화면과 따로, 시험하기 쉽게) ──
+// in: {sq, mode:'ld'|'lt', live, dead, total, vol, vu}, purps → {ok, err, conc, total, via, ...rows}
+function cntCompute(st,purps){
+  const sq=+st.sq||4, live=cntNum(st.live), vol0=cntNum(st.vol), volML=st.vu==='µL'?vol0/1000:vol0;
+  let dead=st.mode==='lt'?cntNum(st.total)-live:cntNum(st.dead);
+  const r={ok:false,err:'',warn:[],sq,live,dead,volML};
+  if(!isFinite(live)) return r;
+  if(live<0) { r.err='Live 수가 음수예요.'; return r; }
+  if(st.mode==='lt'&&isFinite(cntNum(st.total))&&cntNum(st.total)<live){ r.err='전체 합계가 Live보다 작아요. 전체 = Live + Dead 합이에요.'; return r; }
+  if(isFinite(dead)&&dead<0){ r.err='Dead 수가 음수예요.'; return r; }
+  r.conc=live/sq*CNT_DIL*1e4;                       // live cells/mL
+  r.deadConc=isFinite(dead)?dead/sq*CNT_DIL*1e4:NaN;
+  r.via=isFinite(dead)&&live+dead>0?live/(live+dead)*100:NaN;
+  r.perUL=r.conc/1000;
+  r.hasVol=isFinite(volML)&&volML>0;
+  r.total=r.hasVol?r.conc*volML:NaN;
+  r.ok=true;
+  if(live===0) r.warn.push('Live가 0이라 나눌 수 없어요.');
+  if(live>0&&live/sq<10) r.warn.push(`칸당 평균 ${+(live/sq).toFixed(1)}개라 오차가 커요. 칸을 더 세거나 덜 희석해서 다시 세는 게 좋아요.`);
+  if(live/sq>100) r.warn.push(`칸당 평균 ${Math.round(live/sq)}개로 많아요. 희석해서 다시 세면 더 정확해요 (희석 배수는 따로 곱해야 해요).`);
+  // 용도별: 위에서부터 차례로 떼어 감
+  let leftCells=r.total, leftUL=r.hasVol?volML*1000:NaN;
+  r.rows=(purps||[]).map(p=>{
+    const per=(+p.m||0)*Math.pow(10,+p.e||0), n=Math.max(0,parseInt(p.n)||0), need=per*n;
+    const ulPer=r.conc>0?per/r.perUL:NaN, ul=r.conc>0?need/r.perUL:NaN;
+    const max=r.hasVol&&per>0&&r.conc>0?Math.floor((leftCells+1e-6)/per):NaN;
+    const row={id:p.id,name:p.name,unit:p.unit,per,n,need,ulPer,ul,max,short:false};
+    if(r.hasVol){ row.short=need>0&&need>leftCells+Math.abs(leftCells)*1e-9+1e-6; leftCells-=need; leftUL-=cntULn(ul||0); row.leftCells=leftCells; }
+    return row; });
+  r.leftCells=leftCells; r.leftUL=leftUL;
+  return r;
+}
+function cntText(r){
+  if(!r.ok) return '';
+  const unitSum=`${r.sq}칸 합`, a=[`Trypan blue 1:1, ${unitSum} live ${r.live}${isFinite(r.dead)?` / dead ${r.dead}`:''} → ${cntSci(r.conc)} cells/mL${r.hasVol?`, ${cntStr(r.volML)}에서 live ${cntSci(r.total)}`:''}${isFinite(r.via)?`, viability ${r.via.toFixed(1)}%`:''}`];
+  if(cntSt.name) a[0]=`${cntSt.name}: `+a[0];
+  (r.rows||[]).filter(x=>x.n>0&&x.per>0).forEach(x=>a.push(`${x.name} ${x.n} ${x.unit} × ${cntSci(x.per)} = ${cntSci(x.need)} (${x.n>1?`${x.unit}당 ${cntUL(x.ulPer)} µL, `:''}합 ${cntUL(x.ul)} µL)`));
+  if(r.hasVol&&(r.rows||[]).some(x=>x.n>0)) a.push(r.leftCells<-1e-6?`${cntSci(-r.leftCells)}개 모자람`:`남음 ${cntSci(r.leftCells)} (${cntUL(Math.max(0,r.leftUL))} µL)`);
+  return a.join('\n'); }
+const cntStr=ml=>ml<1?`${+(ml*1000).toPrecision(4)} µL`:`${+ml.toPrecision(4)} mL`;
+
+// ── 화면 ──
+function renderCnt(){
+  const el=document.getElementById('cntContent'); if(!el) return; const s=cntSt;
+  const seg=(k,v,t,on)=>`<button class="seg${on?' on':''}" onclick="cntSet('${k}',${JSON.stringify(v).replace(/"/g,'&quot;')})">${t}</button>`;
+  const lineOpts=lines.filter(l=>!l.isCompleted).map(l=>`<option value="${esc(lineTag(l))}">`).join('');
+  el.innerHTML=`<section class="panel sec cnt"><div class="panel-hd"><span><i class="sec-ic">${ic('scope')}</i>셀 카운터</span><span class="panel-act"><button class="btn btn-out" onclick="cntReset()">${ic('refresh','ic-sm')}새로 세기</button></span></div>
+    <div class="cnt-wrap"><div class="cnt-in">
+      <label class="cnt-f">샘플 <small>(선택)</small><input list="cntLines" value="${esc(s.name)}" placeholder="예: HCC41 Tumor-CAF" oninput="cntSt.name=this.value;cntSave();cntOut()"><datalist id="cntLines">${lineOpts}</datalist></label>
+      <div class="cnt-f"><span>센 칸 수 <small>큰 칸 몇 개 합계인지</small></span><div class="cnt-segs">${CNT_SQ.map(n=>seg('sq',n,n+'칸',+s.sq===n)).join('')}</div></div>
+      <div class="cnt-f"><span>입력 방식</span><div class="cnt-segs">${seg('mode','ld','Live · Dead',s.mode!=='lt')}${seg('mode','lt','Live · 전체 합계',s.mode==='lt')}</div></div>
+      <div class="cnt-row2"><label class="cnt-f">Live 합계<input id="cntLive" type="number" inputmode="numeric" min="0" value="${esc(s.live)}" placeholder="예: 169" oninput="cntSt.live=this.value;cntSave();cntOut()"></label>
+        ${s.mode==='lt'?`<label class="cnt-f">전체 합계 <small>(live + dead)</small><input type="number" inputmode="numeric" min="0" value="${esc(s.total)}" placeholder="예: 179" oninput="cntSt.total=this.value;cntSave();cntOut()"></label>`
+          :`<label class="cnt-f">Dead 합계<input type="number" inputmode="numeric" min="0" value="${esc(s.dead)}" placeholder="예: 10" oninput="cntSt.dead=this.value;cntSave();cntOut()"></label>`}</div>
+      <div class="cnt-row2"><label class="cnt-f">총 부피 <small>(세포를 푼 부피)</small><span class="cnt-vol"><input type="number" inputmode="decimal" min="0" step="any" value="${esc(s.vol)}" placeholder="예: 2" oninput="cntSt.vol=this.value;cntSave();cntOut()"><span class="cnt-segs sm">${seg('vu','mL','mL',s.vu!=='µL')}${seg('vu','µL','µL',s.vu==='µL')}</span></span></label>
+        <div class="cnt-f cnt-fix"><span>Trypan blue</span><b>1 : 1 고정 (×2)</b></div></div>
+      <div class="cnt-how">cells/mL = 합계 ÷ ${s.sq}칸 × 2 × 10⁴ · 총 세포 = cells/mL × 부피</div>
+    </div><div class="cnt-out" id="cntOut"></div></div>
+    <div class="cnt-split"><div class="cnt-sh"><b>나누기</b><small>위에서부터 차례로 떼어 가요. 숫자를 눌러 고르기</small></div><div id="cntRows"></div>
+      <div class="cnt-addp"><input id="cntNewP" placeholder="용도 추가 (예: Seeding Tumor-org, Seeding CAF)" onkeydown="if(event.key==='Enter')cntAddPurp()"><button class="btn btn-out" onclick="cntAddPurp()">${ic('plus','ic-sm')}추가</button><button class="link-btn" onclick="cntResetPurps()">기본으로</button></div></div>
+  </section>`;
+  cntOut();
+}
+function cntSet(k,v){ cntSt[k]=v; cntSave(); renderCnt(); }
+function cntReset(){ Object.assign(cntSt,{live:'',dead:'',total:'',vol:'',name:''}); cntSave(); renderCnt(); setTimeout(()=>{ const x=document.getElementById('cntLive'); if(x) x.focus(); },30); }
+function cntOut(){
+  const box=document.getElementById('cntOut'), rows=document.getElementById('cntRows'); if(!box) return;
+  const r=cntCompute(cntSt,cntPurps); window._cntLast=r;
+  if(r.err) box.innerHTML=`<div class="cnt-err">${ic('alert','ic-sm')}${esc(r.err)}</div>`;
+  else if(!r.ok) box.innerHTML=`<div class="cnt-empty">Live 합계를 넣으면 여기서 계산돼요.<br><small>예: 4칸 합 live 169 / dead 10, 2 mL → 8.45×10⁵ cells/mL, 총 1.69×10⁶, viability 94.4%</small></div>`;
+  else box.innerHTML=`<div class="cnt-big"><small>Live</small><b>${cntSci(r.conc)}</b><span>cells/mL</span></div>
+    <div class="cnt-kv"><div><small>총 live 세포</small><b>${r.hasVol?cntSci(r.total):'<i>부피를 넣으면</i>'}</b></div><div><small>Viability</small><b>${isFinite(r.via)?r.via.toFixed(1)+'%':'-'}</b></div>
+      <div><small>µL당</small><b>${cntSci(r.perUL)}</b></div><div><small>Dead</small><b>${isFinite(r.deadConc)?cntSci(r.deadConc)+'/mL':'-'}</b></div></div>
+    ${r.warn.map(w=>`<div class="cnt-warn">${esc(w)}</div>`).join('')}
+    <button class="btn btn-out cnt-copy" onclick="cntCopy()">${ic('list','ic-sm')}글로 복사</button>`;
+  if(rows) rows.innerHTML=cntRowsHtml(r);
+}
+function cntRowsHtml(r){
+  const R={}; (r.rows||[]).forEach(x=>R[x.id]=x);
+  const html=cntPurps.map((p,i)=>{ const x=R[p.id]||{}, open=_cntOpen===p.id, per=(+p.m||0)*Math.pow(10,+p.e||0);
+    const res=!r.ok||!(r.conc>0)?'<span class="cnt-res nil">-</span>'
+      :`<span class="cnt-res${x.short?' short':''}"><b>${cntUL(x.ul)} µL</b>${x.n>1?`<small>${p.unit}당 ${cntUL(x.ulPer)} µL</small>`:''}${x.short?`<small>모자라요${isFinite(x.max)?` · ${Math.max(0,x.max)}개까지`:''}</small>`:''}${x.ulPer<2&&x.n>0?'<small>2 µL보다 적어요 · 희석 고려</small>':''}</span>`;
+    return `<div class="cnt-p${open?' open':''}">
+      <div class="cnt-pr"><span class="cnt-pmove"><button onclick="cntMove(${i},-1)" ${i?'':'disabled'} title="위로">▲</button><button onclick="cntMove(${i},1)" ${i<cntPurps.length-1?'':'disabled'} title="아래로">▼</button></span>
+        <input class="cnt-pname" value="${esc(p.name)}" onchange="cntPSet('${p.id}','name',this.value.trim()||'용도')">
+        <button class="cnt-per" onclick="_cntOpen=_cntOpen==='${p.id}'?null:'${p.id}';cntOut()">${esc(cntSci(per))}<small>/ ${esc(p.unit)}</small></button>
+        <span class="cnt-step"><button onclick="cntPSet('${p.id}','n',Math.max(0,${+p.n||0}-1))">−</button><b>${+p.n||0}</b><button onclick="cntPSet('${p.id}','n',${+p.n||0}+1)">+</button><i>${esc(p.unit)}</i></span>
+        ${r.ok&&r.hasVol&&r.conc>0&&per>0?`<button class="link-btn cnt-max" onclick="cntFill('${p.id}')" title="남은 세포로 되는 만큼">되는 만큼</button>`:''}
+        ${res}<button class="tbl-btn" onclick="cntDelPurp('${p.id}')" title="빼기">${ic('x','ic-sm')}</button></div>
+      ${open?`<div class="cnt-pick"><div><small>앞 숫자</small>${CNT_MAN.map(m=>`<button class="cnt-chip${+p.m===m?' on':''}" onclick="cntPSet('${p.id}','m',${m})">${m}</button>`).join('')}</div>
+        <div><small>× 10의</small>${CNT_EXP.map(e=>`<button class="cnt-chip${+p.e===e?' on':''}" onclick="cntPSet('${p.id}','e',${e})">${cntPow(e)}</button>`).join('')}</div>
+        <div><small>단위</small>${CNT_UNITS.map(u=>`<button class="cnt-chip${p.unit===u?' on':''}" onclick="cntPSet('${p.id}','unit','${u}')">${u}</button>`).join('')}</div>
+        <button class="btn btn-pri cnt-done" onclick="_cntOpen=null;cntOut()">${ic('check','ic-sm')}${esc(cntSci(per))} / ${esc(p.unit)}</button></div>`:''}</div>`; }).join('');
+  const left=r.ok&&r.hasVol&&r.conc>0&&(r.rows||[]).some(x=>x.n>0)?`<div class="cnt-left${r.leftCells<-1e-6?' short':''}">${r.leftCells<-1e-6?`${cntSci(-r.leftCells)}개 모자라요`:`남는 세포 <b>${cntSci(r.leftCells)}</b> · <b>${cntUL(Math.max(0,r.leftUL))} µL</b>`}</div>`:'';
+  return html+left;
+}
+function cntPSet(id,k,v){ const p=cntPurps.find(x=>x.id===id); if(!p) return; p[k]=v; cntSavePurps(); cntOut(); }
+function cntMove(i,d){ const j=i+d; if(j<0||j>=cntPurps.length) return; const [p]=cntPurps.splice(i,1); cntPurps.splice(j,0,p); cntSavePurps(); cntOut(); }
+// 되는 만큼: 위 용도를 뗀 뒤 남은 세포로 이 용도를 몇 개 만들 수 있는지
+function cntFill(id){ const p=cntPurps.find(x=>x.id===id); if(!p) return; const saveN=p.n; p.n=0; const r=cntCompute(cntSt,cntPurps), x=(r.rows||[]).find(y=>y.id===id);
+  const before=x?x.leftCells+0:0;   // 이 줄 n=0이면 이 줄 뒤 남은 = 이 줄 앞 남은
+  const per=(+p.m||0)*Math.pow(10,+p.e||0); p.n=per>0&&isFinite(before)?Math.max(0,Math.floor(before/per+1e-9)):saveN; cntSavePurps(); cntOut(); }
+function cntAddPurp(){ const i=document.getElementById('cntNewP'), v=(i&&i.value||'').trim(); if(!v) return toast('용도 이름을 적어 주세요.',{warn:true});
+  const seed=/seed|시딩|well|org|caf|pf/i.test(v); cntPurps.push({id:uid(),name:v,unit:/stock/i.test(v)?'vial':/pellet/i.test(v)?'tube':seed?'well':'vial',m:1,e:/stock|pellet/i.test(v)?6:5,n:1}); _cntOpen=cntPurps[cntPurps.length-1].id; cntSavePurps(); renderCnt(); }
+function cntDelPurp(id){ const p=cntPurps.find(x=>x.id===id); if(!p) return; if(!CNT_DEF.some(d=>d.id===id)&&!confirm(`「${p.name}」 용도를 뺄까요?`)) return; cntPurps=cntPurps.filter(x=>x.id!==id); cntSavePurps(); cntOut(); }
+function cntResetPurps(){ if(!confirm('용도를 기본(Stock · Pellet · Seeding)으로 되돌릴까요? 직접 넣은 용도는 빠져요.')) return; cntPurps=JSON.parse(JSON.stringify(CNT_DEF)); cntSavePurps(); renderCnt(); }
+async function cntCopy(){ const t=cntText(window._cntLast||cntCompute(cntSt,cntPurps)); if(!t) return; try{ await navigator.clipboard.writeText(t); toast('복사했어요. 연구노트 · 메모에 붙여 넣으세요'); }catch(e){ prompt('복사해서 쓰세요',t); } }
+
 function renderMedia(){
   const el=document.getElementById('mediaContent'); if(!el) return;
   const calc=mdCalc(), now=mdYmd();
@@ -11878,6 +12133,40 @@ const FIG_FORMATS={'6':[2,3],'12':[3,4],'24':[4,6],'48':[6,8],'96':[8,12]};
 // 기본 색도 종류 색상 맵(PAL)에서: 조건=연한 색(bg) · 라인 테두리=진한 색(tx) · 일정 이름표=중간 색(bd). 마지막 조건색은 회색(Control)
 const FIG_COND=[26,4,17,0,32,9,21,37,51].map(i=>PAL[i].bg);
 const FIG_RING=[27,0,18,32,5,21,39,47].map(i=>PAL[i].tx);
+// 색 조합 (유진 11-28: 예쁜 조합을 골라 한 번에, 새 조건 · 라인도 그 조합에서 자동). conds = well 안(연한 색, 글자가 읽히게), rings = 라인 테두리(진한 색), ctrl = Control · DMSO 같은 대조군
+// 판(body): gray 연한 회색 · white 흰색 · tint 조합 색을 아주 옅게
+const FIG_PALS=[
+  {id:'classic', name:'기본',   conds:FIG_COND.slice(0,8), rings:FIG_RING, ctrl:FIG_COND[8]},
+  {id:'pastel',  name:'파스텔', conds:['#FBCFDC','#C7E3F7','#D4EDC6','#FFE2B0','#DCD2F4','#BFE7DF','#FFD3C4','#F2E6A8'], rings:['#C2557A','#3A78B0','#4F8A3C','#C27718','#6A58A8','#2B8A7E'], ctrl:'#E6E8EC'},
+  {id:'ocean',   name:'바다',   conds:['#CFE8F6','#BEE6E0','#A7D3EE','#D6DDF5','#9EDBCF','#B5C6EE','#E1EEF6','#8FCBE6'], rings:['#1D5E8C','#23877C','#3B5BA0','#4A86B8','#0F6E6E','#5B6FA8'], ctrl:'#E5E9EE'},
+  {id:'sunset',  name:'노을',   conds:['#FFD9CC','#FFE6B8','#F9C4D2','#FFC7AE','#F7D5E8','#FDE3C9','#F3B9B9','#FFEFD0'], rings:['#B5462E','#C07812','#A8395E','#8E4A2C','#B85B85','#9C6A1C'], ctrl:'#EEE8E5'},
+  {id:'forest',  name:'숲',     conds:['#DCEBC9','#C3E0BC','#E9E5C2','#B9DACB','#D9E6B3','#CDE3D9','#E6DCC4','#A9D1B8'], rings:['#46773A','#2C6A4E','#7A6A2C','#3F6E64','#6B7F2E','#7A5A3A'], ctrl:'#E6E9E3'},
+  {id:'lavender',name:'라벤더', conds:['#E6DCF8','#F5D6EA','#D3D9F5','#EBC9E3','#DCCBF0','#F8E2EC','#C9D0F0','#EFDDF5'], rings:['#6A4FA3','#A8457F','#4C5AA0','#8A4A9A','#5F6AB0','#9A5A7A'], ctrl:'#EAE8EE'},
+  {id:'muted',   name:'차분한', conds:['#E8D3CF','#D3E0CD','#D0DAE8','#E8DCC3','#DAD2E4','#CCE1DD','#E8D4E0','#DEDDD0'], rings:['#8C5650','#55764C','#4F6A8C','#8A7044','#6C5C85','#3F7570'], ctrl:'#E9E9E7'},
+  {id:'cb',      name:'색약 배려', conds:['#F9D3A6','#BFE0F4','#B8E2D2','#F6EDA8','#B4C9EA','#F4C2A6','#E8C3DA'], rings:['#E69F00','#0072B2','#009E73','#D55E00','#CC79A7','#56B4E9'], ctrl:'#E4E4E4'},
+  {id:'mono',    name:'흑백',   conds:['#DADDE2','#C2C7CE','#A9B0B9','#ECEEF1','#8F97A2','#B6BCC4'], rings:['#1F2328','#4B5563','#6B7280','#2563EB','#9CA3AF','#374151'], ctrl:'#FFFFFF'},
+];
+const FIG_NEUTRAL=['#FFFFFF','#F6F7F9','#ECEEF1','#E2E5E9','#D3D7DC'];   // 흰색 · 연한 회색들 (색 고르기 맨 위)
+const FIG_BODY={gray:'#F6F7F9',white:'#FFFFFF'};
+const figPalOf=pm=>FIG_PALS.find(p=>p.id===(pm&&pm.pal))||FIG_PALS[0];
+const figIsCtrl=n=>/^\s*(control|ctrl|con|vehicle|veh|dmso|untreated|mock|nt|pbs|no\s*treat\w*|대조\w*|무처리)\b/i.test(String(n||''))||/^\s*(대조|무처리)/.test(String(n||''));
+// 조건 이름에서 농도 · 숫자를 뗀 앞부분 (「Cis 1 µM」·「Cis 10 µM」 → Cis): 같은 약은 한 색의 진하기로
+const figCondStem=n=>String(n||'').replace(/[\s_-]*-?[\d.]+\s*(µm|um|nm|mm|m|ng\/ml|ug\/ml|µg\/ml|mg\/ml|ng|ug|µg|mg|%|x|h|hr|d|day|days)?\s*$/i,'').trim().toLowerCase();
+function figPlateBody(pm){ const b=(pm&&pm.body)||'gray'; return b==='tint'?figMix(figPalOf(pm).rings[0],.95):FIG_BODY[b]||FIG_BODY.gray; }
+function figPalNext(pm,kind){ const P=figPalOf(pm), arr=kind==='l'?P.rings:P.conds, used=new Set((kind==='l'?pm.lines||[]:pm.conds||[]).flatMap(x=>[x.color,x.pb]));   // pb = 농도 단계의 바탕 색
+  return arr.find(c=>!used.has(c))||arr[(kind==='l'?(pm.lines||[]).length:(pm.conds||[]).filter(c=>!figIsCtrl(c.name)).length)%arr.length]; }
+// 조합 고르기: 대조군은 ctrl, 같은 약 이름(숫자만 다름)은 한 색의 진하기 (진한 쪽이 높은 농도), 나머지는 차례대로. 라인 테두리도 차례대로
+function figApplyPal(id,pal){ const f=figById(id); if(!f||!f.plate) return; const pm=f.plate; pm.pal=pal; const P=figPalOf(pm);
+  const groups=[]; (pm.conds||[]).forEach(c=>{ if(figIsCtrl(c.name)){ c.color=P.ctrl; return; } const k=figCondStem(c.name)||(/^\s*-?[\d.]/.test(c.name)?'#num':c.id); let g=groups.find(x=>x.k===k); if(!g){ g={k,cs:[]}; groups.push(g); } g.cs.push(c); });
+  groups.forEach((g,i)=>{ const base=P.conds[i%P.conds.length];
+    g.cs.forEach(c=>{ delete c.pb; }); if(g.cs.length<2){ g.cs[0].color=base; return; }
+    const num=c=>{ const m=String(c.name).match(/(-?[\d.]+)[^\d]*$/); return m?parseFloat(m[1]):0; };
+    g.cs.slice().sort((a,b)=>num(a)-num(b)).forEach((c,j)=>{ c.pb=base; c.color=figTintStep(base,j,g.cs.length); }); });
+  (pm.lines||[]).forEach((x,i)=>{ x.color=P.rings[i%P.rings.length]; });
+  figTouch(f); renderFig(); }
+// 같은 약 농도 단계: 낮은 농도 = 아주 옅게 → 높은 농도 = 조합 색 그대로
+function figTintStep(base,j,n){ if(n<2) return base; return figMix(base,.62*(1-j/(n-1))); }
+
 const FIG_ACT={'Seeding':PAL[18].bd,'Split':PAL[5].bd,'Reseeding':PAL[32].bd,'Media Change':PAL[26].bd,'Stock':PAL[38].bd,'Fixation':PAL[29].bd,'Harvest':PAL[2].bd,'Observation':PAL[9].bd,'기타':PAL[51].bd};
 // 한 장(16:9)에 글씨가 읽히게 들어가는 최대: 일정 줄 · plate 장수 (둘 다 넣으면 줄어듦)
 const FIG_MAX={tracks:5,plates:4,tracksWith:3,platesWith:2};
@@ -12131,6 +12420,27 @@ function figDrawSched(D,L,ox,oy,sc,hl,geo){
     y+=T.H+24;
   });
 }
+// well 안 글자: 라인 번호(굵게) + 글자 (엔터로 나눈 줄 그대로, 길면 낱말에서 줄바꿈).
+// 글자 크기는 기본의 72%(최소 11)까지만 줄이고, 그래도 넘치면 줄바꿈 · 원 밖으로 조금 · 마지막 줄 … (유진 11-28: 너무 작게 줄이지 않기)
+function figWrapM(t,max,size,wt){
+  const out=[]; String(t).split('\n').map(x=>x.trim()).filter(Boolean).forEach(par=>{
+    const ws=par.split(/(\s+)/).filter(x=>x!==''); let cur='';
+    ws.forEach(w=>{ const tt=(cur+w).trim();
+      if(figMeasure(tt,size,wt)<=max||!cur.trim()){
+        if(figMeasure(tt,size,wt)>max){ let s0=''; for(const ch of tt){ if(figMeasure(s0+ch,size,wt)>max&&s0){ out.push(s0); s0=''; } s0+=ch; } cur=s0; } else cur=cur+w;
+      } else { out.push(cur.trim()); cur=w.trimStart(); } });
+    if(cur.trim()) out.push(cur.trim()); });
+  return out; }
+function figWellLines(D,pid,txt,r){
+  if(!pid&&!txt) return null;
+  const base=Math.min(22,r*.42), min=Math.max(11,base*.72), W=r*1.7, H=r*1.75;
+  const build=(s,mw)=>{ const L=[]; if(pid) figWrapM(pid,mw,s,800).forEach(t=>L.push({t,s,w:800})); if(txt) figWrapM(txt,mw,s*.92,600).forEach(t=>L.push({t,s:s*.92,w:600})); return L; };
+  const tot=L=>L.reduce((a,x)=>a+x.s*1.15,0), fits=(L,mw)=>tot(L)<=H&&L.every(x=>figMeasure(x.t,x.s,x.w)<=mw+.5);
+  for(let s=base;s>=min-.01;s-=.5){ const L=build(s,W); if(fits(L,W)) return {lines:L,tot:tot(L)}; }
+  // 가장 작게 해도 안 들어가면: 폭을 원 지름 가까이까지 쓰고, 줄이 넘치면 마지막 줄 끝을 …
+  const mw=r*1.95; let L=build(min,mw); const maxN=Math.max(1,Math.floor((r*2.05)/(min*1.15)));
+  if(L.length>maxN){ L=L.slice(0,maxN); const z=L[maxN-1]; let t=z.t; while(t.length>1&&figMeasure(t+'…',z.s,z.w)>mw) t=t.slice(0,-1); z.t=t+'…'; }
+  return {lines:L,tot:tot(L)}; }
 function figDrawPlates(D,L,ox,oy,f,sel,hl){
   const {plates,pos,cell,conds,lns}=L, r=cell*0.42, geo=[];
   const condOf=id=>conds.find(x=>x.id===id), lnOf=id=>lns.find(x=>x.id===id);
@@ -12146,7 +12456,7 @@ function figDrawPlates(D,L,ox,oy,f,sel,hl){
     const note=figSp((pl.note||'').trim());
     if(note){ let s2=20; while(s2>13&&D.measure(note,s2,500)>pw) s2--; D.text(note,bx+rlW+2,by+40,{size:s2,weight:500,color:'#1F2328'}); }
     const ox2=bx+rlW, oy2=by+P.hdH+clH;
-    D.plate(ox2,oy2,pw,ph,{fill:'#F6F7F9',stroke:'#B8BEC6',width:2.5});
+    D.plate(ox2,oy2,pw,ph,{fill:figPlateBody(f.plate),stroke:'#B8BEC6',width:2.5});
     const gx=ox2+52, gy=oy2+48, fs=Math.min(20,cell*.3);
     for(let j=0;j<C;j++){ const cx=gx+j*cell+cell/2; D.text(String(j+1),cx,oy2+24,{size:fs,weight:700,color:'#6B727B',align:'center',base:'middle'});
       geo.push({hdr:'col',pi,idx:j,x:cx-cell/2,y:oy2+4,w:cell,h:40});
@@ -12161,11 +12471,9 @@ function figDrawPlates(D,L,ox,oy,f,sel,hl){
       const cd=condOf(figWellCond(pl,wk)), ln=lnOf(w.l);
       D.circle(cx,cy,r,{fill:cd?cd.color:'#FFFFFF',stroke:ln?ln.color:'#C9CED5',width:ln?3.5:1.5});
       if(sel&&sel.has(key)) D.circle(cx,cy,r+6,{stroke:'#111111',width:3,dash:true});
-      const ink=cd?figInk(cd.color):'#1F2328', rows=[ln?ln.info.pid:'', w.t||(w.c&&cd?figSp(cd.name):'')].filter(Boolean);   // 가로 · 세로 조건은 줄 이름에 있으니 well 안엔 안 씀
-      if(rows.length){ const max=r*1.7, base=Math.min(22,r*.42);
-        const sizes=rows.map((t,ix)=>{ const wt=ix===0&&ln?800:600; let s=ix===0&&ln?base:base*.92; while(s>=9&&D.measure(t,s,wt)>max) s--; return s>=9?s:0; });
-        if(sizes.every(s=>s>0)){ const lh=sizes.map(s=>s*1.15), tot=lh.reduce((a,b)=>a+b,0); let yy=cy-tot/2;
-          rows.forEach((t,ix)=>{ D.text(t,cx,yy+1,{size:sizes[ix],weight:ix===0&&ln?800:600,color:ink,align:'center'}); yy+=lh[ix]; }); } }
+      const ink=cd?figInk(cd.color):'#1F2328', txt=w.t||(w.c&&cd?figSp(cd.name):'');   // 가로 · 세로 조건은 줄 이름에 있으니 well 안엔 안 씀
+      const fl=figWellLines(D,ln?ln.info.pid:'',txt,r);
+      if(fl){ let yy=cy-fl.tot/2; fl.lines.forEach(L=>{ D.text(L.t,cx,yy+1,{size:L.s,weight:L.w,color:ink,align:'center'}); yy+=L.s*1.15; }); }
     }
   });
   // 범례
@@ -12269,7 +12577,8 @@ function figKnownLines(f){ const a=[]; const add=x=>{ if(x&&lineById(x)&&!a.incl
   if(f.sched) (f.sched.tracks||[]).forEach(t=>add(t.lineId)); if(f.plate) (f.plate.lines||[]).forEach(x=>add(x.id)); if(!a.length) bulkLines.forEach(add); return a; }
 function figAddPlate(id,quiet){ const f=figById(id); if(!f) return; const sel=figKnownLines(f);
   if(f.sched&&(f.sched.tracks||[]).length>FIG_MAX.tracksWith) return toast(`일정이 ${f.sched.tracks.length}줄이라 plate까지 넣으면 한 장에 너무 작아져요. 일정을 ${FIG_MAX.tracksWith}줄까지 줄이거나 Figure를 따로 만들어 주세요.`,{warn:true});
-  f.plate={conds:[{id:uid(),name:'Control',color:FIG_COND[8]}],lines:sel.slice(0,FIG_RING.length).map((x,i)=>({id:x,color:FIG_RING[i]})),plates:[{id:uid(),name:'',format:'24',wells:{}}]};
+  const P0=FIG_PALS.find(p=>p.id===(localStorage.getItem('orgFigPal')||'pastel'))||FIG_PALS[1];   // 마지막에 고른 조합 (처음은 파스텔)
+  f.plate={pal:P0.id,conds:[{id:uid(),name:'Control',color:P0.ctrl}],lines:sel.slice(0,P0.rings.length).map((x,i)=>({id:x,color:P0.rings[i]})),plates:[{id:uid(),name:'',format:'24',wells:{}}]};
   if(sel.length){ const m=String(latestPlate(lineById(sel[0]))||'').match(/(\d+)\s*well/); if(m&&FIG_FORMATS[m[1]]) f.plate.plates[0].format=m[1]; }
   if(!quiet){ figTouch(f); renderFig(); } }
 function figDropPart(id,part){ const f=figById(id); if(!f) return; if(!confirm(part==='sched'?'Experiment Schedule을 이 Figure에서 뺄까요?':'Plate map을 이 Figure에서 뺄까요?')) return; f[part]=null; _figSel.clear(); figTouch(f); renderFig(); }
@@ -12329,7 +12638,7 @@ function renderFig(){
   // 편집 창은 body에 한 번만 만들고 안쪽만 바꿈 (다시 만들면 열리는 효과가 매번 다시 나와서 깜빡임)
   let m=document.getElementById('figModal');
   if(!f){ if(m) m.remove(); return; }
-  if(!m){ m=document.createElement('div'); m.id='figModal'; m.className='modal open fg-modal'; m.onclick=e=>{ if(e.target===m) figClose(); }; m.innerHTML='<div class="mbox fg-mbox"></div>'; document.body.appendChild(m); }
+  if(!m){ m=document.createElement('div'); m.id='figModal'; m.className='modal open fg-modal';   /* 바깥을 눌러도 안 닫힘 (실수로 닫힘, 유진 11-28): 「닫기」 버튼으로만 */ m.innerHTML='<div class="mbox fg-mbox"></div>'; document.body.appendChild(m); }
   m.querySelector('.fg-mbox').innerHTML=figEditor(f);
   figDrawPreview(f); const s2=m.querySelector('.fg-side'); if(s2) s2.scrollTop=keep;
 }
@@ -12346,7 +12655,8 @@ function figProjMany(ids){ ids=ids.filter(id=>figById(id)); if(!ids.length) retu
   const ps=figProjects(), v=prompt(`고른 figure ${ids.length}개를 넣을 프로젝트 이름${ps.length?`\n(지금 있는 것: ${ps.join(', ')})`:''}\n비우면 미분류`,_figProj&&_figProj!=='__none'?_figProj:'');
   if(v===null) return; ids.forEach(id=>{ const f=figById(id); if(v.trim()) f.project=v.trim(); else delete f.project; }); _figPick.clear(); saveFigures(); renderFig(); toast(v.trim()?`「${v.trim()}」에 넣었어요`:'미분류로 뺐어요'); }
 function figClose(){ _figEdit=null; _figSel.clear(); renderFig(); }
-document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&_figEdit&&document.getElementById('figModal')&&!document.querySelector('.pet-pop')){ figClose(); } });
+// Esc로도 안 닫힘 (닫기 버튼으로만). Esc는 열린 색 고르기 창만 닫음
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&_figEdit&&document.querySelector('.fg-cpop')) petPopClose(); });
 function figPickOne(id,on){ on?_figPick.add(id):_figPick.delete(id); renderFig(); }
 function figPickAll(on){ _figPick=new Set(on?figures.filter(figInProj).map(f=>f.id):[]); renderFig(); }   // 지금 보이는(고른 프로젝트) 것만
 function figSetName(id,v){ const f=figById(id); if(!f) return; v=v.trim(); if(v){ f.name=v; f._nameEdited=true; } else { delete f._nameEdited; } figTouch(f); renderFig(); }
@@ -12384,7 +12694,7 @@ function figTabDrop(ev,id,to){ ev.preventDefault(); document.querySelectorAll('.
   figTouch(f); renderFig(); }
 function figTabOver(ev){ ev.preventDefault(); const r=ev.currentTarget.getBoundingClientRect(), after=ev.clientX>r.left+r.width/2; ev.currentTarget.classList.toggle('dropr',after); ev.currentTarget.classList.toggle('dropl',!after); }
 function figTabLeave(ev){ ev.currentTarget.classList.remove('dropl','dropr'); }
-function figSetTab(k){ if(_figTab!==k){ _figTab=k; _figSel.clear(); _figAnchor=null; _figAxis=null; if(!k.startsWith('plate:')) _figBrush=null; } renderFig(); }
+function figSetTab(k){ if(_figTab!==k){ _figTab=k; _figTxtDraft=null; _figSel.clear(); _figAnchor=null; _figAxis=null; if(!k.startsWith('plate:')) _figBrush=null; } renderFig(); }
 function figEditor(f){
   const tabs=figTabs(f); if(!tabs.some(t=>t[0]===_figTab)) _figTab=tabs[0][0];
   const canSched=!f.sched&&!(f.plate&&f.plate.plates.length>FIG_MAX.platesWith), canPlate=!f.plate||f.plate.plates.length<figMaxPlates(f);
@@ -12524,10 +12834,15 @@ function figPlateEditor(f,pi){
   <div class="fg-part">${step(3,'조건',`<small>${ax?'이 줄 전체 조건':'처리 · well 안 색'}</small>`)}
     <div class="fg-conds">${(pm.conds||[]).map(cd=>`<div class="fg-cd${figBrushOn('c',cd.id)}"><button class="fg-dot" style="background:${cd.color}" onclick="figCondColorPick(this,'${f.id}','${cd.id}')" title="색"></button>
       <input value="${esc(cd.name)}" onchange="figCondName('${f.id}','${cd.id}',this.value)"><button class="btn btn-out fg-apply" onclick="figPick('${f.id}','c','${cd.id}')">${figBrushOn('c',cd.id)?'붓 내려놓기':'칠하기'}</button><button class="tbl-btn" onclick="figCondDel('${f.id}','${cd.id}')">${ic('x','ic-sm')}</button></div>`).join('')}</div>
-    <div class="fg-add"><input id="figCondNew" placeholder="새 조건 · 여러 개는 쉼표 (0, 1, 10 µM)" onkeydown="if(event.key==='Enter')figCondAdd('${f.id}')"><button class="btn btn-out" onclick="figCondAdd('${f.id}')">추가</button></div></div>
+    <div class="fg-add"><input id="figCondNew" placeholder="새 조건 · 여러 개는 쉼표 (0, 1, 10 µM)" onkeydown="if(event.key==='Enter')figCondAdd('${f.id}')"><button class="btn btn-out" onclick="figCondAdd('${f.id}')">추가</button></div>
+    ${figPalHtml(f)}</div>
   <div class="fg-part">${step(4,'글자',`<small>${ax?'이 줄 이름':'well 안 (비우면 조건 이름)'}</small>`)}
-    <div class="fg-add"><input id="figTxt" placeholder="${ax?'예: 10 µM':'예: R1'}" onkeydown="if(event.key==='Enter')figAssign('${f.id}','t',this.value.trim())"><button class="btn btn-out" onclick="figAssign('${f.id}','t',document.getElementById('figTxt').value.trim())">쓰기</button></div></div>`;
+    <div class="fg-add">${ax?`<input id="figTxt" placeholder="예: 10 µM" onkeydown="if(event.key==='Enter')figAssign('${f.id}','t',this.value.trim())">`
+      :`<textarea id="figTxt" class="fg-wtxt" rows="2" placeholder="예: R1 (엔터로 줄바꿈, Ctrl+Enter로 쓰기)" oninput="_figTxtDraft=this.value" onkeydown="if(event.key==='Enter'&&(event.ctrlKey||event.metaKey)){event.preventDefault();figAssign('${f.id}','t',this.value.trim())}">${esc(_figTxtDraft!=null?_figTxtDraft:figSelText1(f,pi))}</textarea>`}<button class="btn btn-out" onclick="figAssign('${f.id}','t',document.getElementById('figTxt').value.trim())">쓰기</button></div></div>`;
 }
+// 고른 칸이 모두 같은 글자면 그 글자를 칸에 미리 넣어 둠 (고치기 쉽게)
+let _figTxtDraft=null;   // 치다 만 well 글자 (칸을 더 골라도 안 지워지게)
+function figSelText1(f,pi){ const ks=[..._figSel].filter(k=>k.startsWith(pi+':')); if(!ks.length) return ''; const ts=new Set(ks.map(k=>{ const o=figWellOf(f,k); return o&&o.w?o.w.t||'':''; })); return ts.size===1?[...ts][0]:''; }
 const figWellOf=(f,key,make)=>{ const [pi,wk]=key.split(':'), pl=f.plate&&f.plate.plates[+pi]; if(!pl) return null; pl.wells=pl.wells||{}; if(make&&!pl.wells[wk]) pl.wells[wk]={}; return {pl,wk,w:pl.wells[wk]}; };
 function figPlateSet(id,i,k,v){ const f=figById(id), pl=f&&f.plate&&f.plate.plates[i]; if(!pl) return; pl[k]=(k==='name'||k==='note')?v.trim():v;
   if(k==='format'){ const [R,C]=FIG_FORMATS[v]; Object.keys(pl.wells||{}).forEach(key=>{ const r=key.charCodeAt(0)-65, c=parseInt(key.slice(1))-1; if(r>=R||c>=C) delete pl.wells[key]; }); _figSel.clear(); }
@@ -12537,7 +12852,7 @@ function figPlateAdd(id){ const f=figById(id); if(!f||!f.plate) return;
 function figPlateDel(id,i){ const f=figById(id); if(!f||!f.plate) return; const ps=f.plate.plates; if(ps.length<2) return; if(Object.keys(ps[i].wells||{}).length&&!confirm('이 plate에 칠한 것도 같이 지워져요. 뺄까요?')) return; ps.splice(i,1); _figSel.clear(); figTouch(f); renderFig(); }
 function figPlLineAdd(id,lid){
   const f=figById(id); if(!f||!f.plate||!lid) return; const pm=f.plate; pm.lines=pm.lines||[];
-  const usedC=new Set(pm.lines.map(x=>x.color)), color=FIG_RING.find(c=>!usedC.has(c))||FIG_RING[pm.lines.length%FIG_RING.length];
+  const color=figPalNext(pm,'l');
   let ent;
   if(lid==='__custom'){
     const name=(prompt('라인 이름 (예: HCC40_Tumor-org)','')||'').trim(); if(!name){ renderFig(); return; }
@@ -12552,7 +12867,7 @@ function figPlLineAdd(id,lid){
 function figPlLineDel(id,lid){ const f=figById(id); if(!f||!f.plate) return; f.plate.lines=f.plate.lines.filter(x=>x.id!==lid); f.plate.plates.forEach(pl=>Object.values(pl.wells||{}).forEach(w=>{ if(w.l===lid) delete w.l; })); figTouch(f); renderFig(); }
 // 칠하기: 고른 칸이 이미 모두 그 조건 · 라인이면 다시 누를 때 뺌. 행 · 열을 골랐으면 조건 · 글자는 그 줄 전체로
 function figAssign(id,k,v){
-  const f=figById(id); if(!f||!f.plate) return;
+  const f=figById(id); if(!f||!f.plate) return; if(k==='t') _figTxtDraft=null;
   if(_figAxis&&k!=='l'){ const pl=f.plate.plates[_figAxis.pi]; if(!pl) return; const row=_figAxis.kind==='row';
     const key=k==='c'?(row?'rowC':'colC'):(row?'rowLab':'colLab'), m=pl[key]=pl[key]||{}, ks=[..._figAxis.idx];
     const off=k==='c'&&ks.every(x=>m[x]===v);
@@ -12573,21 +12888,24 @@ function figSelAll(id,only){ const f=figById(id); if(!f||!f.plate) return; _figS
 // 조건 더하기: 한 개면 그대로, 쉼표로 여러 개면 한 색의 진하기 차이로 (예: 「Cis 0, 1, 10 µM」 → Cis 0 µM · Cis 1 µM · Cis 10 µM)
 function figCondAdd(id){
   const f=figById(id); if(!f||!f.plate) return; const inp=document.getElementById('figCondNew'), v=(inp&&inp.value||'').trim();
-  const cs=f.plate.conds, used=new Set(cs.map(c=>c.color)), base=FIG_COND.find(c=>!used.has(c))||FIG_COND[cs.length%FIG_COND.length];
+  const cs=f.plate.conds, base=figPalNext(f.plate,'c');
   const parts=v.split(',').map(x=>x.trim()).filter(Boolean);
-  if(parts.length<2){ cs.push({id:uid(),name:v||'조건 '+(cs.length+1),color:base}); }
+  if(parts.length<2){ const nm=v||'조건 '+(cs.length+1); cs.push({id:uid(),name:nm,color:figIsCtrl(nm)?figPalOf(f.plate).ctrl:base}); }
   else { const m0=parts[0].match(/^(.*?)\s*(-?[\d.]+.*)$/), name=m0&&/\D/.test(m0[1])?m0[1].trim():''; if(name) parts[0]=m0[2];
     const unit=(parts[parts.length-1].match(/^-?[\d.]+\s*(.*)$/)||['',''])[1].trim();
-    parts.forEach((n,i)=>{ const t=.78-.78*(i/(parts.length-1)), lab=unit&&/^-?[\d.]+$/.test(n)?n+' '+unit:n; cs.push({id:uid(),name:[name,lab].filter(Boolean).join(' '),color:figMix(base,Math.max(0,t))}); }); }
+    parts.forEach((n,i)=>{ const lab=unit&&/^-?[\d.]+$/.test(n)?n+' '+unit:n, nm=[name,lab].filter(Boolean).join(' '); cs.push({id:uid(),name:nm,pb:base,color:figIsCtrl(nm)?figPalOf(f.plate).ctrl:figTintStep(base,i,parts.length)}); }); }
   figTouch(f); renderFig();
 }
 // 색 고르기: 종류 색상 고르기와 같은 색 맵(PAL). 조건(well 안)=연한 색, 라인 테두리=진한 색, 일정 이름표=중간 색
 let _figColorCb=null;
-function figColorPick(btn,kind,cb){
+function figColorPick(btn,kind,cb,pm){
   if(typeof petPopClose==='function') petPopClose();
-  const key=kind==='l'?'tx':kind==='t'?'bd':'bg';
+  const key=kind==='l'?'tx':kind==='t'?'bd':'bg', P=pm?figPalOf(pm):null;
+  const sw=c=>`<button class="cc-sw" style="background:${c}" data-c="${c}" title="${c}"></button>`;
+  const top=P?(kind==='l'?`<small class="cc-lab">${esc(P.name)} 조합</small><div class="cc-swatches">${P.rings.map(sw).join('')}</div>`
+    :`<small class="cc-lab">흰색 · 연한 회색</small><div class="cc-swatches">${FIG_NEUTRAL.map(sw).join('')}</div><small class="cc-lab">${esc(P.name)} 조합</small><div class="cc-swatches">${[P.ctrl,...P.conds].filter((c,i,a)=>a.indexOf(c)===i).map(sw).join('')}</div>`):'';
   const m=document.createElement('div'); m.id='petPop'; m.className='pet-pop fg-cpop';
-  m.innerHTML=`<b>색 고르기</b><div class="cc-swatches">${PAL.map(p=>`<button class="cc-sw" style="background:${p[key]}" data-c="${p[key]}" title="${p[key]}"></button>`).join('')}</div>`;
+  m.innerHTML=`<b>색 고르기</b>${top}${top?'<small class="cc-lab">모든 색</small>':''}<div class="cc-swatches">${PAL.map(p=>sw(p[key])).join('')}</div>`;
   document.body.appendChild(m); _figColorCb=cb;
   const rc=btn.getBoundingClientRect(), mw=m.offsetWidth, mh=m.offsetHeight;
   m.style.left=Math.max(8,Math.min(innerWidth-mw-8,rc.left))+'px';
@@ -12595,8 +12913,13 @@ function figColorPick(btn,kind,cb){
   m.querySelectorAll('.cc-sw').forEach(b=>b.onclick=()=>{ const c=b.dataset.c, f=_figColorCb; petPopClose(); _figColorCb=null; if(f) f(c); });
   setTimeout(()=>document.addEventListener('pointerdown',function off(e){ if(!m.contains(e.target)){ petPopClose(); document.removeEventListener('pointerdown',off); } }),0);
 }
-function figCondColorPick(btn,id,cid){ figColorPick(btn,'c',col=>{ const f=figById(id), c=f&&f.plate&&f.plate.conds.find(x=>x.id===cid); if(!c) return; c.color=col; figTouch(f); renderFig(); }); }
-function figLineColorPick(btn,id,lid){ figColorPick(btn,'l',col=>{ const f=figById(id), x=f&&f.plate&&(f.plate.lines||[]).find(y=>y.id===lid); if(!x) return; x.color=col; figTouch(f); renderFig(); }); }
+// 색 조합 칸: 누르면 모든 조건 · 라인 색이 그 조합으로 (대조군은 회색 · 흰색 쪽, 같은 약 농도는 한 색 진하기). 판 색: 연한 회색 · 흰색 · 옅은 조합 색
+function figPalHtml(f){ const pm=f.plate, cur=figPalOf(pm).id, body=pm.body||'gray';
+  return `<div class="fg-pals"><small>색 조합 <span>누르면 조건 · 라인 색이 한 번에 바뀌어요</span></small><div class="fg-palrow">${FIG_PALS.map(P=>`<button class="fg-pal${P.id===cur&&pm.pal?' on':''}" onclick="figApplyPal('${f.id}','${P.id}');try{localStorage.setItem('orgFigPal','${P.id}')}catch(e){}" title="${esc(P.name)}"><span class="fg-paldots">${[P.ctrl,...P.conds.slice(0,4)].map(c=>`<i style="background:${c}"></i>`).join('')}<i class="rg" style="border-color:${P.rings[0]}"></i></span>${esc(P.name)}</button>`).join('')}</div>
+    <div class="fg-bodyrow"><small>판 색</small>${[['gray','연한 회색'],['white','흰색'],['tint','옅은 조합 색']].map(([k,t])=>`<button class="fg-bodyb${body===k?' on':''}" onclick="figSetBody('${f.id}','${k}')"><i style="background:${k==='tint'?figMix(figPalOf(pm).rings[0],.95):FIG_BODY[k]}"></i>${t}</button>`).join('')}</div></div>`; }
+function figSetBody(id,k){ const f=figById(id); if(!f||!f.plate) return; if(k==='gray') delete f.plate.body; else f.plate.body=k; figTouch(f); renderFig(); }
+function figCondColorPick(btn,id,cid){ figColorPick(btn,'c',col=>{ const f=figById(id), c=f&&f.plate&&f.plate.conds.find(x=>x.id===cid); if(!c) return; c.color=col; figTouch(f); renderFig(); },(figById(id)||{}).plate); }
+function figLineColorPick(btn,id,lid){ figColorPick(btn,'l',col=>{ const f=figById(id), x=f&&f.plate&&(f.plate.lines||[]).find(y=>y.id===lid); if(!x) return; x.color=col; figTouch(f); renderFig(); },(figById(id)||{}).plate); }
 function figTlColorPick(btn,id,tid,iid){ figColorPick(btn,'t',col=>{ const f=figById(id), t=figTrack(f,tid), it=t&&t.items.find(x=>x.id===iid); if(!it) return; it.color=col; figTouch(f); renderFig(); }); }
 function figCondName(id,cid,v){ const f=figById(id), c=f&&f.plate&&f.plate.conds.find(x=>x.id===cid); if(!c) return; c.name=v; figTouch(f); renderFig(); }
 function figCondDel(id,cid){ const f=figById(id); if(!f||!f.plate) return; f.plate.conds=f.plate.conds.filter(x=>x.id!==cid); f.plate.plates.forEach(pl=>{ Object.values(pl.wells||{}).forEach(w=>{ if(w.c===cid) delete w.c; }); ['rowC','colC'].forEach(k=>Object.keys(pl[k]||{}).forEach(x=>{ if(pl[k][x]===cid) delete pl[k][x]; })); }); figTouch(f); renderFig(); }
@@ -12726,7 +13049,7 @@ const expOnDay=ds=>exps.filter(e=>e.date===ds).sort((a,b)=>(a.created||0)-(b.cre
 
 // 스크립트를 끝까지 읽은 뒤에야 분석 · 다이어리를 그릴 수 있다 (setTab 참고)
 window._lateReady=true;
-if(curTab==='ana'||curTab==='diary'||curTab==='media'||curTab==='fig') setTab(curTab,true);
+if(curTab==='ana'||curTab==='diary'||curTab==='media'||curTab==='fig'||curTab==='cnt') setTab(curTab,true);
 </script>
 
 <div id="sbarModal" class="modal">
