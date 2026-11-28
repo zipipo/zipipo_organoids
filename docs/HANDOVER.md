@@ -25,6 +25,7 @@
 | 9 | 업데이트 안내 팝업 | ✅ 끝 | `NEWS` (id · date · days:5 · items). 5일 동안 열 때마다, 「다시 보지 않기」면 그 id는 안 뜸. 새 기능 올릴 때 NEWS만 바꾸기. 설정 › 새로 생긴 기능으로 다시 보기 |
 | 10 | 우체통 | 🟡 코드 끝, **Firestore 규칙 필요**, 메일 알림은 **Apps Script 주소 필요** | 설정 › 우체통. Google 로그인한 사람만 보냄(이름 · 이메일 저장). 받은 편지는 읽기 허용된 사람(관리자)에게만 보임, 안 읽은 수는 사이드바 설정 옆. 메일로 받으려면 아래 「우체통 메일 알림」 |
 | 11 | 셀 카운터 | ✅ 끝 (11-28) | 사이드바 도구 › 셀 카운터 (`renderCnt`, 탭 `cnt`). 계산은 `cntCompute(st, purps)` 하나에 모음 |
+| 13 | MC 주기 (종류별 · 라인별) | ✅ 끝 (11-28) | 설정 › MC 주기, `mcRuleOf(line)` → `mcDays` · `selectMcNeeded` · 배양 현황 숫자 · MC 버튼 색. 저장 `orgMcRule` ↔ prefs `mcr`, 라인 `mcW` · `mcD` |
 | 12 | 라인별 Plate map → PPT | ✅ 끝 (11-28, 유진: 기록마다 · PPT 시간순) | 기록 표 Plate 칸 `lmapBtn` → `lmapOpen(logId)`, Figure `src:{lineId,logId}`, 라인 머리 「Map PPT n」 `lmapPpt`. 아래 설계안 그대로, PPT는 (나) 시간순만 |
 
 추천 순서: **2 → 1 → 3 → 4b → 5 → 6** (2·1·3은 기존 데이터만 쓰면 돼서 빠름. 5는 4b의 엑셀 읽기 위에 얹음. 6은 독립적이라 아무 때나).
@@ -212,6 +213,12 @@ match /mailbox/{id} {
   - 쓰다듬기 공정성: `petCatchUpScan` 도감이 광장 1등보다 3칸 넘게 뒤면 하루 1장, 15칸 넘게면 2장 보너스 뽑기 (`cu:날짜:n`). 광장 목록(`_plaza`/`orgPlazaCache`)이 있을 때만. 1등 · 다 채운 사람은 안 받음.
   - 우체통 메일: `MAIL_HOOK` 자리만 만듦 (위 「우체통 메일 알림」). 주소는 유진이 Apps Script 배포 후 알려 줘야 함.
   - NEWS id 2026-11-28 (5줄), 예전 항목은 old로.
+- 2026-11-28(3): MC 주기 종류별 (유진 요청, main 반영). 데모 1440px에서 확인, 로그인 계정 동기화는 확인 안 함.
+  - `MC_DEF` {w:3, d:4}. `mcRules()` = localStorage `orgMcRule` {종류: {w, d}} ↔ 계정 prefs `mcr` (JSON 문자열, `_prefsOut` · 받을 때 덮어씀). `mcRuleOf(line)`: 라인 `mcW` · `mcD` → 종류 값 → 기본, 지연이 경고보다 작으면 경고로 맞춤.
+  - `mcDays`: d < w → mc-ok, w ≤ d < 지연 → mc-warn, d ≥ 지연 → mc-due (기본값이면 예전과 같음: 0–2 · 3 · 4+). 돌려주는 값에 w · dl 더함. `selectMcNeeded`는 mc-ok가 아닌 라인 (= 경고일 이상). 배양 현황 숫자 칸 「MC 3일차」 → 「MC 할 날」.
+  - 설정 › MC 주기 (`renderSettings('mc')`): 앱에 있는 종류마다 경고 · 지연 숫자 칸, 비우면 기본. 안내 글 없음. `mcRuleSet(type,k,v)` 저장 뒤 `updateUI`.
+  - 라인 수정 「MC 주기 따로」 `elMcW` · `elMcD`, 비우면 필드 지움 (종류 값을 따름). placeholder는 지금 종류 값.
+  - 시험(?demo): Tumor-org 2 · 3일로 바꾸니 HCC26 d2가 ok → warn, 「MC 할 날」 2 → 3. Cell line 4 · 5일: HepG2 마지막 MC를 옮겨 d3 warn → ok, d4 due → warn, d5 due 그대로. 라인 따로 10 · 12일 → d2 ok, 비우면 다시 종류 값. selectMcNeeded가 warn · due 라인만 고름.
 - 2026-11-28(2): 라인 Plate map (유진: 맵은 기록마다, PPT는 시간순). 데모에서 HCC26 Seeded 11-08 → Split 11-14로 확인, .pptx는 CDN 막혀 못 뽑아 봄 (`figPpt` 그대로 씀).
   - 배양 라인 기록 표 Plate 칸: Seeding · Split · Reseeding · Thaw 줄에 「+ map」(점선), 맵이 있으면 「map」(채움). 누르면 `lmapOpen`: 있으면 열고, 없으면 그 라인의 바로 전 맵을 복제(조건 · 색 · well 유지, 규격은 그 기록 plate 글자, 넘는 well은 뺌, 메모 비움) 또는 새로(그 라인 1개 + Control, 마지막 고른 색 조합). 프로젝트는 라인 프로젝트.
   - P · d: `figLnF` 그 기록 기준, Split · Reseeding은 P+1 · d0, Seeding · Thaw는 P · d0. 제목 자동(예: HCC26 Tumor-org · P4).
