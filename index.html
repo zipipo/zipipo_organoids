@@ -588,7 +588,7 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.92em;bac
 .dd-dot{width:6px;height:6px;border-radius:50%;background:var(--due);}
 .bk-ok{color:var(--ok);font-weight:600;} .bk-warn{color:var(--due);font-weight:600;} .bk-sub{color:var(--mut);}
 .bk-mini{background:var(--due-bg);color:var(--due);border:none;border-radius:4px;padding:2px 7px;font-size:.7rem;font-weight:600;cursor:pointer;}
-.sb-sort{display:inline-flex;align-items:center;gap:5px;margin-left:10px;} .sb-sort select{height:24px;font-size:.72rem;padding:0 4px;border:1px solid var(--bd);border-radius:6px;background:var(--sur);color:var(--ink);}
+.sb-sort{display:inline-flex;align-items:center;gap:8px;margin-left:10px;flex-wrap:wrap;} .sb-sort label{display:inline-flex;align-items:center;gap:3px;cursor:pointer;} .sb-sort input{width:auto;margin:0;} .sb-sort select{height:24px;font-size:.72rem;padding:0 4px;border:1px solid var(--bd);border-radius:6px;background:var(--sur);color:var(--ink);}
 
 /* 상단 바 */
 .topbar{position:sticky;top:0;z-index:150;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
@@ -1567,6 +1567,19 @@ body.pet-on[data-tab="today"] #petLayer{display:block;}
 .pz-sidewrap{display:flex;flex-direction:column;min-height:0;gap:8px;} .pz-tabs{display:flex;gap:4px;flex:none;} .pz-tabs .seg{flex:1;height:34px;border:1px solid var(--bd);border-radius:10px;background:var(--sur);font:inherit;font-size:.84rem;font-weight:600;color:var(--sub);cursor:pointer;position:relative;}
 .pz-tabs .seg.on{background:var(--pri);border-color:var(--pri);color:#fff;} .pz-dot{position:absolute;top:-6px;right:-4px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#E0566B;color:#fff;font-style:normal;font-size:.68rem;line-height:18px;}
 .pz-hd .pz-x{margin-left:auto;} .pz-hd .pz-dance+.pz-x{margin-left:0;} .pz-nofield{width:min(520px,94vw);} .pz-nofield .pz-body{grid-template-columns:1fr;}
+.gm{display:grid;gap:10px;} .gm-hd{display:flex;align-items:center;gap:8px;} .gm-hd b{font-size:1rem;} .gm-hd small{color:var(--mut);font-size:.74rem;} .gm-hd .btn{margin-left:auto;}
+.gm-box{position:relative;display:none;} .gm-box.on{display:grid;gap:8px;justify-items:center;} .gm-sc{font-size:1.6rem;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;}
+.gm-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;width:min(320px,100%);aspect-ratio:1;padding:6px;border-radius:14px;background:var(--psoft);user-select:none;}
+.gm-cell{position:relative;border-radius:10px;background:var(--sur);display:grid;place-items:center;} .gm-cell canvas{width:72%;image-rendering:pixelated;} .gm-cell i{position:absolute;right:5px;bottom:2px;font-style:normal;font-size:.62rem;font-weight:800;color:var(--mut);}
+.gm-lanes{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;width:min(320px,100%);height:300px;} .gm-lane{position:relative;overflow:hidden;border-radius:10px;background:var(--psoft);}
+.gm-hit{position:absolute;left:4px;right:4px;bottom:10px;height:4px;border-radius:2px;background:var(--pri);opacity:.6;} .gm-drop{position:absolute;left:50%;top:0;width:22px;height:22px;margin-left:-11px;margin-top:-11px;border-radius:50% 50% 50% 0;transform-origin:center;background:#7CC4F0;box-shadow:inset -3px -3px 0 rgba(0,0,0,.08);rotate:-45deg;}
+.gm-btns{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;width:min(320px,100%);} .gm-btns button{height:52px;border-radius:12px;border:1px solid var(--bd);background:var(--sur);font:inherit;font-weight:800;color:var(--ink);cursor:pointer;touch-action:manipulation;} .gm-btns button:active{background:var(--psoft);}
+.gm-msg{min-height:20px;font-size:.84rem;font-weight:700;color:var(--pri);}
+.gm-plate{display:grid;gap:5px;width:min(320px,100%);padding:10px;border-radius:14px;background:#F6F7F9;border:2px solid #B8BEC6;} .gm-well{aspect-ratio:1;border-radius:50%;border:1.5px solid #C9CED5;background:#FFF5F7;cursor:pointer;padding:0;touch-action:manipulation;transition:background .15s;} .gm-well.bad{background:#F2D65C;border-color:#C9A93A;box-shadow:inset 0 0 0 3px rgba(255,255,255,.5);}
+.gm-conf{position:relative;width:min(320px,100%);height:34px;border-radius:17px;background:var(--psoft);overflow:hidden;border:1px solid var(--bd);} .gm-fill{display:block;height:100%;background:#9CD6B0;} .gm-tg{position:absolute;top:0;bottom:0;left:85%;width:3px;margin-left:-1.5px;background:#E0566B;}
+.gm-go{width:min(320px,100%);height:52px;font-size:1.05rem;}
+.gm-over{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:6px;background:rgba(255,255,255,.88);border-radius:14px;} .gm-over b{font-size:2.2rem;} .gm-over span{color:var(--pri);font-weight:700;}
+.gm-rank{display:grid;gap:4px;} .gm-rk{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:10px;background:var(--sur2,#F6F7F9);font-size:.84rem;} .gm-rk i{font-style:normal;font-weight:800;width:20px;color:var(--mut);} .gm-rk span{flex:1;} .gm-rk.me{background:var(--psoft);font-weight:700;}
 .pz-prof input{width:170px;}
 .pz-nofield{height:auto;max-height:88vh;} .pz-nofield .pz-body{min-height:0;overflow:auto;}
 .pz-strip{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 8px;margin-bottom:4px;} .pz-strip .dex{flex:none;width:68px;position:relative;} .pz-rep{position:absolute;top:2px;right:2px;font-style:normal;font-size:.6rem;font-weight:700;background:#E0566B;color:#fff;border-radius:6px;padding:0 4px;}
@@ -6677,24 +6690,27 @@ async function sbGetDir(){
 async function sbDirAlive(h){ try{ await h.values().next(); return true; }catch(e){ return !(e&&e.name==='NotFoundError'); } }
 async function sbChangeDir(){ try{ const h=await window.showDirectoryPicker({mode:'readwrite',id:'orgSbarDir'}); sbDirHandle=h; await idbSet('sbDir',h); renderSbDir(); }catch(e){} }
 function renderSbDir(){ const el=document.getElementById('sbDirInfo'); if(!el) return; el.innerHTML = (sbDirHandle? `저장 폴더: <b>${esc(sbDirHandle.name)}</b> <button class="bk-mini" onclick="sbChangeDir()">변경</button>` : `저장 폴더: 저장할 때 선택 <button class="bk-mini" onclick="sbChangeDir()">지금 지정</button>`)
-  +(window.showDirectoryPicker?` <span class="sb-sort">폴더 나누기 <select onchange="sbSetSort(this.value)">${SB_SORTS.map(([k,t])=>`<option value="${k}"${sbSort()===k?' selected':''}>${t}</option>`).join('')}</select><button class="bk-mini" onclick="sbSortExisting()">이미 저장한 사진 정리</button></span>`:''); }
+  +(window.showDirectoryPicker?` <span class="sb-sort"><label><input type="checkbox" ${sbSort()!=='none'?'checked':''} onchange="sbSetSort(this.checked?'lt':'none');renderSbDir()">환자_종류 폴더</label>${sbSort()!=='none'?`<label><input type="checkbox" ${sbDetailOn()?'checked':''} onchange="sbSetDetail(this.checked)">세부명까지</label>`:''}<button class="bk-mini" onclick="sbSortExisting()">이미 저장한 사진 정리</button></span>`:''); }
 // 사진 폴더 나누기 (11-28 랩 사람들: 저장한 사진을 라인 · 날짜 폴더로 다시 옮기는 게 힘듦)
-// ld = 라인/날짜, dl = 날짜/라인, l = 라인만, d = 날짜만, '' = 나누지 않음. 라인 폴더 = 환자_종류[_세부명], 날짜 폴더 = YYMMDD
-const SB_SORTS=[['ld','라인 › 날짜'],['dl','날짜 › 라인'],['l','라인'],['d','날짜'],['none','안 나눔']];
-function sbSort(){ try{ return localStorage.getItem('orgSbSort')||'ld'; }catch(e){ return 'ld'; } }
+// 11-28 유진: 날짜 폴더 없이 환자_종류 폴더 하나에 다 넣기 (lt), 세부명까지 폴더를 나눌지는 고름 (orgSbDetail). none = 안 나눔
+// 같은 환자_종류 폴더가 이미 있으면 그 폴더에 이어서 넣음. 파일 이름까지 같으면 예전처럼 덮어씀
+function sbSort(){ try{ return localStorage.getItem('orgSbSort')==='none'?'none':'lt'; }catch(e){ return 'lt'; } }
 function sbSetSort(v){ try{ localStorage.setItem('orgSbSort',v); }catch(e){} }
-function sbSortParts(lineDir,d6,mode){ mode=mode||sbSort(); return mode==='ld'?[lineDir,d6]:mode==='dl'?[d6,lineDir]:mode==='l'?[lineDir]:mode==='d'?[d6]:[]; }
-function sbLineDir(line){ if(line.free) return safeFileName(line.sample.name.trim().replace(/[\s\/]+/g,'-')); return safeFileName(`${line.patientId}_${line.type}${line.detail?'_'+line.detail.trim().replace(/[_\s\/]+/g,'-'):''}`); }
+function sbDetailOn(){ try{ return localStorage.getItem('orgSbDetail')==='1'; }catch(e){ return false; } }
+function sbSetDetail(on){ try{ localStorage.setItem('orgSbDetail',on?'1':'0'); }catch(e){} }
+function sbSortParts(lineDir,d6,mode){ mode=mode||sbSort(); return mode==='none'?[]:[lineDir]; }
+const sbDet=t=>t?'_'+String(t).trim().replace(/[_\s\/]+/g,'-'):'';
+function sbLineDir(line,withDet){ if(line.free) return safeFileName(line.sample.name.trim().replace(/[\s\/]+/g,'-')); return safeFileName(`${line.patientId}_${line.type}${(withDet==null?sbDetailOn():withDet)?sbDet(line.detail):''}`); }
 async function sbSubDir(root,parts,cache){ let h=root, key=''; for(const p of parts.filter(Boolean)){ key+='/'+p; if(!cache[key]) cache[key]=await h.getDirectoryHandle(p,{create:true}); h=cache[key]; } return h; }
 // 이미 저장한 사진 정리: 고른 폴더 바로 안의 「YYMMDD_라인_…」 이름 사진을 하위 폴더로 옮김 (복사 → 원본 지움)
 async function sbSortExisting(){
   if(!window.showDirectoryPicker) return;
   let root; try{ root=await window.showDirectoryPicker({mode:'readwrite',id:'orgSbarDir'}); }catch(e){ return; }
-  const mode=sbSort()==='none'?'ld':sbSort(), keys=lines.map(l=>({l,k:sbLineDir(l)})).concat((typeof freeSamples!=='undefined'?freeSamples:[]).map(x=>({l:null,k:safeFileName(String(x.name||'').trim().replace(/[\s\/]+/g,'-'))}))).filter(x=>x.k).sort((a,b)=>b.k.length-a.k.length);
+  const mode='lt', keys=lines.map(l=>({l,k:sbLineDir(l,true)})).concat((typeof freeSamples!=='undefined'?freeSamples:[]).map(x=>({l:null,k:safeFileName(String(x.name||'').trim().replace(/[\s\/]+/g,'-'))}))).filter(x=>x.k).sort((a,b)=>b.k.length-a.k.length);
   const jobs=[];
   for await (const [name,h] of root.entries()){ if(h.kind!=='file'||!/\.(png|jpe?g|tiff?|bmp)$/i.test(name)) continue;
     const m=name.match(/^(\d{6})_(.+)$/); if(!m) continue;
-    const rest=m[2], hit=keys.find(x=>rest.startsWith(x.k+'_')||rest.startsWith(x.k+'.')), ld=hit?hit.k:rest.split('_').slice(0,2).join('_').replace(/\.[^.]+$/,'');
+    const rest=m[2], hit=keys.find(x=>rest.startsWith(x.k+'_')||rest.startsWith(x.k+'.')), ld=hit?(hit.l?sbLineDir(hit.l):hit.k):rest.split('_').slice(0,2).join('_').replace(/\.[^.]+$/,'');
     jobs.push({name,h,parts:sbSortParts(ld,m[1],mode)}); }
   if(!jobs.length) return alert('정리할 사진이 없어요.');
   const nDir=new Set(jobs.map(j=>j.parts.join('/'))).size;
@@ -10497,7 +10513,7 @@ function petStMergeTab(o){
   const m=Object.assign({}, o, {owned, tkKeys:[...keys], tkUsed:Math.max(+o.tkUsed||0, +petSt.tkUsed||0), patsAll:Math.max(+o.patsAll||0, +petSt.patsAll||0), lvTk:[o.lvTk||'', petSt.lvTk||''].sort().pop()});
   return {m, lost};
 }
-window._petsOut=()=>{ const o={active:petSt.active.slice(), lastDraw:petSt.lastDraw||'', hidden:!!petSt.hidden, giftStart:petSt.giftStart||'', stampStart:petSt.stampStart||'', labDone:petSt.labDone||'', labWins:(petSt.labWins||[]).slice(-120), wkc:petSt.wkc||{}, tkKeys:(petSt.tkKeys||[]).slice(), tkUsed:petSt.tkUsed||0, cleaned:petSt.cleaned||0, flowersAll:petSt.flowersAll||0, patsAll:petSt.patsAll||0, fedAll:petSt.fedAll||0, visitOpens:petSt.visitOpens||0, visitDays:petSt.visitDays||0, visitLast:petSt.visitLast||'', lvTk:petSt.lvTk||''};
+window._petsOut=()=>{ const o={active:petSt.active.slice(), lastDraw:petSt.lastDraw||'', hidden:!!petSt.hidden, giftStart:petSt.giftStart||'', gm:petSt.gm||null, stampStart:petSt.stampStart||'', labDone:petSt.labDone||'', labWins:(petSt.labWins||[]).slice(-120), wkc:petSt.wkc||{}, tkKeys:(petSt.tkKeys||[]).slice(), tkUsed:petSt.tkUsed||0, cleaned:petSt.cleaned||0, flowersAll:petSt.flowersAll||0, patsAll:petSt.patsAll||0, fedAll:petSt.fedAll||0, visitOpens:petSt.visitOpens||0, visitDays:petSt.visitDays||0, visitLast:petSt.visitLast||'', lvTk:petSt.lvTk||''};
   Object.entries(petSt.owned).forEach(([id,v])=>{ const x={}; PET_SYNC_F.forEach(f=>{ if(v[f]!=null) x[f]=v[f]; }); o['o:'+id]=x; });
   return o; };
 window._petsIn=p=>{
@@ -10510,6 +10526,7 @@ window._petsIn=p=>{
   if(p.hidden!=null) petSt.hidden=!!p.hidden;
   if(p.giftStart&&p.giftStart!==petSt.giftStart){ if(!petSt.giftStart||p.giftStart>petSt.giftStart){ petSt.giftStart=p.giftStart; petSt.cleaned=p.cleaned||0; petSt.flowersAll=p.flowersAll||0; petSt.patsAll=p.patsAll||0; petSt.fedAll=p.fedAll||0; } }
   if(p.labDone) petSt.labDone=p.labDone;
+  if(p.gm&&p.gm.key&&(!petSt.gm||p.gm.key>petSt.gm.key||(p.gm.key===petSt.gm.key&&+p.gm.best>+petSt.gm.best))) petSt.gm={key:p.gm.key,best:+p.gm.best||0};   // 미니게임 최고 점수: 같은 판이면 큰 쪽
   if(p.stampStart&&(!petSt.stampStart||p.stampStart<petSt.stampStart)) petSt.stampStart=p.stampStart;   // 도장판 시작일: 먼저 시작한 기기 날짜
   if(p.lvTk&&p.lvTk>(petSt.lvTk||'')) petSt.lvTk=p.lvTk;
   if(Array.isArray(p.labWins)) labWinsAdd(p.labWins);
@@ -10755,23 +10772,27 @@ function petPoopEl(a){
   petLayer.appendChild(it);
 }
 // 세포 멘트: 상황마다 여러 개 중 하나 (시간대 멘트도 섞임)
-const PET_TALK={
-  pat:['헤헤','좋아!','또 해줘','보글보글','따뜻해~','간지러워!','기분 최고','더더!','배지 냄새 좋아','꺄르르','히히 부드러워','쓰담쓰담 최고','오늘 최고의 날','사랑해~','좀 더 오른쪽!','두근두근'],
-  happy:['오늘도 파이팅!','MC 했어?','split 할 때 됐나?','보글보글~','인큐베이터 따뜻해','CO₂ 5% 딱 좋아','오늘 confluency 어때?','나 좀 커진 것 같지?','dome 안이 아늑해','오늘 사진 찍어 줄 거야?','배지 빨개지면 불러줘','37도 최고야','오늘 몇 well 했어?','pipetting 멋있다!','나도 split 해줘~','오가노이드 되고 싶어','LN2는 너무 추워…','오늘 실험 잘 될 거야','클린벤치 깨끗하다','장갑 꼈어?','70% 에탄올 냄새~','PBS로 씻겨 줘','TrypLE는 간지러워','Matrigel 말랑말랑','나 사진발 잘 받아','오늘도 무균 조작!','데이터 미팅 화이팅','교수님 오신다!','커피 한 잔 해','잠깐 쉬어도 돼'],
-  hungry:['배고파…','배지 주세요','꼬르륵','밥 언제 줘?','EM 먹고 싶어','배지가 노래졌어…'],
-  sleep:['Zzz','쿨쿨…','음냐음냐','5분만 더…','꿈에서 split 했어'],
-  flower:['선물이야!','꽃 주울게~','받아줘!','널 위해 골랐어','예쁘지?','오늘의 꽃 배달!'],
-  poop:['…앗','미안해…','에헤헤','치워 줄 거지?','이건 비밀이야'],
-  thanks:['고마워!','개운해~','최고야!','깨끗해졌다'],
-  morning:['좋은 아침!','오늘 첫 MC 가자','아침 배지 냄새~'],
-  lunch:['점심 먹었어?','밥 먹고 하자','배고픈 시간이야'],
-  night:['늦게까지 고생해','이제 집에 가자','밤에도 실험해?','오늘 수고했어'],
+const PET_TALK={   // 11-28 유진: 예전 멘트는 빼고 새로
+  pat:['으쓱으쓱','거기 거기!','녹아내려…','한 번 더!','손이 따뜻하다','배양 잘될 것 같아','기분이 몽글몽글','오늘은 내가 1등이지?','쓰담 받으면 분열 잘 돼','행복 호르몬 분비 중','이 손맛이야','방금 좀 컸어','눈 감고 즐기는 중','너 손 깨끗하지? 70% 에탄올?','쭈욱 늘어나는 중','이제 우리 절친','꼬리 있었으면 흔들었다','심장이 보글보글','오늘 운 좋을 거야','더 해 주면 콜로니 하나 줄게'],
+  happy:['오늘 well 상태 좋아 보여','후드 켜고 15분 기다렸어?','피펫 팁 아직 많아?','오늘은 contamination 없을 거야','Matrigel 녹이는 중이지?','오늘 사진 잘 나올 듯','incubator 문 살살 닫아 줘','오늘은 내가 응원 담당','오늘 할 일 다 하면 맛있는 거 먹자','실험은 원래 반은 운이야','데이터는 거짓말 안 해','오늘의 나: 아주 건강함','어제보다 오늘 더 동글동글','현미경 초점 맞춰 줘','배지 따뜻하게 데워 왔지?','Ctrl+S 눌렀어?','오늘 노트 쓸 거 많다','라벨 날짜 확인했어?','물 한 잔 마시고 와','잠깐 스트레칭 어때?','너 진짜 꼼꼼하다','오늘 실험 잘될 거야','실패해도 데이터야','지금까지 잘해 왔어','조금 쉬어도 세포는 안 도망가','교수님도 다 알아주실 거야','오늘은 작은 거 하나만 해도 성공','같이 졸업하자'],
+  sleep:['쿠울…','음… 37도…','꿈에서 논문 억셉됐어','5% CO₂ 꿈 꾸는 중','깨우지 마… 분열 중…','zZ 배양 중 zZ','꿈에서 figure 다 그렸어'],
+  flower:['길에서 주웠어, 너 줄래','오늘 수고한 사람한테','향기 맡아 봐','이거 꽂아 두면 실험 잘 돼','짠! 깜짝 선물','너랑 닮은 꽃이야'],
+  poop:['어… 이건 debris야','못 본 걸로 해 줘','배양하다 보면 생기는 거야','흠흠, 대사 활발해서 그래','치우면 내가 더 귀여워져'],
+  thanks:['반짝반짝!','상쾌해졌다','넌 최고의 연구자야','이제 깨끗해'],
+  morning:['출근했구나! 반가워','아침 MC부터 가 볼까','커피 마셨어?','오늘 계획 세웠어?','아침 공기 좋다','오늘도 와 줘서 고마워'],
+  lunch:['밥은 꼭 먹고 하자','점심 메뉴 뭐야?','배양은 기다려 줄게, 밥 먹고 와','밥 거르면 실험도 삐끗해'],
+  evening:['오늘 하루 어땠어?','저녁은 먹었어?','남은 일 내일 해도 돼','오늘 한 거 기록했지?'],
+  night:['이 시간까지 고생 많아','후드 끄는 거 잊지 마','밤길 조심히 가','오늘은 여기까지 하자','내일의 너한테 맡기자','집에 가서 푹 자'],
+  mon:['월요일은 천천히 시작해도 돼','주말 동안 잘 자랐어','이번 주도 같이 해 보자'],
+  fri:['금요일이다!','주말 배지 넉넉히 줬어?','이번 주 진짜 수고했어'],
+  weekend:['주말인데 나 보러 왔어?','주말 출근 고생해','빨리 끝내고 쉬러 가자'],
 };
 // 혼잣말은 가끔만: 한 마리당 90초에 한 번까지, 화면 전체로는 25초에 한 번까지 (누르거나 밥 줄 때 대답은 그대로)
 let _petTalkAll=0;
 function petMutter(a,t,ms){ const n=Date.now(); if(n-(a.talkTs||0)<90000||n-_petTalkAll<25000) return; a.talkTs=n; _petTalkAll=n; petSay(a,t,ms); }
 function petTalk(k){ let arr=PET_TALK[k]||PET_TALK.happy;
-  if(k==='happy'){ const h=new Date().getHours(); const t=h<11?'morning':h>=11&&h<14?'lunch':h>=21||h<5?'night':''; if(t&&Math.random()<.35) arr=PET_TALK[t]; }
+  if(k==='happy'){ const D=new Date(), h=D.getHours(), w=D.getDay(); const t=h<5||h>=21?'night':h<11?'morning':h<14?'lunch':h>=18?'evening':''; const d=w===0||w===6?'weekend':w===1?'mon':w===5?'fri':'';
+    const r=Math.random(); if(t&&r<.3) arr=PET_TALK[t]; else if(d&&r<.45) arr=PET_TALK[d]; }
   return arr[Math.floor(Math.random()*arr.length)]; }
 // 밥 기능은 11-28에 없앰 (유진): 배고픔 · 쓰러짐 없음
 const PET_FULL_MS=48*3600e3;
@@ -11363,6 +11384,7 @@ function plazaMe(){
     deco:plazaMyTot(), dex:petDexCount(), gifts, flowers:petSt.flowersAll||0, msg:(()=>{ try{ return (localStorage.getItem('orgPlazaMsg')||'').slice(0,24); }catch(e){ return ''; } })(), wk, mc:ls.filter(l=>isMediaChange(l.action)).length, split:ls.filter(l=>/split/i.test(l.action||'')).length,
     cells:Object.values(petSt.owned).reduce((a,o)=>a+(+o.n||1),0), n:ls.length, stock:ls.reduce((a,l)=>a+(parseInt(l.stocks)||0),0), seed:ls.filter(l=>isSeed(l.action)).length, days:new Set(ls.map(l=>l.date)).size,
     shot:(()=>{ const t0=new Date(wk+'T00:00:00').getTime(); return shotSets.filter(x=>(x.createdTs||x.updatedTs||0)>=t0).reduce((a,x)=>a+((x.items||[]).length),0)+shotLog.filter(x=>(x.ts||0)>=t0).length; })(),
+    gk:(petSt.gm&&petSt.gm.key)||'', gb:(petSt.gm&&+petSt.gm.best)||0,
     poop:wc.poop||0, pat:wc.pat||0, feed:wc.feed||0, gift:wc.gift||0, visit:wc.visit||0, labWins:(petSt.labWins||[]).slice(-80), ts:Date.now() };
 }
 let _plazaPubT=0;
@@ -11671,16 +11693,19 @@ function hubOpen(tab){
   _pmBig.t=setInterval(()=>pmWith(_pmBig,pmTick),140);
 }
 function hubRender(){ const side=document.getElementById('pzSide'), tb=document.getElementById('pzTabs'); if(!side) return;
-  const T=[['me','내 세포'],['dex','도감'],['plaza','광장']].concat(typeof STAMP_ON!=='undefined'&&STAMP_ON?[['stamp','도장판']]:[]);
-  if(tb) tb.innerHTML=T.map(([k,t])=>`<button class="seg${_hubTab===k?' on':''}" onclick="_hubTab='${k}';hubRender()">${t}${k==='me'&&petTickets()?`<i class="pz-dot">${petTickets()}</i>`:''}</button>`).join('');
+  const T=[['me','내 세포'],['dex','도감'],['game','게임'],['plaza','광장']].concat(typeof STAMP_ON!=='undefined'&&STAMP_ON?[['stamp','도장판']]:[]);
+  if(tb) tb.innerHTML=T.map(([k,t])=>`<button class="seg${_hubTab===k?' on':''}" onclick="gmStop();_hubTab='${k}';hubRender()">${t}${k==='me'&&petTickets()?`<i class="pz-dot">${petTickets()}</i>`:''}</button>`).join('');
+  if(_hubTab==='game'&&_gm&&document.getElementById('gmBox')) return;   // 게임하는 중엔 오른쪽 칸을 다시 그리지 않음
   const keep=side.scrollTop; petPanelHTML(); const P=_pp; let h='';
   if(_hubTab==='me') h=plazaProfileHTML()+P.got+P.draw+hubStripHTML()+(P.det||'');
   else if(_hubTab==='dex') h=P.dex;
   else if(_hubTab==='stamp') h=stampHTML();
+  else if(_hubTab==='game') h=gmHTML();
   else h=plazaHTML();
   side.innerHTML=h; side.scrollTop=keep;
   petPanelDraw(); side.querySelectorAll('.pz-strip canvas[data-k]').forEach(c=>drawPet(c,c.dataset.k,{frame:0,mode:'idle'})); side.querySelectorAll('.plz-reps canvas[data-k]').forEach(c=>drawPet(c,c.dataset.k,{frame:0,mode:'idle'}));
-  if(_hubTab==='plaza') plazaLoad(); }
+  if(_hubTab==='plaza') plazaLoad();
+  if(_hubTab==='game'&&mailUser()&&fbDb) plazaFetch().then(()=>{ const r=document.getElementById('gmRank'); if(r) r.innerHTML=gmRankHTML(); }).catch(()=>{}); }
 // 내 세포 줄: 산책 중 먼저, 누르면 아래 상세가 그 세포로
 function hubStripHTML(){ const ids=Object.keys(petSt.owned).filter(id=>petKind(id)).sort((a,b)=>(petSt.active.includes(b)-petSt.active.includes(a))||petLv(b)-petLv(a));
   if(!ids.length) return ''; const rep=mailUser()&&plazaOn()?plazaRep():'';
@@ -11702,7 +11727,7 @@ function pmDragInit(cv){
   const up=()=>{ if(!_pmBig) return; _pmBig.ents.forEach(en=>{ if(en.drag){ delete en.drag; en.hold.until=Date.now()+8000; } }); cv.style.cursor=''; };
   cv.onpointerup=up; cv.onpointercancel=up;
 }
-function plazaClose(){ const m=document.getElementById('plazaModal'); if(m) m.remove(); if(_pmBig&&_pmBig.t) clearInterval(_pmBig.t); _pmBig=null; }
+function plazaClose(){ try{ gmStop(); }catch(e){} const m=document.getElementById('plazaModal'); if(m) m.remove(); if(_pmBig&&_pmBig.t) clearInterval(_pmBig.t); _pmBig=null; }
 // 오른쪽 칸 (예전 설정 › 광장 내용)
 function plazaPanelRefresh(){ if(document.getElementById('pzSide')) hubRender(); }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&document.getElementById('plazaModal')) plazaClose(); });
@@ -11777,6 +11802,85 @@ function mailRender(){ const b=document.getElementById('mailBody'); if(!b) retur
 // 관리자가 로그인하면 안 읽은 편지 수를 사이드바 「설정」 옆에 보여준다
 setTimeout(async()=>{ if(!mailUser()||!fbDb) return; try{ const q=await fbDb.collection('mailbox').where('read','==',false).limit(50).get(); mailBadge(q.size); }catch(e){} }, 4000);
 // ══════════════════════════════════════════
+//  미니게임 (11-28 유진): 10일마다 바뀜 (세포 키우기 → 피펫팅 리듬 → 오염 잡기 → Split 타이밍 → 처음으로)
+//  내 최고 점수 petSt.gm={key,best} (기기끼리 큰 쪽), 광장 문서에 gk · gb로 올려 같은 판끼리 순위
+// ══════════════════════════════════════════
+const GM_EPOCH='2026-11-28', GM_DAYS=10;
+const GAMES=[{id:'merge',name:'세포 키우기'},{id:'pipette',name:'피펫팅 리듬'},{id:'contam',name:'오염 잡기'},{id:'split',name:'Split 타이밍'}];
+function gmNow(){ const t=new Date(ymdLocal(new Date())+'T00:00:00'), e=new Date(GM_EPOCH+'T00:00:00'), n=Math.max(0,Math.floor((t-e)/864e5/GM_DAYS));
+  const st=new Date(e); st.setDate(st.getDate()+n*GM_DAYS); const en=new Date(st); en.setDate(en.getDate()+GM_DAYS-1);
+  return {g:GAMES[n%GAMES.length], key:ymdLocal(st), end:en}; }
+function gmBest(){ const N=gmNow(); return petSt.gm&&petSt.gm.key===N.key?+petSt.gm.best||0:0; }
+let _gm=null;   // 지금 하는 판 {stop()}
+function gmStop(){ if(_gm&&_gm.stop) _gm.stop(); _gm=null; }
+function gmEnd(score){ score=Math.max(0,Math.round(score)); const N=gmNow(), best=gmBest(), rec=score>best; _gm=null;
+  if(rec){ petSt.gm={key:N.key,best:score}; savePets(); try{ plazaPublish(true); }catch(e){} const sm=document.querySelector('.gm-hd small'); if(sm) sm.textContent=sm.textContent.replace(/최고 \d+/,'최고 '+score); }
+  const box=document.getElementById('gmBox'); if(box) box.insertAdjacentHTML('beforeend',`<div class="gm-over"><b>${score}</b><span>${rec?'최고 기록!':`최고 ${best}`}</span><button class="btn btn-pri" onclick="gmStart()">다시</button></div>`);
+  const r=document.getElementById('gmRank'); if(r) r.innerHTML=gmRankHTML(); }
+function gmRankHTML(){ const N=gmNow(), me=mailUser(), mine={uid:me&&me.uid,nick:plazaNick(),gk:N.key,gb:gmBest(),me:true};
+  const ppl=(_plaza||[]).filter(p=>p.gk===N.key&&+p.gb>0&&(!me||p.uid!==me.uid)).concat(mine.gb>0?[mine]:[]).sort((a,b)=>b.gb-a.gb).slice(0,10);
+  return ppl.length?ppl.map((p,i)=>`<div class="gm-rk${p.me?' me':''}"><i>${i+1}</i><span>${esc(p.nick||'세포 친구')}</span><b>${p.gb}</b></div>`).join(''):''; }
+function gmHTML(){ const N=gmNow(), left=Math.round((N.end-new Date(ymdLocal(new Date())+'T00:00:00'))/864e5)+1;
+  return `<div class="set-sec gm"><div class="gm-hd"><b>${N.g.name}</b><small>${left}일 남음 · 최고 ${gmBest()}</small><button class="btn btn-pri" onclick="gmStart()">시작</button></div>
+    <div class="gm-box" id="gmBox"></div><div class="gm-rank" id="gmRank">${gmRankHTML()}</div></div>`; }
+function gmStart(){ gmStop(); const box=document.getElementById('gmBox'); if(!box) return; box.innerHTML=''; box.className='gm-box on'; _gm=({merge:gmMerge,pipette:gmPipette,contam:gmContam,split:gmSplit})[gmNow().g.id](box); }
+
+// ── 세포 키우기: 4×4, 같은 세포 둘을 밀어 합치면 다음 세포 (2048 방식). 화살표 · 밀기
+const GM_CHAIN=['ecoli','yeast','amoeba','rbc','cell','hep','fib','div','stem','spher','org','hccorg','tumoroid','assem','esc','phd'];
+function gmMerge(box){ let g=Array(16).fill(0), score=0, over=false;
+  const add=()=>{ const e=g.map((v,i)=>v?-1:i).filter(i=>i>=0); if(e.length) g[e[Math.floor(Math.random()*e.length)]]=Math.random()<.9?1:2; };
+  add(); add(); box.innerHTML=`<div class="gm-sc">0</div><div class="gm-grid"></div>`; const grid=box.querySelector('.gm-grid'), sc=box.querySelector('.gm-sc');
+  const draw=()=>{ grid.innerHTML=g.map(v=>`<div class="gm-cell">${v?`<canvas width="48" height="48" data-v="${v}"></canvas><i>${v}</i>`:''}</div>`).join('');
+    grid.querySelectorAll('canvas').forEach(c=>{ const k=GM_CHAIN[Math.min(GM_CHAIN.length,+c.dataset.v)-1]; drawPet(c,petKind(k)?k:'cell',{frame:0,mode:'idle',lv:0}); }); sc.textContent=score; };
+  const line=a=>{ const b=a.filter(Boolean); for(let i=0;i<b.length-1;i++) if(b[i]===b[i+1]){ b[i]++; score+=Math.pow(2,b[i]); b.splice(i+1,1); } while(b.length<4) b.push(0); return b; };
+  const move=dir=>{ if(over) return; const old=g.join(); for(let k=0;k<4;k++){ const idx=[0,1,2,3].map(i=>dir==='L'?k*4+i:dir==='R'?k*4+3-i:dir==='U'?i*4+k:(3-i)*4+k); const v=line(idx.map(i=>g[i])); idx.forEach((i,j)=>g[i]=v[j]); }
+    if(g.join()!==old){ add(); draw(); }
+    const can=g.some(v=>!v)||g.some((v,i)=>(i%4<3&&v===g[i+1])||(i<12&&v===g[i+4])); if(!can){ over=true; gmEnd(score); } };
+  const key=e=>{ const m={ArrowLeft:'L',ArrowRight:'R',ArrowUp:'U',ArrowDown:'D'}[e.key]; if(m&&document.getElementById('gmBox')){ e.preventDefault(); move(m); } };
+  document.addEventListener('keydown',key); let sx=0,sy=0;
+  grid.style.touchAction='none'; grid.onpointerdown=e=>{ sx=e.clientX; sy=e.clientY; };
+  grid.onpointerup=e=>{ const dx=e.clientX-sx, dy=e.clientY-sy; if(Math.max(Math.abs(dx),Math.abs(dy))<24) return; move(Math.abs(dx)>Math.abs(dy)?(dx>0?'R':'L'):(dy>0?'D':'U')); };
+  draw(); return {stop(){ over=true; document.removeEventListener('keydown',key); }}; }
+
+// ── 피펫팅 리듬: 4줄로 내려오는 방울이 선에 닿을 때 그 줄을 누름 (키보드 D F J K). 30초, 정확하면 3점 · 조금 어긋나면 1점
+function gmPipette(box){ const DUR=30000, TRAVEL=1600, t0=performance.now()+800; let notes=[], score=0, combo=0, raf=0, done=false, nx=t0;
+  box.innerHTML=`<div class="gm-sc">0</div><div class="gm-lanes">${[0,1,2,3].map(i=>`<div class="gm-lane" data-l="${i}"><span class="gm-hit"></span></div>`).join('')}</div><div class="gm-btns">${['A1','A2','A3','A4'].map((t,i)=>`<button data-l="${i}">${t}</button>`).join('')}</div><div class="gm-msg"></div>`;
+  const lanes=[...box.querySelectorAll('.gm-lane')], sc=box.querySelector('.gm-sc'), msg=box.querySelector('.gm-msg');
+  const hit=l=>{ if(done) return; const now=performance.now(); let b=null; notes.forEach(n=>{ if(!n.done&&n.l===l&&Math.abs(n.t-now)<200&&(!b||Math.abs(n.t-now)<Math.abs(b.t-now))) b=n; });
+    if(!b){ combo=0; msg.textContent=''; return; } b.done=true; b.el.remove(); const d=Math.abs(b.t-now), p=d<80?3:1; combo++; score+=p+(combo>=10?1:0); msg.textContent=(d<80?'정확해!':'좋아')+(combo>=5?` ${combo}콤보`:''); sc.textContent=score; };
+  box.querySelectorAll('.gm-btns button').forEach(b=>b.onpointerdown=e=>{ e.preventDefault(); hit(+b.dataset.l); });
+  const key=e=>{ const l={d:0,f:1,j:2,k:3}[e.key.toLowerCase()]; if(l!=null&&document.getElementById('gmBox')){ e.preventDefault(); hit(l); } }; document.addEventListener('keydown',key);
+  const H=()=>lanes[0].clientHeight-14;
+  const step=now=>{ if(done) return;
+    while(nx<t0+DUR&&nx-now<TRAVEL+50){ const l=Math.floor(Math.random()*4), el=document.createElement('i'); el.className='gm-drop'; lanes[l].appendChild(el); notes.push({l,t:nx+TRAVEL,el}); const pr=(nx-t0)/DUR; nx+=Math.max(260,700-pr*420)*(Math.random()<.25?.5:1); }
+    notes.forEach(n=>{ if(n.done) return; const y=(1-(n.t-now)/TRAVEL)*H(); n.el.style.transform=`translateY(${y}px)`; if(now-n.t>200){ n.done=true; n.el.remove(); combo=0; } });
+    if(now>t0+DUR+TRAVEL+300){ done=true; document.removeEventListener('keydown',key); gmEnd(score); return; } raf=requestAnimationFrame(step); };
+  raf=requestAnimationFrame(step); return {stop(){ done=true; cancelAnimationFrame(raf); document.removeEventListener('keydown',key); }}; }
+
+// ── 오염 잡기: 48 well plate에 오염이 생기고 옆으로 번짐. 누르면 치움(1점). 오염 well이 12개가 되면 끝, 갈수록 빨라짐
+function gmContam(box){ const R=6, C=8; let bad=new Set(), score=0, tick=0, ms=1000, tm=0, done=false;
+  box.innerHTML=`<div class="gm-sc">0</div><div class="gm-plate" style="grid-template-columns:repeat(${C},1fr)">${Array.from({length:R*C},(_,i)=>`<button class="gm-well" data-i="${i}"></button>`).join('')}</div><div class="gm-msg"></div>`;
+  const ws=[...box.querySelectorAll('.gm-well')], sc=box.querySelector('.gm-sc'), msg=box.querySelector('.gm-msg');
+  const paint=()=>{ ws.forEach((w,i)=>w.classList.toggle('bad',bad.has(i))); msg.textContent=`오염 ${bad.size} / 12`; };
+  ws.forEach(w=>w.onpointerdown=e=>{ e.preventDefault(); const i=+w.dataset.i; if(done||!bad.has(i)) return; bad.delete(i); score++; sc.textContent=score; paint(); });
+  const nb=i=>[i-C,i+C,i%C?i-1:-1,i%C<C-1?i+1:-1].filter(j=>j>=0&&j<R*C);
+  const step=()=>{ if(done) return; tick++;
+    const clean=ws.map((_,i)=>i).filter(i=>!bad.has(i)); if(clean.length) bad.add(clean[Math.floor(Math.random()*clean.length)]);
+    if(tick%3===0) [...bad].forEach(i=>{ if(Math.random()<.3){ const n=nb(i).filter(j=>!bad.has(j)); if(n.length) bad.add(n[Math.floor(Math.random()*n.length)]); } });
+    paint(); if(bad.size>=12){ done=true; gmEnd(score); return; } ms=Math.max(380,ms*0.97); tm=setTimeout(step,ms); };
+  paint(); tm=setTimeout(step,700); return {stop(){ done=true; clearTimeout(tm); }}; }
+
+// ── Split 타이밍: confluency 막대가 오르내림, 85%에 가깝게 멈추면 점수 (최대 100). 8번, 갈수록 빨라짐
+function gmSplit(box){ const N=8; let round=0, total=0, v=0, dir=1, raf=0, last=performance.now(), done=false, wait=false;
+  box.innerHTML=`<div class="gm-sc">0</div><div class="gm-conf"><i class="gm-fill"></i><span class="gm-tg"></span></div><div class="gm-msg">1 / ${N}</div><button class="btn btn-pri gm-go">Split!</button>`;
+  const fill=box.querySelector('.gm-fill'), sc=box.querySelector('.gm-sc'), msg=box.querySelector('.gm-msg'), go=box.querySelector('.gm-go');
+  const speed=()=>55+round*18;   // %/초
+  const step=now=>{ if(done) return; const dt=(now-last)/1000; last=now; if(!wait){ v+=dir*speed()*dt; if(v>=100){ v=100; dir=-1; } if(v<=0){ v=0; dir=1; } fill.style.width=v+'%'; } raf=requestAnimationFrame(step); };
+  go.onpointerdown=e=>{ e.preventDefault(); if(done||wait) return; const p=Math.max(0,Math.round(100-Math.abs(v-85)*8)); total+=p; round++; sc.textContent=total;
+    msg.textContent=`${Math.round(v)}% · ${p}점`; wait=true;
+    setTimeout(()=>{ if(done) return; if(round>=N){ done=true; cancelAnimationFrame(raf); gmEnd(total); return; } wait=false; v=0; dir=1; msg.textContent=`${round+1} / ${N}`; },700); };
+  raf=requestAnimationFrame(step); return {stop(){ done=true; cancelAnimationFrame(raf); }}; }
+// ══════════════════════════════════════════
 //  칭찬 도장판 (11-28 유진): 기록(배양 · 실험)을 남긴 날마다 도장 하나, 10칸 채우면 보너스 뽑기
 //  기록에서 바로 셈 (따로 저장 안 함, 기기끼리 기록만 맞으면 같음). 시작일 petSt.stampStart부터. 새 도장은 저장할 때 찍히는 모습
 // ══════════════════════════════════════════
@@ -11808,65 +11912,13 @@ if(!STAMP_ON){ const b=document.querySelector('.set-nav button[data-st="stamp"]'
 //  업데이트 안내: 올린 날부터 5일 동안 열 때마다 보여줌 (「다시 보지 않기」 체크하면 이 버전은 끝)
 //  새 기능을 올릴 때 NEWS의 id · date · items만 바꾸면 됨
 // ══════════════════════════════════════════
-const NEWS={id:'2026-11-28b', date:'2026-11-28', days:7, notice:'꽃 · 응가는 12/4(금)까지예요. 12/5부터는 안 생겨요', items:[
-  ['<b>밥 없어짐</b>','세포 밥 주기 · 배고픔이 없어졌어요'],
-  ['<b>셀 카운터</b>','도구 › 셀 카운터. 큰 칸 몇 칸 합계인지 고르고 Live · Dead(또는 전체) 합계와 부피를 넣으면 cells/mL · 총 세포 · viability가 나와요 (Trypan blue 1:1). 아래 Stock · Pellet · Seeding마다 세포 수를 숫자 눌러 고르면 뜰 부피(µL)가 나오고, 용도는 직접 더할 수 있어요'],
-  ['<b>PPT figure 색 조합</b>','Plate map 조건 아래 색 조합(파스텔 · 바다 · 노을 · 숲 · 라벤더 · 차분한 · 색약 배려 · 흑백)을 누르면 조건 · 라인 색이 한 번에 바뀌어요. Control · DMSO는 회색, 같은 약 농도는 한 색의 진하기로. 판 색은 연한 회색 · 흰색 · 옅은 조합 색'],
-  ['<b>PPT figure well 글자 줄바꿈</b>','well 글자 칸에서 엔터로 줄을 나눠요 (Ctrl+Enter로 쓰기). 글자가 길면 작게 줄이기보다 먼저 줄을 바꿔요. 편집 창은 이제 「닫기」를 눌러야만 닫혀요'],
-  ['<b>사진 폴더 나누기</b>','이름 · 스케일바에서 저장하면 라인 › 날짜 폴더로 나눠 저장해요. 이미 저장한 사진은 「이미 저장한 사진 정리」로'],
-  ['<b>오늘 작업에서 실험 기록</b>','기록 입력 위 「실험 기록」'],
-  ['<b>MC 주기</b>','배양 라인 종류 이름 옆 MC 칩에서 경고일 · 지연일을 정해요. 라인 수정의 「MC 주기 따로」는 그 라인만'],
-  ['<b>설정 정리</b>','설정은 모양 · 글씨체 · 홈 화면만. 세포 · 광장, 우체통은 왼쪽 메뉴 아래에서'],
-  ['<b>라인 Plate map</b>','배양 라인 표에서 Seeding · Split 줄의 Plate 칸 「+ map」을 누르면 그 기록의 Plate map을 만들어요. 지난 맵이 있으면 조건 · 색 · well을 이어받고, P · d는 그 기록 기준(Split이면 한 뒤). 라인 머리의 「Map PPT」는 그 라인 맵을 시간순으로 PPT로. Split을 저장하면 「Plate map」 이어서 만들기가 떠요'],
-  ['<b>연구노트 인쇄 묶기</b>','라인별 · 날짜별 · 프로젝트별 · 프로젝트 › 날짜 중 골라서 인쇄해요. 프로젝트로 거르기도 돼요'],
-  ['<b>세포 · 광장</b>','설정 › 세포와 광장을 한 창으로 합쳤어요 (내 세포 · 도감 · 광장). 친화도 하루 제한은 없어졌어요'],
-], old:[
-  ['<b>다음 Split 예상</b>','지난 Split 간격(최근 3번 평균)으로 라인마다 다음 Split 날을 계산해요. 3일 안이거나 지났으면 배양 현황 라인 이름 옆에 「Split ~11.28」이 뜨고, 누르면 예정 작업에 넣어요. ▾로 펼치면 평균 간격 · 지난번 비율이 보여요'],
-  ['<b>라인 찾기</b>','기록 입력의 라인 칸에 번호만 쳐도 돼요(31 → HCC31). ↑↓ · Enter로 고르고, 오늘 작업에서 / 를 누르면 바로 여기로 와요. 아래 「최근」 칩은 방금 기록한 라인 3개'],
-  ['<b>저장해도 액션 그대로</b>','Split을 라인마다 이어서 적을 때 다시 고르지 않게, 저장하면 라인 · 비율 · Well · 메모만 비우고 액션 · Plate는 남겨요'],
-  ['<b>오늘이 아닌 날짜 표시</b>','어제나 다른 날짜로 저장하게 되면 날짜 칸이 노랗게 두르고 버튼이 「어제 11/24 날짜로 저장」으로 바뀌어요'],
-  ['<b>폰 빠른 기록</b>','폰에서 라인을 체크하면 아래 바에서 MC · MA는 바로 저장, Split · Obs는 골라서 입력 칸으로 가요'],
-  ['<b>PPT 사진 골라 장 더 만들기</b>','배치 미리보기 위 「사진 골라 장 더 만들기」에서 well 1 · 4x처럼 칩을 켜거나 사진을 눌러 고르면, 그 사진만으로 원래 실험 장 바로 뒤에 장이 더 생겨요'],
-  ['<b>PPT 사진 크기 고정</b>','사진이 적은 장도 기본 칸(2.44 in)보다 커지지 않아요. 9열 표처럼 안 들어갈 때만 작아지고, 조금만 줄이면 한 장에 다 들어가는 표는 한 장으로 넣어요. 같은 칸에 두 번째로 찍은 사진((2) 등)은 반으로 나누지 않고 실험 뒤 「추가 사진」 장으로 가요. 회색 메모 칸은 이제 기본으로 안 들어가고, 썸네일을 눌러 고칠 때 쓰면 생겨요'],
-  ['<b>폴더째 올리기</b>','PPT 만들기 · 스케일바에서 사진 대신 폴더를 끌어다 놓거나 「폴더째 고르기」로 골라도 돼요. 안의 하위 폴더 사진까지 들어가요'],
-  ['<b>선물 알림</b>','친구가 세포를 보내면 앱을 열 때 「선물이 왔어요!」 창이 떠요. 받은 기록은 설정 › 세포 맨 위에 2주 동안 남아요'],
-  ['<b>쓰다듬기</b>','친화도는 세포마다 하루 20번까지 올라요(더 쓰다듬어도 하트는 나와요). 친화도 Lv.5 · Lv.10 보너스 뽑기는 하루 1장씩. 기기를 오가면 친화도가 줄던 것도 고쳤어요'],
-  ['<b>PPT 이름 조각</b>','썸네일을 눌러 고칠 때 맨 위에 이름 조각(24h · 10ng · Control …)마다 행 · 열 · 장 나누기 · 무시를 고를 수 있어요. 24h처럼 시간 · 농도 조각은 48h · 20ng도 같이 따라가요. 「배율마다 따로 장」 체크도 생겼어요'],
-  ['<b>현미경 사진 PPT 표 배치</b>','여러 날 찍은 실험은 왼쪽 = 날짜, 위 = 조건(CM · FM · MM) 아래 well 1 · 2 · 3. 「한 줄 3 · 6 · 9장」을 고르면 같은 단위 장끼리 사진 크기가 같아요. 배율은 장을 나눠도, 같이 봐도 돼요'],
-  ['<b>세포 왕 순위</b>','광장에서 가진 세포 수(겹친 것 포함) 순서로 1위 · 2위 · 3위'],
-  ['<b>보너스 뽑기</b>','하루 1번 뽑기 말고도: 랩 미션 하나 깰 때마다 · 하루 기록 5건 · 한 주 4일 들르기 · 친화도 Lv.5 · Lv.10. 설정 › 세포에서 「보너스」로 뽑아요'],
-  ['<b>깜짝 선물 시간</b>','일주일에 한 번, 평일 낮 어느 2시간 동안 앱을 열어 두면 선물이 와요. 언제인지는 비밀, 지나고 나면 광장에서 알려 줘요'],
-  ['<b>랩 미션</b>','매주 월요일 미션 3개가 바뀌어요(일 · 함께 · 놀이 하나씩: MC · Split · Stock · 새 라인 · 사진 / 출석 · 꾸준히 · 세포 나눔 / 응가 · 쓰다듬기 · 밥 · 들르기). 같이 깬 미션 수로 피펫 요정 · 삼각 플라스크 · 페트리 접시 · 다같이 셋 · 랩 수호신, 한 주 3개 모두 깨면 올클리어 왕관. 광장에는 깃발 가랜드 · 마스코트 동상 · 협동 종'],
-  ['<b>촬영 순서 중간 고치기</b>','줄 이름을 누르면 라인 · 특이사항 · 배율 고치기, 이 앞에 넣기, ↑ ↓ 옮기기'],
-  ['<b>친화도 이펙트</b>','쓰다듬으면 친화도가 높을수록 화려해져요(하트 → 반짝 → 음표 → 별 → 무지개 하트 → 금빛). 레벨이 오를 땐 Lv마다 다른 축하: 하트 퐁 · 하트 터짐 · 음표 · 꽃잎 · 비눗방울 · 별 · 금가루 왕관 · 무지개 고리 · 폭죽'],
-  ['<b>광장 한 줄 상태</b>','별명 · 한 줄 상태 · 대표 세포가 폰과 노트북에서 같게 맞춰져요'],
-  ['<b>사진 이름 · 스케일바</b>','라인 고르기 칸 맨 위 「순서 고치기」: 빈 칸 끼우기(순서에 없던 컷) · 이 순서 빼기(안 찍은 컷), 되돌리기 가능'],
-  ['<b>LN2 검색 요약</b>','검색하면 맨 위에 vial 수 · 환자 수 · 종류 · 사람 · passage별 개수. 종류를 여러 개 고르면(CAF + PF 등) 환자별로 짝 표, 다 있는 환자부터'],
-  ['<b>기록 입력 Stock</b>','칩은 이름만, P는 「P 올리지 않기」 체크 하나로. 바이알 P도 그걸 따라가요'],
-  ['<b>현미경 사진 PPT</b>','설정 없이 실험마다 날짜 · 조건(well · 처리) · 배율을 사진 수에 맞춰 자동으로 행 · 열에 놓아 슬라이드를 꽉 채워요. 썸네일의 「한 장에 n행 − / +」로 다음 장 행을 당기거나 넘겨요'],
-  ['<b>광장 꾸미기</b>','11월 17일부터 센 랩 모두의 기록(MC · Split · Stock vial · 일한 날)으로 표지판 · 벤치 · 꽃밭 · 가로등 · 나무 · 분수 · 현미경 · LN2 탱크 · 피크닉 매트 · 무지개 아치가 하나씩 생겨요. 이번 주 목표를 채우면 깃발. 설정 › 광장에서 다음 물품까지 얼마 남았는지 볼 수 있어요'],
-  ['<b>LN2 해동 · Cell information</b>','박스에서 바이알을 고르면 이름이 같은 Cell information 줄이 떠서 사용날짜(used) · 위치 · 비고를 바로 고칠 수 있어요. 「해동 · 새 라인 등록」으로 빼면서 앱에 새 라인 칸까지 채워요'],
-  ['<b>LN2 탱크 박스 고치기</b>','원래 있던 바이알도 끌어서 옮기기, 칸을 눌러 여러 개 고른 뒤 한꺼번에 옮기기, 「해동 · 빼기」, 글자 고치기, 되돌리기 (Ctrl+Z). 내려받으면 Cell information 위치 · 사용날짜도 같이 고쳐요'],
-  ['<b>Split · Stock · Pellet</b>','이름은 그대로 두고 「passage 유지 (P+0)」 체크로 고르기 (Split · Stock 기본 +1). Stock 바이알 P도 이걸 따라가요'],
-  ['<b>세포</b>','「모두 밥 주기」로 한 번에. 기분 대신 친화도 Lv.1–10 (쓰다듬을수록), Lv.3 볼 하트 · Lv.5 리본 · Lv.8 왕관 · Lv.10 반짝반짝'],
-  ['<b>PPT 슬라이드 고치기</b>','「다음 장 붙이기」로 같은 실험 다음 장을 이 장에 합치기 (well마다 날짜를 옆으로 이어서 같은 well 변화를 비교, 같은 배율은 한 줄), 「well별로 묶기 ↔ 날짜별로 묶기」'],
-  ['<b>배양 라인</b>','종류 / 프로젝트로 묶어 보기, 라인 옆 칩으로 프로젝트 정하기'],
-  ['<b>사진 이름 · 스케일바</b>','「이름순 정렬」, 큰 TIFF 불러오기가 빨라졌어요'],
-  ['<b>다같이 춤추기</b>','광장을 크게 열고 「다같이 춤추기」를 누르면 모두 가운데로 모여 둥글게 서서 같은 춤(좌우 흔들기 · 점프 · 빙글 돌기 · 웨이브 중 하나)을 같은 박자로 추고, 다시 제자리로 돌아가요'],
-  ['<b>광장 자리</b>','작은 광장 · 큰 광장 · 다른 사람 화면에서 세포가 같은 자리에서 같이 움직여요'],
-  ['<b>광장</b>','왼쪽 아래 인큐베이터 위 풀밭에서 다 같이 돌아다녀요. 설정 › 광장에서 대표 세포 고르기, 랩 목표는 이번 주 MC 150회'],
-  ['<b>실험 찾기</b>','다이어리 위 「실험 찾기」에 Aliquot처럼 적으면 언제 했는지 다 나와요'],
-  ['<b>실험 기록</b>','다이어리 오른쪽 위 「+ 실험 기록」으로 qPCR · Aliquot 같은 실험을 자유롭게 적기. 「지난 기록 불러오기」로 예전 걸 가져와 고쳐 쓰기. 라인을 고르면 라인 기록 · 연구노트 인쇄에도 같이 나와요'],
-  ['<b>배양 완료</b>','오늘 작업 액션에서 「배양 완료」를 골라 저장하면 라인이 완료로 넘어가요'],
-  ['<b>PPT figure</b>','Plate는 라인 → 조건 → 글자 순서. 그림에서 well을 끌어 고르고 칠하기. 행(A) · 열(1)을 누르면 가로 · 세로 조건. 위 탭을 끌어 순서 바꾸기. 프로젝트별로 나눠 두기'],
-  ['<b>Experiment Schedule</b>','줄(라인)마다 탭, Day 0 = 그 라인 seeding 날. Day 숫자만 적으면 날짜가 계산돼요. 메모는 엔터로 줄바꿈'],
-  ['<b>PPT 슬라이드 고치기</b>','되돌리기 · 다시 하기(Ctrl+Z · Ctrl+Y), 한 줄에 몇 장, 같은 실험 다른 장 사진 가져오기, 같은 날짜 배율 행 묶기. 다 고친 뒤 아래 「닫기」'],
-  ['<b>PPT 만들기 figure</b>','썸네일 돋보기로 크게 보기, 「숨기기」, 2주 지난 건 아래로 접힘'],
-  ['<b>PPT figure</b>','Experiment Schedule · Plate map · 메모를 한 Figure에, PPT에서 글자 · 도형 고치기'],
-  ['<b>LN2 해동</b>','vial의 「해동 → 새 라인」'],
-  ['<b>Media</b>','배지 튜브에서 쓴 만큼 자동으로 빠짐'],
-  ['<b>기록</b>','다이어리(먼슬리 · 위클리) · 분석'],
-  ['<b>Tree · Incubator · LN2 탱크 · 세포 · 설정</b>','왼쪽 메뉴'],
+const NEWS={id:'2026-11-28c', date:'2026-11-28', days:7, notice:'꽃 · 응가는 12/4(금)까지예요. 12/5부터는 안 생겨요', items:[
+  ['<b>미니게임</b>','세포 · 광장 › 게임. 10일마다 바뀌고 광장 순위가 있어요'],
+  ['<b>세포 · 광장</b>','한 창으로 합쳤어요. 왼쪽 메뉴 아래에서'],
+  ['<b>밥 없어짐</b>','세포 밥 주기가 없어졌어요'],
+  ['<b>MC 주기</b>','배양 라인 종류 이름 옆 칩에서'],
+  ['<b>사진 폴더</b>','이름 · 스케일바 저장 때 환자_종류 폴더로'],
+  ['<b>실험 기록</b>','오늘 작업 기록 입력 위에서 바로'],
 ]};
 function newsShow(force){
   let hidden=false; try{ hidden=localStorage.getItem('orgNewsHide')===NEWS.id; }catch(e){}
