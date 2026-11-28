@@ -1120,7 +1120,7 @@ body[data-tab="fig"] .pane[data-pane="fig"]{display:block;animation:paneIn .28s 
 .md-pill{font-size:.7rem;font-weight:600;padding:2px 8px;border-radius:99px;}
 .md-pill.ok{background:var(--ok-bg);color:var(--ok);} .md-pill.bad{background:var(--due-bg);color:var(--due);}
 .md-sug{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:.78rem;font-weight:600;color:var(--due);}
-.md-miss{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:.74rem;color:var(--warn);}
+.md-miss{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:.74rem;color:var(--warn);} .md-miss .link-btn{margin-left:4px;}
 .md-body .link-btn{margin-top:8px;}
 .md-det{width:100%;min-width:360px;margin-top:6px;font-size:.74rem;border-collapse:collapse;}
 .md-det td:first-child{word-break:keep-all;}
@@ -11935,6 +11935,8 @@ const NEWS={id:'2026-11-28c', date:'2026-11-28', days:7, notice:'꽃 · 응가�
   ['<b>MC 주기</b>','배양 라인 종류 이름 옆 칩에서'],
   ['<b>사진 폴더</b>','이름 · 스케일바 저장 때 환자_종류 폴더로. 이미 있는 폴더를 골라 둘 수도 있어요'],
   ['<b>실험 기록</b>','오늘 작업 기록 입력 위에서 바로'],
+  ['<b>셀 카운터</b>','개수 직접 입력 · 개수 0으로 · 센 값 1시간 자동 저장'],
+  ['<b>Media 병</b>','250 · 500 ml 병도 넣을 수 있어요'],
 ]};
 function newsShow(force){
   let hidden=false; try{ hidden=localStorage.getItem('orgNewsHide')===NEWS.id; }catch(e){}
@@ -11962,7 +11964,7 @@ function openIncuWindow(){ window.open(location.pathname+'?incubator','ccl_incub
 //  Media: 배지 설정 · 튜브 보관함 · 계산기
 // ══════════════════════════════════════════
 // mediaDefs : [{id, name, color, types:[라인 종류…], perWeek, rows:[{type:'*'|종류, plate:'*'|plate, mc:ml/well, ma:ml/well}]}]
-// mediaTubes: [{id, mediaId, size:50|15, ml(처음 채운 양), made:'YYYY-MM-DD', set:{left, date, seq}?}]
+// mediaTubes: [{id, mediaId, size:15|50|250|500, ml(처음 채운 양), made:'YYYY-MM-DD', set:{left, date, seq}?}]
 // 쓴 양은 따로 저장하지 않고 기록(logs)에서 매번 다시 계산한다 → 기록을 고치거나 지우면 남은 양도 저절로 맞춰짐.
 //  · 쓰는 기록: Media Change(교체 양) · Media Addition(Addition 양) · Split · Reseeding · Seeding(교체 양)
 //  · 양 = 그 기록의 Well 수(없으면 그날 Well 수) × 그 라인 종류·Plate의 ml/well
@@ -12020,7 +12022,7 @@ function mdState(){
       if(x.t.set&&!b) x.post+=take; else x.pre-=take;
       need-=take;
     }
-    if(need>0.0001) s.short+=need;
+    if(need>0.0001&&!(u.def.shortAck&&lg.date<=u.def.shortAck)) s.short+=need;   // 「확인」 누른 날까지의 못 뺀 양은 안 셈
   });
   const now=mdYmd();
   Object.values(st).forEach(s=>s.tubes.forEach(x=>{
@@ -12048,9 +12050,35 @@ function mdCalc(){
 }
 
 // ── 튜브 그림 ──
-// 튜브 그림 크기는 실제 conical 두 가지뿐: 15 ml보다 크면 50 ml 튜브(40 ml만 담은 50 ml 튜브 등), 아니면 15 ml 튜브
-const mdCap=t=>(+t.size||50)>15?50:15;
+// 그림 크기: conical 15 · 50 ml, 배지 병 250 · 500 ml (11-28 유진). 담은 양보다 한 단계 큰 용기 (40 ml → 50 ml 튜브, 300 ml → 500 ml 병)
+const mdCap=t=>{ const v=+t.size||50; return v>250?500:v>50?250:v>15?50:15; };
+const mdIsBottle=t=>mdCap(t)>=250;
+// 배지 병: 동글한 어깨 · 뚜껑 홈 · 웃는 얼굴 라벨, 양만큼 채움
+function mdBottleSVG(x,color){
+  const big=mdCap(x.t)===500, W=big?64:54, H=big?132:116, capH=13, neckH=6, sh=big?18:15, nw=Math.round(W*.42), nx0=(W-nw)/2, nx1=nx0+nw, bt=capH+neckH, r=10;
+  const frac=Math.max(0,Math.min(1,x.left/mdCap(x.t))), tot=H-1-bt, fillH=tot*frac, y0=H-1-fillH;
+  const id='mdb'+x.t.id.replace(/[^a-z0-9]/gi,'');
+  const shape=`M${nx0} ${bt} Q2 ${bt} 2 ${bt+sh} V${H-1-r} Q2 ${H-1} ${2+r} ${H-1} H${W-2-r} Q${W-2} ${H-1} ${W-2} ${H-1-r} V${bt+sh} Q${W-2} ${bt} ${nx1} ${bt} Z`;
+  const ly=bt+sh+(H-1-bt-sh)*.32, lw=W*.62, lh=big?30:26, lx=(W-lw)/2, cx=W/2, cy=ly+lh/2;
+  const ticks=[.25,.5,.75].map(f=>{ const y=H-1-tot*f; return `<line x1="${W-12}" x2="${W-4}" y1="${y}" y2="${y}" class="md-tick"/>`; }).join('');
+  return `<svg class="md-tube md-bottle" width="${W}" height="${H+2}" viewBox="0 0 ${W} ${H+2}" aria-hidden="true">
+    <defs><clipPath id="${id}"><path d="${shape}"/></clipPath></defs>
+    <rect x="${nx0+1}" y="${capH-1}" width="${nw-2}" height="${neckH+3}" class="md-glass"/>
+    <path d="${shape}" class="md-glass"/>
+    <rect x="0" y="${y0}" width="${W}" height="${fillH+2}" fill="${color}" opacity="${x.expired?.35:.85}" clip-path="url(#${id})"/>
+    ${frac>0?`<rect x="0" y="${y0}" width="${W}" height="2" fill="#fff" opacity=".45" clip-path="url(#${id})"/>`:''}
+    ${ticks}
+    <path d="${shape}" class="md-out"/>
+    <rect x="${lx}" y="${ly}" width="${lw}" height="${lh}" rx="5" fill="#fff" opacity=".92" stroke="rgba(0,0,0,.08)"/>
+    <circle cx="${cx-6}" cy="${cy-2}" r="1.8" fill="#3B3346"/><circle cx="${cx+6}" cy="${cy-2}" r="1.8" fill="#3B3346"/>
+    <path d="M${cx-3.5} ${cy+2.5} Q${cx} ${cy+6} ${cx+3.5} ${cy+2.5}" fill="none" stroke="#3B3346" stroke-width="1.4" stroke-linecap="round"/>
+    <circle cx="${cx-10}" cy="${cy+2}" r="2.2" fill="#F7A8B8" opacity=".8"/><circle cx="${cx+10}" cy="${cy+2}" r="2.2" fill="#F7A8B8" opacity=".8"/>
+    <rect x="${nx0-3}" y="0" width="${nw+6}" height="${capH}" rx="3.5" fill="${color}" class="md-cap"/>
+    ${[1,2,3].map(i=>`<line x1="${nx0-3+(nw+6)*i/4}" x2="${nx0-3+(nw+6)*i/4}" y1="3" y2="${capH-3}" stroke="#fff" stroke-opacity=".55" stroke-width="1.2"/>`).join('')}
+  </svg>`;
+}
 function mdTubeSVG(x,color){
+  if(mdIsBottle(x.t)) return mdBottleSVG(x,color);
   const big=mdCap(x.t)===50, W=big?40:28, H=big?132:112, cap=big?14:12, cone=big?22:20, bodyTop=cap+2, bodyH=H-bodyTop-cone;
   const frac=Math.max(0,Math.min(1,x.left/mdCap(x.t)));
   const tot=bodyH+cone, fillH=tot*frac, y0=H-fillH;
@@ -12244,11 +12272,11 @@ function renderMedia(){
     const tubes=c.tubes.filter(x=>x.left>0.0001).map(x=>{   // 다 쓴 튜브(0 ml)는 안 보임 (계산에는 그대로 남아 쓴 양이 맞게)
       const exp=mdAddDays(x.t.made,MD_EXPIRE), dleft=mdDays(now,exp);
       const tag=x.expired?`<b class="md-bad">2주 지남</b>`:dleft<=3?`<b class="md-warn">${dleft<=0?'오늘까지':dleft+'일 남음'}</b>`:`<span>D+${x.age}</span>`;
-      return `<button class="md-t${x.expired?' exp':''}${x.left<=0.0001?' empty':''}" onclick="mdTubeMenu('${x.t.id}',this)" title="${esc(d.name)} ${mdCap(x.t)} ml 튜브 · ${x.t.made} 만듦 · 눌러서 고치기">
+      return `<button class="md-t${x.expired?' exp':''}${x.left<=0.0001?' empty':''}" onclick="mdTubeMenu('${x.t.id}',this)" title="${esc(d.name)} ${mdCap(x.t)} ml ${mdIsBottle(x.t)?'병':'튜브'} · ${x.t.made} 만듦 · 눌러서 고치기">
         ${mdTubeSVG(x,col)}<b class="md-ml">${mdFmt(x.left)}<small>/${mdCap(x.t)} ml</small></b><span class="md-age">${tag}</span></button>`;
     }).join('');
     const add=_mdAdd===d.id?`<div class="md-addf">
-        <div class="seg-group md-sz"><button class="seg on" data-sz="50" onclick="mdSz(this)">50 ml</button><button class="seg" data-sz="15" onclick="mdSz(this)">15 ml</button></div>
+        <div class="seg-group md-sz"><button class="seg on" data-sz="50" onclick="mdSz(this)">50 ml</button><button class="seg" data-sz="15" onclick="mdSz(this)">15 ml</button><button class="seg" data-sz="250" onclick="mdSz(this)">250 ml</button><button class="seg" data-sz="500" onclick="mdSz(this)">500 ml</button></div>
         <label>채운 양<input type="number" id="mdAddMl" value="50" min="0" step="0.5"> ml</label>
         <label>만든 날<input type="date" id="mdAddDate" value="${now}"></label>
         <label>개수<input type="number" id="mdAddN" value="1" min="1" max="20"></label>
@@ -12264,7 +12292,7 @@ function renderMedia(){
         <span class="panel-act">${st}<button class="link-btn md-go" onclick="_mdSetOpen['${d.id}']=!_mdSetOpen['${d.id}'];renderMedia()">${_mdSetOpen[d.id]?'설정 닫기':'설정'}</button></span></div>
       <div class="md-body">${_mdSetOpen[d.id]?`<div class="md-inset">${setHtml(d)}</div>`:''}
         <div class="md-rack">${tubes||'<div class="md-none">튜브가 없어요</div>'}
-          <button class="md-t md-plus" onclick="_mdAdd='${d.id}';renderMedia()" title="튜브 추가">${ic('plus')}<span>튜브</span></button></div>
+          <button class="md-t md-plus" onclick="_mdAdd='${d.id}';renderMedia()" title="튜브 · 병 추가">${ic('plus')}<span>추가</span></button></div>
         ${add}
         <div class="md-calc">
           <div><small>한 번 교체</small><b>${mdFmt(c.per)} ml</b></div>
@@ -12274,7 +12302,7 @@ function renderMedia(){
         </div>
         ${sug}
         ${c.miss.length?`<div class="md-miss">${ic('alert','ic-sm')}양이 안 정해진 라인 ${c.miss.length}개는 계산에서 빠졌어요</div>`:''}
-        ${c.short>0.0001?`<div class="md-miss">${ic('alert','ic-sm')}튜브가 모자라서 기록 ${mdFmt(c.short)} ml는 어느 튜브에서도 못 뺐어요 (튜브를 더 등록하거나 남은 양을 고쳐 주세요)</div>`:''}
+        ${c.short>0.0001?`<div class="md-miss">${ic('alert','ic-sm')}튜브 없이 쓴 기록 ${mdFmt(c.short)} ml<button class="link-btn" onclick="mdSetDef('${d.id}','shortAck',mdYmd())">확인</button></div>`:''}
         <button class="link-btn" onclick="_mdOpenCalc['${d.id}']=!_mdOpenCalc['${d.id}'];renderMedia()">${_mdOpenCalc[d.id]?'라인별 계산 접기':'라인별 계산 보기'}</button>
         ${det}
       </div></section>`;
@@ -12327,7 +12355,7 @@ function mdAddTube(id){
   const ml=Math.min(sz,Math.max(0,parseFloat(document.getElementById('mdAddMl').value)||0));
   const made=document.getElementById('mdAddDate').value||mdYmd(), n=Math.max(1,Math.min(20,parseInt(document.getElementById('mdAddN').value)||1));
   for(let i=0;i<n;i++) mediaTubes.push({id:uid(),mediaId:id,size:sz,ml,made});
-  _mdAdd=null; saveMedia(); renderMedia(); toast(`${(mdDef(id)||{}).name||'배지'} ${sz} ml 튜브 ${n}개를 넣었어요`);
+  _mdAdd=null; saveMedia(); renderMedia(); toast(`${(mdDef(id)||{}).name||'배지'} ${sz} ml ${sz>=250?'병':'튜브'} ${n}개를 넣었어요`);
 }
 function mdTubeMenu(tid,btn){
   petPopClose && petPopClose();
