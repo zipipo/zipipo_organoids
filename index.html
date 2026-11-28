@@ -5988,7 +5988,9 @@ const ART_ROTA=['space','rainbow','bubble','flower','ocean','strawberry','cloud'
   'sheep','peach','tree','rain','sunflower','dumpling','cactus','jelly','forest','earth','cat','pencil','autumn','acorn','plant','winter','dreamy'];
 // 무드 테마 15종을 그림 배경 사이사이에 섞음 (그림 2 – 3개마다 하나)
 const ART_STYLES=['s-lemon','s-grid','s-sunset','s-mint','s-retro','s-dots','s-lavender','s-blueprint','s-peach','s-candy','s-white','s-aurora','s-kraft','s-sky','s-matcha'];
-const ART_MIX=(()=>{ const out=[]; let j=0; ART_ROTA.forEach((a,i)=>{ out.push(a); if(i%5===1||i%5===3){ if(j<ART_STYLES.length) out.push(ART_STYLES[j++]); } }); while(j<ART_STYLES.length) out.push(ART_STYLES[j++]); return out; })();
+const ART_MIX=(()=>{ const out=[]; let j=0; ART_ROTA.forEach((a,i)=>{ out.push(a); if(i%5===1||i%5===3){ if(j<ART_STYLES.length) out.push(ART_STYLES[j++]); } }); while(j<ART_STYLES.length) out.push(ART_STYLES[j++]);
+  const i1=out.indexOf('snail'), i2=out.indexOf('s-lemon'); if(i1>=0&&i2>=0){ out[i1]='s-lemon'; out[i2]='snail'; }   // 11-28 유진: 오늘(달팽이 자리)은 새 배경 중 레몬 빛으로
+  return out; })();
 function weeklyArt(d){
   d=d||new Date();
   const m=d.getMonth()+1, day=d.getDate();
