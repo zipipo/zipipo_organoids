@@ -10327,7 +10327,7 @@ const PET_KINDS=[
   {id:'coffee', name:'랩 커피',           shape:'coffee',  c:'#FFFFFF',d:'#C9A27E',a:'#B98A64',r:2},
   // 2번째 시리즈 52종 (11-28 유진): 강아지 · 고양이 · 햄버거 · 나무 … 색이 여러 가지(cols, 뽑을 때 하나, 세포 창에서 바꿈). S2_START부터, 도감 1시리즈 90% 넘으면 뽑기에 나옴
   {id:'s2dog',name:'강아지',shape:'s2dog',c:'#F3D9B8',d:'#B98A5C',a:'#9C6B45',r:1,s:2,cols:[['#F3D9B8','#B98A5C','#9C6B45'],['#FFFFFF','#B8B2AA','#C9A07A'],['#E8C27E','#A9803E','#7A5A30'],['#6B5A50','#3E332D','#2B2420']]},
-  {id:'s2cat',name:'고양이',shape:'s2cat',c:'#FFD6A5',d:'#D9925A',a:'#F7A8B8',r:1,s:2,cols:[['#FFD6A5','#D9925A','#F7A8B8'],['#D9D9DE','#8E8E99','#F7A8B8'],['#4A4552','#26232B','#F7A8B8'],['#FFFFFF','#B9B9C2','#F7A8B8']]},
+  {id:'s2cat',name:'고양이',shape:'s2cat',c:'#FFD6A5',d:'#D9925A',a:'#F7A8B8',r:1,s:2,cols:[['#FFD6A5','#D9925A','#F7A8B8'],['#D9D9DE','#8E8E99','#F7A8B8'],['#6E6879','#3E3946','#F7A8B8'],['#FFFFFF','#B9B9C2','#F7A8B8']]},
   {id:'s2rabbit',name:'토끼',shape:'s2rabbit',c:'#FFFFFF',d:'#C9C2CC',a:'#F7B6C8',r:1,s:2,cols:[['#FFFFFF','#C9C2CC','#F7B6C8'],['#EAD8C6','#B39478','#F7B6C8'],['#D8D4E8','#9C96B8','#F7B6C8']]},
   {id:'s2bear',name:'곰',shape:'s2bear',c:'#C9946E',d:'#8A5E3E',a:'#F0D6BE',r:1,s:2,cols:[['#C9946E','#8A5E3E','#F0D6BE'],['#F4E6D4','#BFA98E','#FFFFFF'],['#5E4636','#3A2A20','#C9A58A']]},
   {id:'s2pig',name:'돼지',shape:'s2pig',c:'#FFD0D8',d:'#E097A6',a:'#F7A8B8',r:1,s:2,cols:[['#FFD0D8','#E097A6','#F7A8B8'],['#F3E3D3','#C9AE94','#E8B4A0']]},
@@ -10441,7 +10441,9 @@ function petGrid(shape, frame){
   switch(shape){
     // ── 2번째 시리즈 (11-28): 동물 · 음식 · 자연 · 그 밖. 얼굴은 (6,9) · (10,9) 자리에 그려짐 ──
     case 's2dog': ell(8,9.6,6,5,'b'); ell(2.6,8.5,1.7,3.2,'a'); ell(13.4,8.5,1.7,3.2,'a'); ell(8,12,2.2,1.3,'n'); break;
-    case 's2cat': ell(8,9.8,6,4.8,'b'); [[3,2],[3,3],[4,3],[3,4],[4,4],[5,4],[3,5],[4,5],[5,5],[6,5]].forEach(([x,y])=>{ set(x,y,'b'); set(15-x,y,'b'); }); set(4,4,'a'); set(11,4,'a'); set(4,5,'a'); set(11,5,'a'); set(1,11,'n'); set(14,11,'n'); break;
+    case 's2cat': ell(8,10,6.3,4.6,'b'); [[4,2],[3,3],[4,3],[5,3],[3,4],[4,4],[5,4],[6,4],[3,5],[4,5],[5,5],[6,5]].forEach(([x,y])=>{ set(x,y,'b'); set(15-x,y,'b'); }); set(4,4,'a'); set(11,4,'a'); set(4,5,'a'); set(5,5,'a'); set(10,5,'a'); set(11,5,'a');   // 둥근 얼굴 · 분홍 속귀
+      set(7,6,'n'); set(9,6,'n'); set(8,5,'n');   // 이마 무늬
+      set(1,10,'b'); set(14,10,'b'); set(14,13,'b'); set(15,12,'b'); set(15,11,'b'); break;   // 볼 털 · 꼬리
     case 's2rabbit': ell(8,10.2,5.6,4.6,'b'); rect(5,0,6,6,'b'); rect(9,0,10,6,'b'); rect(5,1,5,4,'a'); rect(10,1,10,4,'a'); break;
     case 's2bear': ell(3.6,4.8,2.1,2.1,'b'); ell(12.4,4.8,2.1,2.1,'b'); set(3,5,'a'); set(12,5,'a'); ell(8,9.6,6,5,'b'); ell(8,11.6,2.4,1.5,'a'); break;
     case 's2pig': ell(8,9.6,6,5,'b'); [[3,4],[4,4],[3,5]].forEach(([x,y])=>{ set(x,y,'a'); set(15-x,y,'a'); }); ell(8,11.8,2,1.3,'a'); set(7,12,'n'); set(9,12,'n'); break;
