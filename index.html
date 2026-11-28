@@ -12046,12 +12046,13 @@ function gmEnd(score){ score=Math.max(0,Math.round(score)); const N=gmNow(), bes
   if(rec){ petSt.gm={key:N.key,best:score}; savePets(); try{ plazaPublish(true); }catch(e){} const sm=document.querySelector('.gm-hd small'); if(sm) sm.textContent=sm.textContent.replace(/최고 \d+/,'최고 '+score); }
   const box=document.getElementById('gmBox'); if(box) box.insertAdjacentHTML('beforeend',`<div class="gm-over"><b>${score}</b><span>${rec?'최고 기록!':`최고 ${best}`}</span><button class="btn btn-pri" onclick="gmStart()">다시</button></div>`);
   const r=document.getElementById('gmRank'); if(r) r.innerHTML=gmRankHTML(); }
-// 10일 판이 끝난 뒤 그 판 1위면 보너스 뽑기 3장 (11-28 유진). 광장 사람들의 gh(판별 최고 점수)로 비교, 같은 점수면 같이 1위
+// 10일 판이 끝난 뒤 그 판 1 · 2 · 3위면 보너스 뽑기 3 · 2 · 1장 (11-28 유진). 광장 사람들의 gh(판별 최고 점수)로 비교, 같은 점수면 같이 1위
 function gmPrevKey(){ const N=gmNow(), d=new Date(N.key+'T00:00:00'); d.setDate(d.getDate()-GM_DAYS); const k=ymdLocal(d); return k>=GM_EPOCH?k:''; }
 function gmAwardCheck(){ const pk=gmPrevKey(); if(!pk||!Array.isArray(_plaza)) return; const me=mailUser(); if(!me) return;
   const mine=+((petSt.gmh||{})[pk])||0; if(!mine||(petSt.tkKeys||[]).includes('gm1:'+pk+':1')) return;
-  const top=Math.max(0,..._plaza.filter(p=>p.uid!==me.uid).map(p=>+((p.gh||{})[pk])||(p.gk===pk?+p.gb||0:0)));
-  if(mine>=top){ for(let i=1;i<=3;i++) petTicketGive(`gm1:${pk}:${i}`,'',true); toast('지난 게임 1위! 보너스 뽑기 3장'); } }
+  // 1위 3장 · 2위 2장 · 3위 1장 (11-28 유진). 등수 = 나보다 점수 높은 사람 수 + 1 (같은 점수는 같은 등수)
+  const rank=1+_plaza.filter(p=>p.uid!==me.uid).map(p=>+((p.gh||{})[pk])||(p.gk===pk?+p.gb||0:0)).filter(v=>v>mine).length, n=[0,3,2,1][rank]||0;
+  if(n){ for(let i=1;i<=n;i++) petTicketGive(`gm1:${pk}:${i}`,'',true); toast(`지난 게임 ${rank}위! 보너스 뽑기 ${n}장`); } }
 function gmRankHTML(){ const N=gmNow(), me=mailUser(), mine={uid:me&&me.uid,nick:plazaNick(),gk:N.key,gb:gmBest(),me:true};
   const ppl=(_plaza||[]).filter(p=>p.gk===N.key&&+p.gb>0&&(!me||p.uid!==me.uid)).concat(mine.gb>0?[mine]:[]).sort((a,b)=>b.gb-a.gb).slice(0,10);
   return ppl.length?ppl.map((p,i)=>`<div class="gm-rk${p.me?' me':''}"><i>${i+1}</i><span>${esc(p.nick||'세포 친구')}</span><b>${p.gb}</b></div>`).join(''):''; }
@@ -12154,7 +12155,7 @@ if(!STAMP_ON){ const b=document.querySelector('.set-nav button[data-st="stamp"]'
 // ══════════════════════════════════════════
 const NEWS={id:'2026-11-28d', date:'2026-11-28', days:7, notices:[['꽃 · 응가는 12/4(금)까지예요. 12/5부터는 안 생겨요','2026-12-05'],['12/7(월)부터 새 세포 52종 (시리즈 2, 도감 88마리부터)','2026-12-14']], items:[
   ['<b>세포 풀어주기</b>','겹친 세포를 광장에 풀어 두면 아무나 데려가요 (하루 3마리)'],
-  ['<b>게임 이어하기</b>','창을 닫아도 하던 판이 남아요. 10일 판 1위는 보너스 뽑기 3장'],
+  ['<b>게임 이어하기</b>','창을 닫아도 하던 판이 남아요. 10일 판 1 · 2 · 3위는 보너스 뽑기 3 · 2 · 1장'],
   ['<b>미니게임</b>','세포 · 광장 › 게임. 10일마다 바뀌고 광장 순위가 있어요'],
   ['<b>세포 · 광장</b>','한 창으로 합쳤어요. 왼쪽 광장 칸을 누르면 열려요'],
   ['<b>밥 없어짐</b>','세포 밥 주기가 없어졌어요'],
