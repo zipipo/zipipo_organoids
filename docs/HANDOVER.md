@@ -158,6 +158,20 @@ function doPost(e){
 - PPT: (가) 현미경 사진 PPT에서 그 날짜 사진 장 앞에 그 날 맵 (지금 「PPT figure 같이 넣기」와 같은 자리), (나) 라인 하나의 맵을 시간순으로 모은 장.
 - 유진에게 물을 것: 기록마다 vs 라인마다 하나, PPT (가) / (나) / 둘 다, well에 사진까지 이을지.
 
+## 세포 풀어주기 규칙 (Firebase 콘솔 › Firestore › 규칙에 추가해야 동작, 2026-11-28)
+
+```
+match /adopt/{id} {
+  allow read: if request.auth != null;
+  allow create: if request.auth != null && request.resource.data.from == request.auth.uid && request.resource.data.takenBy == null;
+  allow update: if request.auth != null && resource.data.takenBy == null && resource.data.from != request.auth.uid
+    && request.resource.data.takenBy == request.auth.uid
+    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['takenBy','takenAt']);
+  allow delete: if request.auth != null && resource.data.from == request.auth.uid;
+}
+```
+- 데려간 문서는 takenBy가 채워진 채 남음(목록은 takenBy == null만 불러옴). 내가 푼 걸 거두면 문서를 지움.
+
 ## 우체통 Firestore 규칙 (Firebase 콘솔 › Firestore › 규칙에 추가해야 동작)
 
 ```
@@ -216,6 +230,18 @@ match /mailbox/{id} {
   - 쓰다듬기 공정성: `petCatchUpScan` 도감이 광장 1등보다 3칸 넘게 뒤면 하루 1장, 15칸 넘게면 2장 보너스 뽑기 (`cu:날짜:n`). 광장 목록(`_plaza`/`orgPlazaCache`)이 있을 때만. 1등 · 다 채운 사람은 안 받음.
   - 우체통 메일: `MAIL_HOOK` 자리만 만듦 (위 「우체통 메일 알림」). → 같은 날 다른 세션이 main에 주소를 넣음(2ac2968), 합칠 때 `mailHook` 한 곳으로 정리 (Firestore가 막혀도 메일은 감).
   - NEWS id 2026-11-28 (5줄), 예전 항목은 old로.
+- 2026-11-28(16): 유진 요청 묶음. 데모 · 가짜 Firebase · 가짜 시계(11/30, 12/9)로 시험, 실제 Firestore는 확인 안 함.
+  - 광장 창: 바깥 클릭으로 안 닫힘, 게임 중엔 Esc도 안 닫힘, 전역 Esc에서 #plazaModal 뺌. 제목 「광장」. 폰: 꽉 찬 화면, 광장 탭에서만 풀밭, 오른쪽 넘침(min-width:0) 고침, 세포 고르면 상세로 스크롤.
+  - 게임 이어하기: `orgGmSave` {key, id, st}. 세포 키우기(g · score) · 오염 잡기(bad · score · tick · ms) · Split 타이밍(round · total)은 움직일 때마다 저장, 피펫팅 리듬은 30초라 안 함. 버튼: 저장 있으면 「처음부터」+「이어하기」, 하는 중엔 「처음부터」(확인). 세포 키우기 칸은 4×4 고정(minmax(0,1fr), canvas absolute).
+  - 10일 판 1위 보너스: `petSt.gmh` {판: 최고}(최근 3판, 동기화), 광장 문서 `gh`. 판이 바뀐 뒤 광장을 불러올 때 `gmAwardCheck`: 지난 판 내 점수가 다른 사람 모두 이상이면 `gm1:판:1–3` 3장 (같은 점수 같이 1위).
+  - 세포 풀어주기 · 데려가기 (예전 하루 1번 보내기 버튼 뺌): 내 세포 상세(2마리 이상) 「광장에 풀어주기」 → Firestore `adopt` {from, nick, cellId, cv, ts, takenBy:null}, 광장 탭 맨 위 목록 「○○이가 풀어준 세포예요 [데려가기]」(내 것은 [거두기]), 풀밭에도 최대 6마리가 「날 데려가세요」 말풍선으로 걷고 누르면 데려가기. 데려가기는 transaction(먼저 누른 사람), 하루 3마리(`ADOPT_DAY`, `petSt.adoptDay`). 풀어주기는 랩 미션 「세포 나눔」에 셈.
+  - **Firestore 규칙 필요** (아래 「세포 풀어주기 규칙」). 없으면 「아직 광장 풀어주기가 열리지 않았어요」.
+  - 새 세포 시리즈 2 · 52종 (`s:2`, id `s2…`): 강아지 고양이 토끼 곰 돼지 여우 판다 햄스터 개구리 오리 펭귄 코알라 사자 호랑이 너구리 양 젖소 부엉이 고래 문어 공룡 고슴도치 / 햄버거 도넛 컵케이크 조각 케이크 피자 초밥 마카롱 푸딩 식빵 타코 쿠키 딸기 체리 사과 아보카도 수박 / 나무 전나무 선인장 버섯 튤립 해바라기 구름 달 / 유령 슬라임 로봇 주사위 선물 상자 풍선. 비선물 150종. 색 여러 가지 `cols` [[c,d,a]…]: 뽑을 때 하나(`o.cv`, 동기화 필드), 세포 상세 색 동그라미로 바꿈, drawPet `st.cv`, 광장 대표 `repCv`.
+  - 열리는 조건: `S2_START='2026-11-30'` 이후 + 시리즈 1 도감 `S2_NEED=88`마리 이상(`petS2On`). 열리면 뽑기에 섞이고, 보너스 뽑기 중 따라잡기 · 들르기 · 친화도 Lv.5 · 하루 기록 5건은 더 안 줌(랩 미션 · 깜짝 선물 · Lv.10 · 게임 1위는 그대로). 도감: 시리즈 1 · 시리즈 2 따로(시리즈 2는 11/30부터 보임, 안 열렸으면 「도감 88마리부터」).
+  - 정자 얼굴: `PET_FACE_DX={sperm:-3}`로 눈 · 볼 · 입을 머리 쪽으로.
+  - Media 병: 실제 보관병 모양(넓은 뚜껑, 짧은 목, 비스듬한 어깨, 옆 손잡이 홈, 눈금, 작은 얼굴).
+  - NEWS id 2026-11-28d, 공지 줄마다 끝나는 날(`NEWS.notices`): 꽃 · 응가 12/4까지, 「11/30(월)부터 새 세포 52종」 12/6까지.
+  - 고친 버그: 이번에 넣은 보너스 줄이기 줄의 주석이 `a.push(key); savePets();`까지 덮어 보너스가 안 쌓이던 것 (main에 가기 전에 잡음).
 - 2026-11-28(15): Media 병이 50 ml 튜브보다 작게 보여서 키움 (250: 64×150, 500: 80×178, 50 ml 튜브 40×132). main 반영.
 - 2026-11-28(14): 무드 테마 15종 (유진: 그림 배경처럼 랜덤으로, 원래 것과 섞어서). `data-art="s-…"`: lemon · mint · lavender · peach · sky (가운데 번지는 빛), sunset · aurora (구석 여러 빛), grid (모눈), dots (점 노트), candy (사선 줄), kraft (크라프트 종이), white (흰 바탕 미니멀), blueprint (청사진 격자), matcha (말차), retro (굵은 테두리 + 그림자). 각자 --bg · --side · --psoft · --pri · --acc와 카드(.panel · .composer · .stats) 둥글기 · 그림자 · 테두리. 이 테마들은 그라데이션 금지 규칙의 예외(유진이 원함).
   - 11-28(오늘) 자리에 있던 달팽이를 레몬 빛(s-lemon)과 자리 바꿈 (유진: 오늘은 새 배경 중 제일 예쁜 걸로). main 반영.
