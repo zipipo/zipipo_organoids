@@ -2364,7 +2364,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
   </div>
 </div>
 
-<div id="setModal" class="modal" onclick="if(event.target===this)closeSettings()">
+<div id="setModal" class="modal">
   <div class="mbox set-box">
     <nav class="set-nav">
       <div class="set-h">설정</div>
@@ -2377,7 +2377,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
     <button class="set-x" onclick="closeSettings()" title="닫기 (Esc)"><svg class="ic"><use href="#i-x"/></svg></button>
   </div>
 </div>
-<div id="projMgr" class="modal" onclick="if(event.target===this)this.classList.remove('open')">
+<div id="projMgr" class="modal">
   <div class="mbox" style="width:520px;">
     <h2>프로젝트 관리</h2>
     <div class="mscroll"><p class="set-p" style="margin:0 0 10px;">내 계정에만 저장돼요. 다른 사람은 자기 프로젝트를 따로 만들어요.</p><div class="pj-list"></div>
@@ -2385,7 +2385,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
     <div class="mfoot"><button class="btn btn-out" style="width:100%;" onclick="document.getElementById('projMgr').classList.remove('open')">닫기</button></div>
   </div>
 </div>
-<div id="newsModal" class="modal" onclick="if(event.target===this)closeNews()">
+<div id="newsModal" class="modal">
   <div class="mbox news-box">
     <div class="news-hd"><span class="news-ic"><svg class="ic"><use href="#i-flag"/></svg></span><div><b>새로 생긴 기능</b><small id="newsDate"></small></div></div>
     <ul class="news-list" id="newsList"></ul>
@@ -2688,7 +2688,7 @@ function openStorageInfo(){
   const perLog=logs.length?sz(logs)/logs.length:230, left=Math.max(0,Math.floor((LIM*0.95-total)/perLog));
   let ls=0; const lsK=[]; try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i), b=(k.length+(localStorage.getItem(k)||'').length)*2; ls+=b; lsK.push([k,b]); } }catch(e){}
   const lsTop=lsK.sort((a,b)=>b[1]-a[1]).slice(0,3).filter(x=>x[1]>50*1024);
-  const m=document.createElement('div'); m.className='modal open'; m.onclick=e=>{ if(e.target===m) m.remove(); };
+  const m=document.createElement('div'); m.className='modal open';
   m.innerHTML=`<div class="mbox" style="width:460px;"><h2>저장 공간</h2><div class="mscroll">
     <div class="st-big"><b>${kb(total)}</b> / 1,024 KB <span class="${pct>80?'st-bad':pct>50?'st-warn':'st-ok'}">${pct.toFixed(1)}%</span></div>
     <div class="st-bar"><i style="width:${Math.min(100,pct).toFixed(1)}%"></i></div>
@@ -2713,9 +2713,9 @@ function archPick(m){
 }
 function openArchive(){
   closeDd&&closeDd();
-  const m=document.createElement('div'); m.className='modal open'; m.id='archModal'; m.onclick=e=>{ if(e.target===m) m.remove(); };
+  const m=document.createElement('div'); m.className='modal open'; m.id='archModal';
   m.innerHTML=`<div class="mbox" style="width:440px;"><h2>오래된 기록 엑셀로 정리</h2><div class="mscroll" id="archBody"></div>
-    <div class="mfoot" style="display:flex;gap:8px;"><button class="btn btn-out" style="flex:1;" onclick="archRun(false)">엑셀만 받기</button><button class="btn btn-pri" style="flex:1.4;" onclick="archRun(true)">엑셀 받고 앱에서 지우기</button></div></div>`;
+    <div class="mfoot" style="display:flex;gap:8px;"><button class="btn btn-out" onclick="document.getElementById('archModal').remove()">닫기</button><button class="btn btn-out" style="flex:1;" onclick="archRun(false)">엑셀만 받기</button><button class="btn btn-pri" style="flex:1.4;" onclick="archRun(true)">엑셀 받고 앱에서 지우기</button></div></div>`;
   document.body.appendChild(m); archRender();
 }
 function archRender(){
@@ -5663,15 +5663,7 @@ function renderLineage(){
     </div>${buildLogTable(sel)}`;
 }
 
-// 창 바깥(어두운 배경)을 누르면 닫기. 아래쪽에 선언된 창까지 포함되도록 문서 전체에서 한 번에 처리
-document.addEventListener('click',e=>{
-  if(['planDetailModal','finishModal','branchModal','lineageModal'].includes(e.target.id)) e.target.classList.remove('open');
-});
-['logModal','trashModal','archDetailModal'].forEach(id=>{
-  document.getElementById(id).addEventListener('click',e=>{
-    if(e.target===document.getElementById(id)) document.getElementById(id).classList.remove('open');
-  });
-});
+// 창은 바깥(어두운 배경)을 눌러도 안 닫힘. 「닫기」 · 「취소」 · ×로만 (11-29 유진: 실수로 닫힘)
 
 // ══════════════════════════════════════════
 //  CSV EXPORT
@@ -7279,7 +7271,7 @@ let _pfOldOpen=false;
 function figZoom(id){ const f=figById(id); if(!f) return; figZoomClose();
   const {canvas}=figRender(f,1.5), m=document.createElement('div'); m.id='figZoom'; m.className='fg-zoom';
   m.innerHTML=`<div class="fg-zbox"><div class="fg-zhd"><b>${esc(f.name||'')}</b><button class="tbl-btn" onclick="figZoomClose()">${ic('x','ic-sm')}</button></div><img src="${canvas.toDataURL('image/png')}" alt=""></div>`;
-  m.onclick=e=>{ if(e.target===m) figZoomClose(); }; document.body.appendChild(m); }
+  document.body.appendChild(m); }
 function figZoomClose(){ const m=document.getElementById('figZoom'); if(m) m.remove(); }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&document.getElementById('figZoom')){ e.stopPropagation(); figZoomClose(); } },true);
 function figMarkPpt(ids){ const d=ymdLocal(new Date()); let ch=false; ids.forEach(id=>{ const f=figById(id); if(f&&f.pptAt!==d){ f.pptAt=d; ch=true; } }); if(ch) saveFigures(); }
@@ -11129,7 +11121,7 @@ function petGiftCheck(){
     const ov=document.createElement('div'); ov.className='pet-gacha';
     ov.innerHTML=`<div class="pg-card"><div class="pg-ball"><canvas width="48" height="48"></canvas></div><b>선물이 왔어요! ${esc(k.name)}</b><small>${petGiftRule(k.gift).why}</small><div class="pm-btns"><button class="btn btn-out">고마워!</button></div></div>`;
     document.body.appendChild(ov); drawPet(ov.querySelector('canvas'),k.id,{frame:0,mode:'happy'});
-    const close=()=>ov.remove(); ov.querySelector('button').onclick=close; ov.onclick=e=>{ if(e.target===ov) close(); };
+    const close=()=>ov.remove(); ov.querySelector('button').onclick=close;
   }, i*400));
 }
 function petWalkAll(on){ petSt.active=on?Object.keys(petSt.owned):[]; savePets(); petSync(); _petRefresh(); }
@@ -11679,7 +11671,7 @@ async function plazaSend(to,kind,cellId){
 function closePlazaPick(){ document.getElementById('plzPick')?.remove(); }
 function plazaPickCell(to){
   const dup=PET_KINDS.filter(k=>!k.gift&&petSt.owned[k.id]&&(petSt.owned[k.id].n||1)>=2);
-  const m=document.createElement('div'); m.id='plzPick'; m.className='pet-gacha'; m.onclick=e=>{ if(e.target===m) closePlazaPick(); };
+  const m=document.createElement('div'); m.id='plzPick'; m.className='pet-gacha';
   m.innerHTML=`<div class="pg-card" style="width:min(420px,92vw)"><b>어떤 세포를 보낼까요?</b><small>겹친 세포만 · 하루 1번</small>
     <div class="pet-dex" style="margin:10px 0;max-height:300px;overflow:auto;">${dup.length?dup.map(k=>`<button class="dex" onclick="plazaSend('${to}','cell','${k.id}')"><canvas data-k="${k.id}" width="48" height="48"></canvas><span>${esc(k.name)} ×${petSt.owned[k.id].n}</span></button>`).join(''):'<p class="set-p">아직 겹친 세포가 없어요</p>'}</div>
     <div class="pm-btns"><button class="btn btn-out" onclick="closePlazaPick()">닫기</button></div></div>`;
@@ -12021,7 +12013,7 @@ async function mailDel(id){ if(!confirm('이 편지를 지울까요?')) return; 
 function mailBadge(n){ const b=document.getElementById('mailNavN'); if(b) b.textContent=n?n:''; }
 // 우체통은 설정이 아니라 사이드바에서 여는 작은 창 (11-28)
 function mailOpen(){ if(typeof closeSide==='function') closeSide(); let m=document.getElementById('mailModal');
-  if(!m){ m=document.createElement('div'); m.id='mailModal'; m.className='modal open'; m.onclick=e=>{ if(e.target===m) m.remove(); }; m.innerHTML='<div class="mbox mail-box"><button class="set-x" onclick="document.getElementById(\'mailModal\').remove()">'+ic('x')+'</button><div id="mailBody"></div></div>'; document.body.appendChild(m); }
+  if(!m){ m=document.createElement('div'); m.id='mailModal'; m.className='modal open'; m.innerHTML='<div class="mbox mail-box"><button class="set-x" onclick="document.getElementById(\'mailModal\').remove()">'+ic('x')+'</button><div id="mailBody"></div></div>'; document.body.appendChild(m); }
   m.classList.add('open'); mailRender(); }
 function mailRender(){ const b=document.getElementById('mailBody'); if(!b) return; b.innerHTML=mailHTML(); mailLoadInbox(); }
 // 관리자가 로그인하면 안 읽은 편지 수를 사이드바 「설정」 옆에 보여준다
@@ -12554,7 +12546,7 @@ function renderMedia(){
   }).join('');
   const add=`<button class="md-addcard" onclick="mdNewDef()">${ic('plus')}<b>새 배지 추가</b><small>${mediaDefs.length?'EM, DM처럼 다른 배지를 하나 더 만들어요':'배지 이름 · 쓰는 종류 · plate별 well당 양을 적어 두면 튜브에서 쓴 만큼 자동으로 빠져요'}</small></button>`;
   // 새 배지: 창을 띄워서 처음 설정 → [만들기]를 누르면 닫힘
-  const modal=_mdDraft?`<div class="modal open" onclick="if(event.target===this){_mdDraft=null;renderMedia();}"><div class="mbox md-draft" id="mdDraftCard" style="width:680px;">
+  const modal=_mdDraft?`<div class="modal open"><div class="mbox md-draft" id="mdDraftCard" style="width:680px;">
       <h2>새 배지 만들기</h2><div class="mscroll">${setHtml(_mdDraft)}</div>
       <div class="mfoot" style="display:flex;gap:8px;"><button class="btn btn-out" style="flex:1;" onclick="_mdDraft=null;renderMedia()">취소</button><button class="btn btn-pri" style="flex:2;" onclick="mdCreateDraft()">만들기</button></div></div></div>`:'';
   el.innerHTML=modal+`<div class="md-grid">${cards}${add}</div>
@@ -13520,7 +13512,7 @@ function expOpen(id,date,lineId){
   // 지금은 칸 없이 자유롭게 쓰는 방식: 예전에 칸으로 적은 값은 메모 앞줄 「칸: 값」으로 옮김
   if((_expD.fields||[]).some(f=>f.v)) _expD.memo=_expD.fields.filter(f=>f.v).map(f=>f.k+': '+f.v).join('\n')+(_expD.memo?'\n'+_expD.memo:''); _expD.fields=[]; _expPast=false;
   let m=document.getElementById('expModal');
-  if(!m){ m=document.createElement('div'); m.id='expModal'; m.className='modal open'; m.onclick=ev=>{ if(ev.target===m) expClose(); }; m.innerHTML='<div class="mbox ex-box"></div>'; document.body.appendChild(m); }
+  if(!m){ m=document.createElement('div'); m.id='expModal'; m.className='modal open'; m.innerHTML='<div class="mbox ex-box"></div>'; document.body.appendChild(m); }
   m.classList.add('open'); expRender();
   setTimeout(()=>{ const n=document.getElementById('exName'); if(n&&!_expD.name) n.focus(); },30);
 }
@@ -13609,7 +13601,7 @@ if(curTab==='ana'||curTab==='diary'||curTab==='media'||curTab==='fig'||curTab===
     </div>
   </div>
 </div>
-<div id="wbCmpModal" class="modal" onclick="if(event.target===this)closeWbCompare()">
+<div id="wbCmpModal" class="modal">
   <div class="mbox" style="width:960px;">
     <h2>보정 전/후 비교</h2>
     <div class="mscroll" id="wbCmpBody"></div>
@@ -13634,7 +13626,7 @@ if(curTab==='ana'||curTab==='diary'||curTab==='media'||curTab==='fig'||curTab===
     </div>
   </div>
 </div>
-<div id="pptLayModal" class="modal" onclick="if(event.target===this)closePptLay()">
+<div id="pptLayModal" class="modal">
   <div class="mbox" style="width:1080px;">
     <h2>슬라이드 배치 · 미리보기</h2>
     <div class="mscroll" id="plBody"></div>
