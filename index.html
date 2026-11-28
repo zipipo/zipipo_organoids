@@ -1559,8 +1559,14 @@ body.pet-on[data-tab="today"] #petLayer{display:block;}
 .pz-modal{align-items:center;padding:3vh 3vw;} .pz-box{width:min(1180px,94vw);height:min(760px,88vh);max-width:none;display:flex;flex-direction:column;padding:14px 16px;}
 .pz-hd{display:flex;align-items:center;gap:8px;margin-bottom:10px;} .pz-hd b{font-size:1.05rem;} .pz-hd span{font-size:.76rem;color:var(--mut);} .pz-hd .pz-dance{margin-left:auto;height:30px;padding:0 12px;background:#FFF1D6;color:#8A5A12;border:1px solid #EFC77D;font-weight:700;border-radius:8px;} .pz-hd .pz-dance:hover{background:#FFE7B8;} .pz-hd .tbl-btn{margin-left:4px;}
 .pz-body{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:14px;} .pz-field{border:1px solid #BFDDA5;border-radius:14px;overflow:hidden;background:#DDEFC9;min-height:0;} .pz-field canvas{display:block;image-rendering:pixelated;}
-.pz-side{overflow-y:auto;min-height:0;padding-right:4px;} .pz-side .set-row{gap:10px;}
-@media (max-width:900px){ .pz-body{grid-template-columns:1fr;grid-template-rows:300px auto;overflow:auto;} .pz-side{overflow:visible;} }
+.pz-sidewrap{display:flex;flex-direction:column;min-height:0;gap:8px;} .pz-tabs{display:flex;gap:4px;flex:none;} .pz-tabs .seg{flex:1;height:34px;border:1px solid var(--bd);border-radius:10px;background:var(--sur);font:inherit;font-size:.84rem;font-weight:600;color:var(--sub);cursor:pointer;position:relative;}
+.pz-tabs .seg.on{background:var(--pri);border-color:var(--pri);color:#fff;} .pz-dot{position:absolute;top:-6px;right:-4px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#E0566B;color:#fff;font-style:normal;font-size:.68rem;line-height:18px;}
+.pz-hd .pz-x{margin-left:auto;} .pz-hd .pz-dance+.pz-x{margin-left:0;} .pz-nofield{width:min(520px,94vw);} .pz-nofield .pz-body{grid-template-columns:1fr;}
+.pz-prof input{width:170px;}
+.pz-nofield{height:auto;max-height:88vh;} .pz-nofield .pz-body{min-height:0;overflow:auto;}
+.pz-strip{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 8px;margin-bottom:4px;} .pz-strip .dex{flex:none;width:68px;position:relative;} .pz-rep{position:absolute;top:2px;right:2px;font-style:normal;font-size:.6rem;font-weight:700;background:#E0566B;color:#fff;border-radius:6px;padding:0 4px;}
+.pz-side{flex:1;overflow-y:auto;min-height:0;padding-right:4px;} .pz-side .set-row{gap:10px;}
+@media (max-width:900px){ .pz-body{grid-template-columns:1fr;grid-template-rows:300px auto;overflow:auto;} .pz-nofield .pz-body{grid-template-rows:auto;} .pz-side{overflow:visible;} }
 .panel.sec.sec-board > .panel-hd{flex-wrap:wrap;row-gap:6px;height:auto;min-height:46px;padding-top:6px;padding-bottom:6px;} .sec-board .panel-hd>span:first-child{white-space:nowrap;} .sec-board .panel-act{flex-wrap:wrap;}   /* 휴대폰: 제목이 세로로 쪼개지지 않게, 버튼은 다음 줄로 */
 .side-plaza{margin-top:auto;padding:10px 8px 0;} .side-plaza+.side-incu{margin-top:0;padding-top:8px;}
 .pm-box{border:1px solid #BFDDA5;border-radius:12px;overflow:hidden;background:#DDEFC9;cursor:pointer;} .pm-hd{display:flex;justify-content:space-between;align-items:center;padding:4px 8px;font-size:.7rem;color:#46663A;background:#CFE7B6;} .pm-hd b{font-weight:800;}
@@ -2294,7 +2300,7 @@ html:is([data-font="nanumgothic"],[data-font="nanumbarun"],[data-font="gowun"]) 
       <button data-st="font" onclick="renderSettings('font')"><svg class="ic"><use href="#i-edit"/></svg>글씨체</button>
       <button data-st="home" onclick="renderSettings('home')"><svg class="ic"><use href="#i-today"/></svg>홈 화면</button>
       <button data-st="mc" onclick="renderSettings('mc')"><svg class="ic"><use href="#i-drop"/></svg>MC 주기</button>
-      <button data-st="pet" onclick="renderSettings('pet')"><svg class="ic"><use href="#i-paw"/></svg>세포</button>
+      <button data-st="pet" onclick="closeSettings();hubOpen('me')"><svg class="ic"><use href="#i-paw"/></svg>세포 · 광장</button>
       <button data-st="stamp" onclick="renderSettings('stamp')"><svg class="ic"><use href="#i-flower"/></svg>도장판</button>
       <button data-st="ln2" onclick="renderSettings('ln2')"><svg class="ic"><use href="#i-tank"/></svg>LN2</button>
       <button data-st="plaza" onclick="renderSettings('plaza')"><svg class="ic"><use href="#i-heart"/></svg>광장</button>
@@ -10805,11 +10811,11 @@ function petPanelHTML(){
   const draw=`<div class="set-sec pet-draw"><div><b>오늘의 뽑기</b><small>${can?'':'내일 또 만나요'}</small></div><span class="pd-btns">${tkBtn}<button class="btn ${can?'btn-pri':'btn-out'}" ${can?'':'disabled'} onclick="petGacha()"><svg class="ic"><use href="#i-gift"/></svg>뽑기</button></span></div>`;
   const got=plazaGotHTML();
   const dex=`<div class="set-sec"><h4 class="dex-hd">도감 <span class="mail-n">${petDexCount()} / ${PET_KINDS.filter(k=>!k.gift).length}</span>${own.length?`<span class="dex-all"><button class="link-btn" onclick="petWalkAll(true)">모두 산책</button><button class="link-btn" onclick="petWalkAll(false)">모두 쉬기</button></span>`:''}</h4><div class="pet-dex">${PET_KINDS.filter(k=>!k.gift).map(k=>{ const o=petSt.owned[k.id];
-      return o ? `<button class="dex${_petSel===k.id?' on':''}${petSt.active.includes(k.id)?' walk':''}" onclick="_petSel='${k.id}';renderSettings('pet')" title="${esc(petName(k.id))}"><canvas data-k="${k.id}" width="48" height="48"></canvas><span>${esc(petName(k.id))}</span></button>`
+      return o ? `<button class="dex${_petSel===k.id?' on':''}${petSt.active.includes(k.id)?' walk':''}" onclick="petSelect('${k.id}')" title="${esc(petName(k.id))}"><canvas data-k="${k.id}" width="48" height="48"></canvas><span>${esc(petName(k.id))}</span></button>`
                : `<div class="dex unk"><i>?</i><span>&nbsp;</span></div>`; }).join('')}</div>
       <h4 class="dex-hd" style="margin-top:14px;">도장깨기</h4><div class="pet-dex">${PET_KINDS.filter(k=>k.gift&&(!/^lab/.test(k.gift)||plazaOn())).map(k=>{ const o=petSt.owned[k.id];
         const G=petGiftRule(k.gift); let hv=0; try{ hv=G.have(); }catch(e){} const hint=`${G.lab} ${Math.min(G.need,hv)}/${G.need}${G.unit||''}`;
-        return o ? `<button class="dex${_petSel===k.id?' on':''}${petSt.active.includes(k.id)?' walk':''}" onclick="_petSel='${k.id}';renderSettings('pet')"><canvas data-k="${k.id}" width="48" height="48"></canvas><span>${esc(petName(k.id))}</span><small class="dex-why">${esc(G.lab)} ${G.need}${esc(G.unit||'')}</small></button>`
+        return o ? `<button class="dex${_petSel===k.id?' on':''}${petSt.active.includes(k.id)?' walk':''}" onclick="petSelect('${k.id}')"><canvas data-k="${k.id}" width="48" height="48"></canvas><span>${esc(petName(k.id))}</span><small class="dex-why">${esc(G.lab)} ${G.need}${esc(G.unit||'')}</small></button>`
                  : `<div class="dex unk"><i>?</i><span>${hint}</span></div>`; }).join('')}</div>
 </div>`;
   let det='';
@@ -10821,22 +10827,24 @@ function petPanelHTML(){
     det=`<div class="set-sec pet-det"><div class="pd-hd"><canvas id="petDetCv" width="48" height="48"></canvas><div><b>${esc(petName(id))}</b><small>${esc(K.name)} ${K.gift?'선물':petStars(K.r)} · 함께한 지 ${days}일${o.n>1?` · ${o.n}번 만남`:''}</small></div></div>
       ${(()=>{ const pts=o.pats||0, l=petLvOf(pts), a0=PET_LV[l-1], a1=PET_LV[l]||a0, pc=l>=10?100:Math.round((pts-a0)/(a1-a0)*100), nx=Object.keys(PET_LV_GIFT).map(Number).find(k=>k>l);
         return `<div class="pm-bars"><label>친화도 <b class="pm-lv">Lv.${l}</b><span><i style="width:${pc}%"></i></span></label><label>배부름 <span><i style="width:${full}%"></i></span></label></div>
-        <div class="pm-meta">${l>=10?'최고로 친해요!':`쓰다듬기 ${a1-pts}번 더 하면 Lv.${l+1}`}${nx?` · Lv.${nx}에 ${PET_LV_GIFT[nx]}`:''}</div>`; })()}
+        <div class="pm-meta">${l>=10?'최고로 친해요!':`Lv.${l+1}까지 ${a1-pts}`}</div>`; })()}
       <div class="pm-meta"><svg class="ic"><use href="#i-flower"/></svg> 받은 꽃 ${o.flowers||0}　<svg class="ic"><use href="#i-heart"/></svg> 쓰다듬기 ${o.pats||0}</div>
-      <div class="pm-btns"><button class="btn ${walking?'btn-out':'btn-pri'}" onclick="petWalk('${id}')"><svg class="ic"><use href="#i-paw"/></svg>${walking?'쉬게 하기':'산책 보내기'}</button><button class="btn btn-out" onclick="petFeedAll()"><svg class="ic"><use href="#i-cookie"/></svg>모두 밥 주기</button>${walking?`<button class="btn btn-out" onclick="petPin('${id}');renderSettings('pet')"><svg class="ic"><use href="#i-${(PETS.find(p=>p.id===id)||{}).pinned?'paw':'pin'}"/></svg>${(PETS.find(p=>p.id===id)||{}).pinned?'움직이기':'멈추기'}</button>`:''}<button class="btn btn-out" onclick="petRename('${id}')"><svg class="ic"><use href="#i-edit"/></svg>이름 짓기</button></div></div>`;
+      <div class="pm-btns"><button class="btn ${walking?'btn-out':'btn-pri'}" onclick="petWalk('${id}')"><svg class="ic"><use href="#i-paw"/></svg>${walking?'쉬게 하기':'산책 보내기'}</button><button class="btn btn-out" onclick="petFeedAll()"><svg class="ic"><use href="#i-cookie"/></svg>모두 밥 주기</button>${walking?`<button class="btn btn-out" onclick="petPin('${id}');renderSettings('pet')"><svg class="ic"><use href="#i-${(PETS.find(p=>p.id===id)||{}).pinned?'paw':'pin'}"/></svg>${(PETS.find(p=>p.id===id)||{}).pinned?'움직이기':'멈추기'}</button>`:''}<button class="btn btn-out" onclick="petRename('${id}')"><svg class="ic"><use href="#i-edit"/></svg>이름 짓기</button>${plazaOn()&&mailUser()?`<button class="btn ${plazaRep()===id?'btn-pri':'btn-out'}" onclick="plazaSetRep('${id}')"><svg class="ic"><use href="#i-heart"/></svg>${plazaRep()===id?'광장 대표':'광장 대표로'}</button>`:''}</div></div>`;
   }
   const tg=`<div class="set-sec"><label class="set-row"><span><b>홈 화면에 세포 보이기</b></span><input type="checkbox" class="set-tg" ${petSt.hidden?'':'checked'} onchange="petHide()"></label></div>`;
+  _pp={got,draw,det,dex,tg};
   return got+draw+det+dex+tg;
 }
+let _pp={};
 function petPanelDraw(){
   const c=document.getElementById('petDetCv'); if(c&&_petSel) drawPet(c,_petSel,{frame:0,mode:'happy'});
   document.querySelectorAll('.pet-dex canvas[data-k]').forEach(c=>drawPet(c,c.dataset.k,{frame:0,mode:'idle'}));
 }
-function petMenu(){ openSettings('pet'); }
+function petMenu(){ hubOpen('me'); }
 // 화면에서 누른 세포의 설정을 바로: 설정 › 세포에서 그 세포를 골라 둔 채로 열고, 그 칸으로 내려가 잠깐 빛나게
-function petOpenSet(id){ petPopClose(); if(id&&petSt.owned[id]) _petSel=id; openSettings('pet');
+function petOpenSet(id){ petPopClose(); if(id&&petSt.owned[id]) _petSel=id; hubOpen('me');
   setTimeout(()=>{ const d=document.querySelector('.pet-det'); if(!d) return; d.scrollIntoView({block:'nearest',behavior:'smooth'}); d.classList.add('pd-flash'); setTimeout(()=>d.classList.remove('pd-flash'),1400); },60); }
-function _petRefresh(){ if(typeof _setTab!=='undefined' && _setTab==='pet' && document.getElementById('setModal').classList.contains('open')) renderSettings('pet'); }
+function _petRefresh(){ if(document.getElementById('plazaModal')) hubRender(); }
 // 선물: 조건을 채우면 그 친구가 도감에 들어오고 바로 산책. 작은 축하 창
 const petDexCount=()=>Object.keys(petSt.owned).filter(id=>{ const k=petKind(id); return k&&!k.gift; }).length;
 // 도장깨기: 조건마다 친구 하나. need = 목표, have() = 지금까지. 기록 · 작업은 「도장깨기 시작일」(petSt.giftStart) 이후 것만 셈
@@ -10984,7 +10992,9 @@ let _petAway=0; document.addEventListener('visibilitychange',()=>{ if(document.h
 // ══════════════════════════════════════════
 let _setTab='look';
 function openSettings(tab){ const pb=document.querySelector('.set-nav button[data-st="plaza"]'); if(pb) pb.style.display='none';   // 광장은 설정이 아니라 메인 광장을 눌러 크게 엶
-  if(tab==='plaza'){ if(plazaOn()) return plazaOpen(); tab='look'; } document.getElementById('setModal').classList.add('open'); renderSettings(tab||_setTab); }
+  if(tab==='plaza') return hubOpen('plaza'); if(tab==='pet') return hubOpen('me');   // 세포 · 광장은 한 창 (11-28)
+  if(!tab&&_setTab==='pet') tab='look';
+  document.getElementById('setModal').classList.add('open'); renderSettings(tab||_setTab); }
 function closeSettings(){ document.getElementById('setModal').classList.remove('open'); }
 function incuOn(){ try{ return localStorage.getItem('orgIncuOff')!=='1'; }catch(e){ return true; } }
 function setIncu(on){ try{ localStorage.setItem('orgIncuOff', on?'0':'1'); }catch(e){} document.body.classList.toggle('incu-off',!on); }
@@ -11008,6 +11018,7 @@ const ART_CARDS=[
 
 ];
 function renderSettings(tab){
+  if(tab==='pet'){ if(document.getElementById('plazaModal')) hubRender(); return; }   // 세포는 세포 · 광장 창에서
   _setTab=tab||'look';
   document.querySelectorAll('.set-nav button').forEach(b=>b.classList.toggle('on',b.dataset.st===_setTab));
   const el=document.getElementById('setBody'); let h='';
@@ -11100,13 +11111,12 @@ function labMissionHTML(){
   const wk=plazaWeek(), ppl=plazaWeekPeople(wk), ms=labMissionsOf(wk), won=labWinN();
   const rows=ms.map(m=>{ const v=labMissionVal(m,ppl), ok=v>=m.need, pct=Math.min(100,Math.round(v/m.need*100));
     return `<div class="lm-row${ok?' ok':''}"><div class="lm-hd"><em class="lm-cat">${m.cat}</em><b>${esc(m.name)}</b><span>${ok?'달성!':`${v} / ${m.need} ${esc(m.unit)}`}</span></div>
-      <div class="plz-bar"><i style="width:${pct}%"></i></div>${m.how?`<small>${esc(m.how)}</small>`:''}</div>`; }).join('');
+      <div class="plz-bar"><i style="width:${pct}%"></i></div></div>`; }).join('');
   const nDone=ms.filter(m=>labMissionVal(m,ppl)>=m.need).length;
   const next=PET_KINDS.filter(k=>/^lab\d*$/.test(k.gift||'')&&!petSt.owned[k.id]).map(k=>({k,R:petGiftRule(k.gift)})).sort((a,b)=>a.R.need-b.R.need)[0];
   const d=new Date(wk+'T00:00:00'); d.setDate(d.getDate()+6);
   return `<div class="set-sec plz-goal"><h4>이번 주 랩 미션 <span class="mail-n">${nDone}/3</span><small class="lm-wk">~ ${d.getMonth()+1}/${d.getDate()} · ${ppl.length}명이 함께</small></h4>${rows}
-    <small class="lm-foot">${(()=>{ const S=petSurpriseOf(wk), t0=ymdLocal(new Date()), h=new Date().getHours(), got=(petSt.tkKeys||[]).includes('sp:'+wk), past=t0>S.date||(t0===S.date&&h>=S.en);
-      return past||got?`이번 주 깜짝 선물: ${['월','화','수','목','금'][S.dow]} ${S.st}–${S.en}시 · ${got?'받았어요':'놓쳤어요'}`:'이번 주 깜짝 선물 시간: 평일 낮 어느 2시간 (비밀)'; })()} · 미션 하나 깰 때마다 보너스 뽑기 1장<br>지금까지 같이 깬 미션 <b>${won}</b>개${next?` · 다음 선물 「${esc(next.k.name)}」 ${next.R.need}개`:''}${labAllWeeks()?` · 올클리어 ${labAllWeeks()}번`:' · 3개 모두 깨면 「올클리어 왕관」'}</small></div>`;
+    <small class="lm-foot">같이 깬 미션 <b>${won}</b>${next?` · 다음 「${esc(next.k.name)}」 ${next.R.need}`:''}</small></div>`;
 }
 let _plaza=null, _plazaErr='', _plazaOff=false;
 // ── 광장 꾸미기: 모두 같이 쓰는 광장. 랩 전체 누적 기록(각자 광장 프로필의 tot를 더함)이 기준을 넘으면 물품이 정해진 자리에 생김
@@ -11410,12 +11420,9 @@ function plazaRender(){
 }
 function plazaHTML(){
   const u=mailUser();
-  if(!u) return `<h3>광장</h3><div class="set-sec"><p class="set-p">Google 로그인하면 이 사이트를 쓰는 사람들과 세포를 구경하고 선물할 수 있어요.</p><button class="btn btn-pri" onclick="cloudToggle()">Google 로그인</button></div>`;
-  return `<div class="set-sec"><label class="set-row"><span><b>내 별명</b></span><input id="plzNickIn" value="${esc(plazaNick())}" maxlength="12" style="width:130px;" onchange="plazaSetNick(this.value)"></label>
-    <label class="set-row"><span><b>한 줄 상태</b></span><input id="plzMsgIn" value="${esc((()=>{ try{ return localStorage.getItem('orgPlazaMsg')||''; }catch(e){ return ''; } })())}" maxlength="24" placeholder="오늘은 split 데이" style="width:180px;" oninput="plazaSetMsg(this.value)" onchange="plazaSetMsg(this.value,true)"></label>
-    <div class="set-row plz-reprow"><span><b>광장 대표 세포</b><small>메인 화면 광장에 이 세포가 나가 돌아다녀요</small></span></div>
-    <div class="plz-reps">${Object.keys(petSt.owned).filter(id=>petKind(id)).map(id=>`<button class="plz-rep${id===plazaRep()?' on':''}" onclick="plazaSetRep('${id}')" title="${esc(plazaCellName(id))}"><canvas data-k="${id}" width="48" height="48"></canvas><span>${esc(plazaCellName(id))}</span></button>`).join('')||'<p class="set-p">아직 세포가 없어요.</p>'}</div>
-    <div id="plazaList"><p class="set-p">불러오는 중…</p></div>`;
+  if(!u) return `<div class="set-sec"><button class="btn btn-pri" onclick="cloudToggle()">Google 로그인</button></div>`;
+  if(!plazaOn()) return `<div class="set-sec"><p class="set-p">-</p></div>`;
+  return `<div id="plazaList"><p class="set-p">불러오는 중…</p></div>`;
 }
 // 보내기: 꽃은 하루 3번, 세포는 겹친(2마리 이상) 친구만 하루 1번. 보내면 내 쪽 마릿수가 하나 줄어요
 function _plazaDay(k){ const d=petTodayKey(); petSt.sent=petSt.sent||{}; if(petSt.sent.d!==d) petSt.sent={d,flower:0,cell:0}; return petSt.sent; }
@@ -11468,7 +11475,7 @@ function plazaGotPop(got){
     <div class="pm-btns">${cells.length?'<button class="btn btn-pri" id="gotGo">만나러 가기</button>':''}<button class="btn btn-out" id="gotOk">고마워요</button></div></div>`;
   document.body.appendChild(ov); ov.querySelectorAll('canvas[data-k]').forEach(c=>drawPet(c,c.dataset.k,{frame:0,mode:'happy'}));
   ov.querySelector('#gotOk').onclick=()=>ov.remove();
-  const go=ov.querySelector('#gotGo'); if(go) go.onclick=()=>{ ov.remove(); _petSel=cells[0].cellId; try{ openSettings('pet'); }catch(e){ try{ renderSettings('pet'); }catch(_){} } };
+  const go=ov.querySelector('#gotGo'); if(go) go.onclick=()=>{ ov.remove(); _petSel=cells[0].cellId; try{ hubOpen('me'); }catch(e){ try{ renderSettings('pet'); }catch(_){} } };
 }
 function plazaGotHTML(){ const L=(petSt.gotLog||[]).filter(g=>Date.now()-g.ts<14*864e5).slice(-5).reverse(); if(!L.length) return '';
   const md=t=>{ const d=new Date(t); return `${d.getMonth()+1}/${d.getDate()}`; };
@@ -11644,23 +11651,48 @@ function pmTick(){
   });
 }
 // 크게 연 광장: 왼쪽 큰 풀밭(모두 이름표), 오른쪽 내 설정 · 랩 목표 · 함께 쓰는 사람
-function plazaOpen(){
-  if(typeof closeSide==='function') closeSide();   // 휴대폰에서 열린 메뉴는 닫고 광장만
-  if(!mailUser()) return toast('Google 로그인하면 광장에 들어갈 수 있어요',{warn:true});
-  plazaClose();
+// 세포 · 광장 한 창 (11-28 유진: 설정 › 세포와 광장을 합쳐서). 왼쪽 풀밭(광장 사람들 세포), 오른쪽 탭 내 세포 · 도감 · 광장
+// 로그인 안 했거나 광장이 꺼져 있으면 풀밭 없이 오른쪽 칸만 넓게
+let _hubTab='me';
+function plazaOpen(){ hubOpen('plaza'); }
+function petSelect(id){ _petSel=id; _hubTab='me'; hubRender(); const s=document.getElementById('pzSide'); if(s) s.scrollTop=0; }
+function hubOpen(tab){
+  if(typeof closeSide==='function') closeSide();   // 휴대폰에서 열린 메뉴는 닫고
+  if(tab) _hubTab=tab; if(typeof petPopClose==='function') petPopClose();
+  if(document.getElementById('plazaModal')){ hubRender(); return; }
+  const ppl=plazaMiniPeople()||[], field=!!(mailUser()&&plazaOn()&&!_plazaOff&&ppl.length);
   const m=document.createElement('div'); m.id='plazaModal'; m.className='modal open pz-modal'; m.onclick=e=>{ if(e.target===m) plazaClose(); };
-  m.innerHTML=`<div class="mbox pz-box"><div class="pz-hd"><b>광장</b><span id="pzN"></span><button class="btn pz-dance" onclick="plazaDance()">${ic('music','ic-sm')}다같이 춤추기</button><button class="tbl-btn" onclick="plazaClose()">${ic('x','ic-sm')}</button></div>
-    <div class="pz-body"><div class="pz-field"><canvas id="pzCv"></canvas></div><div class="pz-side" id="pzSide"></div></div></div>`;
+  m.innerHTML=`<div class="mbox pz-box${field?'':' pz-nofield'}"><div class="pz-hd"><b>세포</b><span id="pzN"></span>${field?`<button class="btn pz-dance" onclick="plazaDance()">${ic('music','ic-sm')}다같이 춤추기</button>`:''}<button class="tbl-btn pz-x" onclick="plazaClose()">${ic('x','ic-sm')}</button></div>
+    <div class="pz-body">${field?'<div class="pz-field"><canvas id="pzCv"></canvas></div>':''}<div class="pz-sidewrap"><div class="pz-tabs" id="pzTabs"></div><div class="pz-side" id="pzSide"></div></div></div></div>`;
   document.body.appendChild(m);
+  hubRender();
+  if(!field) return;
   const f=m.querySelector('.pz-field'), W=f.clientWidth, H=f.clientHeight, cv=document.getElementById('pzCv');
   const sm=W<560;   // 휴대폰: 세포 · 글자를 줄여 덜 겹치게
   _pmBig={ents:[],t:null,frame:0,W,H,deco:null,sp:PET_N*PET_PX*(sm?0.8:1.15),k:sm?1.3:1.9,fs:sm?10:12,cvId:'pzCv',hover:1};
   cv.width=W*2; cv.height=H*2; cv.style.width=W+'px'; cv.style.height=H+'px';
   pmDragInit(cv);
-  const ppl=plazaMiniPeople()||[]; pmWith(_pmBig,()=>pmSetEnts(ppl)); document.getElementById('pzN').textContent=`${ppl.length}명`;
+  pmWith(_pmBig,()=>pmSetEnts(ppl)); document.getElementById('pzN').textContent=`${ppl.length}명`;
   _pmBig.t=setInterval(()=>pmWith(_pmBig,pmTick),140);
-  plazaPanelRefresh();
 }
+function hubRender(){ const side=document.getElementById('pzSide'), tb=document.getElementById('pzTabs'); if(!side) return;
+  const T=[['me','내 세포'],['dex','도감'],['plaza','광장']];
+  if(tb) tb.innerHTML=T.map(([k,t])=>`<button class="seg${_hubTab===k?' on':''}" onclick="_hubTab='${k}';hubRender()">${t}${k==='me'&&petTickets()?`<i class="pz-dot">${petTickets()}</i>`:''}</button>`).join('');
+  const keep=side.scrollTop; petPanelHTML(); const P=_pp; let h='';
+  if(_hubTab==='me') h=plazaProfileHTML()+P.got+P.draw+hubStripHTML()+(P.det||'');
+  else if(_hubTab==='dex') h=P.dex;
+  else h=plazaHTML();
+  side.innerHTML=h; side.scrollTop=keep;
+  petPanelDraw(); side.querySelectorAll('.pz-strip canvas[data-k]').forEach(c=>drawPet(c,c.dataset.k,{frame:0,mode:'idle'})); side.querySelectorAll('.plz-reps canvas[data-k]').forEach(c=>drawPet(c,c.dataset.k,{frame:0,mode:'idle'}));
+  if(_hubTab==='plaza') plazaLoad(); }
+// 내 세포 줄: 산책 중 먼저, 누르면 아래 상세가 그 세포로
+function hubStripHTML(){ const ids=Object.keys(petSt.owned).filter(id=>petKind(id)).sort((a,b)=>(petSt.active.includes(b)-petSt.active.includes(a))||petLv(b)-petLv(a));
+  if(!ids.length) return ''; const rep=mailUser()&&plazaOn()?plazaRep():'';
+  return `<div class="pz-strip">${ids.map(id=>`<button class="dex${_petSel===id?' on':''}${petSt.active.includes(id)?' walk':''}" onclick="petSelect('${id}')" title="${esc(petName(id))}"><canvas data-k="${id}" width="48" height="48"></canvas><span>${esc(petName(id))}</span>${id===rep?'<i class="pz-rep">대표</i>':''}</button>`).join('')}</div>`; }
+// 내 프로필 (광장에 보이는 별명 · 한 줄 상태): 로그인 + 광장이 열려 있을 때만
+function plazaProfileHTML(){ if(!mailUser()||!plazaOn()) return '';
+  return `<div class="set-sec pz-prof"><label class="set-row"><span><b>별명</b></span><input id="plzNickIn" value="${esc(plazaNick())}" maxlength="12" onchange="plazaSetNick(this.value)"></label>
+    <label class="set-row"><span><b>한 줄 상태</b></span><input id="plzMsgIn" value="${esc((()=>{ try{ return localStorage.getItem('orgPlazaMsg')||''; }catch(e){ return ''; } })())}" maxlength="24" placeholder="오늘은 split 데이" oninput="plazaSetMsg(this.value)" onchange="plazaSetMsg(this.value,true)"></label></div>`; }
 // 큰 광장에서 세포 끌어 옮기기 (내 화면에서만): 놓은 자리에 8초 머물다가 원래 걷던 길로 천천히 돌아감
 function pmDragInit(cv){
   cv.style.touchAction='none';
@@ -11676,8 +11708,7 @@ function pmDragInit(cv){
 }
 function plazaClose(){ const m=document.getElementById('plazaModal'); if(m) m.remove(); if(_pmBig&&_pmBig.t) clearInterval(_pmBig.t); _pmBig=null; }
 // 오른쪽 칸 (예전 설정 › 광장 내용)
-function plazaPanelRefresh(){ const el=document.getElementById('pzSide'); if(!el) return;
-  el.innerHTML=plazaHTML(); el.querySelectorAll('.plz-reps canvas[data-k]').forEach(c=>drawPet(c,c.dataset.k,{frame:0,mode:'idle'})); plazaLoad(); }
+function plazaPanelRefresh(){ if(document.getElementById('pzSide')) hubRender(); }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&document.getElementById('plazaModal')) plazaClose(); });
 // 로그인 뒤 · 5분마다 광장 사람들 불러오기
 async function plazaMiniLoad(){ if(!mailUser()||!fbDb||!plazaOn()||_plazaOff){ plazaMiniSync(); return; } plazaPublish(); await plazaFetch(); }
@@ -11748,6 +11779,8 @@ setTimeout(async()=>{ if(!mailUser()||!fbDb) return; try{ const q=await fbDb.col
 //  칭찬 도장판 (11-28 유진): 기록(배양 · 실험)을 남긴 날마다 도장 하나, 10칸 채우면 보너스 뽑기
 //  기록에서 바로 셈 (따로 저장 안 함, 기기끼리 기록만 맞으면 같음). 시작일 petSt.stampStart부터. 새 도장은 저장할 때 찍히는 모습
 // ══════════════════════════════════════════
+// STAMP_ON: 유진 11-28 「기능만 만들어 두고 이번엔 메인에 ㄴㄴ」 → 꺼 둠. 켜면 설정 › 도장판 · 찍히는 모습 · 판 보너스가 다 살아남
+const STAMP_ON=false;
 const STAMP_N=10, STAMP_WORDS=['참 잘했어요','최고예요','수고했어요','멋져요','대단해요','훌륭해요','잘했어요','고마워요'];
 function stampStartDay(){ if(!petSt.stampStart){ petSt.stampStart=ymdLocal(new Date()); savePets(); } return petSt.stampStart; }
 function stampDays(){ const st=stampStartDay(), t=ymdLocal(new Date()), s=new Set();
@@ -11761,7 +11794,7 @@ function stampHTML(){ const ds=stampDays(), full=Math.floor(ds.length/STAMP_N), 
     <div class="stp-grid">${Array.from({length:STAMP_N},(_,i)=>`<div class="stp-cell">${cur[i]?stampOne(cur[i]):`<i>${i+1}</i>`}</div>`).join('')}</div>
     ${full?`<div class="stp-done">${Array.from({length:Math.min(full,12)},()=>'<span class="stp-mini"></span>').join('')}<small>다 채운 판 ${full}</small></div>`:''}</div>`; }
 // 새 도장 확인: show면 찍히는 모습 (저장 직후), 아니면 조용히 셈만 (앱 열 때). 판을 다 채우면 보너스 뽑기
-function stampCheck(show){ if(typeof petSt==='undefined'||!petSt) return; const ds=stampDays(); let seen=0; try{ seen=+localStorage.getItem('orgStampSeen')||0; }catch(e){}
+function stampCheck(show){ if(!STAMP_ON||typeof petSt==='undefined'||!petSt) return; const ds=stampDays(); let seen=0; try{ seen=+localStorage.getItem('orgStampSeen')||0; }catch(e){}
   const full=Math.floor(ds.length/STAMP_N); for(let k=1;k<=full;k++) petTicketGive('stamp:'+k,'',true);
   if(ds.length>seen&&show){ const d=ds.filter(x=>x===ymdLocal(new Date())).pop()||ds[ds.length-1]; stampPop(d,ds.length); }
   try{ localStorage.setItem('orgStampSeen',ds.length); }catch(e){} }
@@ -11769,6 +11802,7 @@ function stampPop(d,n){ document.querySelector('.stp-ov')?.remove(); const k=n%S
   const ov=document.createElement('div'); ov.className='stp-ov'; ov.innerHTML=`<div class="stp-pop">${stampOne(d,true)}<div class="stp-n">${done?'한 판 다 채웠어요 · 보너스 뽑기':`${k} / ${STAMP_N}`}</div></div>`;
   ov.onclick=()=>ov.remove(); document.body.appendChild(ov); setTimeout(()=>{ ov.classList.add('out'); setTimeout(()=>ov.remove(),400); },done?2600:1700); }
 setTimeout(()=>{ try{ stampCheck(false); }catch(e){} },5000);
+if(!STAMP_ON){ const b=document.querySelector('.set-nav button[data-st="stamp"]'); if(b) b.style.display='none'; }
 // ══════════════════════════════════════════
 //  업데이트 안내: 올린 날부터 5일 동안 열 때마다 보여줌 (「다시 보지 않기」 체크하면 이 버전은 끝)
 //  새 기능을 올릴 때 NEWS의 id · date · items만 바꾸면 됨
@@ -11777,13 +11811,12 @@ const NEWS={id:'2026-11-28', date:'2026-11-28', days:5, items:[
   ['<b>셀 카운터</b>','도구 › 셀 카운터. 큰 칸 몇 칸 합계인지 고르고 Live · Dead(또는 전체) 합계와 부피를 넣으면 cells/mL · 총 세포 · viability가 나와요 (Trypan blue 1:1). 아래 Stock · Pellet · Seeding마다 세포 수를 숫자 눌러 고르면 뜰 부피(µL)가 나오고, 용도는 직접 더할 수 있어요'],
   ['<b>PPT figure 색 조합</b>','Plate map 조건 아래 색 조합(파스텔 · 바다 · 노을 · 숲 · 라벤더 · 차분한 · 색약 배려 · 흑백)을 누르면 조건 · 라인 색이 한 번에 바뀌어요. Control · DMSO는 회색, 같은 약 농도는 한 색의 진하기로. 판 색은 연한 회색 · 흰색 · 옅은 조합 색'],
   ['<b>PPT figure well 글자 줄바꿈</b>','well 글자 칸에서 엔터로 줄을 나눠요 (Ctrl+Enter로 쓰기). 글자가 길면 작게 줄이기보다 먼저 줄을 바꿔요. 편집 창은 이제 「닫기」를 눌러야만 닫혀요'],
-  ['<b>칭찬 도장판</b>','기록을 남긴 날마다 도장 하나, 10칸 채우면 보너스 뽑기. 설정 › 도장판'],
   ['<b>사진 폴더 나누기</b>','이름 · 스케일바에서 저장하면 라인 › 날짜 폴더로 나눠 저장해요. 이미 저장한 사진은 「이미 저장한 사진 정리」로'],
   ['<b>오늘 작업에서 실험 기록</b>','기록 입력 위 「실험 기록」'],
   ['<b>MC 주기</b>','설정 › MC 주기에서 라인 종류마다 MC 경고일 · 지연일을 정해요 (기본 3일 · 4일). 라인 수정의 「MC 주기 따로」에 넣으면 그 라인만 다르게. MC 색 · 「MC 할 날」 · 「MC 지연」 숫자 · 한 번에 고르기가 모두 이 값을 따라요'],
   ['<b>라인 Plate map</b>','배양 라인 표에서 Seeding · Split 줄의 Plate 칸 「+ map」을 누르면 그 기록의 Plate map을 만들어요. 지난 맵이 있으면 조건 · 색 · well을 이어받고, P · d는 그 기록 기준(Split이면 한 뒤). 라인 머리의 「Map PPT」는 그 라인 맵을 시간순으로 PPT로. Split을 저장하면 「Plate map」 이어서 만들기가 떠요'],
   ['<b>연구노트 인쇄 묶기</b>','라인별 · 날짜별 · 프로젝트별 · 프로젝트 › 날짜 중 골라서 인쇄해요. 프로젝트로 거르기도 돼요'],
-  ['<b>세포</b>','친화도 하루 제한이 없어졌어요. 화면의 세포를 누르고 「설정」을 누르면 그 세포 설정이 바로 열려요'],
+  ['<b>세포 · 광장</b>','설정 › 세포와 광장을 한 창으로 합쳤어요 (내 세포 · 도감 · 광장). 친화도 하루 제한은 없어졌어요'],
 ], old:[
   ['<b>다음 Split 예상</b>','지난 Split 간격(최근 3번 평균)으로 라인마다 다음 Split 날을 계산해요. 3일 안이거나 지났으면 배양 현황 라인 이름 옆에 「Split ~11.28」이 뜨고, 누르면 예정 작업에 넣어요. ▾로 펼치면 평균 간격 · 지난번 비율이 보여요'],
   ['<b>라인 찾기</b>','기록 입력의 라인 칸에 번호만 쳐도 돼요(31 → HCC31). ↑↓ · Enter로 고르고, 오늘 작업에서 / 를 누르면 바로 여기로 와요. 아래 「최근」 칩은 방금 기록한 라인 3개'],
